@@ -1,5 +1,7 @@
 ---
-// Page liste des additifs alimentaires — SSG
+// Page liste des additifs alimentaires (SSR — fetch API à chaque requête)
+export const prerender = false
+
 import Layout from '@/layouts/Layout.astro'
 import AdditivesList from '@/components/AdditivesList.tsx'
 
