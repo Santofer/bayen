@@ -1,0 +1,14 @@
+---
+// Page catégorie (SSR)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+
+const { slug } = Astro.params
+---
+
+<Layout title={`Catégorie — Bayen`}>
+  <main>
+    <!-- TODO: liste produits par catégorie -->
+  </main>
+</Layout>

@@ -1,0 +1,47 @@
+# Environnement — JAMAIS commité
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+dist/
+.astro/
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+frontend/.astro/
+frontend/.wrangler/
+
+# Directus extensions build
+directus/extensions/bayen-api/dist/
+directus/extensions/bayen-api/node_modules/
+
+# Directus snapshots — NE PAS ignorer (on les commite)
+# directus/snapshots/*.yaml
+
+# Scripts
+scripts/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker — override local uniquement
+docker-compose.override.yml
+postgres-data/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Divers
+.claude/

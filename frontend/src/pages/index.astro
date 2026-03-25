@@ -1,0 +1,196 @@
+---
+// Page d'accueil Bayen
+import Layout from '@/layouts/Layout.astro'
+import ProductCard from '@/components/ProductCard.tsx'
+
+// Récupérer les produits récents et les stats depuis Directus
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+
+let recentProducts: Record<string, unknown>[] = []
+let totalProducts = 0
+let totalScans = 0
+
+try {
+  // Produits récents (les 6 plus scannés)
+  const productsRes = await fetch(
+    `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&sort=-scan_count&limit=6&fields=id,barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count`,
+    { signal: AbortSignal.timeout(5000) }
+  )
+  if (productsRes.ok) {
+    const data = await productsRes.json()
+    recentProducts = data.data ?? []
+  }
+
+  // Nombre total de produits
+  const countRes = await fetch(
+    `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&aggregate[count]=id`,
+    { signal: AbortSignal.timeout(3000) }
+  )
+  if (countRes.ok) {
+    const countData = await countRes.json()
+    totalProducts = countData.data?.[0]?.count?.id ?? 0
+  }
+
+  // Nombre total de scans
+  const scansRes = await fetch(
+    `${DIRECTUS_URL}/items/scans?aggregate[count]=id`,
+    { signal: AbortSignal.timeout(3000) }
+  )
+  if (scansRes.ok) {
+    const scansData = await scansRes.json()
+    totalScans = scansData.data?.[0]?.count?.id ?? 0
+  }
+} catch {
+  // Pas de données — la page s'affiche quand même
+}
+---
+
+<Layout title="Bayen — Scannez. Comprenez. Choisissez mieux.">
+  <main class="pb-24">
+
+    <!-- Héro -->
+    <section class="relative overflow-hidden bg-gradient-to-b from-primary/5 to-background">
+      <div class="container mx-auto max-w-screen-lg px-4 py-16 sm:py-24 text-center">
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
+          Scannez. Comprenez.<br />
+          <span class="text-primary">Choisissez mieux.</span>
+        </h1>
+        <p class="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
+          Bayen note les produits alimentaires au Maroc de 0 à 100.
+          Scannez un code-barres pour tout savoir sur ce que vous mangez.
+        </p>
+
+        <!-- CTA -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center mt-8">
+          <a
+            href="/scan"
+            class="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground text-base font-medium hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7V5a2 2 0 012-2h2" />
+              <path d="M17 3h2a2 2 0 012 2v2" />
+              <path d="M21 17v2a2 2 0 01-2 2h-2" />
+              <path d="M7 21H5a2 2 0 01-2-2v-2" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+            </svg>
+            Scanner un produit
+          </a>
+          <a
+            href="/recherche"
+            class="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full border text-base font-medium hover:bg-accent transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Rechercher
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="container mx-auto max-w-screen-lg px-4 -mt-4">
+      <div class="grid grid-cols-3 gap-3 sm:gap-6">
+        <div class="rounded-xl border bg-card p-4 text-center">
+          <p class="text-2xl sm:text-3xl font-bold text-primary">
+            {totalProducts.toLocaleString('fr-FR')}
+          </p>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-1">Produits</p>
+        </div>
+        <div class="rounded-xl border bg-card p-4 text-center">
+          <p class="text-2xl sm:text-3xl font-bold text-primary">
+            {totalScans.toLocaleString('fr-FR')}
+          </p>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-1">Scans</p>
+        </div>
+        <div class="rounded-xl border bg-card p-4 text-center">
+          <p class="text-2xl sm:text-3xl font-bold text-primary">100%</p>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-1">Gratuit</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comment ça marche -->
+    <section class="container mx-auto max-w-screen-lg px-4 py-12">
+      <h2 class="text-xl font-bold text-foreground text-center mb-8">Comment ça marche ?</h2>
+      <div class="grid sm:grid-cols-3 gap-6">
+        <div class="text-center">
+          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+              <path d="M3 7V5a2 2 0 012-2h2" />
+              <path d="M17 3h2a2 2 0 012 2v2" />
+              <path d="M21 17v2a2 2 0 01-2 2h-2" />
+              <path d="M7 21H5a2 2 0 01-2-2v-2" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground">1. Scannez</h3>
+          <p class="text-sm text-muted-foreground mt-1">
+            Pointez la caméra vers le code-barres du produit
+          </p>
+        </div>
+        <div class="text-center">
+          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 12l3 3 5-5" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground">2. Comprenez</h3>
+          <p class="text-sm text-muted-foreground mt-1">
+            Score 0–100, Nutri-Score, NOVA, additifs détaillés
+          </p>
+        </div>
+        <div class="text-center">
+          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground">3. Choisissez</h3>
+          <p class="text-sm text-muted-foreground mt-1">
+            Faites de meilleurs choix pour votre santé
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Produits populaires -->
+    {recentProducts.length > 0 && (
+      <section class="container mx-auto max-w-screen-lg px-4 pb-12">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-foreground">Produits populaires</h2>
+          <a href="/recherche" class="text-sm text-primary hover:underline">Voir tout</a>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          {recentProducts.map((product) => (
+            <ProductCard product={product as any} />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- CTA Contribution -->
+    <section class="container mx-auto max-w-screen-lg px-4 pb-8">
+      <div class="rounded-xl bg-primary/5 border border-primary/10 p-6 sm:p-8 text-center">
+        <h2 class="text-lg font-bold text-foreground">Un produit manque ?</h2>
+        <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+          Bayen est construit par la communauté marocaine. Ajoutez les produits que vous trouvez
+          dans vos épiceries et grandes surfaces.
+        </p>
+        <a
+          href="/contribuer"
+          class="inline-flex items-center gap-2 mt-4 px-6 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Ajouter un produit
+        </a>
+      </div>
+    </section>
+
+  </main>
+</Layout>

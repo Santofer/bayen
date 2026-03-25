@@ -1,0 +1,1662 @@
+# Bayen — Snapshot schéma Directus initial
+# Généré le 2026-03-25
+# Collections : products, categories, additives, scans, contributions, ai_logs
+# + champs custom sur directus_users
+
+version: 1
+directus: 11.0.0
+
+collections:
+  # ──────────────────────────────────────────────
+  # PRODUCTS
+  # ──────────────────────────────────────────────
+  - collection: products
+    meta:
+      collection: products
+      icon: grocery
+      note: Produits alimentaires référencés
+      display_template: "{{name_fr}} — {{brand}}"
+      archive_field: status
+      archive_value: rejected
+      unarchive_value: draft
+      sort_field: null
+      accountability: all
+      group: null
+      hidden: false
+      singleton: false
+    schema:
+      name: products
+
+  # ──────────────────────────────────────────────
+  # CATEGORIES
+  # ──────────────────────────────────────────────
+  - collection: categories
+    meta:
+      collection: categories
+      icon: category
+      note: Catégories de produits alimentaires
+      display_template: "{{name_fr}}"
+      sort_field: null
+      accountability: all
+      group: null
+      hidden: false
+      singleton: false
+    schema:
+      name: categories
+
+  # ──────────────────────────────────────────────
+  # ADDITIVES
+  # ──────────────────────────────────────────────
+  - collection: additives
+    meta:
+      collection: additives
+      icon: science
+      note: Additifs alimentaires E-xxx avec niveaux de risque
+      display_template: "{{id}} — {{name_fr}}"
+      sort_field: null
+      accountability: all
+      group: null
+      hidden: false
+      singleton: false
+    schema:
+      name: additives
+
+  # ──────────────────────────────────────────────
+  # SCANS
+  # ──────────────────────────────────────────────
+  - collection: scans
+    meta:
+      collection: scans
+      icon: qr_code_scanner
+      note: Historique des scans utilisateurs
+      display_template: "{{product_id}} — {{date_created}}"
+      sort_field: null
+      accountability: all
+      group: null
+      hidden: false
+      singleton: false
+    schema:
+      name: scans
+
+  # ──────────────────────────────────────────────
+  # CONTRIBUTIONS
+  # ──────────────────────────────────────────────
+  - collection: contributions
+    meta:
+      collection: contributions
+      icon: volunteer_activism
+      note: Contributions communautaires (ajout, correction, photo)
+      display_template: "{{type}} — {{status}}"
+      archive_field: status
+      archive_value: rejected
+      unarchive_value: pending
+      sort_field: null
+      accountability: all
+      group: null
+      hidden: false
+      singleton: false
+    schema:
+      name: contributions
+
+  # ──────────────────────────────────────────────
+  # AI_LOGS
+  # ──────────────────────────────────────────────
+  - collection: ai_logs
+    meta:
+      collection: ai_logs
+      icon: smart_toy
+      note: Logs OCR Tesseract et parsing Mistral
+      display_template: "{{type}} — {{success}}"
+      sort_field: null
+      accountability: all
+      group: null
+      hidden: true
+      singleton: false
+    schema:
+      name: ai_logs
+
+fields:
+  # ════════════════════════════════════════════════
+  # PRODUCTS — champs
+  # ════════════════════════════════════════════════
+  - collection: products
+    field: id
+    type: uuid
+    meta:
+      collection: products
+      field: id
+      special:
+        - uuid
+      interface: input
+      hidden: true
+      width: full
+    schema:
+      name: id
+      data_type: uuid
+      default_value: null
+      is_nullable: false
+      is_primary_key: true
+      has_auto_increment: false
+      generation_expression: gen_random_uuid()
+
+  - collection: products
+    field: barcode
+    type: string
+    meta:
+      collection: products
+      field: barcode
+      interface: input
+      display: raw
+      note: "EAN-13 ou EAN-8"
+      required: true
+      width: half
+    schema:
+      name: barcode
+      data_type: varchar
+      max_length: 13
+      is_nullable: false
+      is_unique: true
+
+  - collection: products
+    field: name_fr
+    type: string
+    meta:
+      collection: products
+      field: name_fr
+      interface: input
+      display: raw
+      note: "Nom en français"
+      required: true
+      width: half
+    schema:
+      name: name_fr
+      data_type: varchar
+      max_length: 255
+      is_nullable: false
+
+  - collection: products
+    field: name_ar
+    type: string
+    meta:
+      collection: products
+      field: name_ar
+      interface: input
+      display: raw
+      note: "Nom en arabe (optionnel)"
+      width: half
+    schema:
+      name: name_ar
+      data_type: varchar
+      max_length: 255
+      is_nullable: true
+
+  - collection: products
+    field: brand
+    type: string
+    meta:
+      collection: products
+      field: brand
+      interface: input
+      display: raw
+      required: true
+      width: half
+    schema:
+      name: brand
+      data_type: varchar
+      max_length: 255
+      is_nullable: false
+
+  - collection: products
+    field: category_id
+    type: integer
+    meta:
+      collection: products
+      field: category_id
+      interface: select-dropdown-m2o
+      display: related-values
+      display_options:
+        template: "{{name_fr}}"
+      special:
+        - m2o
+      width: half
+    schema:
+      name: category_id
+      data_type: integer
+      is_nullable: true
+      foreign_key_table: categories
+      foreign_key_column: id
+
+  - collection: products
+    field: image_front
+    type: uuid
+    meta:
+      collection: products
+      field: image_front
+      interface: file-image
+      display: image
+      special:
+        - file
+      note: "Photo face avant"
+      width: third
+    schema:
+      name: image_front
+      data_type: uuid
+      is_nullable: true
+
+  - collection: products
+    field: image_nutrition
+    type: uuid
+    meta:
+      collection: products
+      field: image_nutrition
+      interface: file-image
+      display: image
+      special:
+        - file
+      note: "Photo tableau nutritionnel"
+      width: third
+    schema:
+      name: image_nutrition
+      data_type: uuid
+      is_nullable: true
+
+  - collection: products
+    field: image_ingredients
+    type: uuid
+    meta:
+      collection: products
+      field: image_ingredients
+      interface: file-image
+      display: image
+      special:
+        - file
+      note: "Photo liste ingrédients"
+      width: third
+    schema:
+      name: image_ingredients
+      data_type: uuid
+      is_nullable: true
+
+  - collection: products
+    field: nutriscore_grade
+    type: string
+    meta:
+      collection: products
+      field: nutriscore_grade
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: A
+            value: A
+          - text: B
+            value: B
+          - text: C
+            value: C
+          - text: D
+            value: D
+          - text: E
+            value: E
+      width: half
+    schema:
+      name: nutriscore_grade
+      data_type: varchar
+      max_length: 1
+      is_nullable: true
+
+  - collection: products
+    field: nova_group
+    type: integer
+    meta:
+      collection: products
+      field: nova_group
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: "1 — Non transformé"
+            value: 1
+          - text: "2 — Ingrédient culinaire"
+            value: 2
+          - text: "3 — Transformé"
+            value: 3
+          - text: "4 — Ultra-transformé"
+            value: 4
+      width: half
+    schema:
+      name: nova_group
+      data_type: integer
+      is_nullable: true
+
+  - collection: products
+    field: scan_score
+    type: integer
+    meta:
+      collection: products
+      field: scan_score
+      interface: input
+      display: raw
+      note: "Score global Bayen 0–100"
+      width: half
+    schema:
+      name: scan_score
+      data_type: integer
+      is_nullable: true
+
+  - collection: products
+    field: score_label
+    type: string
+    meta:
+      collection: products
+      field: score_label
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: Excellent
+            value: excellent
+            foreground: "#ffffff"
+            background: "#16a34a"
+          - text: Bon
+            value: bon
+            foreground: "#ffffff"
+            background: "#84cc16"
+          - text: Médiocre
+            value: médiocre
+            foreground: "#ffffff"
+            background: "#f97316"
+          - text: Mauvais
+            value: mauvais
+            foreground: "#ffffff"
+            background: "#ef4444"
+      width: half
+    schema:
+      name: score_label
+      data_type: varchar
+      max_length: 20
+      is_nullable: true
+
+  - collection: products
+    field: energy_kcal
+    type: float
+    meta:
+      collection: products
+      field: energy_kcal
+      interface: input
+      note: "Pour 100g"
+      width: quarter
+    schema:
+      name: energy_kcal
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: fat_total
+    type: float
+    meta:
+      collection: products
+      field: fat_total
+      interface: input
+      note: "Lipides pour 100g"
+      width: quarter
+    schema:
+      name: fat_total
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: fat_saturated
+    type: float
+    meta:
+      collection: products
+      field: fat_saturated
+      interface: input
+      note: "AGS pour 100g"
+      width: quarter
+    schema:
+      name: fat_saturated
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: carbs_total
+    type: float
+    meta:
+      collection: products
+      field: carbs_total
+      interface: input
+      note: "Glucides pour 100g"
+      width: quarter
+    schema:
+      name: carbs_total
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: sugars
+    type: float
+    meta:
+      collection: products
+      field: sugars
+      interface: input
+      note: "Sucres pour 100g"
+      width: quarter
+    schema:
+      name: sugars
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: fiber
+    type: float
+    meta:
+      collection: products
+      field: fiber
+      interface: input
+      note: "Fibres pour 100g"
+      width: quarter
+    schema:
+      name: fiber
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: proteins
+    type: float
+    meta:
+      collection: products
+      field: proteins
+      interface: input
+      note: "Protéines pour 100g"
+      width: quarter
+    schema:
+      name: proteins
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: salt
+    type: float
+    meta:
+      collection: products
+      field: salt
+      interface: input
+      note: "Sel pour 100g"
+      width: quarter
+    schema:
+      name: salt
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: ingredients_text
+    type: text
+    meta:
+      collection: products
+      field: ingredients_text
+      interface: input-multiline
+      note: "Liste ingrédients brute"
+      width: full
+    schema:
+      name: ingredients_text
+      data_type: text
+      is_nullable: true
+
+  - collection: products
+    field: additives
+    type: json
+    meta:
+      collection: products
+      field: additives
+      interface: input-code
+      display: raw
+      special:
+        - cast-json
+      note: 'Ex: ["E471","E150d"]'
+      width: half
+    schema:
+      name: additives
+      data_type: json
+      is_nullable: true
+
+  - collection: products
+    field: allergens
+    type: json
+    meta:
+      collection: products
+      field: allergens
+      interface: input-code
+      display: raw
+      special:
+        - cast-json
+      note: 'Ex: ["gluten","lactose"]'
+      width: half
+    schema:
+      name: allergens
+      data_type: json
+      is_nullable: true
+
+  - collection: products
+    field: is_organic
+    type: boolean
+    meta:
+      collection: products
+      field: is_organic
+      interface: boolean
+      display: boolean
+      special:
+        - cast-boolean
+      width: quarter
+    schema:
+      name: is_organic
+      data_type: boolean
+      default_value: false
+      is_nullable: false
+
+  - collection: products
+    field: is_halal
+    type: boolean
+    meta:
+      collection: products
+      field: is_halal
+      interface: boolean
+      display: boolean
+      special:
+        - cast-boolean
+      width: quarter
+    schema:
+      name: is_halal
+      data_type: boolean
+      default_value: false
+      is_nullable: false
+
+  - collection: products
+    field: origin_country
+    type: string
+    meta:
+      collection: products
+      field: origin_country
+      interface: input
+      width: quarter
+    schema:
+      name: origin_country
+      data_type: varchar
+      max_length: 100
+      is_nullable: true
+
+  - collection: products
+    field: off_id
+    type: string
+    meta:
+      collection: products
+      field: off_id
+      interface: input
+      note: "ID Open Food Facts si existant"
+      width: quarter
+    schema:
+      name: off_id
+      data_type: varchar
+      max_length: 255
+      is_nullable: true
+
+  - collection: products
+    field: data_source
+    type: string
+    meta:
+      collection: products
+      field: data_source
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: Open Food Facts
+            value: "off"
+          - text: Utilisateur
+            value: user
+          - text: OCR Tesseract
+            value: ocr_tesseract
+          - text: Manuel
+            value: manual
+      required: true
+      width: half
+    schema:
+      name: data_source
+      data_type: varchar
+      max_length: 20
+      default_value: user
+      is_nullable: false
+
+  - collection: products
+    field: status
+    type: string
+    meta:
+      collection: products
+      field: status
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: Brouillon
+            value: draft
+          - text: En attente
+            value: pending_review
+            foreground: "#ffffff"
+            background: "#f97316"
+          - text: Publié
+            value: published
+            foreground: "#ffffff"
+            background: "#16a34a"
+          - text: Rejeté
+            value: rejected
+            foreground: "#ffffff"
+            background: "#ef4444"
+      required: true
+      width: half
+    schema:
+      name: status
+      data_type: varchar
+      max_length: 20
+      default_value: draft
+      is_nullable: false
+
+  - collection: products
+    field: confidence_score
+    type: float
+    meta:
+      collection: products
+      field: confidence_score
+      interface: slider
+      options:
+        minValue: 0
+        maxValue: 1
+        stepInterval: 0.01
+      note: "1 = données vérifiées manuellement"
+      width: half
+    schema:
+      name: confidence_score
+      data_type: real
+      default_value: 0
+      is_nullable: true
+
+  - collection: products
+    field: ocr_raw_text
+    type: text
+    meta:
+      collection: products
+      field: ocr_raw_text
+      interface: input-multiline
+      note: "Texte brut Tesseract (debug)"
+      hidden: true
+      width: full
+    schema:
+      name: ocr_raw_text
+      data_type: text
+      is_nullable: true
+
+  - collection: products
+    field: ocr_confidence
+    type: float
+    meta:
+      collection: products
+      field: ocr_confidence
+      interface: input
+      note: "Score confiance Tesseract 0–100"
+      hidden: true
+      width: half
+    schema:
+      name: ocr_confidence
+      data_type: real
+      is_nullable: true
+
+  - collection: products
+    field: scan_count
+    type: integer
+    meta:
+      collection: products
+      field: scan_count
+      interface: input
+      readonly: true
+      width: half
+    schema:
+      name: scan_count
+      data_type: integer
+      default_value: 0
+      is_nullable: false
+
+  - collection: products
+    field: date_created
+    type: timestamp
+    meta:
+      collection: products
+      field: date_created
+      interface: datetime
+      display: datetime
+      special:
+        - date-created
+      readonly: true
+      hidden: true
+      width: half
+    schema:
+      name: date_created
+      data_type: timestamptz
+      is_nullable: false
+
+  - collection: products
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: products
+      field: date_updated
+      interface: datetime
+      display: datetime
+      special:
+        - date-updated
+      readonly: true
+      hidden: true
+      width: half
+    schema:
+      name: date_updated
+      data_type: timestamptz
+      is_nullable: true
+
+  - collection: products
+    field: created_by
+    type: uuid
+    meta:
+      collection: products
+      field: created_by
+      interface: select-dropdown-m2o
+      display: user
+      special:
+        - user-created
+      readonly: true
+      hidden: true
+      width: half
+    schema:
+      name: created_by
+      data_type: uuid
+      is_nullable: true
+      foreign_key_table: directus_users
+      foreign_key_column: id
+
+  # ════════════════════════════════════════════════
+  # CATEGORIES — champs
+  # ════════════════════════════════════════════════
+  - collection: categories
+    field: id
+    type: integer
+    meta:
+      collection: categories
+      field: id
+      interface: input
+      hidden: true
+      readonly: true
+      width: full
+    schema:
+      name: id
+      data_type: integer
+      is_nullable: false
+      is_primary_key: true
+      has_auto_increment: true
+
+  - collection: categories
+    field: name_fr
+    type: string
+    meta:
+      collection: categories
+      field: name_fr
+      interface: input
+      required: true
+      width: half
+    schema:
+      name: name_fr
+      data_type: varchar
+      max_length: 100
+      is_nullable: false
+
+  - collection: categories
+    field: name_ar
+    type: string
+    meta:
+      collection: categories
+      field: name_ar
+      interface: input
+      width: half
+    schema:
+      name: name_ar
+      data_type: varchar
+      max_length: 100
+      is_nullable: true
+
+  - collection: categories
+    field: slug
+    type: string
+    meta:
+      collection: categories
+      field: slug
+      interface: input
+      required: true
+      width: half
+    schema:
+      name: slug
+      data_type: varchar
+      max_length: 100
+      is_nullable: false
+      is_unique: true
+
+  - collection: categories
+    field: parent_id
+    type: integer
+    meta:
+      collection: categories
+      field: parent_id
+      interface: select-dropdown-m2o
+      display: related-values
+      display_options:
+        template: "{{name_fr}}"
+      special:
+        - m2o
+      width: half
+    schema:
+      name: parent_id
+      data_type: integer
+      is_nullable: true
+      foreign_key_table: categories
+      foreign_key_column: id
+
+  - collection: categories
+    field: icon
+    type: string
+    meta:
+      collection: categories
+      field: icon
+      interface: input
+      note: "Nom icône Lucide"
+      width: half
+    schema:
+      name: icon
+      data_type: varchar
+      max_length: 50
+      is_nullable: true
+
+  # ════════════════════════════════════════════════
+  # ADDITIVES — champs
+  # ════════════════════════════════════════════════
+  - collection: additives
+    field: id
+    type: string
+    meta:
+      collection: additives
+      field: id
+      interface: input
+      note: 'Ex: "E471"'
+      required: true
+      width: half
+    schema:
+      name: id
+      data_type: varchar
+      max_length: 10
+      is_nullable: false
+      is_primary_key: true
+      has_auto_increment: false
+
+  - collection: additives
+    field: name_fr
+    type: string
+    meta:
+      collection: additives
+      field: name_fr
+      interface: input
+      required: true
+      width: half
+    schema:
+      name: name_fr
+      data_type: varchar
+      max_length: 255
+      is_nullable: false
+
+  - collection: additives
+    field: function
+    type: string
+    meta:
+      collection: additives
+      field: function
+      interface: input
+      note: "émulsifiant, colorant, conservateur…"
+      width: half
+    schema:
+      name: function
+      data_type: varchar
+      max_length: 100
+      is_nullable: true
+
+  - collection: additives
+    field: risk_level
+    type: string
+    meta:
+      collection: additives
+      field: risk_level
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: Sûr
+            value: safe
+            foreground: "#ffffff"
+            background: "#16a34a"
+          - text: Limité
+            value: limited
+            foreground: "#ffffff"
+            background: "#f97316"
+          - text: À éviter
+            value: avoid
+            foreground: "#ffffff"
+            background: "#ef4444"
+          - text: Interdit au Maroc
+            value: banned_ma
+            foreground: "#ffffff"
+            background: "#7f1d1d"
+      required: true
+      width: half
+    schema:
+      name: risk_level
+      data_type: varchar
+      max_length: 20
+      is_nullable: false
+
+  - collection: additives
+    field: description_fr
+    type: text
+    meta:
+      collection: additives
+      field: description_fr
+      interface: input-rich-text-md
+      width: full
+    schema:
+      name: description_fr
+      data_type: text
+      is_nullable: true
+
+  - collection: additives
+    field: sources
+    type: json
+    meta:
+      collection: additives
+      field: sources
+      interface: input-code
+      special:
+        - cast-json
+      width: full
+    schema:
+      name: sources
+      data_type: json
+      is_nullable: true
+
+  # ════════════════════════════════════════════════
+  # SCANS — champs
+  # ════════════════════════════════════════════════
+  - collection: scans
+    field: id
+    type: uuid
+    meta:
+      collection: scans
+      field: id
+      special:
+        - uuid
+      hidden: true
+    schema:
+      name: id
+      data_type: uuid
+      is_nullable: false
+      is_primary_key: true
+      has_auto_increment: false
+      generation_expression: gen_random_uuid()
+
+  - collection: scans
+    field: product_id
+    type: uuid
+    meta:
+      collection: scans
+      field: product_id
+      interface: select-dropdown-m2o
+      display: related-values
+      display_options:
+        template: "{{name_fr}}"
+      special:
+        - m2o
+      required: true
+      width: half
+    schema:
+      name: product_id
+      data_type: uuid
+      is_nullable: false
+      foreign_key_table: products
+      foreign_key_column: id
+
+  - collection: scans
+    field: user_id
+    type: uuid
+    meta:
+      collection: scans
+      field: user_id
+      interface: select-dropdown-m2o
+      display: user
+      special:
+        - m2o
+      width: half
+    schema:
+      name: user_id
+      data_type: uuid
+      is_nullable: true
+      foreign_key_table: directus_users
+      foreign_key_column: id
+
+  - collection: scans
+    field: session_id
+    type: string
+    meta:
+      collection: scans
+      field: session_id
+      interface: input
+      note: "Identifiant session anonyme"
+      required: true
+      width: half
+    schema:
+      name: session_id
+      data_type: varchar
+      max_length: 64
+      is_nullable: false
+
+  - collection: scans
+    field: device_type
+    type: string
+    meta:
+      collection: scans
+      field: device_type
+      interface: input
+      width: half
+    schema:
+      name: device_type
+      data_type: varchar
+      max_length: 50
+      is_nullable: true
+
+  - collection: scans
+    field: date_created
+    type: timestamp
+    meta:
+      collection: scans
+      field: date_created
+      interface: datetime
+      display: datetime
+      special:
+        - date-created
+      readonly: true
+      width: half
+    schema:
+      name: date_created
+      data_type: timestamptz
+      is_nullable: false
+
+  # ════════════════════════════════════════════════
+  # CONTRIBUTIONS — champs
+  # ════════════════════════════════════════════════
+  - collection: contributions
+    field: id
+    type: uuid
+    meta:
+      collection: contributions
+      field: id
+      special:
+        - uuid
+      hidden: true
+    schema:
+      name: id
+      data_type: uuid
+      is_nullable: false
+      is_primary_key: true
+      has_auto_increment: false
+      generation_expression: gen_random_uuid()
+
+  - collection: contributions
+    field: product_id
+    type: uuid
+    meta:
+      collection: contributions
+      field: product_id
+      interface: select-dropdown-m2o
+      display: related-values
+      display_options:
+        template: "{{name_fr}}"
+      special:
+        - m2o
+      required: true
+      width: half
+    schema:
+      name: product_id
+      data_type: uuid
+      is_nullable: false
+      foreign_key_table: products
+      foreign_key_column: id
+
+  - collection: contributions
+    field: user_id
+    type: uuid
+    meta:
+      collection: contributions
+      field: user_id
+      interface: select-dropdown-m2o
+      display: user
+      special:
+        - m2o
+      required: true
+      width: half
+    schema:
+      name: user_id
+      data_type: uuid
+      is_nullable: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+
+  - collection: contributions
+    field: type
+    type: string
+    meta:
+      collection: contributions
+      field: type
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: Nouveau produit
+            value: new_product
+          - text: Correction données
+            value: fix_data
+          - text: Ajout image
+            value: add_image
+          - text: Confirmation
+            value: confirm
+      required: true
+      width: half
+    schema:
+      name: type
+      data_type: varchar
+      max_length: 20
+      is_nullable: false
+
+  - collection: contributions
+    field: data_before
+    type: json
+    meta:
+      collection: contributions
+      field: data_before
+      interface: input-code
+      special:
+        - cast-json
+      width: half
+    schema:
+      name: data_before
+      data_type: json
+      is_nullable: true
+
+  - collection: contributions
+    field: data_after
+    type: json
+    meta:
+      collection: contributions
+      field: data_after
+      interface: input-code
+      special:
+        - cast-json
+      width: half
+    schema:
+      name: data_after
+      data_type: json
+      is_nullable: true
+
+  - collection: contributions
+    field: status
+    type: string
+    meta:
+      collection: contributions
+      field: status
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: En attente
+            value: pending
+            foreground: "#ffffff"
+            background: "#f97316"
+          - text: Approuvé
+            value: approved
+            foreground: "#ffffff"
+            background: "#16a34a"
+          - text: Rejeté
+            value: rejected
+            foreground: "#ffffff"
+            background: "#ef4444"
+      required: true
+      width: half
+    schema:
+      name: status
+      data_type: varchar
+      max_length: 20
+      default_value: pending
+      is_nullable: false
+
+  - collection: contributions
+    field: reviewed_by
+    type: uuid
+    meta:
+      collection: contributions
+      field: reviewed_by
+      interface: select-dropdown-m2o
+      display: user
+      special:
+        - m2o
+      width: half
+    schema:
+      name: reviewed_by
+      data_type: uuid
+      is_nullable: true
+      foreign_key_table: directus_users
+      foreign_key_column: id
+
+  - collection: contributions
+    field: date_created
+    type: timestamp
+    meta:
+      collection: contributions
+      field: date_created
+      interface: datetime
+      display: datetime
+      special:
+        - date-created
+      readonly: true
+      width: half
+    schema:
+      name: date_created
+      data_type: timestamptz
+      is_nullable: false
+
+  # ════════════════════════════════════════════════
+  # AI_LOGS — champs
+  # ════════════════════════════════════════════════
+  - collection: ai_logs
+    field: id
+    type: uuid
+    meta:
+      collection: ai_logs
+      field: id
+      special:
+        - uuid
+      hidden: true
+    schema:
+      name: id
+      data_type: uuid
+      is_nullable: false
+      is_primary_key: true
+      has_auto_increment: false
+      generation_expression: gen_random_uuid()
+
+  - collection: ai_logs
+    field: product_id
+    type: uuid
+    meta:
+      collection: ai_logs
+      field: product_id
+      interface: select-dropdown-m2o
+      display: related-values
+      display_options:
+        template: "{{name_fr}}"
+      special:
+        - m2o
+      width: half
+    schema:
+      name: product_id
+      data_type: uuid
+      is_nullable: true
+      foreign_key_table: products
+      foreign_key_column: id
+
+  - collection: ai_logs
+    field: type
+    type: string
+    meta:
+      collection: ai_logs
+      field: type
+      interface: select-dropdown
+      options:
+        choices:
+          - text: OCR Tesseract
+            value: ocr_tesseract
+          - text: Parsing Mistral
+            value: mistral_parsing
+      required: true
+      width: half
+    schema:
+      name: type
+      data_type: varchar
+      max_length: 20
+      is_nullable: false
+
+  - collection: ai_logs
+    field: input
+    type: text
+    meta:
+      collection: ai_logs
+      field: input
+      interface: input-multiline
+      width: full
+    schema:
+      name: input
+      data_type: text
+      is_nullable: true
+
+  - collection: ai_logs
+    field: output
+    type: text
+    meta:
+      collection: ai_logs
+      field: output
+      interface: input-multiline
+      width: full
+    schema:
+      name: output
+      data_type: text
+      is_nullable: true
+
+  - collection: ai_logs
+    field: duration_ms
+    type: integer
+    meta:
+      collection: ai_logs
+      field: duration_ms
+      interface: input
+      width: quarter
+    schema:
+      name: duration_ms
+      data_type: integer
+      is_nullable: true
+
+  - collection: ai_logs
+    field: success
+    type: boolean
+    meta:
+      collection: ai_logs
+      field: success
+      interface: boolean
+      display: boolean
+      special:
+        - cast-boolean
+      width: quarter
+    schema:
+      name: success
+      data_type: boolean
+      is_nullable: false
+
+  - collection: ai_logs
+    field: error_message
+    type: string
+    meta:
+      collection: ai_logs
+      field: error_message
+      interface: input
+      width: half
+    schema:
+      name: error_message
+      data_type: varchar
+      max_length: 500
+      is_nullable: true
+
+  - collection: ai_logs
+    field: date_created
+    type: timestamp
+    meta:
+      collection: ai_logs
+      field: date_created
+      interface: datetime
+      display: datetime
+      special:
+        - date-created
+      readonly: true
+      width: half
+    schema:
+      name: date_created
+      data_type: timestamptz
+      is_nullable: false
+
+  # ════════════════════════════════════════════════
+  # DIRECTUS_USERS — champs custom
+  # ════════════════════════════════════════════════
+  - collection: directus_users
+    field: display_name
+    type: string
+    meta:
+      collection: directus_users
+      field: display_name
+      interface: input
+      width: half
+      group: null
+      sort: 100
+    schema:
+      name: display_name
+      data_type: varchar
+      max_length: 100
+      is_nullable: true
+
+  - collection: directus_users
+    field: points
+    type: integer
+    meta:
+      collection: directus_users
+      field: points
+      interface: input
+      readonly: true
+      width: quarter
+      sort: 101
+    schema:
+      name: points
+      data_type: integer
+      default_value: 0
+      is_nullable: false
+
+  - collection: directus_users
+    field: contributions_count
+    type: integer
+    meta:
+      collection: directus_users
+      field: contributions_count
+      interface: input
+      readonly: true
+      width: quarter
+      sort: 102
+    schema:
+      name: contributions_count
+      data_type: integer
+      default_value: 0
+      is_nullable: false
+
+  - collection: directus_users
+    field: rank
+    type: string
+    meta:
+      collection: directus_users
+      field: rank
+      interface: select-dropdown
+      display: labels
+      options:
+        choices:
+          - text: Nouveau
+            value: nouveau
+          - text: Contributeur
+            value: contributeur
+          - text: Expert
+            value: expert
+          - text: Vérifié
+            value: vérifié
+            foreground: "#ffffff"
+            background: "#16a34a"
+      width: half
+      sort: 103
+    schema:
+      name: rank
+      data_type: varchar
+      max_length: 20
+      default_value: nouveau
+      is_nullable: false
+
+relations:
+  # products.category_id → categories.id
+  - collection: products
+    field: category_id
+    related_collection: categories
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: products_category_id_foreign
+      table: products
+      column: category_id
+      foreign_key_table: categories
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: SET NULL
+
+  # products.created_by → directus_users.id
+  - collection: products
+    field: created_by
+    related_collection: directus_users
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: products_created_by_foreign
+      table: products
+      column: created_by
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: SET NULL
+
+  # scans.product_id → products.id
+  - collection: scans
+    field: product_id
+    related_collection: products
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: scans_product_id_foreign
+      table: scans
+      column: product_id
+      foreign_key_table: products
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: CASCADE
+
+  # scans.user_id → directus_users.id
+  - collection: scans
+    field: user_id
+    related_collection: directus_users
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: scans_user_id_foreign
+      table: scans
+      column: user_id
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: SET NULL
+
+  # contributions.product_id → products.id
+  - collection: contributions
+    field: product_id
+    related_collection: products
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: contributions_product_id_foreign
+      table: contributions
+      column: product_id
+      foreign_key_table: products
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: CASCADE
+
+  # contributions.user_id → directus_users.id
+  - collection: contributions
+    field: user_id
+    related_collection: directus_users
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: contributions_user_id_foreign
+      table: contributions
+      column: user_id
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: CASCADE
+
+  # contributions.reviewed_by → directus_users.id
+  - collection: contributions
+    field: reviewed_by
+    related_collection: directus_users
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: contributions_reviewed_by_foreign
+      table: contributions
+      column: reviewed_by
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: SET NULL
+
+  # ai_logs.product_id → products.id
+  - collection: ai_logs
+    field: product_id
+    related_collection: products
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: ai_logs_product_id_foreign
+      table: ai_logs
+      column: product_id
+      foreign_key_table: products
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: SET NULL
+
+  # categories.parent_id → categories.id (self-referencing)
+  - collection: categories
+    field: parent_id
+    related_collection: categories
+    meta:
+      one_field: null
+      sort_field: null
+      one_deselect_action: nullify
+    schema:
+      constraint_name: categories_parent_id_foreign
+      table: categories
+      column: parent_id
+      foreign_key_table: categories
+      foreign_key_column: id
+      on_update: NO ACTION
+      on_delete: SET NULL

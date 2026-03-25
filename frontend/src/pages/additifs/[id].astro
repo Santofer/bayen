@@ -1,0 +1,14 @@
+---
+// Page fiche additif (SSR)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+
+const { id } = Astro.params
+---
+
+<Layout title={`Additif ${id} — Bayen`}>
+  <main>
+    <!-- TODO: fiche détaillée additif -->
+  </main>
+</Layout>

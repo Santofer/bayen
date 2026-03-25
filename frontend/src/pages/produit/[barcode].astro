@@ -1,0 +1,228 @@
+---
+// Page fiche produit (SSR) — appel /custom/scan + affichage ScoreDisplay
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import ScoreDisplay from '@/components/ScoreDisplay.tsx'
+import ProductCard from '@/components/ProductCard.tsx'
+import { Badge } from '@/components/ui/badge.tsx'
+
+const { barcode } = Astro.params
+
+// Appel à l'endpoint /custom/scan côté serveur
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://cdn.bayen.ma'
+
+let scanResult: {
+  found: boolean
+  source?: string
+  product?: Record<string, unknown>
+  score?: Record<string, unknown>
+  message?: string
+  contribute_url?: string
+} = { found: false }
+
+let fetchError: string | null = null
+
+try {
+  // Générer un session_id serveur pour le scan SSR
+  const sessionId = crypto.randomUUID()
+
+  const response = await fetch(`${DIRECTUS_URL}/custom/scan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ barcode, session_id: sessionId }),
+  })
+
+  if (response.ok) {
+    scanResult = await response.json()
+  } else {
+    fetchError = `Erreur API : ${response.status}`
+  }
+} catch (err) {
+  fetchError = 'Impossible de contacter le serveur'
+}
+
+const product = scanResult.product as Record<string, unknown> | undefined
+const score = scanResult.score as Record<string, unknown> | undefined
+
+// SEO
+const pageTitle = product
+  ? `${product.name_fr} (${product.brand}) — Score ${score?.total ?? '?'}/100 | Bayen`
+  : `Produit ${barcode} — Bayen`
+
+const pageDescription = product
+  ? `${product.name_fr} de ${product.brand} : score ${score?.total ?? '?'}/100, Nutri-Score ${score?.nutriscore_grade ?? '?'}, NOVA ${score?.nova_group ?? '?'}.`
+  : `Produit ${barcode} non trouvé dans la base Bayen.`
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+
+    {/* Erreur réseau */}
+    {fetchError && (
+      <div class="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+        <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <h1 class="text-lg font-semibold text-red-800 mb-1">{fetchError}</h1>
+        <p class="text-sm text-red-600">Vérifiez votre connexion et réessayez.</p>
+        <a href="/scan" class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
+          Rescanner
+        </a>
+      </div>
+    )}
+
+    {/* Produit non trouvé */}
+    {!fetchError && !scanResult.found && (
+      <div class="rounded-xl border bg-card p-8 text-center max-w-md mx-auto">
+        <div class="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold text-foreground mb-2">Produit non trouvé</h1>
+        <p class="text-sm text-muted-foreground mb-1">
+          Le code-barres <span class="font-mono font-medium text-foreground">{barcode}</span> n'est pas encore dans notre base.
+        </p>
+        <p class="text-sm text-muted-foreground mb-6">
+          Aidez la communauté en ajoutant ce produit !
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a
+            href={`/contribuer?barcode=${barcode}`}
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Ajouter ce produit
+          </a>
+          <a
+            href="/scan"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md border text-sm font-medium hover:bg-accent"
+          >
+            Scanner un autre
+          </a>
+        </div>
+      </div>
+    )}
+
+    {/* Produit trouvé */}
+    {!fetchError && scanResult.found && product && score && (
+      <div class="space-y-6">
+        {/* En-tête produit */}
+        <div class="flex gap-4 items-start">
+          {/* Image */}
+          <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+            {product.image_front ? (
+              <img
+                src={`${CDN_URL}/${product.image_front}`}
+                alt={product.name_fr as string}
+                class="w-full h-full object-cover"
+              />
+            ) : (
+              <div class="w-full h-full flex items-center justify-center text-muted-foreground">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                  <circle cx="9" cy="9" r="2" />
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                </svg>
+              </div>
+            )}
+          </div>
+
+          {/* Infos */}
+          <div class="flex-1 min-w-0">
+            <h1 class="text-xl sm:text-2xl font-bold text-foreground">{product.name_fr}</h1>
+            <p class="text-sm text-muted-foreground mt-0.5">{product.brand}</p>
+            <p class="text-xs text-muted-foreground font-mono mt-1">{product.barcode}</p>
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              {scanResult.source === 'open_food_facts' && (
+                <Badge variant="outline" className="text-xs">Open Food Facts</Badge>
+              )}
+              {product.is_organic && (
+                <Badge variant="safe" className="text-xs">Bio</Badge>
+              )}
+              {product.is_halal && (
+                <Badge variant="safe" className="text-xs">Halal</Badge>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Score complet */}
+        <div class="rounded-xl border bg-card p-6">
+          <ScoreDisplay
+            score={score as any}
+            confidenceScore={product.confidence_score as number | null | undefined}
+            client:load
+          />
+        </div>
+
+        {/* Données nutritionnelles */}
+        {(product.energy_kcal != null || product.proteins != null) && (
+          <div class="rounded-xl border bg-card p-6">
+            <h2 class="text-sm font-medium text-foreground mb-4">Valeurs nutritionnelles (pour 100g)</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: 'Énergie', value: product.energy_kcal, unit: 'kcal' },
+                { label: 'Lipides', value: product.fat_total, unit: 'g' },
+                { label: 'dont AGS', value: product.fat_saturated, unit: 'g' },
+                { label: 'Glucides', value: product.carbs_total, unit: 'g' },
+                { label: 'dont Sucres', value: product.sugars, unit: 'g' },
+                { label: 'Fibres', value: product.fiber, unit: 'g' },
+                { label: 'Protéines', value: product.proteins, unit: 'g' },
+                { label: 'Sel', value: product.salt, unit: 'g' },
+              ].map((item) => (
+                <div class="text-center p-2 rounded-lg bg-muted/50">
+                  <p class="text-xs text-muted-foreground">{item.label}</p>
+                  <p class="text-sm font-semibold text-foreground mt-0.5">
+                    {item.value != null ? `${item.value} ${item.unit}` : '—'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Ingrédients */}
+        {product.ingredients_text && (
+          <div class="rounded-xl border bg-card p-6">
+            <h2 class="text-sm font-medium text-foreground mb-2">Ingrédients</h2>
+            <p class="text-xs text-muted-foreground leading-relaxed">{product.ingredients_text}</p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a
+            href={`/contribuer/${barcode}`}
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md border text-sm font-medium hover:bg-accent transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838.838-2.872a2 2 0 0 1 .506-.855z" />
+            </svg>
+            Corriger / compléter
+          </a>
+          <a
+            href="/scan"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7V5a2 2 0 012-2h2" />
+              <path d="M17 3h2a2 2 0 012 2v2" />
+              <path d="M21 17v2a2 2 0 01-2 2h-2" />
+              <path d="M7 21H5a2 2 0 01-2-2v-2" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+            </svg>
+            Scanner un autre
+          </a>
+        </div>
+      </div>
+    )}
+
+  </main>
+</Layout>

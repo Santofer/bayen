@@ -1,0 +1,12 @@
+# Cloudflare Pages — configuration Wrangler
+# Déploiement : npx wrangler pages deploy dist/
+
+name = "bayen"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+PUBLIC_DIRECTUS_URL = "https://api.bayen.ma"
+PUBLIC_SITE_URL = "https://bayen.ma"
+PUBLIC_CDN_URL = "https://cdn.bayen.ma"
+PUBLIC_APP_NAME = "Bayen"

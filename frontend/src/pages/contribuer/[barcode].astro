@@ -1,0 +1,14 @@
+---
+// Page contribuer — modifier un produit existant (SSR)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+
+const { barcode } = Astro.params
+---
+
+<Layout title={`Contribuer — ${barcode} — Bayen`}>
+  <main>
+    <!-- TODO: formulaire modification produit -->
+  </main>
+</Layout>

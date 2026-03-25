@@ -1,0 +1,176 @@
+---
+import '@/styles/globals.css'
+
+interface Props {
+  title: string
+  description?: string
+  /** Cacher la navigation (ex: mode scanner plein écran) */
+  hideNav?: boolean
+}
+
+const { title, description = 'Bayen — Scannez. Comprenez. Choisissez mieux.', hideNav = false } = Astro.props
+const currentPath = Astro.url.pathname
+---
+
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#16a34a" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    {!hideNav && (
+      <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div class="container flex h-14 items-center px-4 mx-auto max-w-screen-lg">
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-2 font-bold text-lg text-primary mr-6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="text-primary">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+              <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Bayen
+          </a>
+
+          <!-- Navigation desktop -->
+          <nav class="hidden md:flex items-center gap-6 text-sm">
+            <a
+              href="/scan"
+              class:list={[
+                'transition-colors hover:text-foreground',
+                currentPath === '/scan' ? 'text-foreground font-medium' : 'text-muted-foreground',
+              ]}
+            >
+              Scanner
+            </a>
+            <a
+              href="/recherche"
+              class:list={[
+                'transition-colors hover:text-foreground',
+                currentPath === '/recherche' ? 'text-foreground font-medium' : 'text-muted-foreground',
+              ]}
+            >
+              Recherche
+            </a>
+            <a
+              href="/additifs"
+              class:list={[
+                'transition-colors hover:text-foreground',
+                currentPath.startsWith('/additifs') ? 'text-foreground font-medium' : 'text-muted-foreground',
+              ]}
+            >
+              Additifs
+            </a>
+            <a
+              href="/contribuer"
+              class:list={[
+                'transition-colors hover:text-foreground',
+                currentPath.startsWith('/contribuer') ? 'text-foreground font-medium' : 'text-muted-foreground',
+              ]}
+            >
+              Contribuer
+            </a>
+          </nav>
+
+          <!-- Spacer -->
+          <div class="flex-1" />
+
+          <!-- Bouton scanner (mobile) -->
+          <a
+            href="/scan"
+            class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground"
+            aria-label="Scanner un produit"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7V5a2 2 0 012-2h2" />
+              <path d="M17 3h2a2 2 0 012 2v2" />
+              <path d="M21 17v2a2 2 0 01-2 2h-2" />
+              <path d="M7 21H5a2 2 0 01-2-2v-2" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+            </svg>
+          </a>
+
+          <!-- Compte -->
+          <a
+            href="/compte"
+            class="ml-3 inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent transition-colors"
+            aria-label="Mon compte"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground">
+              <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </a>
+        </div>
+      </header>
+    )}
+
+    <slot />
+
+    {!hideNav && (
+      <!-- Navigation mobile bottom -->
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-pb">
+        <div class="flex items-center justify-around h-16 px-2">
+          <a href="/" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/' ? 'text-primary' : 'text-muted-foreground']}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            Accueil
+          </a>
+          <a href="/recherche" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/recherche' ? 'text-primary' : 'text-muted-foreground']}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Recherche
+          </a>
+          <a href="/scan" class="flex flex-col items-center gap-1 -mt-5">
+            <div class="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 012-2h2" />
+                <path d="M17 3h2a2 2 0 012 2v2" />
+                <path d="M21 17v2a2 2 0 01-2 2h-2" />
+                <path d="M7 21H5a2 2 0 01-2-2v-2" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+              </svg>
+            </div>
+            <span class="text-xs text-primary font-medium">Scanner</span>
+          </a>
+          <a href="/additifs" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath.startsWith('/additifs') ? 'text-primary' : 'text-muted-foreground']}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+              <path d="M8.5 2h7" />
+            </svg>
+            Additifs
+          </a>
+          <a href="/compte" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/compte' ? 'text-primary' : 'text-muted-foreground']}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Compte
+          </a>
+        </div>
+      </nav>
+    )}
+
+    <style is:global>
+      @keyframes scan {
+        0%, 100% { top: 10%; }
+        50% { top: 90%; }
+      }
+      .animate-scan {
+        animation: scan 2s ease-in-out infinite;
+      }
+      /* Safe area pour la barre de navigation mobile */
+      .safe-area-pb {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+    </style>
+  </body>
+</html>

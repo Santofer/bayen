@@ -1,0 +1,11 @@
+---
+// Page scanner code-barres
+import Layout from '@/layouts/Layout.astro'
+import ScanPage from '@/components/ScanPage.tsx'
+---
+
+<Layout title="Scanner un produit — Bayen">
+  <main class="container mx-auto max-w-screen-lg">
+    <ScanPage client:load />
+  </main>
+</Layout>
