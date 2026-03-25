@@ -1,9 +1,9 @@
 {
-  "name": "bayen-api",
+  "name": "bayen-hooks",
   "version": "1.0.0",
   "type": "module",
   "directus:extension": {
-    "type": "endpoint",
+    "type": "hook",
     "path": "dist/index.js",
     "source": "src/index.ts",
     "host": "^11.0.0"
@@ -12,12 +12,8 @@
     "build": "tsc",
     "dev": "tsc --watch"
   },
-  "dependencies": {
-    "express": "^4.18.0"
-  },
   "devDependencies": {
     "@directus/extensions-sdk": "^11.0.0",
-    "@types/express": "^4.17.21",
     "typescript": "^5.4.0"
   }
 }

@@ -1,10 +1,15 @@
 ---
-// Page compte utilisateur
+// Page compte utilisateur — protégée par AuthGuard
 import Layout from '@/layouts/Layout.astro'
+import AuthGuard from '@/components/AuthGuard'
+import AccountDashboard from '@/components/AccountDashboard'
 ---
 
-<Layout title="Mon compte — Bayen">
-  <main>
-    <!-- TODO: profil, contributions, points -->
+<Layout title="Mon compte — Bayen" noindex={true}>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <AuthGuard client:load redirectPath="/compte">
+      <h1 class="text-2xl font-bold tracking-tight mb-6">Mon compte</h1>
+      <AccountDashboard client:load />
+    </AuthGuard>
   </main>
 </Layout>

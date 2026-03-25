@@ -1,12 +1,14 @@
 {
   "name": "Bayen — بَيَّن",
   "short_name": "Bayen",
-  "description": "Scannez. Comprenez. Choisissez mieux.",
-  "start_url": "/",
+  "description": "Notation participative des produits alimentaires au Maroc",
+  "start_url": "/scan",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#16a34a",
   "lang": "fr",
+  "categories": ["food", "health", "lifestyle"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -16,7 +18,8 @@
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

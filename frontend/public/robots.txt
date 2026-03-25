@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /compte
+Disallow: /connexion
+
+Sitemap: https://bayen.n0.ma/sitemap.xml

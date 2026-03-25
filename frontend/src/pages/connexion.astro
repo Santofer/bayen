@@ -1,0 +1,18 @@
+---
+// Page de connexion / inscription
+import Layout from '@/layouts/Layout.astro'
+import AuthForm from '@/components/AuthForm'
+---
+
+<Layout title="Connexion — Bayen">
+  <main class="container mx-auto max-w-screen-lg px-4 py-12 pb-24">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold tracking-tight">Bienvenue sur Bayen</h1>
+      <p class="text-muted-foreground mt-2">
+        Connectez-vous pour contribuer et suivre vos scans
+      </p>
+    </div>
+
+    <AuthForm client:load />
+  </main>
+</Layout>

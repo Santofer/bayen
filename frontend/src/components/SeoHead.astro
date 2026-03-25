@@ -1,0 +1,61 @@
+---
+/**
+ * Composant SEO — balises meta, OpenGraph, canonical, JSON-LD
+ * Inclus dans le Layout pour toutes les pages
+ */
+
+interface Props {
+  title: string
+  description: string
+  /** URL canonique (sans domaine, ex: /produit/123) */
+  path?: string
+  /** URL image OG (pour les previews WhatsApp/social) */
+  ogImage?: string
+  /** Type OG (website par défaut, product pour les fiches) */
+  ogType?: 'website' | 'product'
+  /** Données JSON-LD Schema.org */
+  jsonLd?: Record<string, unknown>
+  /** Ne pas indexer cette page */
+  noindex?: boolean
+}
+
+const {
+  title,
+  description,
+  path,
+  ogImage,
+  ogType = 'website',
+  jsonLd,
+  noindex = false,
+} = Astro.props
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://bayen.n0.ma'
+const canonicalUrl = path ? `${siteUrl}${path}` : siteUrl
+const ogImageUrl = ogImage ?? `${siteUrl}/og-default.png`
+---
+
+<!-- Canonical -->
+<link rel="canonical" href={canonicalUrl} />
+
+<!-- OpenGraph — WhatsApp, Facebook, Twitter -->
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:site_name" content="Bayen — بَيَّن" />
+<meta property="og:locale" content="fr_MA" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImageUrl} />
+
+<!-- Robots -->
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<!-- JSON-LD Schema.org -->
+{jsonLd && (
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+)}

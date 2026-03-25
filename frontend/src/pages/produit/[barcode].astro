@@ -5,6 +5,7 @@ export const prerender = false
 import Layout from '@/layouts/Layout.astro'
 import ScoreDisplay from '@/components/ScoreDisplay.tsx'
 import ProductCard from '@/components/ProductCard.tsx'
+import ProductActions from '@/components/ProductActions.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 
 const { barcode } = Astro.params
@@ -54,9 +55,37 @@ const pageTitle = product
 const pageDescription = product
   ? `${product.name_fr} de ${product.brand} : score ${score?.total ?? '?'}/100, Nutri-Score ${score?.nutriscore_grade ?? '?'}, NOVA ${score?.nova_group ?? '?'}.`
   : `Produit ${barcode} non trouvé dans la base Bayen.`
+
+// Schema.org JSON-LD pour les fiches produit
+const jsonLd = product ? {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name_fr,
+  brand: { '@type': 'Brand', name: product.brand },
+  ...(product.image_front ? { image: `${CDN_URL}/${product.image_front}` } : {}),
+  description: pageDescription,
+  sku: barcode,
+  gtin13: barcode?.length === 13 ? barcode : undefined,
+  nutrition: product.energy_kcal != null ? {
+    '@type': 'NutritionInformation',
+    calories: `${product.energy_kcal} kcal`,
+    fatContent: product.fat_total != null ? `${product.fat_total} g` : undefined,
+    sugarContent: product.sugars != null ? `${product.sugars} g` : undefined,
+    proteinContent: product.proteins != null ? `${product.proteins} g` : undefined,
+    saltContent: product.salt != null ? `${product.salt} g` : undefined,
+    fiberContent: product.fiber != null ? `${product.fiber} g` : undefined,
+  } : undefined,
+  additionalProperty: [
+    { '@type': 'PropertyValue', name: 'Score Bayen', value: score?.total ?? 'N/A' },
+    { '@type': 'PropertyValue', name: 'Nutri-Score', value: score?.nutriscore_grade ?? 'N/A' },
+    { '@type': 'PropertyValue', name: 'NOVA', value: score?.nova_group ?? 'N/A' },
+  ],
+} : undefined
+
+const ogImage = product?.image_front ? `${CDN_URL}/${product.image_front}` : undefined
 ---
 
-<Layout title={pageTitle} description={pageDescription}>
+<Layout title={pageTitle} description={pageDescription} path={`/produit/${barcode}`} ogType="product" ogImage={ogImage} jsonLd={jsonLd}>
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
 
     {/* Erreur réseau */}
@@ -192,6 +221,18 @@ const pageDescription = product
           <div class="rounded-xl border bg-card p-6">
             <h2 class="text-sm font-medium text-foreground mb-2">Ingrédients</h2>
             <p class="text-xs text-muted-foreground leading-relaxed">{product.ingredients_text}</p>
+          </div>
+        )}
+
+        {/* Confirmer / Signaler (contributeurs+) */}
+        {product && (
+          <div class="rounded-xl border bg-card p-4">
+            <ProductActions
+              productId={product.id as string}
+              barcode={barcode as string}
+              confidenceScore={(product.confidence_score as number) ?? 0}
+              client:load
+            />
           </div>
         )}
 
