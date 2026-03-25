@@ -3,12 +3,152 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import { Badge } from '@/components/ui/badge.tsx'
 
 const { id } = Astro.params
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.n0.ma'
+
+let additive: Record<string, unknown> | null = null
+let fetchError: string | null = null
+
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/items/additives/${id}`,
+    { signal: AbortSignal.timeout(5000) }
+  )
+  if (res.ok) {
+    const data = await res.json()
+    additive = data.data ?? null
+  } else if (res.status === 403) {
+    // Essayer sans auth (public)
+    additive = null
+  }
+} catch {
+  fetchError = 'Impossible de contacter le serveur'
+}
+
+const RISK_LABELS: Record<string, string> = {
+  safe: 'Sûr',
+  limited: 'Limité',
+  avoid: 'À éviter',
+  banned_ma: 'Interdit au Maroc',
+}
+
+const RISK_COLORS: Record<string, string> = {
+  safe: '#16a34a',
+  limited: '#f97316',
+  avoid: '#ef4444',
+  banned_ma: '#7f1d1d',
+}
+
+const RISK_BG: Record<string, string> = {
+  safe: 'bg-green-50 border-green-200',
+  limited: 'bg-orange-50 border-orange-200',
+  avoid: 'bg-red-50 border-red-200',
+  banned_ma: 'bg-red-100 border-red-300',
+}
+
+const RISK_DESCRIPTIONS: Record<string, string> = {
+  safe: 'Cet additif est considéré comme sûr aux doses alimentaires normales selon les évaluations de l\'EFSA et du Codex Alimentarius.',
+  limited: 'Cet additif a une DJA (dose journalière admissible) limitée. La consommation occasionnelle ne pose pas de risque, mais une consommation excessive est déconseillée.',
+  avoid: 'Cet additif est controversé et associé à des risques pour la santé. Il est recommandé de limiter sa consommation, en particulier pour les enfants.',
+  banned_ma: 'Cet additif est interdit dans l\'alimentation au Maroc et/ou dans l\'Union Européenne en raison de risques sanitaires avérés.',
+}
+
+const riskLevel = (additive?.risk_level as string) ?? 'limited'
+const pageTitle = additive
+  ? `${id} — ${additive.name_fr} | Bayen`
+  : `Additif ${id} — Bayen`
 ---
 
-<Layout title={`Additif ${id} — Bayen`}>
-  <main>
-    <!-- TODO: fiche détaillée additif -->
+<Layout title={pageTitle}>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <!-- Retour -->
+    <a href="/additifs" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      Tous les additifs
+    </a>
+
+    {fetchError && (
+      <div class="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+        <p class="text-red-800">{fetchError}</p>
+      </div>
+    )}
+
+    {!fetchError && !additive && (
+      <div class="rounded-xl border bg-card p-8 text-center">
+        <h1 class="text-xl font-bold text-foreground mb-2">Additif {id} non trouvé</h1>
+        <p class="text-sm text-muted-foreground">Cet additif n'existe pas dans notre base.</p>
+      </div>
+    )}
+
+    {additive && (
+      <div class="space-y-6">
+        <!-- En-tête -->
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-3xl font-bold font-mono text-foreground">{id}</h1>
+            <div
+              class="px-3 py-1 rounded-full text-sm font-semibold text-white"
+              style={`background-color: ${RISK_COLORS[riskLevel]}`}
+            >
+              {RISK_LABELS[riskLevel]}
+            </div>
+          </div>
+          <h2 class="text-xl text-foreground">{additive.name_fr}</h2>
+          {additive.function && (
+            <p class="text-sm text-muted-foreground capitalize mt-1">{additive.function}</p>
+          )}
+        </div>
+
+        <!-- Niveau de risque -->
+        <div class={`rounded-xl border p-5 ${RISK_BG[riskLevel]}`}>
+          <h3 class="text-sm font-semibold mb-2" style={`color: ${RISK_COLORS[riskLevel]}`}>
+            Niveau de risque : {RISK_LABELS[riskLevel]}
+          </h3>
+          <p class="text-sm text-foreground/80">
+            {RISK_DESCRIPTIONS[riskLevel]}
+          </p>
+        </div>
+
+        <!-- Description -->
+        {additive.description_fr && (
+          <div class="rounded-xl border bg-card p-5">
+            <h3 class="text-sm font-semibold text-foreground mb-2">Description</h3>
+            <p class="text-sm text-muted-foreground leading-relaxed">{additive.description_fr}</p>
+          </div>
+        )}
+
+        <!-- Sources -->
+        {additive.sources && (additive.sources as string[]).length > 0 && (
+          <div class="rounded-xl border bg-card p-5">
+            <h3 class="text-sm font-semibold text-foreground mb-2">Sources</h3>
+            <ul class="space-y-1">
+              {(additive.sources as string[]).map((source: string) => (
+                <li class="text-xs text-muted-foreground flex items-center gap-2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                  </svg>
+                  {source}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <!-- Impact scoring -->
+        <div class="rounded-xl border bg-card p-5">
+          <h3 class="text-sm font-semibold text-foreground mb-2">Impact sur le score Bayen</h3>
+          <p class="text-sm text-muted-foreground">
+            {riskLevel === 'safe' && 'Aucune déduction — cet additif n\'impacte pas le score.'}
+            {riskLevel === 'limited' && 'Déduction de 2 points sur la composante Additifs (20 pts max).'}
+            {riskLevel === 'avoid' && 'Déduction de 5 points sur la composante Additifs (20 pts max).'}
+            {riskLevel === 'banned_ma' && 'Déduction de 10 points sur la composante Additifs (20 pts max).'}
+          </p>
+        </div>
+      </div>
+    )}
   </main>
 </Layout>

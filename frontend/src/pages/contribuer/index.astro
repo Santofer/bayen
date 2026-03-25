@@ -1,10 +1,23 @@
 ---
 // Page contribuer — ajouter un produit
 import Layout from '@/layouts/Layout.astro'
+import ContributeForm from '@/components/ContributeForm.tsx'
+
+// Récupérer le barcode depuis l'URL si présent (?barcode=xxx)
+const barcode = Astro.url.searchParams.get('barcode') ?? ''
 ---
 
-<Layout title="Contribuer — Bayen">
-  <main>
-    <!-- TODO: formulaire contribution -->
+<Layout title="Contribuer — Bayen" description="Ajoutez un produit alimentaire à la base Bayen pour aider la communauté marocaine.">
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <div class="max-w-lg mx-auto">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-foreground">Ajouter un produit</h1>
+        <p class="text-sm text-muted-foreground mt-1">
+          Aidez la communauté en ajoutant un produit alimentaire à la base Bayen
+        </p>
+      </div>
+
+      <ContributeForm initialBarcode={barcode} client:load />
+    </div>
   </main>
 </Layout>

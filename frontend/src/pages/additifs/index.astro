@@ -1,10 +1,41 @@
 ---
-// Page liste des additifs
+// Page liste des additifs alimentaires — SSG
 import Layout from '@/layouts/Layout.astro'
+import AdditivesList from '@/components/AdditivesList.tsx'
+
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.n0.ma'
+
+let additives: Record<string, unknown>[] = []
+
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/items/additives?sort=id&limit=-1&fields=id,name_fr,function,risk_level,description_fr`,
+    { signal: AbortSignal.timeout(5000) }
+  )
+  if (res.ok) {
+    const data = await res.json()
+    additives = data.data ?? []
+  }
+} catch {
+  // Page s'affiche quand même sans données
+}
 ---
 
-<Layout title="Additifs alimentaires — Bayen">
-  <main>
-    <!-- TODO: liste additifs avec filtres par risque -->
+<Layout title="Additifs alimentaires — Bayen" description="Base de données complète des additifs alimentaires E-xxx avec niveaux de risque pour le consommateur marocain.">
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-foreground">Additifs alimentaires</h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        Base de données de {additives.length} additifs E-xxx avec leur niveau de risque
+      </p>
+    </div>
+
+    {additives.length > 0 ? (
+      <AdditivesList additives={additives as any} client:load />
+    ) : (
+      <div class="text-center py-12 rounded-xl border bg-card">
+        <p class="text-muted-foreground">Impossible de charger les additifs. Vérifiez la connexion API.</p>
+      </div>
+    )}
   </main>
 </Layout>
