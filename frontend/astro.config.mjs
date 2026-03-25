@@ -4,24 +4,19 @@ import cloudflare from '@astrojs/cloudflare'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  // Intégrations
   integrations: [react()],
 
-  // Déploiement Cloudflare Pages
-  // Pages statiques pré-rendues par défaut, pages SSR via `export const prerender = false`
+  // Cloudflare Pages — SSR via Workers pour les pages dynamiques
   adapter: cloudflare({
     platformProxy: { enabled: true },
   }),
   output: 'static',
-  site: 'https://bayen.ma',
+  site: 'https://bayen.n0.ma',
 
-  // Build
   build: {
-    // Assets dans _astro/ (compatible Cloudflare Pages)
     assets: '_astro',
   },
 
-  // Vite
   vite: {
     plugins: [tailwindcss()],
     ssr: {
@@ -29,7 +24,6 @@ export default defineConfig({
     },
   },
 
-  // Redirects
   redirects: {
     '/scanner': '/scan',
   },

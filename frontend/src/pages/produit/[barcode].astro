@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge.tsx'
 const { barcode } = Astro.params
 
 // Appel à l'endpoint /custom/scan côté serveur
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
-const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://cdn.bayen.ma'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.n0.ma'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.n0.ma/assets'
 
 let scanResult: {
   found: boolean

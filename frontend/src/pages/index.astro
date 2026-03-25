@@ -4,7 +4,7 @@ import Layout from '@/layouts/Layout.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 
 // Récupérer les produits récents et les stats depuis Directus
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.n0.ma'
 
 let recentProducts: Record<string, unknown>[] = []
 let totalProducts = 0
