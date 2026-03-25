@@ -6,7 +6,7 @@ compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-PUBLIC_DIRECTUS_URL = "https://api.bayen.n0.ma"
+PUBLIC_DIRECTUS_URL = "https://api-bayen.n0.ma"
 PUBLIC_SITE_URL = "https://bayen.n0.ma"
-PUBLIC_CDN_URL = "https://api.bayen.n0.ma/assets"
+PUBLIC_CDN_URL = "https://api-bayen.n0.ma/assets"
 PUBLIC_APP_NAME = "Bayen"

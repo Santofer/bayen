@@ -18,7 +18,7 @@ import type {
 // Configuration
 // ────────────────────────────────────────────────────────────────
 
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.n0.ma'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
 
 // Client Directus typé avec le schéma Bayen
 const directus = createDirectus<DirectusSchema>(DIRECTUS_URL)

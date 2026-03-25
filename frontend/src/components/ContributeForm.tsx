@@ -21,7 +21,7 @@ interface ContributeFormProps {
 
 type Step = 'barcode' | 'photos' | 'info' | 'confirm'
 
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.n0.ma'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
 
 function isValidEan(code: string): boolean {
   return /^\d{8}$|^\d{13}$/.test(code)
