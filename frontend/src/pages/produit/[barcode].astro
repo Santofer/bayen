@@ -356,23 +356,30 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
 
           {/* Code-barres à droite */}
           <div class="hidden sm:flex flex-col items-end flex-shrink-0">
-            <div class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg bg-muted/50">
-              {/* Barres stylisées */}
-              <div class="flex items-end gap-px h-8">
-                {Array.from(String(barcode || '')).map((d, i) => (
-                  <div
-                    class="bg-foreground rounded-sm"
-                    style={`width: 2px; height: ${12 + (parseInt(d) * 2)}px;`}
-                  />
-                ))}
-              </div>
-              <span class="text-xs font-mono text-muted-foreground tracking-widest">{barcode}</span>
+            <div class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg bg-white border">
+              <img
+                src={`https://barcodeapi.org/api/ean13/${barcode}`}
+                alt={`Code-barres ${barcode}`}
+                class="h-12 w-auto"
+                loading="lazy"
+                onerror="this.style.display='none'"
+              />
+              <span class="text-[10px] font-mono text-muted-foreground tracking-wider">{barcode}</span>
             </div>
           </div>
         </div>
-        {/* Code-barres mobile (sous l'en-tête) */}
+        {/* Code-barres mobile */}
         <div class="sm:hidden flex justify-center">
-          <span class="text-xs font-mono text-muted-foreground bg-muted/50 px-3 py-1 rounded-full tracking-widest">{barcode}</span>
+          <div class="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg bg-white border">
+            <img
+              src={`https://barcodeapi.org/api/ean13/${barcode}`}
+              alt={`Code-barres ${barcode}`}
+              class="h-10 w-auto"
+              loading="lazy"
+              onerror="this.parentElement.innerHTML='<span class=\'text-xs font-mono text-muted-foreground tracking-widest\'>' + this.alt.replace('Code-barres ','') + '</span>'"
+            />
+            <span class="text-[10px] font-mono text-muted-foreground tracking-wider">{barcode}</span>
+          </div>
         </div>
 
         {/* Score complet */}
