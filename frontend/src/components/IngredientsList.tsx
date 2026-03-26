@@ -104,7 +104,9 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
         <div className="space-y-0.5">
           {sorted.map((ing, i) => {
             const isAdditive = /^E\d{3}/i.test(ing.name_fr)
-            const name = locale === 'ary' && ing.name_ar ? ing.name_ar : ing.name_fr
+            const rawName = locale === 'ary' && ing.name_ar ? ing.name_ar : ing.name_fr
+            // Première lettre en majuscule
+            const name = rawName.charAt(0).toUpperCase() + rawName.slice(1)
 
             return (
               <div

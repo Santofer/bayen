@@ -66,6 +66,7 @@ interface OffProduct {
   traces: string[]
   imageNutrition: string | null
   imageIngredients: string | null
+  quantity: string | null
   raw: Record<string, unknown>
 }
 
@@ -130,6 +131,7 @@ export default function OffImporter() {
       image: p.image_front_url ?? null,
       imageNutrition: p.image_nutrition_url ?? null,
       imageIngredients: p.image_ingredients_url ?? null,
+      quantity: p.quantity ?? null,
       energy: p.nutriments?.['energy-kcal_100g'] ?? null,
       fat: p.nutriments?.fat_100g ?? null,
       saturated: p.nutriments?.['saturated-fat_100g'] ?? null,
@@ -200,6 +202,7 @@ export default function OffImporter() {
       ingredients_text: offProduct.ingredients,
       additives: offProduct.additives,
       traces: offProduct.traces,
+      quantity: offProduct.quantity,
       off_id: offProduct.barcode,
       data_source: 'off',
       status: 'published',

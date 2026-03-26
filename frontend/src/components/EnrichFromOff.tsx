@@ -120,9 +120,10 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       const traces = cleanTraces(tracesTags)
       if (traces.length > 0) { patchData.traces = traces }
 
-      // Nutri-Score / NOVA
+      // Nutri-Score / NOVA / Quantité
       if (p.nutriscore_grade) { patchData.nutriscore_grade = p.nutriscore_grade.toUpperCase() }
       if (p.nova_group) { patchData.nova_group = p.nova_group }
+      if (p.quantity) { patchData.quantity = p.quantity }
 
       // Calculer le score
       if (!existing.hasScore) {

@@ -265,19 +265,19 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     const roleValue = user.role
     let isAdmin = false
     if (typeof roleValue === 'string') {
-      // Vérifier via un appel au rôle
+      // Vérifier via un appel au rôle (sans admin_access qui n'existe pas dans Directus 11)
       try {
-        const roleRes = await fetch(`${API_URL}/roles/${roleValue}?fields=name,admin_access`, {
+        const roleRes = await fetch(`${API_URL}/roles/${roleValue}?fields=name`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (roleRes.ok) {
-          const roleData = await roleRes.json() as { data: { name: string; admin_access: boolean } }
-          isAdmin = roleData.data.admin_access === true || roleData.data.name === 'Administrator'
+          const roleData = await roleRes.json() as { data: { name: string } }
+          isAdmin = roleData.data.name === 'Administrator'
         }
       } catch { /* pas critique */ }
     } else if (typeof roleValue === 'object' && roleValue !== null) {
       const roleObj = roleValue as Record<string, unknown>
-      isAdmin = roleObj.admin_access === true || roleObj.name === 'Administrator'
+      isAdmin = roleObj.name === 'Administrator'
     }
 
     return {

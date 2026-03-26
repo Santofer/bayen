@@ -380,6 +380,9 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                   <a href={`/categories/${product.category_slug ?? product.category_id}`} class="hover:text-primary hover:underline">{product.category_name ?? 'Catégorie'}</a>
                 </span>
               )}
+              {product.quantity && (
+                <span class="text-sm text-muted-foreground">· {product.quantity}</span>
+              )}
             </div>
             <div class="flex flex-wrap gap-1.5 mt-2">
               {scanResult.source === 'open_food_facts' && (

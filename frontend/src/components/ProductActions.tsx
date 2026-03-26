@@ -58,12 +58,12 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           const roleId = userData.data.role
           if (typeof roleId === 'string' && roleId) {
             try {
-              const roleRes = await fetch(`${DIRECTUS_URL}/roles/${roleId}?fields=name,admin_access`, {
+              const roleRes = await fetch(`${DIRECTUS_URL}/roles/${roleId}?fields=name`, {
                 headers: { Authorization: `Bearer ${token}` },
               })
               if (roleRes.ok) {
                 const roleData = await roleRes.json()
-                if (roleData.data?.admin_access === true || roleData.data?.name === 'Administrator') {
+                if (roleData.data?.name === 'Administrator') {
                   setUserRole('admin')
                 }
               }

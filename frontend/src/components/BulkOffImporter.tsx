@@ -200,21 +200,20 @@ export default function BulkOffImporter() {
         return
       }
       try {
-        const res = await fetch(
-          `${DIRECTUS_URL}/users/me?fields=role.name,role.admin_access`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        )
-        if (!res.ok) {
-          setIsAdmin(false)
-          return
-        }
-        const data = (await res.json()) as {
-          data: { role?: { name?: string; admin_access?: boolean } }
-        }
-        const role = data.data?.role
-        setIsAdmin(
-          role?.name === 'Administrator' || role?.admin_access === true
-        )
+        const userRes = await fetch(`${DIRECTUS_URL}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!userRes.ok) { setIsAdmin(false); return }
+        const userData = (await userRes.json()) as { data: { role?: string } }
+        const roleId = userData.data?.role
+        if (!roleId) { setIsAdmin(false); return }
+
+        const roleRes = await fetch(`${DIRECTUS_URL}/roles/${roleId}?fields=name`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!roleRes.ok) { setIsAdmin(false); return }
+        const roleData = (await roleRes.json()) as { data: { name?: string } }
+        setIsAdmin(roleData.data?.name === 'Administrator')
       } catch {
         setIsAdmin(false)
       }
