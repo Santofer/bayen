@@ -46,17 +46,9 @@ try {
     if (products.length > 0) {
       const p = products[0]
 
-      // Si le score n'est pas encore calculé dans Directus, le calculer ici
+      // Toujours calculer le score complet (pour avoir additives_detail)
       let scoreObj: Record<string, unknown>
-      if (p.scan_score != null) {
-        scoreObj = {
-          total: p.scan_score,
-          nutriscore_grade: p.nutriscore_grade,
-          nova_group: p.nova_group,
-          label: p.score_label,
-        }
-      } else {
-        // Calculer le score à partir des données nutrition du produit
+      {
         const additiveCodes: string[] = Array.isArray(p.additives) ? p.additives : []
         let additiveRisks: Array<{ code: string; risk_level: RiskLevel }> = []
         if (additiveCodes.length > 0) {
