@@ -1,0 +1,20 @@
+---
+export const prerender = false
+import Layout from '@/layouts/Layout.astro'
+import OffImporter from '@/components/OffImporter'
+import AuthGuard from '@/components/AuthGuard'
+import { getLocale, t } from '@/lib/i18n'
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+---
+
+<Layout title="Importer depuis Open Food Facts — Bayen">
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <AuthGuard client:load redirectPath="/importer">
+      <h1 class="text-2xl font-bold tracking-tight mb-2">Importer un produit</h1>
+      <p class="text-sm text-muted-foreground mb-6">
+        Saisissez un code-barres pour importer automatiquement le produit depuis Open Food Facts.
+      </p>
+      <OffImporter client:load />
+    </AuthGuard>
+  </main>
+</Layout>

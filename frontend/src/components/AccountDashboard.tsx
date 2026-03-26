@@ -60,7 +60,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: 'safe' | 'limited'
 }
 
 async function fetchWithAuth(url: string) {
-  const token = getAccessToken()
+  const token = await getAccessToken()
   const res = await fetch(url, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
@@ -79,9 +79,19 @@ export default function AccountDashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const userData = await fetchWithAuth(`${DIRECTUS_URL}/users/me?fields=id,email,display_name,points,contributions_count,rank`)
-        setUser(userData.data)
-        setDisplayName(userData.data.display_name ?? '')
+        const userData = await fetchWithAuth(`${DIRECTUS_URL}/users/me?fields=id,email,first_name,display_name,points,contributions_count,rank`)
+        const u = userData.data
+        // Directus utilise first_name pour le nom d'affichage
+        const profile: UserProfile = {
+          id: u.id,
+          email: u.email,
+          display_name: u.display_name ?? u.first_name ?? null,
+          points: u.points ?? 0,
+          contributions_count: u.contributions_count ?? 0,
+          rank: u.rank ?? 'nouveau',
+        }
+        setUser(profile)
+        setDisplayName(profile.display_name ?? '')
 
         const contribData = await fetchWithAuth(
           `${DIRECTUS_URL}/items/contributions?filter[user_id][_eq]=${userData.data.id}&sort=-date_created&limit=20&fields=id,type,status,date_created,product_id.name_fr,product_id.barcode`
@@ -104,14 +114,14 @@ export default function AccountDashboard() {
   const handleSaveProfile = useCallback(async () => {
     if (!user) return
     try {
-      const token = getAccessToken()
+      const token = await getAccessToken()
       await fetch(`${DIRECTUS_URL}/users/me`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ display_name: displayName }),
+        body: JSON.stringify({ first_name: displayName }),
       })
       setUser({ ...user, display_name: displayName })
       setEditing(false)

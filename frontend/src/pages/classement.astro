@@ -1,0 +1,151 @@
+---
+export const prerender = false
+import Layout from '@/layouts/Layout.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+
+// Récupérer les top contributeurs
+interface Contributor {
+  id: string
+  first_name: string | null
+  display_name: string | null
+  points: number
+  contributions_count: number
+  rank: string
+}
+
+let contributors: Contributor[] = []
+
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/users?fields=id,first_name,display_name,points,contributions_count,rank&filter[points][_gt]=0&sort=-points&limit=50`,
+    { signal: AbortSignal.timeout(5000) }
+  )
+  if (res.ok) {
+    const data = await res.json()
+    contributors = data.data ?? []
+  }
+} catch {
+  // pas de données
+}
+
+const rankColors: Record<string, string> = {
+  nouveau: '#a1a1aa',
+  contributeur: '#84cc16',
+  expert: '#f97316',
+  'vérifié': '#16a34a',
+}
+
+const rankLabels: Record<string, string> = {
+  nouveau: 'Nouveau',
+  contributeur: 'Contributeur',
+  expert: 'Expert',
+  'vérifié': 'Vérifié',
+}
+
+const medals = ['🥇', '🥈', '🥉']
+---
+
+<Layout title="Classement des contributeurs — Bayen">
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-bold tracking-tight">🏆 Classement des contributeurs</h1>
+      <p class="text-sm text-muted-foreground mt-2">
+        Merci à tous ceux qui enrichissent la base de données Bayen !
+      </p>
+    </div>
+
+    {contributors.length === 0 ? (
+      <div class="text-center py-12">
+        <p class="text-muted-foreground">Aucun contributeur pour le moment.</p>
+        <a href="/contribuer" class="text-primary hover:underline text-sm mt-2 inline-block">Soyez le premier →</a>
+      </div>
+    ) : (
+      <div class="space-y-2">
+        {contributors.map((user, index) => {
+          const name = user.display_name ?? user.first_name ?? 'Anonyme'
+          const color = rankColors[user.rank] ?? rankColors.nouveau
+          const rankLabel = rankLabels[user.rank] ?? 'Nouveau'
+          const medal = index < 3 ? medals[index] : null
+
+          return (
+            <div class="flex items-center gap-3 rounded-xl border bg-card p-3 hover:shadow-sm transition-shadow">
+              {/* Position */}
+              <div class="w-8 text-center flex-shrink-0">
+                {medal ? (
+                  <span class="text-xl">{medal}</span>
+                ) : (
+                  <span class="text-sm font-bold text-muted-foreground">{index + 1}</span>
+                )}
+              </div>
+
+              {/* Avatar */}
+              <div
+                class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                style={`background-color: ${color}`}
+              >
+                {name[0].toUpperCase()}
+              </div>
+
+              {/* Infos */}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="font-medium text-sm truncate">{name}</p>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium flex-shrink-0" style={`background-color: ${color}`}>
+                    {rankLabel}
+                  </span>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                  {user.contributions_count} contribution{user.contributions_count > 1 ? 's' : ''}
+                </p>
+              </div>
+
+              {/* Points */}
+              <div class="text-right flex-shrink-0">
+                <p class="text-lg font-bold text-primary">{user.points}</p>
+                <p class="text-[10px] text-muted-foreground">pts</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )}
+
+    {/* Système de points */}
+    <div class="mt-10 rounded-xl border bg-card p-6">
+      <h2 class="text-lg font-bold mb-4">Comment gagner des points ?</h2>
+      <div class="grid sm:grid-cols-2 gap-3">
+        {[
+          { action: 'Ajouter un produit complet', points: 50 },
+          { action: 'Ajouter des photos manquantes', points: 20 },
+          { action: 'Corriger des données', points: 15 },
+          { action: 'Scanner un produit', points: 1 },
+          { action: 'Contribution confirmée ×3', points: 10 },
+        ].map(({ action, points }) => (
+          <div class="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2.5">
+            <span class="text-sm">{action}</span>
+            <span class="text-sm font-bold text-primary">+{points} pts</span>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="text-sm font-bold mt-6 mb-3">Niveaux</h3>
+      <div class="flex flex-wrap gap-2">
+        {[
+          { name: 'Nouveau', min: 0, color: '#a1a1aa' },
+          { name: 'Contributeur', min: 100, color: '#84cc16' },
+          { name: 'Expert', min: 500, color: '#f97316' },
+          { name: 'Vérifié', min: 2000, color: '#16a34a' },
+        ].map(({ name, min, color }) => (
+          <div class="flex items-center gap-1.5 rounded-full px-3 py-1 border text-sm">
+            <div class="w-3 h-3 rounded-full" style={`background-color: ${color}`} />
+            <span class="font-medium">{name}</span>
+            <span class="text-muted-foreground text-xs">({min}+ pts)</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </main>
+</Layout>
