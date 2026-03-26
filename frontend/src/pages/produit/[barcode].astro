@@ -9,6 +9,7 @@ import ProductActions from '@/components/ProductActions.tsx'
 import OffImportButton from '@/components/OffImportButton.tsx'
 import EnrichFromOff from '@/components/EnrichFromOff.tsx'
 import HealthAnalysis from '@/components/HealthAnalysis.tsx'
+import IngredientsList from '@/components/IngredientsList.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import { getLocale, t } from '@/lib/i18n'
@@ -94,10 +95,26 @@ try {
         p.category_id = categoryObj.id
       }
 
+      // Récupérer les ingrédients structurés (M2M)
+      let structuredIngredients: Array<Record<string, unknown>> = []
+      try {
+        const piRes = await fetch(
+          `${DIRECTUS_URL}/items/products_ingredients?filter[products_id][_eq]=${p.id}&fields=ingredients_id.id,ingredients_id.name_fr,ingredients_id.name_ar,ingredients_id.icon,ingredients_id.category,ingredients_id.is_allergen,ingredients_id.allergen_type,percent,rank&sort=rank&limit=-1`
+        )
+        if (piRes.ok) {
+          const piData = await piRes.json()
+          structuredIngredients = (piData.data ?? []).map((pi: Record<string, unknown>) => ({
+            ...(pi.ingredients_id as Record<string, unknown>),
+            percent: pi.percent,
+            rank: pi.rank,
+          }))
+        }
+      } catch { /* pas grave, fallback texte */ }
+
       scanResult = {
         found: true,
         source: 'directus',
-        product: p,
+        product: { ...p, structured_ingredients: structuredIngredients },
         score: scoreObj,
       }
     }
@@ -431,70 +448,16 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           </div>
         )}
 
-        {/* Ingrédients */}
-        {product.ingredients_text && (() => {
-          const raw = product.ingredients_text as string
-          // Protéger les virgules dans les pourcentages (34,8%) et les parenthèses
-          // avant de séparer par virgule
-          let protected_ = raw
-          // Remplacer temporairement les virgules dans les nombres décimaux
-          protected_ = protected_.replace(/(\d),(\d)/g, '$1\u0000$2')
-          // Séparer par virgules ou points-virgules (pas par les virgules protégées)
-          const items = protected_
-            .split(/[;]|,/)
-            .map((s: string) => s.replace(/\u0000/g, ',').trim()) // Restaurer les virgules décimales
-            .map((s: string) => s.replace(/^[-–·•]\s*/, '')) // Retirer les puces en début
-            .filter((s: string) => s.length > 1 && !/^\d+[,.]?\d*\s*%?$/.test(s)) // Filtrer les fragments numériques isolés
-            .map((s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
-              // Garder les majuscules pour les allergènes et E-xxx
-              .replace(/\b(e\d{3}[a-z]?)\b/gi, (m) => m.toUpperCase())
-            )
-          // Restaurer les majuscules pour les allergènes connus (convention INCO)
-          .map((s: string) => s
-            .replace(/\bbl[ée]\b/gi, 'BLÉ')
-            .replace(/\bsoja\b/gi, 'SOJA')
-            .replace(/\blait\b/gi, 'LAIT')
-            .replace(/\boeufs?\b/gi, 'OEUFS')
-            .replace(/\bgluten\b/gi, 'GLUTEN')
-            .replace(/\barachides?\b/gi, 'ARACHIDE')
-            .replace(/\bnoix\b/gi, 'NOIX')
-            .replace(/\bs[ée]same\b/gi, 'SÉSAME')
-          )
-
-          return (
-            <div class="rounded-xl border bg-card p-6">
-              <div class="flex items-center gap-2 mb-3">
-                <h2 class="text-sm font-medium text-foreground">{t('product.ingredients', locale)}</h2>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">{items.length}</span>
-                {product.ingredients_lang === 'other' && (
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">{t('product.notTranslated', locale)}</span>
-                )}
-              </div>
-              <div class="flex flex-wrap gap-1.5">
-                {items.map((ingredient: string, i: number) => {
-                  // Mettre en évidence les additifs (E + chiffres)
-                  const isAdditive = /^E\s?\d{3}/i.test(ingredient)
-                  // Mettre en évidence les allergènes courants
-                  const isAllergen = /\b(BLÉ|SOJA|LAIT|OEUFS?|GLUTEN|ARACHIDE|NOIX|SÉSAME|POISSON|CRUSTACÉ|LUPIN|MOUTARDE|CÉLERI|MOLLUSQUE)\b/i.test(ingredient)
-
-                  return (
-                    <span
-                      class:list={[
-                        'inline-flex items-center px-2 py-0.5 rounded-md text-xs',
-                        isAdditive ? 'bg-orange-100 text-orange-800 font-medium' :
-                        isAllergen ? 'bg-red-50 text-red-700 font-medium border border-red-200' :
-                        'bg-muted text-muted-foreground'
-                      ]}
-                    >
-                      {isAllergen && <span class="mr-0.5">⚠️</span>}
-                      {ingredient}
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })()}
+        {/* Ingrédients (structurés si disponibles, sinon fallback texte) */}
+        {(product.structured_ingredients || product.ingredients_text) && (
+          <IngredientsList
+            ingredients={product.structured_ingredients as any[] ?? []}
+            traces={Array.isArray(product.traces) ? product.traces as string[] : []}
+            ingredientsText={product.ingredients_text as string ?? ''}
+            locale={locale}
+            client:load
+          />
+        )}
 
         {/* Confirmer / Signaler (contributeurs+) */}
         {product && (

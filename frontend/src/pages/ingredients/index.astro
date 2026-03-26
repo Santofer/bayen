@@ -1,0 +1,100 @@
+---
+export const prerender = false
+import Layout from '@/layouts/Layout.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+
+interface Ingredient {
+  id: number
+  name_fr: string
+  name_ar: string | null
+  category: string
+  is_allergen: boolean
+  allergen_type: string | null
+  icon: string
+}
+
+let ingredients: Ingredient[] = []
+
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/items/ingredients?sort=category,name_fr&limit=-1&fields=id,name_fr,name_ar,category,is_allergen,allergen_type,icon`,
+    { signal: AbortSignal.timeout(5000) }
+  )
+  if (res.ok) {
+    const data = await res.json()
+    ingredients = data.data ?? []
+  }
+} catch {}
+
+// Grouper par catégorie
+const categories: Record<string, { label: string; icon: string; items: Ingredient[] }> = {
+  cereale: { label: 'Céréales', icon: '🌾', items: [] },
+  sucre: { label: 'Sucres & chocolat', icon: '🍬', items: [] },
+  graisse: { label: 'Huiles & graisses', icon: '🫒', items: [] },
+  laitier: { label: 'Produits laitiers', icon: '🥛', items: [] },
+  proteine: { label: 'Protéines & noix', icon: '🥩', items: [] },
+  fruit_legume: { label: 'Fruits & légumes', icon: '🍅', items: [] },
+  sel: { label: 'Sel & minéraux', icon: '🧂', items: [] },
+  eau: { label: 'Eau', icon: '💧', items: [] },
+  arome: { label: 'Arômes & épices', icon: '🍃', items: [] },
+  additif: { label: 'Additifs alimentaires', icon: '⚗️', items: [] },
+  autre: { label: 'Autres', icon: '🔹', items: [] },
+}
+
+for (const ing of ingredients) {
+  const cat = categories[ing.category] ?? categories.autre
+  cat.items.push(ing)
+}
+---
+
+<Layout title="Base d'ingrédients — Bayen">
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold tracking-tight">🧪 Base d'ingrédients</h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        {ingredients.length} ingrédients référencés. Cliquez sur un ingrédient pour voir les produits qui le contiennent.
+      </p>
+    </div>
+
+    {/* Légende */}
+    <div class="flex flex-wrap gap-2 mb-6">
+      <span class="text-xs px-2 py-1 rounded-full bg-red-50 border border-red-200 text-red-700">⚠️ Allergène</span>
+      <span class="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">Ingrédient courant</span>
+    </div>
+
+    {/* Catégories */}
+    <div class="space-y-6">
+      {Object.entries(categories)
+        .filter(([_, cat]) => cat.items.length > 0)
+        .map(([key, cat]) => (
+          <div>
+            <h2 class="text-sm font-bold text-foreground flex items-center gap-2 mb-3 sticky top-14 bg-background py-1 z-10">
+              <span class="text-lg">{cat.icon}</span>
+              {cat.label}
+              <span class="text-xs font-normal text-muted-foreground">({cat.items.length})</span>
+            </h2>
+            <div class="flex flex-wrap gap-1.5">
+              {cat.items.map((ing) => (
+                <a
+                  href={`/ingredients/${ing.id}`}
+                  class:list={[
+                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-colors hover:shadow-sm',
+                    ing.is_allergen
+                      ? 'bg-red-50 border border-red-200 text-red-800 hover:bg-red-100'
+                      : 'bg-muted text-foreground hover:bg-muted/80 border border-transparent',
+                  ]}
+                >
+                  <span>{ing.icon}</span>
+                  <span class="font-medium">{locale === 'ary' && ing.name_ar ? ing.name_ar : ing.name_fr}</span>
+                  {ing.is_allergen && <span class="text-red-500">⚠️</span>}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+    </div>
+  </main>
+</Layout>

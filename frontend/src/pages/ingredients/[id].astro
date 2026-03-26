@@ -1,0 +1,157 @@
+---
+export const prerender = false
+import Layout from '@/layouts/Layout.astro'
+import ProductCard from '@/components/ProductCard.tsx'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const { id } = Astro.params
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+
+interface Ingredient {
+  id: number
+  name_fr: string
+  name_ar: string | null
+  category: string
+  is_allergen: boolean
+  allergen_type: string | null
+  icon: string
+}
+
+let ingredient: Ingredient | null = null
+let products: Record<string, unknown>[] = []
+
+try {
+  // Récupérer l'ingrédient
+  const ingRes = await fetch(
+    `${DIRECTUS_URL}/items/ingredients/${id}`,
+    { signal: AbortSignal.timeout(5000) }
+  )
+  if (ingRes.ok) {
+    const ingData = await ingRes.json()
+    ingredient = ingData.data
+  }
+
+  // Récupérer les produits via la table de jonction
+  if (ingredient) {
+    const piRes = await fetch(
+      `${DIRECTUS_URL}/items/products_ingredients?filter[ingredients_id][_eq]=${id}&fields=products_id.id,products_id.barcode,products_id.name_fr,products_id.brand,products_id.image_front,products_id.scan_score,products_id.score_label,products_id.nutriscore_grade,products_id.nova_group,products_id.additives,products_id.scan_count,products_id.status,percent,rank&limit=100&sort=rank`,
+      { signal: AbortSignal.timeout(5000) }
+    )
+    if (piRes.ok) {
+      const piData = await piRes.json()
+      products = (piData.data ?? [])
+        .filter((pi: Record<string, unknown>) => pi.products_id && (pi.products_id as Record<string, unknown>).status === 'published')
+        .map((pi: Record<string, unknown>) => ({
+          ...(pi.products_id as Record<string, unknown>),
+          _percent: pi.percent,
+        }))
+    }
+  }
+} catch {}
+
+const name = ingredient
+  ? (locale === 'ary' && ingredient.name_ar ? ingredient.name_ar : ingredient.name_fr)
+  : `Ingrédient #${id}`
+
+const categoryLabels: Record<string, string> = {
+  cereale: 'Céréale',
+  sucre: 'Sucre & chocolat',
+  graisse: 'Huile & graisse',
+  laitier: 'Produit laitier',
+  proteine: 'Protéine',
+  fruit_legume: 'Fruit & légume',
+  sel: 'Sel & minéral',
+  eau: 'Eau',
+  arome: 'Arôme & épice',
+  additif: 'Additif',
+  autre: 'Autre',
+}
+
+const allergenEmoji: Record<string, string> = {
+  gluten: '🌾', lait: '🥛', lactose: '🥛', oeufs: '🥚',
+  arachide: '🥜', fruits_a_coque: '🌰', soja: '🫘',
+  poisson: '🐟', crustaces: '🦐', sesame: '🌰',
+  moutarde: '🍃', celeri: '🍃', lupin: '🫘',
+}
+---
+
+<Layout title={`${name} — Ingrédients | Bayen`}>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    {!ingredient ? (
+      <div class="text-center py-12">
+        <p class="text-muted-foreground">Ingrédient non trouvé.</p>
+        <a href="/ingredients" class="text-primary hover:underline text-sm mt-2 inline-block">← Retour à la base</a>
+      </div>
+    ) : (
+      <div class="space-y-6">
+        {/* En-tête */}
+        <div class="flex items-start gap-4">
+          <div class="w-16 h-16 rounded-xl bg-muted flex items-center justify-center text-3xl flex-shrink-0">
+            {ingredient.icon}
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold">{ingredient.name_fr}</h1>
+            {ingredient.name_ar && (
+              <p class="text-lg text-muted-foreground" dir="rtl">{ingredient.name_ar}</p>
+            )}
+            <div class="flex flex-wrap gap-2 mt-2">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-muted text-foreground font-medium">
+                {categoryLabels[ingredient.category] ?? ingredient.category}
+              </span>
+              {ingredient.is_allergen && (
+                <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium">
+                  {allergenEmoji[ingredient.allergen_type ?? ''] ?? '⚠️'} Allergène{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Info allergène */}
+        {ingredient.is_allergen && (
+          <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+            <p class="text-sm text-red-800">
+              <strong>⚠️ Allergène majeur</strong> — Cet ingrédient fait partie des 14 allergènes à déclaration obligatoire selon la réglementation européenne et marocaine (ONSSA).
+              {ingredient.allergen_type === 'gluten' && ' Le gluten est une protéine présente dans le blé, l\'orge, le seigle et l\'avoine.'}
+              {ingredient.allergen_type === 'lait' && ' Les protéines de lait de vache sont l\'un des allergènes les plus courants chez les enfants.'}
+              {ingredient.allergen_type === 'arachide' && ' L\'allergie à l\'arachide peut provoquer des réactions sévères (anaphylaxie).'}
+              {ingredient.allergen_type === 'soja' && ' Le soja est présent dans de nombreux produits transformés sous forme de lécithine ou protéines.'}
+            </p>
+          </div>
+        )}
+
+        {/* Produits contenant cet ingrédient */}
+        <div>
+          <h2 class="text-lg font-bold mb-3">
+            Produits contenant {ingredient.name_fr.toLowerCase()}
+            <span class="text-sm font-normal text-muted-foreground ml-2">({products.length})</span>
+          </h2>
+
+          {products.length === 0 ? (
+            <div class="rounded-xl border bg-card p-8 text-center">
+              <p class="text-sm text-muted-foreground">
+                Aucun produit référencé avec cet ingrédient pour le moment.
+              </p>
+              <a href="/importer" class="text-primary hover:underline text-sm mt-2 inline-block">
+                Importer des produits →
+              </a>
+            </div>
+          ) : (
+            <div class="grid sm:grid-cols-2 gap-3">
+              {products.map((product) => (
+                <ProductCard product={product as any} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div class="text-center">
+          <a href="/ingredients" class="text-sm text-muted-foreground hover:text-primary">
+            ← Retour à la base d'ingrédients
+          </a>
+        </div>
+      </div>
+    )}
+  </main>
+</Layout>

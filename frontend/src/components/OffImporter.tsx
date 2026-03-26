@@ -11,6 +11,38 @@ import { computeScore, type RiskLevel } from '@/lib/scoring'
 
 const DIRECTUS_URL = '/api/directus'
 
+/** Ingrédient structuré provenant d'OFF */
+interface OffStructuredIngredient {
+  id: string
+  text: string
+  percent?: number
+  percent_estimate?: number
+}
+
+/** Traduction des traces OFF → français */
+const TRACES_FR: Record<string, string> = {
+  'nuts': 'fruits à coque',
+  'milk': 'lait',
+  'eggs': 'œufs',
+  'gluten': 'gluten',
+  'soybeans': 'soja',
+  'peanuts': 'arachide',
+  'sesame-seeds': 'sésame',
+  'fish': 'poisson',
+  'crustaceans': 'crustacés',
+  'celery': 'céleri',
+  'mustard': 'moutarde',
+  'lupin': 'lupin',
+}
+
+/** Nettoie les traces_tags OFF et traduit en français */
+function cleanTraces(tracesTags: string[]): string[] {
+  return tracesTags.map(tag => {
+    const key = tag.replace(/^en:/, '')
+    return TRACES_FR[key] ?? key
+  })
+}
+
 interface OffProduct {
   barcode: string
   name: string
@@ -29,6 +61,8 @@ interface OffProduct {
   salt: number | null
   ingredients: string
   additives: string[]
+  structuredIngredients: OffStructuredIngredient[]
+  traces: string[]
   imageNutrition: string | null
   imageIngredients: string | null
   raw: Record<string, unknown>
@@ -105,6 +139,13 @@ export default function OffImporter() {
       salt: p.nutriments?.salt_100g ?? null,
       ingredients: p.ingredients_text_fr || p.ingredients_text || '',
       additives,
+      structuredIngredients: (p.ingredients ?? []).map((ing: Record<string, unknown>) => ({
+        id: ing.id as string,
+        text: ing.text as string,
+        percent: ing.percent as number | undefined,
+        percent_estimate: ing.percent_estimate as number | undefined,
+      })),
+      traces: cleanTraces(p.traces_tags ?? []),
       raw: p,
     }
   }
@@ -157,6 +198,7 @@ export default function OffImporter() {
       salt: offProduct.salt,
       ingredients_text: offProduct.ingredients,
       additives: offProduct.additives,
+      traces: offProduct.traces,
       off_id: offProduct.barcode,
       data_source: 'off',
       status: 'published',
@@ -172,11 +214,12 @@ export default function OffImporter() {
 
     if (!res.ok) return false
 
+    const createdProduct = await res.json() as { data?: { id: string } }
+    const productId = createdProduct?.data?.id
+
     // Uploader les images OFF (front, nutrition, ingrédients)
-    try {
-      const createdProduct = await res.json() as { data?: { id: string } }
-      const productId = createdProduct?.data?.id
-      if (productId) {
+    if (productId) {
+      try {
         const imageUpdates: Record<string, string> = {}
 
         const imagesToUpload: Array<[string, string | null, string]> = [
@@ -215,9 +258,67 @@ export default function OffImporter() {
             body: JSON.stringify(imageUpdates),
           })
         }
+      } catch {
+        // Images optionnelles
       }
-    } catch {
-      // Images optionnelles
+
+      // Créer les liens M2M ingrédients structurés
+      try {
+        if (offProduct.structuredIngredients.length > 0) {
+          for (let i = 0; i < offProduct.structuredIngredients.length; i++) {
+            const ing = offProduct.structuredIngredients[i]
+            const nameFr = ing.text?.trim()
+            if (!nameFr) continue
+
+            let ingredientId: string | null = null
+
+            // Chercher l'ingrédient existant dans notre base
+            try {
+              const searchRes = await fetch(
+                `${DIRECTUS_URL}/items/ingredients?filter[name_fr][_icontains]=${encodeURIComponent(nameFr)}&limit=1`,
+                { headers: { Authorization: `Bearer ${token}` } },
+              )
+              if (searchRes.ok) {
+                const searchData = await searchRes.json() as { data?: Array<{ id: string }> }
+                if (searchData?.data?.[0]?.id) ingredientId = searchData.data[0].id
+              }
+            } catch { /* recherche optionnelle */ }
+
+            // Créer l'ingrédient s'il n'existe pas
+            if (!ingredientId) {
+              try {
+                const createRes = await fetch(`${DIRECTUS_URL}/items/ingredients`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ name_fr: nameFr, category: 'autre', icon: '🔹' }),
+                })
+                if (createRes.ok) {
+                  const createData = await createRes.json() as { data?: { id: string } }
+                  if (createData?.data?.id) ingredientId = createData.data.id
+                }
+              } catch { /* création optionnelle */ }
+            }
+
+            // Créer le lien M2M
+            if (ingredientId) {
+              try {
+                await fetch(`${DIRECTUS_URL}/items/products_ingredients`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                  body: JSON.stringify({
+                    products_id: productId,
+                    ingredients_id: ingredientId,
+                    percent: ing.percent ?? ing.percent_estimate ?? null,
+                    rank: i + 1,
+                  }),
+                })
+              } catch { /* lien M2M optionnel */ }
+            }
+          }
+        }
+      } catch {
+        // Ingrédients structurés optionnels
+      }
     }
 
     return true

@@ -10,6 +10,30 @@ import { computeScore, type RiskLevel } from '@/lib/scoring'
 
 const DIRECTUS_URL = '/api/directus'
 
+/** Traduction des traces OFF → français */
+const TRACES_FR: Record<string, string> = {
+  'nuts': 'fruits à coque',
+  'milk': 'lait',
+  'eggs': 'œufs',
+  'gluten': 'gluten',
+  'soybeans': 'soja',
+  'peanuts': 'arachide',
+  'sesame-seeds': 'sésame',
+  'fish': 'poisson',
+  'crustaceans': 'crustacés',
+  'celery': 'céleri',
+  'mustard': 'moutarde',
+  'lupin': 'lupin',
+}
+
+/** Nettoie les traces_tags OFF et traduit en français */
+function cleanTraces(tracesTags: string[]): string[] {
+  return tracesTags.map(tag => {
+    const key = tag.replace(/^en:/, '')
+    return TRACES_FR[key] ?? key
+  })
+}
+
 interface EnrichFromOffProps {
   productId: string
   barcode: string
@@ -90,6 +114,11 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       const allergens = allergenTags.map((t: string) => t.replace(/^en:/, '')).filter(Boolean)
       if (allergens.length > 0) { patchData.allergens = allergens }
 
+      // Traces
+      const tracesTags: string[] = p.traces_tags ?? []
+      const traces = cleanTraces(tracesTags)
+      if (traces.length > 0) { patchData.traces = traces }
+
       // Nutri-Score / NOVA
       if (p.nutriscore_grade) { patchData.nutriscore_grade = p.nutriscore_grade.toUpperCase() }
       if (p.nova_group) { patchData.nova_group = p.nova_group }
@@ -164,6 +193,64 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       })
 
       if (!patchRes.ok) throw new Error(`Erreur ${patchRes.status}`)
+
+      // Créer les liens M2M ingrédients structurés
+      const structuredIngredients: Array<{ id: string; text: string; percent?: number; percent_estimate?: number }> = p.ingredients ?? []
+      if (structuredIngredients.length > 0) {
+        let linkedCount = 0
+        for (let i = 0; i < structuredIngredients.length; i++) {
+          const ing = structuredIngredients[i]
+          const nameFr = (ing.text ?? '').trim()
+          if (!nameFr) continue
+
+          let ingredientId: string | null = null
+
+          // Chercher l'ingrédient existant dans notre base
+          try {
+            const searchRes = await fetch(
+              `${DIRECTUS_URL}/items/ingredients?filter[name_fr][_icontains]=${encodeURIComponent(nameFr)}&limit=1`,
+              { headers: { Authorization: `Bearer ${token}` } },
+            )
+            if (searchRes.ok) {
+              const searchData = await searchRes.json() as { data?: Array<{ id: string }> }
+              if (searchData?.data?.[0]?.id) ingredientId = searchData.data[0].id
+            }
+          } catch { /* recherche optionnelle */ }
+
+          // Créer l'ingrédient s'il n'existe pas
+          if (!ingredientId) {
+            try {
+              const createRes = await fetch(`${DIRECTUS_URL}/items/ingredients`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ name_fr: nameFr, category: 'autre', icon: '🔹' }),
+              })
+              if (createRes.ok) {
+                const createData = await createRes.json() as { data?: { id: string } }
+                if (createData?.data?.id) ingredientId = createData.data.id
+              }
+            } catch { /* création optionnelle */ }
+          }
+
+          // Créer le lien M2M
+          if (ingredientId) {
+            try {
+              await fetch(`${DIRECTUS_URL}/items/products_ingredients`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                  products_id: productId,
+                  ingredients_id: ingredientId,
+                  percent: ing.percent ?? ing.percent_estimate ?? null,
+                  rank: i + 1,
+                }),
+              })
+              linkedCount++
+            } catch { /* lien M2M optionnel */ }
+          }
+        }
+        if (linkedCount > 0) enrichedFields.push(`${linkedCount} ingrédient${linkedCount > 1 ? 's' : ''} lié${linkedCount > 1 ? 's' : ''}`)
+      }
 
       setEnriched(enrichedFields)
       setState('done')
