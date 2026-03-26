@@ -354,31 +354,27 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
             </div>
           </div>
 
-          {/* Code-barres à droite */}
-          <div class="hidden sm:flex flex-col items-end flex-shrink-0">
-            <div class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg bg-white border">
-              <img
-                src={`https://barcodeapi.org/api/ean13/${barcode}`}
-                alt={`Code-barres ${barcode}`}
-                class="h-12 w-auto"
-                loading="lazy"
-                onerror="this.style.display='none'"
-              />
-              <span class="text-[10px] font-mono text-muted-foreground tracking-wider">{barcode}</span>
-            </div>
+          {/* Code-barres à droite — même hauteur que la photo */}
+          <div class="hidden sm:flex flex-col items-center justify-center flex-shrink-0 w-32 h-32 rounded-xl bg-white border p-2">
+            <img
+              src={`https://barcodeapi.org/api/auto/${barcode}`}
+              alt={barcode as string}
+              class="w-full h-full object-contain"
+              loading="lazy"
+              onerror="this.parentElement.innerHTML='<span class=\'text-xs font-mono text-muted-foreground\'>' + this.alt + '</span>'"
+            />
           </div>
         </div>
         {/* Code-barres mobile */}
         <div class="sm:hidden flex justify-center">
-          <div class="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg bg-white border">
+          <div class="flex items-center justify-center h-16 px-3 rounded-lg bg-white border">
             <img
-              src={`https://barcodeapi.org/api/ean13/${barcode}`}
-              alt={`Code-barres ${barcode}`}
-              class="h-10 w-auto"
+              src={`https://barcodeapi.org/api/auto/${barcode}`}
+              alt={barcode as string}
+              class="h-full w-auto object-contain"
               loading="lazy"
-              onerror="this.parentElement.innerHTML='<span class=\'text-xs font-mono text-muted-foreground tracking-widest\'>' + this.alt.replace('Code-barres ','') + '</span>'"
+              onerror="this.parentElement.innerHTML='<span class=\'text-xs font-mono text-muted-foreground\'>' + this.alt + '</span>'"
             />
-            <span class="text-[10px] font-mono text-muted-foreground tracking-wider">{barcode}</span>
           </div>
         </div>
 
@@ -436,17 +432,49 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         )}
 
         {/* Ingrédients */}
-        {product.ingredients_text && (
-          <div class="rounded-xl border bg-card p-6">
-            <div class="flex items-center gap-2 mb-2">
-              <h2 class="text-sm font-medium text-foreground">{t('product.ingredients', locale)}</h2>
-              {product.ingredients_lang === 'other' && (
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">{t('product.notTranslated', locale)}</span>
-              )}
+        {product.ingredients_text && (() => {
+          const raw = product.ingredients_text as string
+          // Séparer par virgules, points-virgules ou tirets en début de ligne
+          const items = raw
+            .split(/[,;]|\n-/)
+            .map((s: string) => s.replace(/[()[\]]/g, '').trim())
+            .filter((s: string) => s.length > 1)
+            .map((s: string) => s.charAt(0).toUpperCase() + s.slice(1))
+
+          return (
+            <div class="rounded-xl border bg-card p-6">
+              <div class="flex items-center gap-2 mb-3">
+                <h2 class="text-sm font-medium text-foreground">{t('product.ingredients', locale)}</h2>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">{items.length}</span>
+                {product.ingredients_lang === 'other' && (
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">{t('product.notTranslated', locale)}</span>
+                )}
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                {items.map((ingredient: string, i: number) => {
+                  // Mettre en évidence les additifs (E + chiffres)
+                  const isAdditive = /^E\s?\d{3}/i.test(ingredient)
+                  // Mettre en évidence les allergènes courants
+                  const isAllergen = /\b(BLÉ|SOJA|LAIT|OEUFS?|GLUTEN|ARACHIDE|NOIX|SÉSAME|POISSON|CRUSTACÉ|LUPIN|MOUTARDE|CÉLERI|MOLLUSQUE)\b/i.test(ingredient)
+
+                  return (
+                    <span
+                      class:list={[
+                        'inline-flex items-center px-2 py-0.5 rounded-md text-xs',
+                        isAdditive ? 'bg-orange-100 text-orange-800 font-medium' :
+                        isAllergen ? 'bg-red-50 text-red-700 font-medium border border-red-200' :
+                        'bg-muted text-muted-foreground'
+                      ]}
+                    >
+                      {isAllergen && <span class="mr-0.5">⚠️</span>}
+                      {ingredient}
+                    </span>
+                  )
+                })}
+              </div>
             </div>
-            <p class="text-xs text-muted-foreground leading-relaxed">{product.ingredients_text}</p>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Confirmer / Signaler (contributeurs+) */}
         {product && (
