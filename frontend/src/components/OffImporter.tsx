@@ -29,6 +29,8 @@ interface OffProduct {
   salt: number | null
   ingredients: string
   additives: string[]
+  imageNutrition: string | null
+  imageIngredients: string | null
   raw: Record<string, unknown>
 }
 
@@ -91,6 +93,8 @@ export default function OffImporter() {
       nutriscore: p.nutriscore_grade?.toUpperCase() ?? null,
       nova: p.nova_group ?? null,
       image: p.image_front_url ?? null,
+      imageNutrition: p.image_nutrition_url ?? null,
+      imageIngredients: p.image_ingredients_url ?? null,
       energy: p.nutriments?.['energy-kcal_100g'] ?? null,
       fat: p.nutriments?.fat_100g ?? null,
       saturated: p.nutriments?.['saturated-fat_100g'] ?? null,
@@ -168,43 +172,52 @@ export default function OffImporter() {
 
     if (!res.ok) return false
 
-    // Si OFF a une image, la télécharger et l'uploader dans Directus
-    if (offProduct.image) {
-      try {
-        const createdProduct = await res.json() as { data?: { id: string } }
-        const productId = createdProduct?.data?.id
-        if (productId) {
-          // Télécharger l'image OFF via proxy (contourne CORS)
-          const imgRes = await fetch(`/api/proxy-image?url=${encodeURIComponent(offProduct.image)}`)
-          if (imgRes.ok) {
+    // Uploader les images OFF (front, nutrition, ingrédients)
+    try {
+      const createdProduct = await res.json() as { data?: { id: string } }
+      const productId = createdProduct?.data?.id
+      if (productId) {
+        const imageUpdates: Record<string, string> = {}
+
+        const imagesToUpload: Array<[string, string | null, string]> = [
+          ['image_front', offProduct.image, 'front'],
+          ['image_nutrition', offProduct.imageNutrition, 'nutrition'],
+          ['image_ingredients', offProduct.imageIngredients, 'ingredients'],
+        ]
+
+        for (const [field, url, label] of imagesToUpload) {
+          if (!url) continue
+          try {
+            const imgRes = await fetch(`/api/proxy-image?url=${encodeURIComponent(url)}`)
+            if (!imgRes.ok) continue
             const blob = await imgRes.blob()
             const formData = new FormData()
-            formData.append('file', blob, `${offProduct.barcode}-front.jpg`)
-            formData.append('title', `${offProduct.name} - Face avant`)
+            formData.append('file', blob, `${offProduct.barcode}-${label}.jpg`)
+            formData.append('title', `${offProduct.name} - ${label}`)
 
             const uploadRes = await fetch(`${DIRECTUS_URL}/files`, {
               method: 'POST',
               headers: { Authorization: `Bearer ${token}` },
               body: formData,
             })
-
             if (uploadRes.ok) {
               const uploadData = await uploadRes.json() as { data?: { id: string } }
-              const fileId = uploadData?.data?.id
-              if (fileId) {
-                // Lier l'image au produit
-                await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                  body: JSON.stringify({ image_front: fileId }),
-                })
-              }
+              if (uploadData?.data?.id) imageUpdates[field] = uploadData.data.id
             }
-          }
+          } catch { /* image individuelle optionnelle */ }
         }
-      } catch {
-        // Image optionnelle — le produit est créé quand même
+
+        // PATCH le produit avec toutes les images uploadées
+        if (Object.keys(imageUpdates).length > 0) {
+          await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify(imageUpdates),
+          })
+        }
       }
+    } catch {
+      // Images optionnelles
     }
 
     return true

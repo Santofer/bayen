@@ -117,29 +117,38 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
         enrichedFields.push('Score Bayen')
       }
 
-      // Image
-      if (!existing.hasImage && p.image_front_url) {
+      // Images (front, nutrition, ingrédients)
+      const imagesToFetch: Array<[string, string | undefined, string]> = [
+        ['image_front', p.image_front_url, 'front'],
+        ['image_nutrition', p.image_nutrition_url, 'nutrition'],
+        ['image_ingredients', p.image_ingredients_url, 'ingredients'],
+      ]
+      let imagesUploaded = 0
+      for (const [field, url, label] of imagesToFetch) {
+        if (!url) continue
+        // Vérifier si le champ est déjà rempli (pour front, on check existing.hasImage)
+        if (field === 'image_front' && existing.hasImage) continue
         try {
-          const imgRes = await fetch(`/api/proxy-image?url=${encodeURIComponent(p.image_front_url)}`)
-          if (imgRes.ok) {
-            const blob = await imgRes.blob()
-            const formData = new FormData()
-            formData.append('file', blob, `${barcode}-front.jpg`)
-            const uploadRes = await fetch(`${DIRECTUS_URL}/files`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${token}` },
-              body: formData,
-            })
-            if (uploadRes.ok) {
-              const uploadData = await uploadRes.json() as { data?: { id: string } }
-              if (uploadData?.data?.id) {
-                patchData.image_front = uploadData.data.id
-                enrichedFields.push('Photo')
-              }
+          const imgRes = await fetch(`/api/proxy-image?url=${encodeURIComponent(url)}`)
+          if (!imgRes.ok) continue
+          const blob = await imgRes.blob()
+          const formData = new FormData()
+          formData.append('file', blob, `${barcode}-${label}.jpg`)
+          const uploadRes = await fetch(`${DIRECTUS_URL}/files`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          })
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json() as { data?: { id: string } }
+            if (uploadData?.data?.id) {
+              patchData[field] = uploadData.data.id
+              imagesUploaded++
             }
           }
-        } catch { /* image optionnelle */ }
+        } catch { /* image individuelle optionnelle */ }
       }
+      if (imagesUploaded > 0) enrichedFields.push(`${imagesUploaded} photo${imagesUploaded > 1 ? 's' : ''}`)
 
       if (Object.keys(patchData).length === 0) {
         setState('not_found')
