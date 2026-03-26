@@ -182,7 +182,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
 
         setSubmitted(true)
       } else {
-        // Mode création : créer le produit directement via l'API
+        // Mode création
         const token = await getAccessToken()
         if (!token) {
           setError('Session expirée. Veuillez vous reconnecter.')
@@ -190,19 +190,70 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           return
         }
 
+        // Données de base du produit
+        const productData: Record<string, unknown> = {
+          barcode,
+          name_fr: productInfo.name_fr.trim(),
+          brand: productInfo.brand.trim(),
+          status: 'published',
+          data_source: 'community',
+        }
+
+        // Si une photo nutrition est fournie, lancer le pipeline OCR
+        if (photos.nutrition) {
+          try {
+            const ocrForm = new FormData()
+            ocrForm.append('image_nutrition', photos.nutrition)
+            ocrForm.append('barcode', barcode)
+
+            const ocrRes = await fetch('/api/ocr-score', {
+              method: 'POST',
+              body: ocrForm,
+            })
+
+            if (ocrRes.ok) {
+              const ocrData = await ocrRes.json() as {
+                job_status: string
+                parsed_data?: Record<string, unknown>
+                ocr_text?: string
+                ocr_confidence?: number
+              }
+
+              if (ocrData.job_status === 'done' && ocrData.parsed_data) {
+                // Enrichir le produit avec les données OCR
+                const pd = ocrData.parsed_data
+                if (pd.energy_kcal != null) productData.energy_kcal = pd.energy_kcal
+                if (pd.fat_total != null) productData.fat_total = pd.fat_total
+                if (pd.fat_saturated != null) productData.fat_saturated = pd.fat_saturated
+                if (pd.carbs_total != null) productData.carbs_total = pd.carbs_total
+                if (pd.sugars != null) productData.sugars = pd.sugars
+                if (pd.fiber != null) productData.fiber = pd.fiber
+                if (pd.proteins != null) productData.proteins = pd.proteins
+                if (pd.salt != null) productData.salt = pd.salt
+                if (pd.ingredients_text) productData.ingredients_text = pd.ingredients_text
+                if (pd.nova_group) productData.nova_group = pd.nova_group
+                // Utiliser le nom/marque OCR si non saisi par l'utilisateur
+                if (!productData.name_fr && pd.product_name) productData.name_fr = pd.product_name
+                if (!productData.brand && pd.brand) productData.brand = pd.brand
+                productData.data_source = 'ocr_tesseract'
+                productData.ocr_raw_text = ocrData.ocr_text
+                productData.ocr_confidence = ocrData.ocr_confidence
+              }
+              // Si low_confidence ou manual_required, on crée quand même avec les données saisies
+            }
+          } catch {
+            // OCR a échoué — on continue avec les données manuelles
+          }
+        }
+
+        // Créer le produit dans Directus
         const createRes = await fetch(`${DIRECTUS_URL}/items/products`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            barcode,
-            name_fr: productInfo.name_fr.trim(),
-            brand: productInfo.brand.trim(),
-            status: 'published',
-            data_source: 'community',
-          }),
+          body: JSON.stringify(productData),
         })
 
         if (!createRes.ok) {
