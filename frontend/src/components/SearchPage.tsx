@@ -180,22 +180,30 @@ export default function SearchPage() {
       }
 
       try {
+        let localProducts: Product[] = []
+        let localCount = 0
+
         const res = await fetch(url)
-        const json = (await res.json()) as {
-          data: Product[]
-          meta?: { filter_count?: number }
+        if (res.ok) {
+          const json = (await res.json()) as {
+            data: Product[]
+            meta?: { filter_count?: number }
+          }
+          localProducts = json.data ?? []
+          localCount = json.meta?.filter_count ?? localProducts.length
         }
+        // Si Directus retourne 403 ou erreur, localProducts reste []
 
         if (append) {
-          setProducts((prev) => [...prev, ...json.data])
+          setProducts((prev) => [...prev, ...localProducts])
         } else {
-          setProducts(json.data)
+          setProducts(localProducts)
         }
 
-        setTotalCount(json.meta?.filter_count ?? json.data.length)
+        setTotalCount(localCount)
 
-        // Recherche OFF si Directus n'a rien et query ≥ 3 caractères
-        if (!append && (json.data ?? []).length === 0 && debouncedQuery.trim().length >= 3) {
+        // Recherche OFF si Directus n'a rien (ou est indisponible) et query ≥ 3 caractères
+        if (!append && localProducts.length === 0 && debouncedQuery.trim().length >= 3) {
           setSearchingOff(true)
           try {
             const offUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(debouncedQuery.trim())}&json=1&page_size=20&lc=fr&cc=ma`

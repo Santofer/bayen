@@ -149,14 +149,14 @@ const currentPath = Astro.url.pathname
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            Accueil
+            {t('nav.home', locale)}
           </a>
           <a href="/recherche" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/recherche' ? 'text-primary' : 'text-muted-foreground']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            Recherche
+            {t('nav.search', locale)}
           </a>
           <a href="/scan" class="flex flex-col items-center gap-1 -mt-5">
             <div class="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
@@ -168,21 +168,21 @@ const currentPath = Astro.url.pathname
                 <line x1="7" y1="12" x2="17" y2="12" />
               </svg>
             </div>
-            <span class="text-xs text-primary font-medium">Scanner</span>
+            <span class="text-xs text-primary font-medium">{t('nav.scan', locale)}</span>
           </a>
           <a href="/additifs" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath.startsWith('/additifs') ? 'text-primary' : 'text-muted-foreground']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
               <path d="M8.5 2h7" />
             </svg>
-            Additifs
+            {t('nav.additives', locale)}
           </a>
           <a href="/compte" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/compte' ? 'text-primary' : 'text-muted-foreground']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-            Compte
+            {t('nav.account', locale)}
           </a>
         </div>
       </nav>

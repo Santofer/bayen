@@ -7,10 +7,12 @@ import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { login, register } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
 
 type AuthTab = 'login' | 'register'
 
 export default function AuthForm() {
+  const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<AuthTab>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -88,7 +90,7 @@ export default function AuthForm() {
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          Connexion
+          {t('auth.login')}
         </button>
         <button
           type="button"
@@ -100,7 +102,7 @@ export default function AuthForm() {
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          Inscription
+          {t('auth.register')}
         </button>
       </div>
 
@@ -110,7 +112,7 @@ export default function AuthForm() {
         {activeTab === 'register' && (
           <div className="space-y-2">
             <label htmlFor="displayName" className="text-sm font-medium text-foreground">
-              Nom d&apos;affichage
+              {t('auth.displayName')}
             </label>
             <input
               id="displayName"
@@ -127,7 +129,7 @@ export default function AuthForm() {
         {/* Email */}
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-foreground">
-            Email
+            {t('auth.email')}
           </label>
           <input
             id="email"
@@ -143,7 +145,7 @@ export default function AuthForm() {
         {/* Mot de passe */}
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium text-foreground">
-            Mot de passe
+            {t('auth.password')}
           </label>
           <input
             id="password"
@@ -160,7 +162,7 @@ export default function AuthForm() {
         {activeTab === 'register' && (
           <div className="space-y-2">
             <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-              Confirmer le mot de passe
+              {t('auth.confirmPassword')}
             </label>
             <input
               id="confirmPassword"
@@ -192,7 +194,7 @@ export default function AuthForm() {
               {activeTab === 'login' ? 'Connexion...' : 'Inscription...'}
             </span>
           ) : (
-            activeTab === 'login' ? 'Se connecter' : "S'inscrire"
+            activeTab === 'login' ? t('auth.loginBtn') : t('auth.registerBtn')
           )}
         </Button>
       </form>

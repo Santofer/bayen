@@ -38,7 +38,9 @@ export const translations = {
   'nova.4':     { fr: 'Ultra-transformé',       ary: 'محوّل بزاف' },
 
   // ── Additifs ────────────────────────────────────────────────
-  'additives.title':   { fr: 'Additifs',                 ary: 'إضافات' },
+  'additives.title':     { fr: 'Additifs',                 ary: 'إضافات' },
+  'additives.pageTitle': { fr: 'Additifs alimentaires',    ary: 'الإضافات الغذائية' },
+  'additives.pageDesc':  { fr: 'Base de données des additifs E-xxx avec leur niveau de risque', ary: 'قاعدة بيانات الإضافات E-xxx مع مستوى الخطورة ديالهم' },
   'additives.safe':    { fr: 'Sûr',                      ary: 'آمن' },
   'additives.limited': { fr: 'Limité',                   ary: 'محدود' },
   'additives.avoid':   { fr: 'À éviter',                 ary: 'حسن تجنبو' },

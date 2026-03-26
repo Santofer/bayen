@@ -9,6 +9,10 @@ import ProductActions from '@/components/ProductActions.tsx'
 import OffImportButton from '@/components/OffImportButton.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
+import { getLocale, t } from '@/lib/i18n'
+
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
 
 const { barcode } = Astro.params
 
@@ -255,9 +259,9 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
         <h1 class="text-lg font-semibold text-red-800 mb-1">{fetchError}</h1>
-        <p class="text-sm text-red-600">Vérifiez votre connexion et réessayez.</p>
+        <p class="text-sm text-red-600">{t('common.networkError', locale)}</p>
         <a href="/scan" class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
-          Rescanner
+          {t('nav.scan', locale)}
         </a>
       </div>
     )}
@@ -270,12 +274,12 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
         </div>
-        <h1 class="text-xl font-bold text-foreground mb-2">Produit non trouvé</h1>
+        <h1 class="text-xl font-bold text-foreground mb-2">{t('product.notFound', locale)}</h1>
         <p class="text-sm text-muted-foreground mb-1">
-          Le code-barres <span class="font-mono font-medium text-foreground">{barcode}</span> n'est pas encore dans notre base.
+          {t('product.notFoundDesc', locale)}
         </p>
         <p class="text-sm text-muted-foreground mb-6">
-          Aidez la communauté en ajoutant ce produit !
+          {t('contribute.subtitle', locale)}
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <a
@@ -286,13 +290,13 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Ajouter ce produit
+            {t('product.addThis', locale)}
           </a>
           <a
             href="/scan"
             class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md border text-sm font-medium hover:bg-accent"
           >
-            Scanner un autre
+            {t('product.scanAnother', locale)}
           </a>
         </div>
       </div>
@@ -353,17 +357,17 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         {/* Données nutritionnelles */}
         {(product.energy_kcal != null || product.proteins != null) && (
           <div class="rounded-xl border bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground mb-4">Valeurs nutritionnelles (pour 100g)</h2>
+            <h2 class="text-sm font-medium text-foreground mb-4">{t('product.nutrition', locale)}</h2>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Énergie', value: product.energy_kcal, unit: 'kcal' },
-                { label: 'Lipides', value: product.fat_total, unit: 'g' },
-                { label: 'dont AGS', value: product.fat_saturated, unit: 'g' },
-                { label: 'Glucides', value: product.carbs_total, unit: 'g' },
-                { label: 'dont Sucres', value: product.sugars, unit: 'g' },
-                { label: 'Fibres', value: product.fiber, unit: 'g' },
-                { label: 'Protéines', value: product.proteins, unit: 'g' },
-                { label: 'Sel', value: product.salt, unit: 'g' },
+                { label: t('product.energy', locale), value: product.energy_kcal, unit: 'kcal' },
+                { label: t('product.fat', locale), value: product.fat_total, unit: 'g' },
+                { label: t('product.saturatedFat', locale), value: product.fat_saturated, unit: 'g' },
+                { label: t('product.carbs', locale), value: product.carbs_total, unit: 'g' },
+                { label: t('product.sugars', locale), value: product.sugars, unit: 'g' },
+                { label: t('product.fiber', locale), value: product.fiber, unit: 'g' },
+                { label: t('product.proteins', locale), value: product.proteins, unit: 'g' },
+                { label: t('product.salt', locale), value: product.salt, unit: 'g' },
               ].map((item) => (
                 <div class="text-center p-2 rounded-lg bg-muted/50">
                   <p class="text-xs text-muted-foreground">{item.label}</p>
@@ -380,9 +384,9 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         {product.ingredients_text && (
           <div class="rounded-xl border bg-card p-6">
             <div class="flex items-center gap-2 mb-2">
-              <h2 class="text-sm font-medium text-foreground">Ingrédients</h2>
+              <h2 class="text-sm font-medium text-foreground">{t('product.ingredients', locale)}</h2>
               {product.ingredients_lang === 'other' && (
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">non traduit</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">{t('product.notTranslated', locale)}</span>
               )}
             </div>
             <p class="text-xs text-muted-foreground leading-relaxed">{product.ingredients_text}</p>
@@ -425,7 +429,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               <path d="M12 20h9" />
               <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838.838-2.872a2 2 0 0 1 .506-.855z" />
             </svg>
-            Corriger / compléter
+            {t('product.fix', locale)}
           </a>
           <a
             href="/scan"
@@ -438,7 +442,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               <path d="M7 21H5a2 2 0 01-2-2v-2" />
               <line x1="7" y1="12" x2="17" y2="12" />
             </svg>
-            Scanner un autre
+            {t('product.scanAnother', locale)}
           </a>
         </div>
       </div>
