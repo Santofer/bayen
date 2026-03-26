@@ -35,9 +35,8 @@ async function handleRequest(context: APIContext): Promise<Response> {
     if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(context.request.method)) {
       const contentType = context.request.headers.get('Content-Type') ?? ''
       if (contentType.includes('multipart/form-data')) {
-        // Pour les uploads de fichiers, transmettre le body brut
-        // Ne pas définir Content-Type — le navigateur le fait avec le boundary
-        delete headers['Content-Type']
+        // Pour les uploads de fichiers, transmettre le Content-Type avec boundary intact
+        headers['Content-Type'] = contentType
         fetchOptions.body = await context.request.arrayBuffer()
       } else {
         fetchOptions.body = await context.request.text()

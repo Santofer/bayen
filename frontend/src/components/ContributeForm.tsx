@@ -49,6 +49,15 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
   const [productInfo, setProductInfo] = useState({
     name_fr: isEditMode ? ((existingProduct.name_fr as string) ?? '') : '',
     brand: isEditMode ? ((existingProduct.brand as string) ?? '') : '',
+    ingredients_text: isEditMode ? ((existingProduct.ingredients_text as string) ?? '') : '',
+    energy_kcal: isEditMode ? ((existingProduct.energy_kcal as number) ?? null) : null,
+    fat_total: isEditMode ? ((existingProduct.fat_total as number) ?? null) : null,
+    fat_saturated: isEditMode ? ((existingProduct.fat_saturated as number) ?? null) : null,
+    carbs_total: isEditMode ? ((existingProduct.carbs_total as number) ?? null) : null,
+    sugars: isEditMode ? ((existingProduct.sugars as number) ?? null) : null,
+    fiber: isEditMode ? ((existingProduct.fiber as number) ?? null) : null,
+    proteins: isEditMode ? ((existingProduct.proteins as number) ?? null) : null,
+    salt: isEditMode ? ((existingProduct.salt as number) ?? null) : null,
   })
   const [frontPhotoFile, setFrontPhotoFile] = useState<File | null>(null)
   const [frontPhotoUploading, setFrontPhotoUploading] = useState(false)
@@ -147,6 +156,77 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           brand: productInfo.brand.trim(),
         }
 
+        // Ajouter les champs nutritionnels modifiés
+        if (productInfo.ingredients_text) patchData.ingredients_text = productInfo.ingredients_text
+        if (productInfo.energy_kcal !== null) patchData.energy_kcal = productInfo.energy_kcal
+        if (productInfo.fat_total !== null) patchData.fat_total = productInfo.fat_total
+        if (productInfo.fat_saturated !== null) patchData.fat_saturated = productInfo.fat_saturated
+        if (productInfo.carbs_total !== null) patchData.carbs_total = productInfo.carbs_total
+        if (productInfo.sugars !== null) patchData.sugars = productInfo.sugars
+        if (productInfo.fiber !== null) patchData.fiber = productInfo.fiber
+        if (productInfo.proteins !== null) patchData.proteins = productInfo.proteins
+        if (productInfo.salt !== null) patchData.salt = productInfo.salt
+
+        // Uploader les photos (front, nutrition, ingredients)
+        const photoFields: Array<[string, string, File | undefined]> = [
+          ['front', 'image_front', frontPhotoFile ?? undefined],
+          ['nutrition', 'image_nutrition', photos.nutrition],
+          ['ingredients', 'image_ingredients', photos.ingredients],
+        ]
+
+        for (const [label, field, file] of photoFields) {
+          if (!file) continue
+          try {
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('title', `${barcode || existingProduct.barcode}-${label}`)
+
+            const uploadRes = await fetch(`${DIRECTUS_URL}/files`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+              body: formData,
+            })
+
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json() as { data?: { id: string } }
+              if (uploadData?.data?.id) {
+                patchData[field] = uploadData.data.id
+              }
+            }
+          } catch {
+            // Continue avec les autres uploads
+          }
+        }
+
+        // Si une photo nutrition a été uploadée, lancer l'OCR pour enrichir les données
+        if (photos.nutrition && !productInfo.energy_kcal) {
+          try {
+            const ocrForm = new FormData()
+            ocrForm.append('image_nutrition', photos.nutrition)
+            ocrForm.append('barcode', (barcode || existingProduct.barcode) as string)
+
+            const ocrRes = await fetch('/api/ocr-score', { method: 'POST', body: ocrForm })
+            if (ocrRes.ok) {
+              const ocrData = await ocrRes.json() as { job_status: string; parsed_data?: Record<string, unknown> }
+              if (ocrData.job_status === 'done' && ocrData.parsed_data) {
+                const pd = ocrData.parsed_data
+                // Enrichir seulement les champs non saisis manuellement
+                if (pd.energy_kcal != null && !patchData.energy_kcal) patchData.energy_kcal = pd.energy_kcal
+                if (pd.fat_total != null && !patchData.fat_total) patchData.fat_total = pd.fat_total
+                if (pd.fat_saturated != null && !patchData.fat_saturated) patchData.fat_saturated = pd.fat_saturated
+                if (pd.carbs_total != null && !patchData.carbs_total) patchData.carbs_total = pd.carbs_total
+                if (pd.sugars != null && !patchData.sugars) patchData.sugars = pd.sugars
+                if (pd.fiber != null && !patchData.fiber) patchData.fiber = pd.fiber
+                if (pd.proteins != null && !patchData.proteins) patchData.proteins = pd.proteins
+                if (pd.salt != null && !patchData.salt) patchData.salt = pd.salt
+                if (pd.ingredients_text && !patchData.ingredients_text) patchData.ingredients_text = pd.ingredients_text
+              }
+            }
+          } catch {
+            // OCR optionnel — on continue
+          }
+        }
+
         const res = await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
           method: 'PATCH',
           headers: {
@@ -178,7 +258,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
             },
             data_after: patchData,
           }),
-        })
+        }).catch(() => { /* contribution tracking optionnel */ })
 
         setSubmitted(true)
       } else {
@@ -499,46 +579,84 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
             </div>
           </div>
 
-          {/* Section photo face avant (mode édition) */}
+          {/* Photos (mode édition — les 3 photos) */}
+          {isEditMode && (
+            <div className="rounded-xl border bg-card p-5 space-y-4">
+              <h3 className="text-sm font-medium text-foreground">📷 Photos du produit</h3>
+              {[
+                { key: 'front' as const, label: 'Photo face avant', field: 'image_front' },
+                { key: 'nutrition' as const, label: 'Tableau nutritionnel', field: 'image_nutrition' },
+                { key: 'ingredients' as const, label: 'Liste des ingrédients', field: 'image_ingredients' },
+              ].map(({ key, label, field }) => (
+                <div key={key} className="space-y-1">
+                  <label className="block text-xs font-medium text-muted-foreground">{label}</label>
+                  {existingProduct[field] && (
+                    <p className="text-[10px] text-green-600">✓ Image existante</p>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null
+                      if (key === 'front') setFrontPhotoFile(file)
+                      else if (file) setPhotos((p) => ({ ...p, [key]: file }))
+                    }}
+                    className="w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-muted file:text-foreground hover:file:bg-muted/80 file:cursor-pointer"
+                  />
+                </div>
+              ))}
+              <p className="text-[10px] text-muted-foreground">
+                💡 Uploadez le tableau nutritionnel pour remplir automatiquement les valeurs via OCR
+              </p>
+            </div>
+          )}
+
+          {/* Valeurs nutritionnelles (mode édition) */}
           {isEditMode && (
             <div className="rounded-xl border bg-card p-5 space-y-3">
-              <label className="block text-sm font-medium text-foreground">
-                {t('contribute.photoFront')}
-              </label>
-              {existingProduct.image_front && !frontPhotoUploaded && (
-                <p className="text-xs text-muted-foreground">
-                  Une image existe déjà. Vous pouvez la remplacer ci-dessous.
-                </p>
-              )}
-              {frontPhotoUploaded && (
-                <div className="rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800">
-                  Photo uploadée avec succès !
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(e) => setFrontPhotoFile(e.target.files?.[0] ?? null)}
-                className="w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer"
+              <h3 className="text-sm font-medium text-foreground">🥗 Valeurs nutritionnelles (pour 100g)</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { key: 'energy_kcal', label: 'Énergie (kcal)', placeholder: 'ex: 450' },
+                  { key: 'fat_total', label: 'Lipides (g)', placeholder: 'ex: 25' },
+                  { key: 'fat_saturated', label: 'dont AGS (g)', placeholder: 'ex: 12' },
+                  { key: 'carbs_total', label: 'Glucides (g)', placeholder: 'ex: 55' },
+                  { key: 'sugars', label: 'dont Sucres (g)', placeholder: 'ex: 30' },
+                  { key: 'fiber', label: 'Fibres (g)', placeholder: 'ex: 2' },
+                  { key: 'proteins', label: 'Protéines (g)', placeholder: 'ex: 6' },
+                  { key: 'salt', label: 'Sel (g)', placeholder: 'ex: 0.5' },
+                ].map(({ key, label, placeholder }) => (
+                  <div key={key}>
+                    <label className="block text-[10px] font-medium text-muted-foreground mb-0.5">{label}</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder={placeholder}
+                      value={productInfo[key as keyof typeof productInfo] ?? ''}
+                      onChange={(e) => setProductInfo((p) => ({
+                        ...p,
+                        [key]: e.target.value ? parseFloat(e.target.value) : null,
+                      }))}
+                      className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ingrédients (mode édition) */}
+          {isEditMode && (
+            <div className="rounded-xl border bg-card p-5 space-y-2">
+              <label className="block text-sm font-medium text-foreground">📝 Ingrédients</label>
+              <textarea
+                rows={3}
+                placeholder="Liste des ingrédients..."
+                value={productInfo.ingredients_text}
+                onChange={(e) => setProductInfo((p) => ({ ...p, ingredients_text: e.target.value }))}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
               />
-              {frontPhotoFile && !frontPhotoUploaded && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleFrontPhotoUpload}
-                  disabled={frontPhotoUploading}
-                >
-                  {frontPhotoUploading ? (
-                    <>
-                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                      Upload en cours...
-                    </>
-                  ) : (
-                    t('contribute.uploadImage')
-                  )}
-                </Button>
-              )}
             </div>
           )}
 
