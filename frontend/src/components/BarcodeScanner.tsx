@@ -66,26 +66,27 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
       try {
         if (!videoRef.current) return
 
-        // Lister les caméras disponibles
-        const devices = await BrowserMultiFormatReader.listVideoInputDevices()
-
-        // Préférer la caméra arrière
-        let deviceId: string | undefined
-        const backCam = devices.find(d =>
-          d.label.toLowerCase().includes('back') ||
-          d.label.toLowerCase().includes('arrière') ||
-          d.label.toLowerCase().includes('rear') ||
-          d.label.toLowerCase().includes('environment')
-        )
-        if (backCam) {
-          deviceId = backCam.deviceId
-        } else if (devices.length > 0) {
-          // Sur beaucoup de mobiles, la dernière caméra est la caméra arrière
-          deviceId = devices[devices.length - 1].deviceId
+        // Sélectionner la caméra arrière via getUserMedia d'abord
+        let selectedDeviceId: string | null = null
+        try {
+          // Demander l'accès caméra arrière
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' },
+            audio: false,
+          })
+          // Récupérer le deviceId de la caméra obtenue
+          const track = stream.getVideoTracks()[0]
+          if (track) {
+            selectedDeviceId = track.getSettings().deviceId ?? null
+          }
+          // Arrêter ce flux — zxing va en créer un nouveau
+          stream.getTracks().forEach(t => t.stop())
+        } catch {
+          // Pas grave — on laisse zxing choisir
         }
 
         await reader.decodeFromVideoDevice(
-          deviceId ?? null,
+          selectedDeviceId,
           videoRef.current,
           (result, error) => {
             if (!mounted) return

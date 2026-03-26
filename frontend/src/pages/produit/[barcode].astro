@@ -434,12 +434,32 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         {/* Ingrédients */}
         {product.ingredients_text && (() => {
           const raw = product.ingredients_text as string
-          // Séparer par virgules, points-virgules ou tirets en début de ligne
-          const items = raw
-            .split(/[,;]|\n-/)
-            .map((s: string) => s.replace(/[()[\]]/g, '').trim())
-            .filter((s: string) => s.length > 1)
-            .map((s: string) => s.charAt(0).toUpperCase() + s.slice(1))
+          // Protéger les virgules dans les pourcentages (34,8%) et les parenthèses
+          // avant de séparer par virgule
+          let protected_ = raw
+          // Remplacer temporairement les virgules dans les nombres décimaux
+          protected_ = protected_.replace(/(\d),(\d)/g, '$1\u0000$2')
+          // Séparer par virgules ou points-virgules (pas par les virgules protégées)
+          const items = protected_
+            .split(/[;]|,/)
+            .map((s: string) => s.replace(/\u0000/g, ',').trim()) // Restaurer les virgules décimales
+            .map((s: string) => s.replace(/^[-–·•]\s*/, '')) // Retirer les puces en début
+            .filter((s: string) => s.length > 1 && !/^\d+[,.]?\d*\s*%?$/.test(s)) // Filtrer les fragments numériques isolés
+            .map((s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+              // Garder les majuscules pour les allergènes et E-xxx
+              .replace(/\b(e\d{3}[a-z]?)\b/gi, (m) => m.toUpperCase())
+            )
+          // Restaurer les majuscules pour les allergènes connus (convention INCO)
+          .map((s: string) => s
+            .replace(/\bbl[ée]\b/gi, 'BLÉ')
+            .replace(/\bsoja\b/gi, 'SOJA')
+            .replace(/\blait\b/gi, 'LAIT')
+            .replace(/\boeufs?\b/gi, 'OEUFS')
+            .replace(/\bgluten\b/gi, 'GLUTEN')
+            .replace(/\barachides?\b/gi, 'ARACHIDE')
+            .replace(/\bnoix\b/gi, 'NOIX')
+            .replace(/\bs[ée]same\b/gi, 'SÉSAME')
+          )
 
           return (
             <div class="rounded-xl border bg-card p-6">
