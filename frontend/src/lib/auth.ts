@@ -100,9 +100,9 @@ function parseDirectusError(data: DirectusErrorResponse): string {
 // API publique
 // ────────────────────────────────────────────────────────────────
 
-/** Connexion email + mot de passe */
+/** Connexion email + mot de passe (via proxy pour éviter CORS) */
 export async function login(email: string, password: string): Promise<void> {
-  const response = await fetch(`${DIRECTUS_URL}/auth/login`, {
+  const response = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -124,24 +124,25 @@ export async function register(
   password: string,
   displayName: string
 ): Promise<void> {
-  const response = await fetch(`${DIRECTUS_URL}/users`, {
+  const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email,
       password,
       first_name: displayName,
-      // Le rôle par défaut sera attribué par Directus (rôle public/contributeur)
     }),
   })
 
+  const data = await response.json()
+
   if (!response.ok) {
-    const data = await response.json()
     throw new Error(parseDirectusError(data as DirectusErrorResponse))
   }
 
-  // Connexion automatique après inscription
-  await login(email, password)
+  // Le proxy renvoie directement les tokens de login
+  storeTokens((data as DirectusAuthResponse).data)
+  notifyListeners()
 }
 
 /** Déconnexion — invalide le refresh_token côté serveur */
@@ -170,7 +171,7 @@ async function refreshAccessToken(): Promise<boolean> {
   if (!refreshToken) return false
 
   try {
-    const response = await fetch(`${DIRECTUS_URL}/auth/refresh`, {
+    const response = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh_token: refreshToken, mode: 'json' }),
