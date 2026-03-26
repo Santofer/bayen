@@ -65,6 +65,10 @@ function notifyListeners(): void {
 // ────────────────────────────────────────────────────────────────
 
 function storeTokens(tokens: AuthTokens): void {
+  if (!tokens.access_token || !tokens.refresh_token) {
+    // Ne jamais stocker des tokens invalides
+    return
+  }
   accessToken = tokens.access_token
   // expires est en millisecondes dans Directus
   tokenExpiresAt = Date.now() + tokens.expires
@@ -83,7 +87,13 @@ function clearTokens(): void {
 
 function getStoredRefreshToken(): string | null {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem(REFRESH_TOKEN_KEY)
+  const token = localStorage.getItem(REFRESH_TOKEN_KEY)
+  // Protéger contre les valeurs invalides stockées par erreur
+  if (!token || token === 'undefined' || token === 'null' || token.length < 10) {
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
+    return null
+  }
+  return token
 }
 
 /** Extrait un message d'erreur lisible depuis une réponse Directus */
