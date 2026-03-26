@@ -528,7 +528,6 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={(e) => handlePhoto(key, e.target.files?.[0] ?? null)}
                   className="w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer"
                 />
@@ -596,8 +595,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
-                    onChange={(e) => {
+                      onChange={(e) => {
                       const file = e.target.files?.[0] ?? null
                       if (key === 'front') setFrontPhotoFile(file)
                       else if (file) setPhotos((p) => ({ ...p, [key]: file }))

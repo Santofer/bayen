@@ -64,8 +64,8 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       </div>
 
       {/* Infos */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-        <h3 className="font-medium text-sm text-foreground truncate group-hover:text-primary transition-colors">
+      <div className="flex-1 min-w-0 overflow-hidden flex flex-col justify-center gap-1">
+        <h3 className="font-medium text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors">
           {product.name_fr}
         </h3>
         <p className="text-xs text-muted-foreground truncate">

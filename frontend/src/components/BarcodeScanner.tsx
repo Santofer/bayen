@@ -86,10 +86,14 @@ export default function BarcodeScanner({
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
       BarcodeFormat.EAN_13,
       BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_128,
     ])
     hints.set(DecodeHintType.TRY_HARDER, true)
 
-    const reader = new BrowserMultiFormatReader(hints)
+    // Décoder toutes les 200ms (au lieu du 500ms par défaut) pour une détection plus réactive
+    const reader = new BrowserMultiFormatReader(hints, 200)
     readerRef.current = reader
 
     let mounted = true
@@ -98,22 +102,34 @@ export default function BarcodeScanner({
       try {
         if (!videoRef.current) return
 
-        await reader.decodeFromVideoDevice(
-          undefined, // Caméra arrière par défaut
-          videoRef.current,
-          (result, error) => {
+        // Demander explicitement la caméra arrière (environment)
+        const constraints: MediaStreamConstraints = {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { min: 640, ideal: 1920 },
+            height: { min: 480, ideal: 1080 },
+          },
+          audio: false,
+        }
+
+        try {
+          await reader.decodeFromConstraints(constraints, videoRef.current, (result, error) => {
             if (!mounted) return
-
-            if (result) {
-              handleDetection(result.getText())
-            }
-
-            // Ne pas logger les erreurs de "not found" à chaque frame
+            if (result) handleDetection(result.getText())
             if (error && error.name !== 'NotFoundException') {
               console.warn('[BarcodeScanner] decode error:', error.message)
             }
-          }
-        )
+          })
+        } catch {
+          // Fallback : n'importe quelle caméra
+          await reader.decodeFromVideoDevice(undefined, videoRef.current, (result, error) => {
+            if (!mounted) return
+            if (result) handleDetection(result.getText())
+            if (error && error.name !== 'NotFoundException') {
+              console.warn('[BarcodeScanner] decode error:', error.message)
+            }
+          })
+        }
 
         if (mounted) {
           setCameraActive(true)
@@ -127,10 +143,11 @@ export default function BarcodeScanner({
             ? 'Accès à la caméra refusé. Autorisez la caméra dans les paramètres.'
             : err instanceof DOMException && err.name === 'NotFoundError'
               ? 'Aucune caméra détectée sur cet appareil.'
-              : 'Impossible d\'accéder à la caméra.'
+              : `Impossible d'accéder à la caméra. ${err instanceof Error ? err.message : ''}`
 
         setCameraError(message)
         setCameraActive(false)
+        setShowManual(true)
         onError?.(message)
       }
     }
@@ -140,6 +157,12 @@ export default function BarcodeScanner({
     return () => {
       mounted = false
       reader.reset()
+      // Arrêter le flux vidéo pour libérer la caméra
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream
+        stream.getTracks().forEach((track) => track.stop())
+        videoRef.current.srcObject = null
+      }
       setCameraActive(false)
     }
   }, [disabled, showManual, handleDetection, onError])
