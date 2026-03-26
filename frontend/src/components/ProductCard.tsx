@@ -73,14 +73,20 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         </p>
         <div className="flex items-center gap-1.5 mt-0.5">
           {product.nutriscore_grade && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-              Nutri {product.nutriscore_grade}
-            </Badge>
+            <img
+              src={`/badges/nutriscore-${product.nutriscore_grade.toLowerCase()}.svg`}
+              alt={`Nutri-Score ${product.nutriscore_grade}`}
+              className="h-6 w-auto"
+              loading="lazy"
+            />
           )}
           {product.nova_group && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-              NOVA {product.nova_group}
-            </Badge>
+            <img
+              src={`/badges/nova-group-${product.nova_group}.svg`}
+              alt={`NOVA ${product.nova_group}`}
+              className="h-6 w-auto"
+              loading="lazy"
+            />
           )}
           {product.additives && product.additives.length > 0 && (
             <span className="text-[10px] text-muted-foreground">

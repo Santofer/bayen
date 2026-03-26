@@ -4,6 +4,11 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import ProductCard from '@/components/ProductCard.tsx'
+import { getLocale, t } from '@/lib/i18n'
+
+// Locale depuis le cookie SSR
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
 
 // Récupérer les produits récents et les stats depuis Directus
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
@@ -54,12 +59,11 @@ try {
     <section class="relative overflow-hidden bg-gradient-to-b from-primary/5 to-background">
       <div class="container mx-auto max-w-screen-lg px-4 py-16 sm:py-24 text-center">
         <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
-          Scannez. Comprenez.<br />
-          <span class="text-primary">Choisissez mieux.</span>
+          {t('home.hero1', locale)}<br />
+          <span class="text-primary">{t('home.hero2', locale)}</span>
         </h1>
         <p class="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
-          Bayen note les produits alimentaires au Maroc de 0 à 100.
-          Scannez un code-barres pour tout savoir sur ce que vous mangez.
+          {t('home.subtitle', locale)}
         </p>
 
         <!-- CTA -->
@@ -75,7 +79,7 @@ try {
               <path d="M7 21H5a2 2 0 01-2-2v-2" />
               <line x1="7" y1="12" x2="17" y2="12" />
             </svg>
-            Scanner un produit
+            {t('home.scanBtn', locale)}
           </a>
           <a
             href="/recherche"
@@ -85,7 +89,7 @@ try {
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            Rechercher
+            {t('home.searchBtn', locale)}
           </a>
         </div>
       </div>
@@ -98,24 +102,24 @@ try {
           <p class="text-2xl sm:text-3xl font-bold text-primary">
             {totalProducts.toLocaleString('fr-FR')}
           </p>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-1">Produits</p>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-1">{t('home.products', locale)}</p>
         </div>
         <div class="rounded-xl border bg-card p-4 text-center">
           <p class="text-2xl sm:text-3xl font-bold text-primary">
             {totalScans.toLocaleString('fr-FR')}
           </p>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-1">Scans</p>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-1">{t('home.scans', locale)}</p>
         </div>
         <div class="rounded-xl border bg-card p-4 text-center">
           <p class="text-2xl sm:text-3xl font-bold text-primary">100%</p>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-1">Gratuit</p>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-1">{t('home.free', locale)}</p>
         </div>
       </div>
     </section>
 
     <!-- Comment ça marche -->
     <section class="container mx-auto max-w-screen-lg px-4 py-12">
-      <h2 class="text-xl font-bold text-foreground text-center mb-8">Comment ça marche ?</h2>
+      <h2 class="text-xl font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
       <div class="grid sm:grid-cols-3 gap-6">
         <div class="text-center">
           <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -127,9 +131,9 @@ try {
               <line x1="7" y1="12" x2="17" y2="12" />
             </svg>
           </div>
-          <h3 class="font-semibold text-foreground">1. Scannez</h3>
+          <h3 class="font-semibold text-foreground">1. {t('home.step1', locale)}</h3>
           <p class="text-sm text-muted-foreground mt-1">
-            Pointez la caméra vers le code-barres du produit
+            {t('home.step1Desc', locale)}
           </p>
         </div>
         <div class="text-center">
@@ -139,9 +143,9 @@ try {
               <path d="M8 12l3 3 5-5" />
             </svg>
           </div>
-          <h3 class="font-semibold text-foreground">2. Comprenez</h3>
+          <h3 class="font-semibold text-foreground">2. {t('home.step2', locale)}</h3>
           <p class="text-sm text-muted-foreground mt-1">
-            Score 0–100, Nutri-Score, NOVA, additifs détaillés
+            {t('home.step2Desc', locale)}
           </p>
         </div>
         <div class="text-center">
@@ -150,9 +154,9 @@ try {
               <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
             </svg>
           </div>
-          <h3 class="font-semibold text-foreground">3. Choisissez</h3>
+          <h3 class="font-semibold text-foreground">3. {t('home.step3', locale)}</h3>
           <p class="text-sm text-muted-foreground mt-1">
-            Faites de meilleurs choix pour votre santé
+            {t('home.step3Desc', locale)}
           </p>
         </div>
       </div>
@@ -162,8 +166,8 @@ try {
     {recentProducts.length > 0 && (
       <section class="container mx-auto max-w-screen-lg px-4 pb-12">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-foreground">Produits populaires</h2>
-          <a href="/recherche" class="text-sm text-primary hover:underline">Voir tout</a>
+          <h2 class="text-xl font-bold text-foreground">{t('home.popular', locale)}</h2>
+          <a href="/recherche" class="text-sm text-primary hover:underline">{t('home.seeAll', locale)}</a>
         </div>
         <div class="grid sm:grid-cols-2 gap-3">
           {recentProducts.map((product) => (
@@ -176,10 +180,9 @@ try {
     <!-- CTA Contribution -->
     <section class="container mx-auto max-w-screen-lg px-4 pb-8">
       <div class="rounded-xl bg-primary/5 border border-primary/10 p-6 sm:p-8 text-center">
-        <h2 class="text-lg font-bold text-foreground">Un produit manque ?</h2>
+        <h2 class="text-lg font-bold text-foreground">{t('home.missingTitle', locale)}</h2>
         <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-          Bayen est construit par la communauté marocaine. Ajoutez les produits que vous trouvez
-          dans vos épiceries et grandes surfaces.
+          {t('home.missingDesc', locale)}
         </p>
         <a
           href="/contribuer"
@@ -189,7 +192,7 @@ try {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Ajouter un produit
+          {t('home.addProduct', locale)}
         </a>
       </div>
     </section>

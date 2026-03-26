@@ -15,18 +15,21 @@ function isValidLocale(value: string): value is Locale {
   return (SUPPORTED_LOCALES as readonly string[]).includes(value)
 }
 
-/** Récupère la locale courante depuis localStorage */
-export function getLocale(): Locale {
+/** Récupère la locale courante depuis localStorage (client) ou cookie (SSR) */
+export function getLocale(cookieValue?: string | null): Locale {
+  // SSR : utiliser la valeur du cookie si fournie
+  if (cookieValue && isValidLocale(cookieValue)) return cookieValue
   if (typeof window === 'undefined') return DEFAULT_LOCALE
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored && isValidLocale(stored)) return stored
   return DEFAULT_LOCALE
 }
 
-/** Persiste la locale dans localStorage */
+/** Persiste la locale dans localStorage + cookie */
 export function setLocale(locale: Locale): void {
   if (typeof window === 'undefined') return
   localStorage.setItem(STORAGE_KEY, locale)
+  document.cookie = `${STORAGE_KEY}=${locale};path=/;max-age=31536000;SameSite=Lax`
 }
 
 /** Retourne true si la locale courante est RTL (darija = arabe) */

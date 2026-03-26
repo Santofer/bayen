@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import ProductCard from '@/components/ProductCard'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
 import type { Product, Category, NutriScoreGrade } from '@/lib/types'
 
 // ────────────────────────────────────────────────────────────────
@@ -18,9 +19,9 @@ const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n
 const PAGE_SIZE = 20
 
 const SORT_OPTIONS = [
-  { value: '-scan_count', label: 'Plus scannés' },
-  { value: '-scan_score', label: 'Meilleur score' },
-  { value: '-date_created', label: 'Plus récents' },
+  { value: '-scan_count', labelKey: 'search.sortMostScanned' },
+  { value: '-scan_score', labelKey: 'search.sortBestScore' },
+  { value: '-date_created', labelKey: 'search.sortNewest' },
 ] as const
 
 type SortValue = (typeof SORT_OPTIONS)[number]['value']
@@ -130,6 +131,7 @@ function buildQueryParams(filters: Filters, offset: number): string {
 // ────────────────────────────────────────────────────────────────
 
 export default function SearchPage() {
+  const { t } = useLocale()
   const [filters, setFilters] = useState<Filters>(defaultFilters)
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [products, setProducts] = useState<Product[]>([])
@@ -193,7 +195,7 @@ export default function SearchPage() {
         setTotalCount(json.meta?.filter_count ?? json.data.length)
 
         // Recherche OFF si Directus n'a rien et query ≥ 3 caractères
-        if (!append && json.data.length === 0 && debouncedQuery.trim().length >= 3 && !hasActiveFilters) {
+        if (!append && (json.data ?? []).length === 0 && debouncedQuery.trim().length >= 3) {
           setSearchingOff(true)
           try {
             const offUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(debouncedQuery.trim())}&json=1&page_size=20&lc=fr&cc=ma`
@@ -307,7 +309,7 @@ export default function SearchPage() {
         </svg>
         <input
           type="search"
-          placeholder="Rechercher un produit, une marque ou un code-barres..."
+          placeholder={t('search.placeholder')}
           value={filters.query}
           onChange={(e) => updateFilter('query', e.target.value)}
           className="w-full rounded-xl border bg-background py-3 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -335,7 +337,7 @@ export default function SearchPage() {
             >
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg>
-            Filtres
+            {t('search.filters')}
             {hasActiveFilters && (
               <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground text-primary text-[10px] font-bold">
                 {
@@ -359,7 +361,7 @@ export default function SearchPage() {
               onClick={() => setFilters({ ...defaultFilters, query: filters.query, sort: filters.sort })}
               className="text-xs text-muted-foreground"
             >
-              Réinitialiser
+              {t('search.resetFilters')}
             </Button>
           )}
         </div>
@@ -372,7 +374,7 @@ export default function SearchPage() {
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
-              {opt.label}
+              {t(opt.labelKey)}
             </option>
           ))}
         </select>
@@ -383,7 +385,7 @@ export default function SearchPage() {
         <div className="rounded-xl border bg-card p-4 space-y-5 animate-in slide-in-from-top-2 fade-in duration-200">
           {/* Catégorie */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">Catégorie</label>
+            <label className="text-sm font-medium text-foreground">{t('search.category')}</label>
             <select
               value={filters.categoryId ?? ''}
               onChange={(e) =>
@@ -391,7 +393,7 @@ export default function SearchPage() {
               }
               className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
-              <option value="">Toutes les catégories</option>
+              <option value="">{t('search.allCategories')}</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.icon ? `${cat.icon} ` : ''}
@@ -404,7 +406,7 @@ export default function SearchPage() {
           {/* Score minimum */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              Score minimum : <span className="font-bold text-primary">{filters.scoreMin}</span>
+              {t('search.scoreMin')} : <span className="font-bold text-primary">{filters.scoreMin}</span>
             </label>
             <input
               type="range"
@@ -424,7 +426,7 @@ export default function SearchPage() {
 
           {/* Nutri-Score */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">Nutri-Score</label>
+            <label className="text-sm font-medium text-foreground">{t('nutriscore.title')}</label>
             <div className="flex gap-2">
               {NUTRISCORE_GRADES.map((grade) => {
                 const active = filters.nutriscoreGrades.includes(grade)
@@ -450,17 +452,17 @@ export default function SearchPage() {
           {/* Toggles */}
           <div className="flex flex-wrap gap-2">
             <ToggleChip
-              label="Sans additifs à éviter"
+              label={t('search.noAdditives')}
               active={filters.noAdditives}
               onClick={() => updateFilter('noAdditives', !filters.noAdditives)}
             />
             <ToggleChip
-              label="Halal"
+              label={t('search.halal')}
               active={filters.halal}
               onClick={() => updateFilter('halal', !filters.halal)}
             />
             <ToggleChip
-              label="Bio"
+              label={t('search.bio')}
               active={filters.bio}
               onClick={() => updateFilter('bio', !filters.bio)}
             />
@@ -472,7 +474,7 @@ export default function SearchPage() {
       {!loading && (
         <p className="text-sm text-muted-foreground">
           {totalCount > 0
-            ? `${totalCount} produit${totalCount > 1 ? 's' : ''} trouvé${totalCount > 1 ? 's' : ''}`
+            ? `${totalCount} ${t('search.results')}`
             : null}
         </p>
       )}
@@ -499,7 +501,7 @@ export default function SearchPage() {
               <path d="M12 8h.01" />
             </svg>
             <p className="text-sm text-amber-800">
-              Aucun résultat local — <strong>{offResults.length} produit{offResults.length > 1 ? 's' : ''}</strong> trouvé{offResults.length > 1 ? 's' : ''} sur Open Food Facts
+              {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {t('search.offResults')}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -517,7 +519,7 @@ export default function SearchPage() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          Recherche sur Open Food Facts...
+          {t('search.searchingOff')}
         </div>
       )}
 
@@ -539,9 +541,9 @@ export default function SearchPage() {
             <path d="m21 21-4.3-4.3" />
             <path d="M8 11h6" />
           </svg>
-          <p className="text-lg font-medium text-foreground">Aucun produit trouvé</p>
+          <p className="text-lg font-medium text-foreground">{t('search.noResults')}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Essayez de modifier vos filtres ou votre recherche.
+            {t('search.noResultsDesc')}
           </p>
           {hasActiveFilters && (
             <Button
@@ -550,7 +552,7 @@ export default function SearchPage() {
               className="mt-4"
               onClick={() => setFilters(defaultFilters)}
             >
-              Réinitialiser les filtres
+              {t('search.resetFilters')}
             </Button>
           )}
         </div>
@@ -582,10 +584,10 @@ export default function SearchPage() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
-                Chargement...
+                {t('common.loading')}
               </span>
             ) : (
-              'Charger plus'
+              t('search.loadMore')
             )}
           </Button>
         </div>

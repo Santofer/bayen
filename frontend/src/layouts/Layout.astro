@@ -5,6 +5,13 @@ import SeoHead from '@/components/SeoHead.astro'
 import UserMenu from '@/components/UserMenu'
 import LocaleToggle from '@/components/LocaleToggle'
 import InstallPrompt from '@/components/InstallPrompt'
+import { getLocale, t } from '@/lib/i18n'
+
+// Lire la locale depuis le cookie SSR
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
+const dir = locale === 'ary' ? 'rtl' : 'ltr'
+const lang = locale === 'ary' ? 'ar' : 'fr'
 
 interface Props {
   title: string
@@ -28,7 +35,7 @@ const currentPath = Astro.url.pathname
 ---
 
 <!doctype html>
-<html lang="fr" dir="ltr" id="html-root">
+<html lang={lang} dir={dir} id="html-root">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -73,7 +80,7 @@ const currentPath = Astro.url.pathname
                 currentPath === '/scan' ? 'text-foreground font-medium' : 'text-muted-foreground',
               ]}
             >
-              Scanner
+              {t('nav.scan', locale)}
             </a>
             <a
               href="/recherche"
@@ -82,7 +89,7 @@ const currentPath = Astro.url.pathname
                 currentPath === '/recherche' ? 'text-foreground font-medium' : 'text-muted-foreground',
               ]}
             >
-              Recherche
+              {t('nav.search', locale)}
             </a>
             <a
               href="/additifs"
@@ -91,7 +98,7 @@ const currentPath = Astro.url.pathname
                 currentPath.startsWith('/additifs') ? 'text-foreground font-medium' : 'text-muted-foreground',
               ]}
             >
-              Additifs
+              {t('nav.additives', locale)}
             </a>
             <a
               href="/contribuer"
@@ -100,7 +107,7 @@ const currentPath = Astro.url.pathname
                 currentPath.startsWith('/contribuer') ? 'text-foreground font-medium' : 'text-muted-foreground',
               ]}
             >
-              Contribuer
+              {t('nav.contribute', locale)}
             </a>
           </nav>
 

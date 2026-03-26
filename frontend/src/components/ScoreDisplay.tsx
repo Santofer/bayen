@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
 import type { ScoreResult, RiskLevel, NutriScoreGrade, NovaGroup, AdditiveResult } from '@/lib/types'
 
 // ────────────────────────────────────────────────────────────────
@@ -169,87 +170,67 @@ function ScoreCircle({ score, label, color }: { score: number; label: string; co
   )
 }
 
-/** Barre Nutri-Score A→E */
+/** Badge Nutri-Score officiel (SVG Open Food Facts) */
 function NutriScoreBar({ grade }: { grade: NutriScoreGrade }) {
-  const grades: NutriScoreGrade[] = ['A', 'B', 'C', 'D', 'E']
-
+  const { t } = useLocale()
+  const nutriscoreKeys: Record<NutriScoreGrade, 'nutriscore.a' | 'nutriscore.b' | 'nutriscore.c' | 'nutriscore.d' | 'nutriscore.e'> = {
+    A: 'nutriscore.a', B: 'nutriscore.b', C: 'nutriscore.c', D: 'nutriscore.d', E: 'nutriscore.e',
+  }
   return (
     <div className="space-y-1.5">
-      <h3 className="text-sm font-medium text-foreground">Nutri-Score</h3>
-      <div className="flex gap-1">
-        {grades.map((g) => {
-          const isActive = g === grade
-          return (
-            <div
-              key={g}
-              className={cn(
-                'flex-1 flex items-center justify-center rounded-md py-1.5 text-xs font-bold transition-all',
-                isActive ? 'scale-110 shadow-md' : 'opacity-40'
-              )}
-              style={{
-                backgroundColor: NUTRISCORE_COLORS[g],
-                color: g === 'C' && isActive ? '#000' : '#fff',
-              }}
-            >
-              {g}
-            </div>
-          )
-        })}
-      </div>
-      <p className="text-xs text-muted-foreground">{NUTRISCORE_LABELS[grade]}</p>
+      <h3 className="text-sm font-medium text-foreground">{t('nutriscore.title')}</h3>
+      <img
+        src={`/badges/nutriscore-${grade.toLowerCase()}.svg`}
+        alt={`Nutri-Score ${grade}`}
+        className="h-12 w-auto"
+        loading="lazy"
+      />
+      <p className="text-xs text-muted-foreground">{t(nutriscoreKeys[grade])}</p>
     </div>
   )
 }
 
-/** Pastilles NOVA 1→4 */
+/** Badge NOVA officiel (SVG Open Food Facts) */
 function NovaDisplay({ group }: { group: NovaGroup | null }) {
+  const { t } = useLocale()
+  const novaKeys: Record<NovaGroup, 'nova.1' | 'nova.2' | 'nova.3' | 'nova.4'> = {
+    1: 'nova.1', 2: 'nova.2', 3: 'nova.3', 4: 'nova.4',
+  }
   if (group == null) {
     return (
       <div className="space-y-1.5">
-        <h3 className="text-sm font-medium text-foreground">NOVA</h3>
+        <h3 className="text-sm font-medium text-foreground">{t('nova.title')}</h3>
         <p className="text-xs text-muted-foreground">Groupe NOVA non déterminé</p>
       </div>
     )
   }
 
-  const groups: NovaGroup[] = [1, 2, 3, 4]
-
   return (
     <div className="space-y-1.5">
-      <h3 className="text-sm font-medium text-foreground">Transformation NOVA</h3>
-      <div className="flex gap-1.5">
-        {groups.map((g) => {
-          const isActive = g === group
-          return (
-            <div
-              key={g}
-              className={cn(
-                'w-9 h-9 flex items-center justify-center rounded-full text-xs font-bold transition-all',
-                isActive ? 'scale-110 shadow-md ring-2 ring-offset-2' : 'opacity-30'
-              )}
-              style={{
-                backgroundColor: NOVA_COLORS[g],
-                color: '#fff',
-                ringColor: isActive ? NOVA_COLORS[g] : undefined,
-              }}
-            >
-              {g}
-            </div>
-          )
-        })}
-      </div>
-      <p className="text-xs text-muted-foreground">{NOVA_LABELS[group]}</p>
+      <h3 className="text-sm font-medium text-foreground">{t('nova.title')}</h3>
+      <img
+        src={`/badges/nova-group-${group}.svg`}
+        alt={`NOVA ${group}`}
+        className="h-20 w-auto"
+        loading="lazy"
+      />
+      <p className="text-xs text-muted-foreground">{t(novaKeys[group])}</p>
     </div>
   )
 }
 
 /** Liste des additifs avec badges de risque */
 function AdditivesList({ additives }: { additives: AdditiveResult[] }) {
+  const { t } = useLocale()
+  const riskKeys: Record<RiskLevel, 'additives.safe' | 'additives.limited' | 'additives.avoid' | 'additives.banned'> = {
+    safe: 'additives.safe', limited: 'additives.limited', avoid: 'additives.avoid', banned_ma: 'additives.banned',
+  }
+
   if (!additives || additives.length === 0) {
     return (
       <div className="space-y-1.5">
-        <h3 className="text-sm font-medium text-foreground">Additifs</h3>
-        <p className="text-xs text-muted-foreground">Aucun additif détecté</p>
+        <h3 className="text-sm font-medium text-foreground">{t('additives.title')}</h3>
+        <p className="text-xs text-muted-foreground">{t('additives.none')}</p>
       </div>
     )
   }
@@ -268,7 +249,7 @@ function AdditivesList({ additives }: { additives: AdditiveResult[] }) {
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-medium text-foreground">
-        Additifs ({additives.length})
+        {t('additives.title')} ({additives.length})
       </h3>
       <div className="flex flex-wrap gap-1.5">
         {sorted.map((additive) => (
@@ -278,7 +259,7 @@ function AdditivesList({ additives }: { additives: AdditiveResult[] }) {
           >
             {additive.code}
             <span className="ml-1 opacity-75">
-              {RISK_LABELS[additive.risk_level]}
+              {t(riskKeys[additive.risk_level])}
             </span>
           </Badge>
         ))}
@@ -289,21 +270,22 @@ function AdditivesList({ additives }: { additives: AdditiveResult[] }) {
 
 /** Points positifs / négatifs du score */
 function ScoreBreakdown({ score }: { score: ScoreResult }) {
+  const { t } = useLocale()
   const items = [
     {
-      label: 'Nutri-Score',
+      label: t('nutriscore.title'),
       points: score.nutriscore_points,
       max: 50,
       positive: score.nutriscore_points >= 30,
     },
     {
-      label: 'Transformation (NOVA)',
+      label: `${t('nova.title')}`,
       points: score.nova_points,
       max: 30,
       positive: score.nova_points >= 20,
     },
     {
-      label: 'Additifs',
+      label: t('additives.title'),
       points: score.additives_points,
       max: 20,
       positive: score.additives_points >= 14,
@@ -312,7 +294,7 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium text-foreground">Détail du score</h3>
+      <h3 className="text-sm font-medium text-foreground">{t('product.scoreDetail')}</h3>
       <div className="space-y-1.5">
         {items.map((item) => (
           <div key={item.label} className="flex items-center gap-2">
@@ -357,8 +339,18 @@ export default function ScoreDisplay({
   confidenceScore,
   className,
 }: ScoreDisplayProps) {
+  const { t } = useLocale()
   const color = SCORE_COLORS[score.label] ?? SCORE_COLORS.mauvais
   const isUnverified = confidenceScore != null && confidenceScore < 0.8
+
+  // Traduire le label du score
+  const scoreLabelKeys: Record<string, 'score.excellent' | 'score.bon' | 'score.mediocre' | 'score.mauvais'> = {
+    excellent: 'score.excellent',
+    bon: 'score.bon',
+    'médiocre': 'score.mediocre',
+    mauvais: 'score.mauvais',
+  }
+  const translatedLabel = scoreLabelKeys[score.label] ? t(scoreLabelKeys[score.label]) : score.label
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
@@ -366,12 +358,12 @@ export default function ScoreDisplay({
       <div className="flex flex-wrap gap-2 justify-center">
         {score.incomplete && (
           <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50">
-            Score incomplet
+            {t('score.incomplete')}
           </Badge>
         )}
         {isUnverified && (
           <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
-            Non vérifié
+            {t('score.unverified')}
           </Badge>
         )}
       </div>
@@ -379,7 +371,7 @@ export default function ScoreDisplay({
       {/* Cercle de score */}
       <ScoreCircle
         score={score.total}
-        label={score.label}
+        label={translatedLabel}
         color={color}
       />
 
