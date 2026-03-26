@@ -108,7 +108,7 @@ export default function OffImporter() {
       additives: additiveRisks,
     })
 
-    const productData = {
+    const productData: Record<string, unknown> = {
       barcode: offProduct.barcode,
       name_fr: offProduct.name,
       brand: offProduct.brand,
@@ -126,20 +126,61 @@ export default function OffImporter() {
       salt: offProduct.salt,
       ingredients_text: offProduct.ingredients,
       additives: offProduct.additives,
-      image_front: offProduct.image,
       off_id: offProduct.barcode,
       data_source: 'off',
       status: 'published',
       confidence_score: scoreResult.incomplete ? 0.5 : 0.8,
     }
 
+    // Créer le produit (sans image_front — c'est un champ relation UUID)
     const res = await fetch(`${DIRECTUS_URL}/items/products`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(productData),
     })
 
-    return res.ok
+    if (!res.ok) return false
+
+    // Si OFF a une image, la télécharger et l'uploader dans Directus
+    if (offProduct.image) {
+      try {
+        const createdProduct = await res.json() as { data?: { id: string } }
+        const productId = createdProduct?.data?.id
+        if (productId) {
+          // Télécharger l'image OFF via proxy (contourne CORS)
+          const imgRes = await fetch(`/api/proxy-image?url=${encodeURIComponent(offProduct.image)}`)
+          if (imgRes.ok) {
+            const blob = await imgRes.blob()
+            const formData = new FormData()
+            formData.append('file', blob, `${offProduct.barcode}-front.jpg`)
+            formData.append('title', `${offProduct.name} - Face avant`)
+
+            const uploadRes = await fetch(`${DIRECTUS_URL}/files`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+              body: formData,
+            })
+
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json() as { data?: { id: string } }
+              const fileId = uploadData?.data?.id
+              if (fileId) {
+                // Lier l'image au produit
+                await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                  body: JSON.stringify({ image_front: fileId }),
+                })
+              }
+            }
+          }
+        }
+      } catch {
+        // Image optionnelle — le produit est créé quand même
+      }
+    }
+
+    return true
   }
 
   // Recherche single
