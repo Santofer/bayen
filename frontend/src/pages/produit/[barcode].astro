@@ -57,12 +57,9 @@ try {
 // 2. Fallback Open Food Facts si non trouvé dans Directus
 try {
   if (!scanResult.found) {
+    // Note : Cloudflare Workers ne supporte pas User-Agent custom sur fetch externe
     const offRes = await fetch(
-      `https://world.openfoodfacts.org/api/v2/product/${barcode}`,
-      {
-        headers: { 'User-Agent': 'Bayen/1.0 (contact@n0.ma)' },
-        signal: AbortSignal.timeout(8000),
-      }
+      `https://world.openfoodfacts.org/api/v2/product/${barcode}.json`
     )
 
     if (offRes.ok) {

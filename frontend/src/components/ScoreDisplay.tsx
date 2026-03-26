@@ -245,7 +245,7 @@ function NovaDisplay({ group }: { group: NovaGroup | null }) {
 
 /** Liste des additifs avec badges de risque */
 function AdditivesList({ additives }: { additives: AdditiveResult[] }) {
-  if (additives.length === 0) {
+  if (!additives || additives.length === 0) {
     return (
       <div className="space-y-1.5">
         <h3 className="text-sm font-medium text-foreground">Additifs</h3>
@@ -393,7 +393,7 @@ export default function ScoreDisplay({
       <ScoreBreakdown score={score} />
 
       {/* Additifs */}
-      <AdditivesList additives={score.additives_detail} />
+      <AdditivesList additives={score.additives_detail ?? []} />
     </div>
   )
 }
