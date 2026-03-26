@@ -1,14 +1,113 @@
 ---
-// Page catégorie (SSR)
+// Page catégorie (SSR) — liste des produits d'une catégorie
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import ProductCard from '@/components/ProductCard.tsx'
+import { getLocale, t } from '@/lib/i18n'
 
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
 const { slug } = Astro.params
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+
+let category: Record<string, unknown> | null = null
+let products: Record<string, unknown>[] = []
+
+try {
+  // Récupérer la catégorie par slug
+  const catRes = await fetch(
+    `${DIRECTUS_URL}/items/categories?filter[slug][_eq]=${slug}&limit=1`
+  )
+  if (catRes.ok) {
+    const catData = await catRes.json()
+    const categories = catData.data ?? []
+    if (categories.length > 0) {
+      category = categories[0]
+    }
+  }
+
+  // Récupérer les produits de cette catégorie
+  if (category) {
+    const prodRes = await fetch(
+      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${category.id}&filter[status][_eq]=published&sort=-scan_count&fields=*`
+    )
+    if (prodRes.ok) {
+      const prodData = await prodRes.json()
+      products = prodData.data ?? []
+    }
+  }
+} catch {}
+
+const categoryName = (category?.name_fr as string) ?? (category?.name as string) ?? slug ?? ''
+const pageTitle = category
+  ? `${categoryName} — Bayen`
+  : `Catégorie introuvable — Bayen`
 ---
 
-<Layout title={`Catégorie — Bayen`}>
-  <main>
-    <!-- TODO: liste produits par catégorie -->
+<Layout title={pageTitle}>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+
+    {/* Catégorie non trouvée */}
+    {!category && (
+      <div class="rounded-xl border bg-card p-8 text-center max-w-md mx-auto">
+        <div class="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold text-foreground mb-2">Catégorie introuvable</h1>
+        <p class="text-sm text-muted-foreground mb-6">
+          La catégorie demandée n'existe pas.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <a
+            href="/categories"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+          >
+            Voir toutes les catégories
+          </a>
+          <a
+            href="/scan"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md border text-sm font-medium hover:bg-accent"
+          >
+            {t('nav.scan', locale)}
+          </a>
+        </div>
+      </div>
+    )}
+
+    {/* Catégorie trouvée */}
+    {category && (
+      <div class="space-y-6">
+        <div>
+          <h1 class="text-2xl font-bold text-foreground mb-1">{categoryName}</h1>
+          <p class="text-sm text-muted-foreground">
+            {products.length} produit{products.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        {products.length > 0 ? (
+          <div class="grid gap-3">
+            {products.map((product) => (
+              <ProductCard product={product as any} client:load />
+            ))}
+          </div>
+        ) : (
+          <div class="rounded-xl border bg-card p-8 text-center">
+            <p class="text-sm text-muted-foreground">
+              Aucun produit dans cette catégorie pour le moment.
+            </p>
+            <a
+              href="/scan"
+              class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+            >
+              {t('nav.scan', locale)}
+            </a>
+          </div>
+        )}
+      </div>
+    )}
+
   </main>
 </Layout>

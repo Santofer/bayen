@@ -181,8 +181,12 @@ async function refreshAccessToken(): Promise<boolean> {
     })
 
     if (!response.ok) {
-      clearTokens()
-      notifyListeners()
+      // Seulement effacer les tokens si Directus rejette explicitement (401/403)
+      // Les erreurs réseau/timeout ne déconnectent PAS l'utilisateur
+      if (response.status === 401 || response.status === 403) {
+        clearTokens()
+        notifyListeners()
+      }
       return false
     }
 
@@ -190,8 +194,8 @@ async function refreshAccessToken(): Promise<boolean> {
     storeTokens(data.data)
     return true
   } catch {
-    clearTokens()
-    notifyListeners()
+    // Erreur réseau — garder le refresh_token pour réessayer plus tard
+    // Ne PAS effacer les tokens (l'utilisateur reste "connecté")
     return false
   }
 }

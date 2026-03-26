@@ -329,7 +329,9 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           {/* Infos */}
           <div class="flex-1 min-w-0">
             <h1 class="text-xl sm:text-2xl font-bold text-foreground">{product.name_fr}</h1>
-            <p class="text-sm text-muted-foreground mt-0.5">{product.brand}</p>
+            <a href={`/marque/${encodeURIComponent(product.brand as string)}`} class="text-sm text-muted-foreground mt-0.5 hover:text-primary hover:underline">
+              {product.brand}
+            </a>
             <p class="text-xs text-muted-foreground font-mono mt-1">{product.barcode}</p>
             <div class="flex flex-wrap gap-1.5 mt-2">
               {scanResult.source === 'open_food_facts' && (

@@ -201,7 +201,34 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           }
         }
 
-        // Fallback : créer le produit directement en mode draft
+        // Fallback : créer le produit directement via l'API
+        const token = await getAccessToken()
+        if (!token) {
+          setError('Session expirée. Veuillez vous reconnecter.')
+          setSubmitting(false)
+          return
+        }
+
+        const createRes = await fetch(`${DIRECTUS_URL}/items/products`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            barcode,
+            name_fr: productInfo.name_fr.trim(),
+            brand: productInfo.brand.trim(),
+            status: 'published',
+            data_source: 'community',
+          }),
+        })
+
+        if (!createRes.ok) {
+          const errorData = await createRes.json().catch(() => null) as { errors?: Array<{ message: string }> } | null
+          throw new Error(errorData?.errors?.[0]?.message ?? `Erreur ${createRes.status}`)
+        }
+
         setSubmitted(true)
       }
     } catch (err: unknown) {

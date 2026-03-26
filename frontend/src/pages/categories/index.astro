@@ -1,0 +1,67 @@
+---
+// Page liste des catégories (SSR)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+
+interface Category {
+  id: string
+  slug: string
+  name_fr?: string
+  name?: string
+  product_count?: number
+}
+
+let categories: Category[] = []
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/items/categories?sort=name_fr&limit=-1&fields=id,slug,name_fr,name,product_count`
+  )
+  if (res.ok) {
+    const data = await res.json()
+    categories = data.data ?? []
+  }
+} catch {}
+
+const pageTitle = `Catégories — Bayen`
+---
+
+<Layout title={pageTitle}>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <h1 class="text-2xl font-bold text-foreground mb-1">Catégories</h1>
+    <p class="text-sm text-muted-foreground mb-6">
+      {categories.length} catégorie{categories.length !== 1 ? 's' : ''}
+    </p>
+
+    {categories.length > 0 ? (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {categories.map((cat) => (
+          <a
+            href={`/categories/${cat.slug}`}
+            class="group rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-primary/20"
+          >
+            <h2 class="font-medium text-foreground group-hover:text-primary transition-colors">
+              {cat.name_fr ?? cat.name ?? cat.slug}
+            </h2>
+            {cat.product_count != null && (
+              <p class="text-xs text-muted-foreground mt-1">
+                {cat.product_count} produit{cat.product_count !== 1 ? 's' : ''}
+              </p>
+            )}
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="rounded-xl border bg-card p-8 text-center">
+        <p class="text-sm text-muted-foreground">
+          Aucune catégorie disponible pour le moment.
+        </p>
+      </div>
+    )}
+  </main>
+</Layout>
