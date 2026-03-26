@@ -261,6 +261,54 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           throw new Error(errorData?.errors?.[0]?.message ?? `Erreur ${createRes.status}`)
         }
 
+        // Récupérer l'ID du produit créé pour y attacher les images
+        const createdProduct = await createRes.json().catch(() => null) as { data?: { id: string } } | null
+        const productId = createdProduct?.data?.id
+
+        // Uploader les photos et mettre à jour le produit
+        if (productId && (photos.front || photos.nutrition || photos.ingredients)) {
+          const imageUpdates: Record<string, string> = {}
+
+          for (const [field, file] of Object.entries(photos) as Array<[string, File | undefined]>) {
+            if (!file) continue
+            try {
+              const formData = new FormData()
+              formData.append('file', file)
+              formData.append('title', `${barcode}-${field}`)
+
+              const uploadRes = await fetch(`${DIRECTUS_URL}/files`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+              })
+
+              if (uploadRes.ok) {
+                const uploadData = await uploadRes.json() as { data?: { id: string } }
+                const fileId = uploadData?.data?.id
+                if (fileId) {
+                  if (field === 'front') imageUpdates.image_front = fileId
+                  else if (field === 'nutrition') imageUpdates.image_nutrition = fileId
+                  else if (field === 'ingredients') imageUpdates.image_ingredients = fileId
+                }
+              }
+            } catch {
+              // Upload individuel échoué — on continue avec les autres
+            }
+          }
+
+          // Mettre à jour le produit avec les IDs des fichiers
+          if (Object.keys(imageUpdates).length > 0) {
+            await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(imageUpdates),
+            }).catch(() => { /* silencieux si l'update image échoue */ })
+          }
+        }
+
         setSubmitted(true)
       }
     } catch (err: unknown) {

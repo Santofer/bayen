@@ -179,35 +179,48 @@ export async function logout(): Promise<void> {
 }
 
 /** Rafraîchit le access_token via le refresh_token */
+/** Verrou pour éviter les doubles refresh (tokens Directus sont single-use) */
+let refreshPromise: Promise<boolean> | null = null
+
 async function refreshAccessToken(): Promise<boolean> {
+  // Si un refresh est déjà en cours, attendre son résultat
+  if (refreshPromise) return refreshPromise
+
   const refreshToken = getStoredRefreshToken()
   if (!refreshToken) return false
 
-  try {
-    const response = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken, mode: 'json' }),
-    })
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken, mode: 'json' }),
+      })
 
-    if (!response.ok) {
-      // Seulement effacer les tokens si Directus rejette explicitement (401/403)
-      // Les erreurs réseau/timeout ne déconnectent PAS l'utilisateur
-      if (response.status === 401 || response.status === 403) {
-        clearTokens()
-        notifyListeners()
+      if (!response.ok) {
+        // Seulement effacer les tokens si Directus rejette explicitement (401/403)
+        if (response.status === 401 || response.status === 403) {
+          clearTokens()
+          notifyListeners()
+        }
+        return false
+      }
+
+      const data = (await response.json()) as DirectusAuthResponse
+      if (data.data?.access_token && data.data?.refresh_token) {
+        storeTokens(data.data)
+        return true
       }
       return false
+    } catch {
+      // Erreur réseau — garder le refresh_token pour réessayer plus tard
+      return false
+    } finally {
+      refreshPromise = null
     }
+  })()
 
-    const data = (await response.json()) as DirectusAuthResponse
-    storeTokens(data.data)
-    return true
-  } catch {
-    // Erreur réseau — garder le refresh_token pour réessayer plus tard
-    // Ne PAS effacer les tokens (l'utilisateur reste "connecté")
-    return false
-  }
+  return refreshPromise
 }
 
 /**
