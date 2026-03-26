@@ -448,6 +448,34 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           </div>
         )}
 
+        {/* Photos nutritionnelles et ingrédients */}
+        {(product.image_nutrition || product.image_ingredients) && (
+          <div class="grid grid-cols-2 gap-3">
+            {product.image_nutrition && (
+              <div class="rounded-xl border bg-card p-3">
+                <p class="text-xs font-medium text-muted-foreground mb-2">📊 Tableau nutritionnel</p>
+                <img
+                  src={`${CDN_URL}/${product.image_nutrition}`}
+                  alt="Tableau nutritionnel"
+                  class="w-full rounded-lg object-contain max-h-64"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            {product.image_ingredients && (
+              <div class="rounded-xl border bg-card p-3">
+                <p class="text-xs font-medium text-muted-foreground mb-2">📝 Liste ingrédients</p>
+                <img
+                  src={`${CDN_URL}/${product.image_ingredients}`}
+                  alt="Liste des ingrédients"
+                  class="w-full rounded-lg object-contain max-h-64"
+                  loading="lazy"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Ingrédients (structurés si disponibles, sinon fallback texte) */}
         {(product.structured_ingredients || product.ingredients_text) && (
           <IngredientsList

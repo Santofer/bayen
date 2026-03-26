@@ -1,10 +1,14 @@
-import { useMemo } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { t, isRtl } from '@/lib/i18n'
-import type { Locale } from '@/lib/translations'
+/**
+ * Liste d'ingrédients structurée avec traces
+ * - Affichage M2M structuré si disponible, sinon fallback texte
+ * - Allergènes mis en évidence
+ * - Additifs cliquables
+ * - Section traces séparée
+ */
 
-// --- Types ---
+import { useMemo } from 'react'
+import { cn } from '@/lib/utils'
+import type { Locale } from '@/lib/translations'
 
 export interface StructuredIngredient {
   id: number
@@ -25,207 +29,120 @@ interface IngredientsListProps {
   locale: Locale
 }
 
-// --- Constantes ---
-
-/** Mapping allergène → emoji */
-const ALLERGEN_EMOJI: Record<string, string> = {
-  gluten: '\u{1F33E}',
-  lait: '\u{1F95B}',
-  lactose: '\u{1F95B}',
-  oeufs: '\u{1F95A}',
-  arachide: '\u{1F95C}',
-  fruits_a_coque: '\u{1F330}',
-  soja: '\u{1FAD8}',
-  poisson: '\u{1F41F}',
-  crustaces: '\u{1F990}',
-  sesame: '\u{1F330}',
-  moutarde: '\u{1F343}',
-  celeri: '\u{1F343}',
-  lupin: '\u{1FAD8}',
+const TRACE_EMOJI: Record<string, string> = {
+  gluten: '🌾', lait: '🥛', lactose: '🥛', 'œufs': '🥚', oeufs: '🥚',
+  arachide: '🥜', 'fruits à coque': '🌰', soja: '🫘', poisson: '🐟',
+  'crustacés': '🦐', 'sésame': '🌰', moutarde: '🍃', 'céleri': '🍃', lupin: '🫘',
 }
-
-/** Couleurs par catégorie d'ingrédient */
-const CATEGORY_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'safe' | 'limited' | 'avoid'> = {
-  additif: 'limited',
-  conservateur: 'avoid',
-  colorant: 'avoid',
-  emulsifiant: 'limited',
-  arome: 'secondary',
-  sucre: 'limited',
-  graisse: 'limited',
-  cereale: 'safe',
-  legume: 'safe',
-  fruit: 'safe',
-  proteine: 'safe',
-  mineral: 'secondary',
-  vitamine: 'safe',
-}
-
-// --- Helpers ---
-
-/** Retourne l'emoji correspondant à un type d'allergène */
-function getAllergenEmoji(allergenType?: string): string {
-  if (!allergenType) return '\u26A0\uFE0F'
-  const key = allergenType.toLowerCase().replace(/\s+/g, '_').replace(/[àâ]/g, 'a').replace(/[éèê]/g, 'e')
-  return ALLERGEN_EMOJI[key] ?? '\u26A0\uFE0F'
-}
-
-/** Détecte si un texte est un code additif (E-number) */
-function isAdditiveCode(name: string): string | null {
-  const match = name.match(/\b(E\d{3,4}[a-z]?)\b/i)
-  return match ? match[1].toUpperCase() : null
-}
-
-/** Retourne le variant de badge pour une catégorie */
-function getCategoryVariant(category: string): 'default' | 'secondary' | 'outline' | 'safe' | 'limited' | 'avoid' {
-  const key = category.toLowerCase().replace(/\s+/g, '_')
-  return CATEGORY_VARIANT[key] ?? 'outline'
-}
-
-/**
- * Parse le texte brut des ingrédients en tags individuels.
- * Protège les virgules décimales (ex: "1,5%") pour ne pas couper au mauvais endroit.
- */
-function parseIngredientsText(text: string): string[] {
-  // Remplace temporairement les virgules décimales par un placeholder
-  const protected_ = text.replace(/(\d),(\d)/g, '$1\u200B$2')
-  // Sépare par virgule ou point-virgule
-  const parts = protected_.split(/[,;]/).map((s) => s.trim().replace(/\u200B/g, ',')).filter(Boolean)
-  return parts
-}
-
-// --- Composant principal ---
 
 export default function IngredientsList({ ingredients, traces, ingredientsText, locale }: IngredientsListProps) {
-  const rtl = isRtl(locale)
   const hasStructured = ingredients && ingredients.length > 0
 
-  /** Ingrédients triés par rang */
-  const sortedIngredients = useMemo(() => {
+  const sorted = useMemo(() => {
     if (!ingredients) return []
     return [...ingredients].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
   }, [ingredients])
 
-  /** Tags parsés depuis le texte brut (fallback) */
+  // Fallback : parser le texte brut
   const parsedTags = useMemo(() => {
     if (hasStructured || !ingredientsText) return []
-    return parseIngredientsText(ingredientsText)
+    const text = ingredientsText.replace(/(\d),(\d)/g, '$1\u0000$2')
+    return text.split(/[,;]/)
+      .map(s => s.replace(/\u0000/g, ',').trim())
+      .filter(s => s.length > 1)
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1))
   }, [hasStructured, ingredientsText])
 
-  // Rien à afficher
-  if (!hasStructured && parsedTags.length === 0) return null
+  if (!hasStructured && parsedTags.length === 0 && (!traces || traces.length === 0)) return null
 
   return (
-    <div className={cn('space-y-4', rtl && 'text-right')} dir={rtl ? 'rtl' : 'ltr'}>
-      {/* --- En-tête --- */}
+    <div className="rounded-xl border bg-card p-6 space-y-4">
+      {/* En-tête */}
       <div className="flex items-center gap-2">
-        <h3 className="text-base font-semibold">
-          {locale === 'ary' ? '\u0627\u0644\u0645\u0643\u0648\u0646\u0627\u062A' : 'Ingr\u00E9dients'}
-        </h3>
-        <Badge variant="secondary" className="text-xs tabular-nums">
-          {hasStructured ? sortedIngredients.length : parsedTags.length}
-        </Badge>
+        <h2 className="text-sm font-bold text-foreground">📋 Ingrédients</h2>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">
+          {hasStructured ? sorted.length : parsedTags.length}
+        </span>
       </div>
 
-      {/* --- Liste structurée --- */}
+      {/* Liste structurée */}
       {hasStructured ? (
-        <ul className="divide-y divide-border rounded-lg border bg-card">
-          {sortedIngredients.map((ing) => (
-            <IngredientRow key={ing.id} ingredient={ing} locale={locale} />
-          ))}
-        </ul>
-      ) : (
-        /* --- Fallback : tags parsés depuis le texte brut --- */
+        <div className="space-y-0.5">
+          {sorted.map((ing, i) => {
+            const isAdditive = /^E\d{3}/i.test(ing.name_fr)
+            const name = locale === 'ary' && ing.name_ar ? ing.name_ar : ing.name_fr
+
+            return (
+              <div
+                key={`${ing.id}-${i}`}
+                className={cn(
+                  'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm',
+                  ing.is_allergen ? 'bg-red-50 border border-red-100' : (i % 2 === 0 ? 'bg-muted/30' : ''),
+                )}
+              >
+                {/* Icône */}
+                <span className="text-base flex-shrink-0 w-6 text-center">{ing.icon}</span>
+
+                {/* Nom */}
+                <span className={cn('flex-1 min-w-0', ing.is_allergen && 'font-semibold text-red-800')}>
+                  {isAdditive ? (
+                    <a href={`/additifs/${ing.name_fr.match(/E\d{3,4}[a-z]?/i)?.[0]}`} className="underline decoration-dotted hover:decoration-solid hover:text-primary">
+                      {name}
+                    </a>
+                  ) : (
+                    <span>{ing.is_allergen ? name.toUpperCase() : name}</span>
+                  )}
+                  {ing.is_allergen && <span className="ml-1 text-xs">⚠️</span>}
+                </span>
+
+                {/* Pourcentage */}
+                {ing.percent != null && (
+                  <span className="text-xs text-muted-foreground font-mono flex-shrink-0">
+                    {ing.percent}%
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      ) : parsedTags.length > 0 ? (
+        /* Fallback texte */
         <div className="flex flex-wrap gap-1.5">
-          {parsedTags.map((tag, i) => (
-            <Badge key={i} variant="outline" className="text-sm font-normal">
-              {tag}
-            </Badge>
-          ))}
+          {parsedTags.map((tag, i) => {
+            const isAdditive = /^E\s?\d{3}/i.test(tag)
+            const isAllergen = /\b(BLÉ|SOJA|LAIT|OEUFS?|GLUTEN|ARACHIDE|NOIX|SÉSAME|POISSON|CRUSTACÉ|LUPIN|MOUTARDE|CÉLERI)\b/i.test(tag)
+            return (
+              <span
+                key={i}
+                className={cn(
+                  'inline-flex items-center px-2 py-0.5 rounded-md text-xs',
+                  isAdditive ? 'bg-orange-50 text-orange-700 border border-orange-200' :
+                  isAllergen ? 'bg-red-50 text-red-700 border border-red-200 font-medium' :
+                  'bg-muted/50 text-foreground'
+                )}
+              >
+                {isAllergen && <span className="mr-0.5">⚠️</span>}
+                {tag}
+              </span>
+            )
+          })}
+        </div>
+      ) : null}
+
+      {/* Traces */}
+      {traces && traces.length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 mt-3">
+          <p className="text-xs font-semibold text-amber-800 mb-2">⚠️ Peut contenir des traces de :</p>
+          <div className="flex flex-wrap gap-1.5">
+            {traces.map((trace) => (
+              <span key={trace} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-white border border-amber-200 text-amber-800">
+                <span>{TRACE_EMOJI[trace.toLowerCase()] ?? '⚠️'}</span>
+                {trace}
+              </span>
+            ))}
+          </div>
         </div>
       )}
-
-      {/* --- Traces d'allergènes --- */}
-      {traces && traces.length > 0 && <TracesSection traces={traces} locale={locale} />}
-    </div>
-  )
-}
-
-// --- Sous-composants ---
-
-/** Ligne d'un ingrédient structuré */
-function IngredientRow({ ingredient, locale }: { ingredient: StructuredIngredient; locale: Locale }) {
-  const { name_fr, name_ar, icon, category, is_allergen, allergen_type, percent } = ingredient
-  const displayName = locale === 'ary' && name_ar ? name_ar : name_fr
-  const additiveCode = isAdditiveCode(name_fr)
-
-  return (
-    <li
-      className={cn(
-        'flex items-center gap-3 px-3 py-2.5 text-sm',
-        is_allergen && 'bg-red-50 dark:bg-red-950/30',
-      )}
-    >
-      {/* Icône */}
-      <span className="shrink-0 text-lg leading-none" aria-hidden="true">
-        {is_allergen ? getAllergenEmoji(allergen_type) : icon || '\u{1F7E2}'}
-      </span>
-
-      {/* Nom + catégorie */}
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className={cn('truncate font-medium', is_allergen && 'font-bold text-red-700 uppercase dark:text-red-400')}>
-          {additiveCode ? (
-            <a
-              href={`/additifs/${additiveCode.toLowerCase()}`}
-              className="underline decoration-dotted underline-offset-2 hover:decoration-solid"
-            >
-              {displayName}
-            </a>
-          ) : (
-            displayName
-          )}
-        </span>
-        {category && (
-          <Badge variant={getCategoryVariant(category)} className="shrink-0 text-[10px] leading-tight">
-            {category}
-          </Badge>
-        )}
-      </div>
-
-      {/* Pourcentage */}
-      {percent != null && (
-        <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
-          {percent}%
-        </span>
-      )}
-    </li>
-  )
-}
-
-/** Section traces d'allergènes */
-function TracesSection({ traces, locale }: { traces: string[]; locale: Locale }) {
-  return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
-      <p className="mb-2 text-xs font-semibold text-amber-800 dark:text-amber-300">
-        {locale === 'ary'
-          ? '\u0622\u062B\u0627\u0631 \u0645\u062D\u062A\u0645\u0644\u0629'
-          : 'Traces possibles'}
-      </p>
-      <div className="flex flex-wrap gap-1.5">
-        {traces.map((trace) => {
-          const emoji = getAllergenEmoji(trace)
-          return (
-            <Badge
-              key={trace}
-              variant="outline"
-              className="border-amber-300 bg-amber-100 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-900/50 dark:text-amber-200"
-            >
-              <span aria-hidden="true" className="mr-1">{emoji}</span>
-              {trace}
-            </Badge>
-          )
-        })}
-      </div>
     </div>
   )
 }

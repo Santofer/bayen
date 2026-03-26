@@ -16,13 +16,14 @@ interface BarcodeScannerProps {
   className?: string
 }
 
-function isValidEan(code: string): boolean {
-  return /^\d{8}$|^\d{13}$/.test(code)
+function isValidBarcode(code: string): boolean {
+  return /^\d{8,13}$/.test(code)
 }
 
 export default function BarcodeScanner({ onScan, onError, disabled = false, className }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const readerRef = useRef<BrowserMultiFormatReader | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   const [cameraActive, setCameraActive] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
@@ -37,7 +38,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
   const handleDetection = useCallback(
     (barcode: string) => {
       if (barcode === lastScanned) return
-      if (!isValidEan(barcode)) return
+      if (!isValidBarcode(barcode)) return
       setLastScanned(barcode)
       vibrate()
       onScan(barcode)
@@ -66,41 +67,56 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
       try {
         if (!videoRef.current) return
 
-        // Sélectionner la caméra arrière via getUserMedia d'abord
-        let selectedDeviceId: string | null = null
-        try {
-          // Demander l'accès caméra arrière
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' },
-            audio: false,
-          })
-          // Récupérer le deviceId de la caméra obtenue
-          const track = stream.getVideoTracks()[0]
-          if (track) {
-            selectedDeviceId = track.getSettings().deviceId ?? null
-          }
-          // Arrêter ce flux — zxing va en créer un nouveau
-          stream.getTracks().forEach(t => t.stop())
-        } catch {
-          // Pas grave — on laisse zxing choisir
+        // Obtenir le flux vidéo directement via getUserMedia
+        // avec des contraintes optimisées pour le scan de code-barres
+        const constraints: MediaStreamConstraints = {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
         }
 
-        await reader.decodeFromVideoDevice(
-          selectedDeviceId,
-          videoRef.current,
-          (result, error) => {
-            if (!mounted) return
-            if (result) handleDetection(result.getText())
-            if (error && error.name !== 'NotFoundException') {
-              console.warn('[Scanner]', error.message)
-            }
-          }
-        )
+        let stream: MediaStream
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints)
+        } catch {
+          // Fallback : contraintes minimales
+          stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        }
+
+        streamRef.current = stream
+
+        // Attacher le flux à la vidéo
+        videoRef.current.srcObject = stream
+        videoRef.current.setAttribute('playsinline', 'true')
+        videoRef.current.setAttribute('autoplay', 'true')
+        await videoRef.current.play()
 
         if (mounted) {
           setCameraActive(true)
           setCameraError(null)
         }
+
+        // Lancer le décodage continu sur le flux
+        const decodeLoop = async () => {
+          while (mounted && videoRef.current && stream.active) {
+            try {
+              const result = await reader.decodeOnce(videoRef.current)
+              if (result && mounted) {
+                handleDetection(result.getText())
+              }
+            } catch {
+              // NotFoundException est normal — continuer le scan
+            }
+            // Petit délai entre chaque tentative
+            await new Promise(r => setTimeout(r, 150))
+          }
+        }
+
+        decodeLoop()
+
       } catch (err) {
         if (!mounted) return
         const message =
@@ -120,6 +136,14 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
     return () => {
       mounted = false
       reader.reset()
+      // Arrêter proprement le flux vidéo
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop())
+        streamRef.current = null
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null
+      }
       setCameraActive(false)
     }
   }, [disabled, showManual, handleDetection, onError])
@@ -127,7 +151,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = manualInput.trim()
-    if (isValidEan(trimmed)) {
+    if (isValidBarcode(trimmed)) {
       vibrate()
       onScan(trimmed)
       setManualInput('')
@@ -146,7 +170,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
             muted
           />
 
-          {/* Overlay avec zone de scan */}
+          {/* Overlay scan */}
           {cameraActive && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="relative w-64 h-32 border-2 border-white/70 rounded-lg">
@@ -159,20 +183,14 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
             </div>
           )}
 
-          {/* Scan réussi */}
           {lastScanned && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
               ✓ {lastScanned}
             </div>
           )}
 
-          {/* Erreur caméra */}
           {cameraError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-6 text-center">
-              <svg className="w-12 h-12 text-muted-foreground mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-              </svg>
               <p className="text-white text-sm mb-4">{cameraError}</p>
               <Button variant="secondary" size="sm" onClick={() => setShowManual(true)}>
                 Saisir manuellement
@@ -180,7 +198,6 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
             </div>
           )}
 
-          {/* Chargement caméra */}
           {!cameraActive && !cameraError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black">
               <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-3" />
@@ -188,7 +205,6 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
             </div>
           )}
 
-          {/* Instructions */}
           {cameraActive && !lastScanned && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs">
               Placez le code-barres dans le cadre
@@ -197,12 +213,9 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
         </div>
       )}
 
-      {/* Mode saisie manuelle */}
       {showManual && (
         <form onSubmit={handleManualSubmit} className="w-full max-w-sm flex flex-col gap-3">
-          <label className="text-sm font-medium text-foreground">
-            Code-barres (EAN-8 ou EAN-13)
-          </label>
+          <label className="text-sm font-medium text-foreground">Code-barres</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -212,37 +225,16 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
               placeholder="6111080016394"
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value.replace(/\D/g, ''))}
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               autoFocus
             />
-            <Button type="submit" disabled={!isValidEan(manualInput.trim())}>
-              Chercher
-            </Button>
+            <Button type="submit" disabled={!isValidBarcode(manualInput.trim())}>Chercher</Button>
           </div>
-          {manualInput.length > 0 && !isValidEan(manualInput) && (
-            <p className="text-xs text-destructive">Entrez 8 ou 13 chiffres</p>
-          )}
         </form>
       )}
 
-      {/* Bascule caméra / manuel */}
       <Button variant="ghost" size="sm" onClick={() => setShowManual(!showManual)} className="text-muted-foreground">
-        {showManual ? (
-          <span className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-            </svg>
-            Utiliser la caméra
-          </span>
-        ) : (
-          <span className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-            </svg>
-            Saisir manuellement
-          </span>
-        )}
+        {showManual ? '📷 Utiliser la caméra' : '⌨️ Saisir manuellement'}
       </Button>
     </div>
   )

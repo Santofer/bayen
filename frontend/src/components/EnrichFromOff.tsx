@@ -194,9 +194,25 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
 
       if (!patchRes.ok) throw new Error(`Erreur ${patchRes.status}`)
 
-      // Créer les liens M2M ingrédients structurés
+      // Créer les liens M2M ingrédients structurés (seulement si aucun lien n'existe déjà)
       const structuredIngredients: Array<{ id: string; text: string; percent?: number; percent_estimate?: number }> = p.ingredients ?? []
       if (structuredIngredients.length > 0) {
+        // Vérifier s'il y a déjà des liens M2M
+        let existingLinks = 0
+        try {
+          const checkRes = await fetch(`${DIRECTUS_URL}/items/products_ingredients?filter[products_id][_eq]=${productId}&limit=1`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          if (checkRes.ok) {
+            const checkData = await checkRes.json() as { data?: unknown[] }
+            existingLinks = checkData?.data?.length ?? 0
+          }
+        } catch { /* vérification optionnelle */ }
+
+        // Ne créer les liens que s'il n'en existe pas encore (éviter doublons)
+        if (existingLinks > 0) {
+          // Déjà lié — skip
+        } else {
         let linkedCount = 0
         for (let i = 0; i < structuredIngredients.length; i++) {
           const ing = structuredIngredients[i]
@@ -250,6 +266,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
           }
         }
         if (linkedCount > 0) enrichedFields.push(`${linkedCount} ingrédient${linkedCount > 1 ? 's' : ''} lié${linkedCount > 1 ? 's' : ''}`)
+        } // fin du if existingLinks === 0
       }
 
       setEnriched(enrichedFields)
