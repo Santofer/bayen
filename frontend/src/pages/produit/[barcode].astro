@@ -7,6 +7,7 @@ import ScoreDisplay from '@/components/ScoreDisplay.tsx'
 import ProductCard from '@/components/ProductCard.tsx'
 import ProductActions from '@/components/ProductActions.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
+import { computeScore, type RiskLevel } from '@/lib/scoring'
 
 const { barcode } = Astro.params
 
@@ -34,20 +35,63 @@ try {
   if (directusRes.ok) {
     const directusData = await directusRes.json()
     const products = directusData.data ?? []
-    //`products:${products.length} `
 
     if (products.length > 0) {
       const p = products[0]
-      scanResult = {
-        found: true,
-        source: 'directus',
-        product: p,
-        score: {
+
+      // Si le score n'est pas encore calculé dans Directus, le calculer ici
+      let scoreObj: Record<string, unknown>
+      if (p.scan_score != null) {
+        scoreObj = {
           total: p.scan_score,
           nutriscore_grade: p.nutriscore_grade,
           nova_group: p.nova_group,
           label: p.score_label,
-        },
+        }
+      } else {
+        // Calculer le score à partir des données nutrition du produit
+        const additiveCodes: string[] = Array.isArray(p.additives) ? p.additives : []
+        let additiveRisks: Array<{ code: string; risk_level: RiskLevel }> = []
+        if (additiveCodes.length > 0) {
+          try {
+            const addRes = await fetch(
+              `${DIRECTUS_URL}/items/additives?filter[id][_in]=${additiveCodes.join(',')}&fields=id,risk_level&limit=-1`
+            )
+            if (addRes.ok) {
+              const addData = await addRes.json()
+              const riskMap = new Map((addData.data ?? []).map((a: { id: string; risk_level: string }) => [a.id, a.risk_level]))
+              additiveRisks = additiveCodes.map(code => ({
+                code,
+                risk_level: (riskMap.get(code) as RiskLevel) ?? 'limited',
+              }))
+            }
+          } catch { /* fallback ci-dessous */ }
+          if (additiveRisks.length === 0) {
+            additiveRisks = additiveCodes.map(code => ({ code, risk_level: 'limited' as RiskLevel }))
+          }
+        }
+
+        const scoreResult = computeScore({
+          nutrition: {
+            energy_kcal: p.energy_kcal,
+            fat_saturated: p.fat_saturated,
+            sugars: p.sugars,
+            salt: p.salt,
+            fiber: p.fiber,
+            proteins: p.proteins,
+          },
+          novaGroup: p.nova_group as 1 | 2 | 3 | 4 | null,
+          ingredientsText: p.ingredients_text,
+          additives: additiveRisks,
+        })
+        scoreObj = scoreResult as unknown as Record<string, unknown>
+      }
+
+      scanResult = {
+        found: true,
+        source: 'directus',
+        product: p,
+        score: scoreObj,
       }
     }
   }
@@ -67,6 +111,61 @@ try {
       const offData = await offRes.json()
       if (offData.status === 1 && offData.product) {
         const p = offData.product
+
+        // Extraire les codes additifs
+        const additiveCodes: string[] = (p.additives_tags || [])
+          .map((t: string) => { const m = t.match(/e(\d+[a-z]?)/i); return m ? `E${m[1].toUpperCase()}` : null; })
+          .filter(Boolean)
+
+        // Récupérer les risk_level depuis Directus (les additifs sont seedés)
+        let additiveRisks: Array<{ code: string; risk_level: RiskLevel }> = []
+        if (additiveCodes.length > 0) {
+          try {
+            const addRes = await fetch(
+              `${DIRECTUS_URL}/items/additives?filter[id][_in]=${additiveCodes.join(',')}&fields=id,risk_level&limit=-1`
+            )
+            if (addRes.ok) {
+              const addData = await addRes.json()
+              const riskMap = new Map((addData.data ?? []).map((a: { id: string; risk_level: string }) => [a.id, a.risk_level]))
+              additiveRisks = additiveCodes.map(code => ({
+                code,
+                risk_level: (riskMap.get(code) as RiskLevel) ?? 'limited',
+              }))
+            } else {
+              additiveRisks = additiveCodes.map(code => ({ code, risk_level: 'limited' as RiskLevel }))
+            }
+          } catch {
+            additiveRisks = additiveCodes.map(code => ({ code, risk_level: 'limited' as RiskLevel }))
+          }
+        }
+
+        // Données nutritionnelles
+        const nutrition = {
+          energy_kcal: p.nutriments?.['energy-kcal_100g'] ?? null,
+          fat_saturated: p.nutriments?.['saturated-fat_100g'] ?? null,
+          sugars: p.nutriments?.sugars_100g ?? null,
+          salt: p.nutriments?.salt_100g ?? null,
+          fiber: p.nutriments?.fiber_100g ?? null,
+          proteins: p.nutriments?.proteins_100g ?? null,
+        }
+
+        // Ingrédients : prioriser le français
+        const ingredientsFr = p.ingredients_text_fr
+          || p.ingredients_text_with_allergens_fr
+          || ''
+        const ingredientsAny = p.ingredients_text || ''
+        const ingredientsText = ingredientsFr || ingredientsAny
+        const ingredientsLang = ingredientsFr ? 'fr' : (ingredientsAny ? 'other' : 'none')
+
+        // Calculer le score Bayen
+        const novaGroup = p.nova_group ?? null
+        const scoreResult = computeScore({
+          nutrition,
+          novaGroup: novaGroup as 1 | 2 | 3 | 4 | null,
+          ingredientsText,
+          additives: additiveRisks,
+        })
+
         scanResult = {
           found: true,
           source: 'open_food_facts',
@@ -74,31 +173,26 @@ try {
             barcode,
             name_fr: p.product_name_fr || p.product_name || 'Inconnu',
             brand: p.brands || 'Inconnu',
-            nutriscore_grade: p.nutriscore_grade?.toUpperCase() ?? null,
-            nova_group: p.nova_group ?? null,
-            energy_kcal: p.nutriments?.['energy-kcal_100g'] ?? null,
+            nutriscore_grade: scoreResult.nutriscore_grade,
+            nova_group: scoreResult.nova_group,
+            energy_kcal: nutrition.energy_kcal,
             fat_total: p.nutriments?.fat_100g ?? null,
-            fat_saturated: p.nutriments?.['saturated-fat_100g'] ?? null,
+            fat_saturated: nutrition.fat_saturated,
             carbs_total: p.nutriments?.carbohydrates_100g ?? null,
-            sugars: p.nutriments?.sugars_100g ?? null,
-            proteins: p.nutriments?.proteins_100g ?? null,
-            salt: p.nutriments?.salt_100g ?? null,
-            fiber: p.nutriments?.fiber_100g ?? null,
-            ingredients_text: p.ingredients_text_fr || p.ingredients_text || '',
+            sugars: nutrition.sugars,
+            proteins: nutrition.proteins,
+            salt: nutrition.salt,
+            fiber: nutrition.fiber,
+            ingredients_text: ingredientsText,
+            ingredients_lang: ingredientsLang,
             image_front: p.image_front_url || null,
-            additives: (p.additives_tags || [])
-              .map((t: string) => { const m = t.match(/e(\d+[a-z]?)/i); return m ? `E${m[1].toUpperCase()}` : null; })
-              .filter(Boolean),
+            additives: additiveCodes,
             is_organic: !!(p.labels_tags || []).find((l: string) => l.includes('bio') || l.includes('organic')),
             is_halal: !!(p.labels_tags || []).find((l: string) => l.includes('halal')),
             scan_count: 0,
+            confidence_score: scoreResult.incomplete ? 0.5 : 0.8,
           },
-          score: {
-            total: null,
-            nutriscore_grade: p.nutriscore_grade?.toUpperCase() ?? null,
-            nova_group: p.nova_group ?? null,
-            label: null,
-          },
+          score: scoreResult,
         }
       }
     }
@@ -126,7 +220,7 @@ const jsonLd = product ? {
   '@type': 'Product',
   name: product.name_fr,
   brand: { '@type': 'Brand', name: product.brand },
-  ...(product.image_front ? { image: `${CDN_URL}/${product.image_front}` } : {}),
+  ...(product.image_front ? { image: (product.image_front as string).startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}` } : {}),
   description: pageDescription,
   sku: barcode,
   gtin13: barcode?.length === 13 ? barcode : undefined,
@@ -146,7 +240,8 @@ const jsonLd = product ? {
   ],
 } : undefined
 
-const ogImage = product?.image_front ? `${CDN_URL}/${product.image_front}` : undefined
+const imgFront = product?.image_front as string | undefined
+const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
 ---
 
 <Layout title={pageTitle} description={pageDescription} path={`/produit/${barcode}`} ogType="product" ogImage={ogImage} jsonLd={jsonLd}>
@@ -211,7 +306,7 @@ const ogImage = product?.image_front ? `${CDN_URL}/${product.image_front}` : und
           <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-muted flex-shrink-0">
             {product.image_front ? (
               <img
-                src={`${CDN_URL}/${product.image_front}`}
+                src={(product.image_front as string).startsWith('http') ? (product.image_front as string) : `${CDN_URL}/${product.image_front}`}
                 alt={product.name_fr as string}
                 class="w-full h-full object-cover"
               />
@@ -283,7 +378,12 @@ const ogImage = product?.image_front ? `${CDN_URL}/${product.image_front}` : und
         {/* Ingrédients */}
         {product.ingredients_text && (
           <div class="rounded-xl border bg-card p-6">
-            <h2 class="text-sm font-medium text-foreground mb-2">Ingrédients</h2>
+            <div class="flex items-center gap-2 mb-2">
+              <h2 class="text-sm font-medium text-foreground">Ingrédients</h2>
+              {product.ingredients_lang === 'other' && (
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">non traduit</span>
+              )}
+            </div>
             <p class="text-xs text-muted-foreground leading-relaxed">{product.ingredients_text}</p>
           </div>
         )}

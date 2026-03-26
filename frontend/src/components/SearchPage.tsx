@@ -139,6 +139,8 @@ export default function SearchPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [offResults, setOffResults] = useState<Product[]>([])
+  const [searchingOff, setSearchingOff] = useState(false)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -189,6 +191,41 @@ export default function SearchPage() {
         }
 
         setTotalCount(json.meta?.filter_count ?? json.data.length)
+
+        // Recherche OFF si Directus n'a rien et query ≥ 3 caractères
+        if (!append && json.data.length === 0 && debouncedQuery.trim().length >= 3 && !hasActiveFilters) {
+          setSearchingOff(true)
+          try {
+            const offUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(debouncedQuery.trim())}&json=1&page_size=20&lc=fr&cc=ma`
+            const offRes = await fetch(offUrl)
+            if (offRes.ok) {
+              const offJson = await offRes.json()
+              const offProducts: Product[] = (offJson.products || [])
+                .filter((p: Record<string, unknown>) => p.code && p.product_name)
+                .map((p: Record<string, unknown>) => ({
+                  id: p.code as string,
+                  barcode: p.code as string,
+                  name_fr: (p.product_name_fr || p.product_name || 'Inconnu') as string,
+                  brand: (p.brands || 'Inconnu') as string,
+                  image_front: (p.image_front_small_url || p.image_front_url || null) as string | null,
+                  scan_score: null,
+                  score_label: null,
+                  nutriscore_grade: p.nutriscore_grade ? (p.nutriscore_grade as string).toUpperCase() : null,
+                  nova_group: (p.nova_group as number) || null,
+                  additives: [],
+                  scan_count: 0,
+                  status: 'published',
+                }))
+              setOffResults(offProducts)
+            }
+          } catch {
+            // Silencieux si OFF indisponible
+          } finally {
+            setSearchingOff(false)
+          }
+        } else if (!append) {
+          setOffResults([])
+        }
       } catch {
         if (!append) setProducts([])
       } finally {
@@ -452,8 +489,40 @@ export default function SearchPage() {
         </div>
       )}
 
-      {/* État vide */}
-      {!loading && products.length === 0 && (
+      {/* Résultats Open Food Facts (quand Directus est vide) */}
+      {!loading && products.length === 0 && offResults.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5">
+            <svg className="w-4 h-4 text-amber-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4" />
+              <path d="M12 8h.01" />
+            </svg>
+            <p className="text-sm text-amber-800">
+              Aucun résultat local — <strong>{offResults.length} produit{offResults.length > 1 ? 's' : ''}</strong> trouvé{offResults.length > 1 ? 's' : ''} sur Open Food Facts
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {offResults.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recherche OFF en cours */}
+      {searchingOff && (
+        <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Recherche sur Open Food Facts...
+        </div>
+      )}
+
+      {/* État vide (ni local ni OFF) */}
+      {!loading && !searchingOff && products.length === 0 && offResults.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <svg
             className="mb-4 text-muted-foreground/40"

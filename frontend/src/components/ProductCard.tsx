@@ -37,7 +37,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
         {product.image_front ? (
           <img
-            src={`${CDN_URL}/${product.image_front}`}
+            src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}`}
             alt={product.name_fr}
             className="w-full h-full object-cover"
             loading="lazy"

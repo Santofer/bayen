@@ -1,14 +1,24 @@
 ---
-// Page contribuer — modifier un produit existant (SSR)
+// Page contribuer — corriger / compléter un produit existant (SSR)
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import ContributeForm from '@/components/ContributeForm.tsx'
 
 const { barcode } = Astro.params
 ---
 
-<Layout title={`Contribuer — ${barcode} — Bayen`}>
-  <main>
-    <!-- TODO: formulaire modification produit -->
+<Layout title={`Corriger — ${barcode} — Bayen`} description={`Corriger ou compléter les informations du produit ${barcode} sur Bayen.`}>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <div class="max-w-lg mx-auto">
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-foreground">Corriger / Compléter</h1>
+        <p class="text-sm text-muted-foreground mt-1">
+          Améliorez les informations du produit <span class="font-mono font-medium text-foreground">{barcode}</span>
+        </p>
+      </div>
+
+      <ContributeForm initialBarcode={barcode} client:load />
+    </div>
   </main>
 </Layout>

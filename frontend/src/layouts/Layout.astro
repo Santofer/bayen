@@ -3,6 +3,7 @@ import '@/styles/globals.css'
 
 import SeoHead from '@/components/SeoHead.astro'
 import UserMenu from '@/components/UserMenu'
+import LocaleToggle from '@/components/LocaleToggle'
 import InstallPrompt from '@/components/InstallPrompt'
 
 interface Props {
@@ -27,7 +28,7 @@ const currentPath = Astro.url.pathname
 ---
 
 <!doctype html>
-<html lang="fr" dir="ltr">
+<html lang="fr" dir="ltr" id="html-root">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -37,6 +38,18 @@ const currentPath = Astro.url.pathname
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
     <SeoHead title={title} description={description} path={path} ogImage={ogImage} ogType={ogType} jsonLd={jsonLd} noindex={noindex} />
+    <!-- Appliquer la locale sauvegardée avant le premier paint -->
+    <script is:inline>
+      (function() {
+        try {
+          var l = localStorage.getItem('bayen_locale');
+          if (l === 'ary') {
+            document.documentElement.setAttribute('lang', 'ar');
+            document.documentElement.setAttribute('dir', 'rtl');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
     {!hideNav && (
@@ -108,6 +121,9 @@ const currentPath = Astro.url.pathname
               <line x1="7" y1="12" x2="17" y2="12" />
             </svg>
           </a>
+
+          <!-- Toggle langue FR / darija -->
+          <LocaleToggle client:load />
 
           <!-- Menu utilisateur (connexion / profil) -->
           <UserMenu client:load />
