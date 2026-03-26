@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+const DIRECTUS_URL = '/api/directus'
 
 interface ProductActionsProps {
   productId: string

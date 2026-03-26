@@ -6,6 +6,9 @@
  */
 
 import { DIRECTUS_URL } from './directus'
+
+/** URL proxy pour les appels client-side (évite CORS) */
+const API_URL = typeof window !== 'undefined' ? '/api/directus' : DIRECTUS_URL
 import type { UserProfile } from './types'
 
 // ────────────────────────────────────────────────────────────────
@@ -151,7 +154,7 @@ export async function logout(): Promise<void> {
 
   if (refreshToken) {
     try {
-      await fetch(`${DIRECTUS_URL}/auth/logout`, {
+      await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: refreshToken }),
@@ -221,7 +224,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
   if (!token) return null
 
   try {
-    const response = await fetch(`${DIRECTUS_URL}/users/me`, {
+    const response = await fetch(`${API_URL}/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 

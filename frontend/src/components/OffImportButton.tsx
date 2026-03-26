@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 import { computeScore, type RiskLevel, type NovaGroup, type NutritionData } from '@/lib/scoring'
 
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+const DIRECTUS_PROXY = '/api/directus'
 
 interface OffImportButtonProps {
   barcode: string
@@ -94,7 +94,7 @@ export default function OffImportButton({ barcode, productData }: OffImportButto
         scan_count: 0,
       }
 
-      const res = await fetch(`${DIRECTUS_URL}/items/products`, {
+      const res = await fetch(`${DIRECTUS_PROXY}/items/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

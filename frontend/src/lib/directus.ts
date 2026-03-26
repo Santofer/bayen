@@ -20,6 +20,13 @@ import type {
 
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
 
+/**
+ * URL proxy pour les appels client-side — évite les CORS
+ * Les appels SSR (Astro pages) utilisent DIRECTUS_URL directement
+ * Les appels client (React components) passent par /api/directus/*
+ */
+const CLIENT_API_URL = typeof window !== 'undefined' ? '/api/directus' : DIRECTUS_URL
+
 // Client Directus typé avec le schéma Bayen
 const directus = createDirectus<DirectusSchema>(DIRECTUS_URL)
   .with(rest())
@@ -151,7 +158,7 @@ export async function getAdditiveRisks(
 
 /** Appelle POST /custom/scan — orchestration complète Chemin A */
 export async function scanBarcode(params: ScanRequest): Promise<ScanResponse> {
-  const response = await fetch(`${DIRECTUS_URL}/custom/scan`, {
+  const response = await fetch(`${CLIENT_API_URL}/custom/scan`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
@@ -203,7 +210,7 @@ export async function createProduct(
   data: Record<string, unknown>,
   token: string
 ): Promise<Record<string, unknown>> {
-  const response = await fetch(`${DIRECTUS_URL}/items/products`, {
+  const response = await fetch(`${CLIENT_API_URL}/items/products`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -255,7 +262,7 @@ export async function uploadFile(
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${DIRECTUS_URL}/files`, {
+  const response = await fetch(`${CLIENT_API_URL}/files`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
