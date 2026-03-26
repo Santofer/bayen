@@ -4,6 +4,7 @@ import '@/styles/globals.css'
 import SeoHead from '@/components/SeoHead.astro'
 import UserMenu from '@/components/UserMenu'
 import LocaleToggle from '@/components/LocaleToggle'
+import ThemeToggle from '@/components/ThemeToggle'
 import InstallPrompt from '@/components/InstallPrompt'
 import { getLocale, t } from '@/lib/i18n'
 
@@ -45,7 +46,7 @@ const currentPath = Astro.url.pathname
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
     <SeoHead title={title} description={description} path={path} ogImage={ogImage} ogType={ogType} jsonLd={jsonLd} noindex={noindex} />
-    <!-- Appliquer la locale sauvegardée avant le premier paint -->
+    <!-- Appliquer locale + thème sauvegardés avant le premier paint -->
     <script is:inline>
       (function() {
         try {
@@ -53,6 +54,10 @@ const currentPath = Astro.url.pathname
           if (l === 'ary') {
             document.documentElement.setAttribute('lang', 'ar');
             document.documentElement.setAttribute('dir', 'rtl');
+          }
+          var t = localStorage.getItem('bayen_theme');
+          if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
           }
         } catch(e) {}
       })();
@@ -128,6 +133,9 @@ const currentPath = Astro.url.pathname
               <line x1="7" y1="12" x2="17" y2="12" />
             </svg>
           </a>
+
+          <!-- Toggle dark/light mode -->
+          <ThemeToggle client:load />
 
           <!-- Toggle langue FR / darija -->
           <LocaleToggle client:load />
