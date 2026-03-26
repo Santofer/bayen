@@ -182,26 +182,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
 
         setSubmitted(true)
       } else {
-        // Mode création : envoyer vers l'endpoint OCR si on a une photo nutrition
-        if (photos.nutrition) {
-          const formData = new FormData()
-          formData.append('barcode', barcode)
-          if (photos.nutrition) formData.append('image_nutrition', photos.nutrition)
-          if (photos.ingredients) formData.append('image_ingredients', photos.ingredients)
-          if (photos.front) formData.append('image_front', photos.front)
-
-          const res = await fetch(`${DIRECTUS_URL}/custom/ocr-score`, {
-            method: 'POST',
-            body: formData,
-          })
-
-          if (res.ok) {
-            setSubmitted(true)
-            return
-          }
-        }
-
-        // Fallback : créer le produit directement via l'API
+        // Mode création : créer le produit directement via l'API
         const token = await getAccessToken()
         if (!token) {
           setError('Session expirée. Veuillez vous reconnecter.')
