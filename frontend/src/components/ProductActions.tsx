@@ -47,18 +47,27 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       try {
         // Récupérer le profil pour vérifier le rang
-        const userRes = await fetch(`${DIRECTUS_URL}/users/me?fields=id,rank,role.name,role.admin_access`, {
+        const userRes = await fetch(`${DIRECTUS_URL}/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (userRes.ok) {
           const userData = await userRes.json()
           setUserRank(userData.data.rank ?? 'nouveau')
 
-          // Détecter le rôle admin
-          const roleObj = userData.data.role
-          if (typeof roleObj === 'object' && roleObj !== null &&
-              (roleObj.name === 'Administrator' || roleObj.admin_access === true)) {
-            setUserRole('admin')
+          // Détecter le rôle admin via l'UUID du rôle
+          const roleId = userData.data.role
+          if (typeof roleId === 'string' && roleId) {
+            try {
+              const roleRes = await fetch(`${DIRECTUS_URL}/roles/${roleId}?fields=name,admin_access`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              if (roleRes.ok) {
+                const roleData = await roleRes.json()
+                if (roleData.data?.admin_access === true || roleData.data?.name === 'Administrator') {
+                  setUserRole('admin')
+                }
+              }
+            } catch { /* pas critique */ }
           }
 
           // Compter les confirmations existantes

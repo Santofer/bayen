@@ -251,7 +251,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
   if (!token) return null
 
   try {
-    const response = await fetch(`${API_URL}/users/me?fields=*,role.name,role.admin_access`, {
+    const response = await fetch(`${API_URL}/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -261,10 +261,24 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     const user = (data as { data: Record<string, unknown> }).data
 
     // Déterminer si l'utilisateur est admin
-    const roleObj = user.role as Record<string, unknown> | string | null
-    const isAdmin = typeof roleObj === 'object' && roleObj !== null
-      ? (roleObj.name === 'Administrator' || roleObj.admin_access === true)
-      : false
+    // Le role est retourné comme UUID string ou objet selon les fields
+    const roleValue = user.role
+    let isAdmin = false
+    if (typeof roleValue === 'string') {
+      // Vérifier via un appel au rôle
+      try {
+        const roleRes = await fetch(`${API_URL}/roles/${roleValue}?fields=name,admin_access`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (roleRes.ok) {
+          const roleData = await roleRes.json() as { data: { name: string; admin_access: boolean } }
+          isAdmin = roleData.data.admin_access === true || roleData.data.name === 'Administrator'
+        }
+      } catch { /* pas critique */ }
+    } else if (typeof roleValue === 'object' && roleValue !== null) {
+      const roleObj = roleValue as Record<string, unknown>
+      isAdmin = roleObj.admin_access === true || roleObj.name === 'Administrator'
+    }
 
     return {
       id: user.id as string,

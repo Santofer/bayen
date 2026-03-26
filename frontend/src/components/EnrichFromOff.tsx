@@ -210,10 +210,25 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
           }
         } catch { /* vérification optionnelle */ }
 
-        // Ne créer les liens que s'il n'en existe pas encore (éviter doublons)
+        // Si des liens existent déjà, les supprimer avant de recréer (éviter doublons)
         if (existingLinks > 0) {
-          // Déjà lié — skip
-        } else {
+          try {
+            // Récupérer tous les IDs de liens existants
+            const allLinksRes = await fetch(`${DIRECTUS_URL}/items/products_ingredients?filter[products_id][_eq]=${productId}&fields=id&limit=-1`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            if (allLinksRes.ok) {
+              const allLinks = await allLinksRes.json() as { data?: Array<{ id: number }> }
+              for (const link of allLinks?.data ?? []) {
+                await fetch(`${DIRECTUS_URL}/items/products_ingredients/${link.id}`, {
+                  method: 'DELETE',
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+              }
+            }
+          } catch { /* nettoyage optionnel */ }
+        }
+        {
         let linkedCount = 0
         for (let i = 0; i < structuredIngredients.length; i++) {
           const ing = structuredIngredients[i]

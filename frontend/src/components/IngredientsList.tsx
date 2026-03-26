@@ -111,14 +111,14 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                 key={`${ing.id}-${i}`}
                 className={cn(
                   'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm',
-                  ing.is_allergen ? 'bg-red-50 border border-red-100' : (i % 2 === 0 ? 'bg-muted/30' : ''),
+                  ing.is_allergen ? 'bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900' : (i % 2 === 0 ? 'bg-muted/30' : ''),
                 )}
               >
                 {/* Icône */}
                 <span className="text-base flex-shrink-0 w-6 text-center">{categoryIcon(ing.category)}</span>
 
                 {/* Nom */}
-                <span className={cn('flex-1 min-w-0', ing.is_allergen && 'font-semibold text-red-800')}>
+                <span className={cn('flex-1 min-w-0', ing.is_allergen && 'font-semibold text-red-800 dark:text-red-300')}>
                   {isAdditive ? (
                     <a href={`/additifs/${ing.name_fr.match(/E\d{3,4}[a-z]?/i)?.[0]}`} className="underline decoration-dotted hover:decoration-solid hover:text-primary">
                       {name}
@@ -151,7 +151,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                 className={cn(
                   'inline-flex items-center px-2 py-0.5 rounded-md text-xs',
                   isAdditive ? 'bg-orange-50 text-orange-700 border border-orange-200' :
-                  isAllergen ? 'bg-red-50 text-red-700 border border-red-200 font-medium' :
+                  isAllergen ? 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 font-medium' :
                   'bg-muted/50 text-foreground'
                 )}
               >
@@ -165,13 +165,13 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
 
       {/* Traces */}
       {traces && traces.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 mt-3">
-          <p className="text-xs font-semibold text-amber-800 mb-2 flex items-center gap-1">
+        <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-3 mt-3">
+          <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-1">
             <AlertTriangle size={12} className="text-current" /> Peut contenir des traces de :
           </p>
           <div className="flex flex-wrap gap-1.5">
             {traces.map((trace) => (
-              <span key={trace} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-white border border-amber-200 text-amber-800">
+              <span key={trace} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-white dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
                 <span>{traceIcon(trace)}</span>
                 {trace}
               </span>
