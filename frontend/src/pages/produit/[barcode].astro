@@ -8,6 +8,7 @@ import ProductCard from '@/components/ProductCard.tsx'
 import ProductActions from '@/components/ProductActions.tsx'
 import OffImportButton from '@/components/OffImportButton.tsx'
 import EnrichFromOff from '@/components/EnrichFromOff.tsx'
+import HealthAnalysis from '@/components/HealthAnalysis.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import { getLocale, t } from '@/lib/i18n'
@@ -339,8 +340,8 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           <div class="flex-1 min-w-0">
             <h1 class="text-xl sm:text-2xl font-bold text-foreground">{product.name_fr}</h1>
             <div class="flex flex-wrap items-center gap-x-1 mt-0.5">
-              <a href={`/marque/${encodeURIComponent(product.brand as string)}`} class="text-sm text-muted-foreground hover:text-primary hover:underline">
-                {product.brand}
+              <a href={`/marque/${encodeURIComponent((product.brand as string).split(',')[0].trim())}`} class="text-sm text-muted-foreground hover:text-primary hover:underline">
+                {(product.brand as string).split(',')[0].trim()}
               </a>
               {product.category_id && (
                 <span class="text-sm text-muted-foreground">·
@@ -390,6 +391,24 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
             client:load
           />
         </div>
+
+        {/* Analyse santé — commentaires explicatifs par nutriment */}
+        <HealthAnalysis
+          nutrition={{
+            energy_kcal: product.energy_kcal as number | null,
+            fat_total: product.fat_total as number | null,
+            fat_saturated: product.fat_saturated as number | null,
+            sugars: product.sugars as number | null,
+            salt: product.salt as number | null,
+            fiber: product.fiber as number | null,
+            proteins: product.proteins as number | null,
+          }}
+          novaGroup={product.nova_group as number | null}
+          nutriscoreGrade={score.nutriscore_grade as string | null}
+          additives={Array.isArray(product.additives) ? product.additives as string[] : []}
+          ingredients={product.ingredients_text as string ?? ''}
+          client:load
+        />
 
         {/* Données nutritionnelles */}
         {(product.energy_kcal != null || product.proteins != null) && (

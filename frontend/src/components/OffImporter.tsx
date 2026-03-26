@@ -86,7 +86,7 @@ export default function OffImporter() {
     return {
       barcode: code,
       name: p.product_name_fr || p.product_name || 'Inconnu',
-      brand: p.brands || 'Inconnu',
+      brand: (p.brands || 'Inconnu').split(',')[0].trim(),
       categoryId,
       nutriscore: p.nutriscore_grade?.toUpperCase() ?? null,
       nova: p.nova_group ?? null,

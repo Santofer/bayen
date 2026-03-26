@@ -77,12 +77,17 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
         if (text) { patchData.ingredients_text = text; enrichedFields.push('Ingrédients') }
       }
 
-      // Additifs
+      // Additifs — toujours mettre à jour depuis OFF (plus complet)
       const additiveTags: string[] = p.additives_tags ?? []
       const additives = additiveTags
         .map((t: string) => { const m = t.match(/e(\d+[a-z]?)/i); return m ? `E${m[1].toUpperCase()}` : null })
-        .filter(Boolean)
+        .filter(Boolean) as string[]
       if (additives.length > 0) { patchData.additives = additives; enrichedFields.push(`${additives.length} additifs`) }
+
+      // Allergènes
+      const allergenTags: string[] = p.allergens_tags ?? []
+      const allergens = allergenTags.map((t: string) => t.replace(/^en:/, '')).filter(Boolean)
+      if (allergens.length > 0) { patchData.allergens = allergens }
 
       // Nutri-Score / NOVA
       if (p.nutriscore_grade) { patchData.nutriscore_grade = p.nutriscore_grade.toUpperCase() }
