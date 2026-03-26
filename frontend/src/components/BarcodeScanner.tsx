@@ -1,8 +1,11 @@
 /**
- * Scanner de code-barres
- * Stratégie : BarcodeDetector API natif (Chrome/Edge Android 83+)
- *           + fallback html5-qrcode pour iOS Safari
- * Fallback final : input texte manuel
+ * Scanner de code-barres — double stratégie
+ *
+ * Android Chrome : BarcodeDetector API natif (instantané)
+ * iOS Safari : html5-qrcode en mode caméra dans un div hors React
+ *
+ * Le div pour html5-qrcode est injecté en dehors de l'arbre React
+ * pour éviter les erreurs d'hydratation (#425/#423).
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react'
@@ -22,11 +25,12 @@ function isValidBarcode(code: string): boolean {
 }
 
 export default function BarcodeScanner({ onScan, onError, disabled = false, className }: BarcodeScannerProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const scanningRef = useRef(false)
   const lastScannedRef = useRef<string | null>(null)
+  const cleanupRef = useRef<(() => void) | null>(null)
 
   const [cameraActive, setCameraActive] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
@@ -34,6 +38,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
   const [showManual, setShowManual] = useState(false)
   const [lastScanned, setLastScanned] = useState<string | null>(null)
   const [starting, setStarting] = useState(true)
+  const [useNative, setUseNative] = useState(false)
 
   const vibrate = useCallback(() => {
     if ('vibrate' in navigator) navigator.vibrate(100)
@@ -61,9 +66,13 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
     let mounted = true
     scanningRef.current = true
 
-    async function startScanning() {
+    const hasBarcodeDetector = typeof globalThis !== 'undefined' && 'BarcodeDetector' in globalThis
+
+    async function startNativeScanner() {
+      // Android Chrome : BarcodeDetector API natif
+      setUseNative(true)
+
       try {
-        // Obtenir le flux caméra
         let stream: MediaStream
         try {
           stream = await navigator.mediaDevices.getUserMedia({
@@ -89,109 +98,128 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
         setCameraError(null)
         setStarting(false)
 
-        // Essayer BarcodeDetector natif (Chrome Android, Edge)
-        const hasBarcodeDetector = typeof globalThis !== 'undefined' && 'BarcodeDetector' in globalThis
+        // @ts-expect-error — BarcodeDetector API
+        const detector = new globalThis.BarcodeDetector({
+          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
+        })
 
-        if (hasBarcodeDetector) {
-          // @ts-expect-error — BarcodeDetector n'est pas dans les types TS standard
-          const detector = new globalThis.BarcodeDetector({
-            formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
-          })
-
-          const detectLoop = async () => {
-            while (mounted && scanningRef.current && video.readyState >= 2) {
-              try {
-                // @ts-expect-error — BarcodeDetector.detect()
-                const barcodes = await detector.detect(video)
-                for (const bc of barcodes) {
-                  if (bc.rawValue && mounted) {
-                    handleDetection(bc.rawValue)
-                  }
+        const detectLoop = async () => {
+          while (mounted && scanningRef.current && video.readyState >= 2) {
+            try {
+              const barcodes = await detector.detect(video)
+              for (const bc of barcodes) {
+                if (bc.rawValue && mounted) {
+                  handleDetection(bc.rawValue)
                 }
-              } catch {
-                // Erreur de détection — continuer
               }
-              await new Promise(r => setTimeout(r, 200))
-            }
+            } catch { /* continuer */ }
+            await new Promise(r => setTimeout(r, 150))
           }
-          detectLoop()
-        } else {
-          // Fallback : html5-qrcode frame scanning via canvas
-          const canvas = canvasRef.current
-          if (!canvas) return
-          const ctx = canvas.getContext('2d', { willReadFrequently: true })
-          if (!ctx) return
-
-          // Import dynamique pour éviter les problèmes SSR
-          const { Html5Qrcode } = await import('html5-qrcode')
-
-          // Créer un scanner qui travaille sur des images (pas sur le DOM)
-          const tempDiv = document.createElement('div')
-          tempDiv.id = `bayen-scanner-${Date.now()}`
-          tempDiv.style.display = 'none'
-          document.body.appendChild(tempDiv)
-
-          const scanner = new Html5Qrcode(tempDiv.id, { verbose: false })
-
-          const scanLoop = async () => {
-            while (mounted && scanningRef.current && video.readyState >= 2) {
-              try {
-                canvas.width = video.videoWidth || 640
-                canvas.height = video.videoHeight || 480
-                ctx.drawImage(video, 0, 0)
-                const blob = await new Promise<Blob | null>(resolve =>
-                  canvas.toBlob(resolve, 'image/jpeg', 0.8)
-                )
-                if (blob && mounted) {
-                  const file = new File([blob], 'frame.jpg', { type: 'image/jpeg' })
-                  try {
-                    const result = await scanner.scanFileV2(file, false)
-                    if (result?.decodedText && mounted) {
-                      handleDetection(result.decodedText)
-                    }
-                  } catch {
-                    // Pas de barcode détecté — normal
-                  }
-                }
-              } catch {
-                // Erreur canvas — continuer
-              }
-              await new Promise(r => setTimeout(r, 500))
-            }
-
-            // Nettoyage
-            try { scanner.clear() } catch { /* ignore */ }
-            tempDiv.remove()
-          }
-          scanLoop()
         }
+        detectLoop()
+
+        cleanupRef.current = () => {
+          stream.getTracks().forEach(t => t.stop())
+          if (video) video.srcObject = null
+        }
+
       } catch (err) {
         if (!mounted) return
-        setStarting(false)
-        const message =
-          err instanceof DOMException && err.name === 'NotAllowedError'
-            ? 'Accès caméra refusé. Autorisez dans les paramètres du navigateur.'
-            : err instanceof DOMException && err.name === 'NotFoundError'
-              ? 'Aucune caméra détectée.'
-              : `Erreur caméra : ${err instanceof Error ? err.message : 'inconnue'}`
-        setCameraError(message)
-        setCameraActive(false)
-        onError?.(message)
+        handleCameraError(err)
       }
     }
 
-    startScanning()
+    async function startHtml5QrcodeScanner() {
+      // iOS Safari : html5-qrcode en mode caméra
+      // Le div est injecté DANS notre container mais APRÈS le mount React
+      setUseNative(false)
+
+      try {
+        const { Html5Qrcode } = await import('html5-qrcode')
+        if (!mounted) return
+
+        const container = containerRef.current
+        if (!container) return
+
+        // Créer un div pour html5-qrcode EN DEHORS de l'arbre React
+        const scanDiv = document.createElement('div')
+        scanDiv.id = `bayen-qr-${Date.now()}`
+        scanDiv.style.width = '100%'
+        scanDiv.style.height = '100%'
+        scanDiv.style.position = 'absolute'
+        scanDiv.style.top = '0'
+        scanDiv.style.left = '0'
+        container.appendChild(scanDiv)
+
+        const scanner = new Html5Qrcode(scanDiv.id, { verbose: false })
+
+        await scanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 15,
+            qrbox: { width: 280, height: 150 },
+            aspectRatio: 0.75,
+            disableFlip: false,
+          },
+          (decodedText: string) => {
+            if (mounted && isValidBarcode(decodedText)) {
+              handleDetection(decodedText)
+            }
+          },
+          () => { /* NotFoundException — normal */ }
+        )
+
+        if (!mounted) {
+          await scanner.stop().catch(() => {})
+          scanner.clear()
+          scanDiv.remove()
+          return
+        }
+
+        setCameraActive(true)
+        setCameraError(null)
+        setStarting(false)
+
+        cleanupRef.current = () => {
+          scanner.stop().catch(() => {}).finally(() => {
+            try { scanner.clear() } catch { /* ignore */ }
+            scanDiv.remove()
+          })
+        }
+
+      } catch (err) {
+        if (!mounted) return
+        handleCameraError(err)
+      }
+    }
+
+    function handleCameraError(err: unknown) {
+      setStarting(false)
+      const message =
+        err instanceof DOMException && err.name === 'NotAllowedError'
+          ? 'Accès caméra refusé. Autorisez dans les paramètres du navigateur.'
+          : err instanceof DOMException && err.name === 'NotFoundError'
+            ? 'Aucune caméra détectée.'
+            : `Erreur caméra : ${err instanceof Error ? err.message : 'inconnue'}`
+      setCameraError(message)
+      setCameraActive(false)
+      onError?.(message)
+    }
+
+    if (hasBarcodeDetector) {
+      startNativeScanner()
+    } else {
+      startHtml5QrcodeScanner()
+    }
 
     return () => {
       mounted = false
       scanningRef.current = false
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop())
-        streamRef.current = null
+      if (cleanupRef.current) {
+        cleanupRef.current()
+        cleanupRef.current = null
       }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null
-      }
+      streamRef.current = null
       setCameraActive(false)
     }
   }, [disabled, showManual, handleDetection, onError])
@@ -209,22 +237,26 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
   return (
     <div className={cn('flex flex-col items-center gap-4', className)}>
       {!showManual && (
-        <div className="relative w-full max-w-sm aspect-[3/4] rounded-xl overflow-hidden bg-black">
-          {/* Video natif — pas de manipulation DOM par html5-qrcode */}
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            playsInline
-            autoPlay
-            muted
-          />
+        <div
+          ref={containerRef}
+          className="relative w-full max-w-sm aspect-[3/4] rounded-xl overflow-hidden bg-black"
+        >
+          {/* Video natif pour BarcodeDetector (Android) */}
+          {useNative && (
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              playsInline
+              autoPlay
+              muted
+            />
+          )}
 
-          {/* Canvas invisible pour le fallback html5-qrcode */}
-          <canvas ref={canvasRef} className="hidden" />
+          {/* Pour html5-qrcode (iOS) : le div est injecté dynamiquement dans containerRef */}
 
-          {/* Overlay scan */}
-          {cameraActive && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {/* Overlay scan — affiché par-dessus le scanner */}
+          {cameraActive && useNative && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <div className="relative w-64 h-32 border-2 border-white/70 rounded-lg">
                 <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-3 border-l-3 border-primary rounded-tl-lg" />
                 <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-3 border-r-3 border-primary rounded-tr-lg" />
@@ -237,14 +269,14 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
           {/* Badge succès */}
           {lastScanned && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg z-10">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg z-20">
               <Check size={14} className="text-current inline-block mr-1" />{lastScanned}
             </div>
           )}
 
           {/* Erreur caméra */}
           {cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-6 text-center z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-6 text-center z-20">
               <p className="text-white text-sm mb-4">{cameraError}</p>
               <Button variant="secondary" size="sm" onClick={() => setShowManual(true)}>
                 Saisir manuellement
@@ -254,7 +286,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
           {/* Loading */}
           {starting && !cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-20">
               <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-3" />
               <p className="text-white/60 text-xs">Activation de la caméra...</p>
             </div>
@@ -262,7 +294,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
           {/* Instruction */}
           {cameraActive && !lastScanned && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs z-10 flex items-center gap-1.5">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs z-20 flex items-center gap-1.5">
               <ScanBarcode size={14} />
               Placez le code-barres dans le cadre
             </div>
