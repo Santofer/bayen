@@ -15,6 +15,7 @@ interface OffProduct {
   barcode: string
   name: string
   brand: string
+  categoryId: number | null
   nutriscore: string | null
   nova: number | null
   image: string | null
@@ -58,10 +59,35 @@ export default function OffImporter() {
       .map((t: string) => { const m = t.match(/e(\d+[a-z]?)/i); return m ? `E${m[1].toUpperCase()}` : null })
       .filter(Boolean) as string[]
 
+    // Mapper la catégorie OFF vers nos catégories Bayen
+    const offCategories: string[] = (p.categories_tags ?? []).map((c: string) => c.toLowerCase())
+    let categoryId: number | null = null
+    const categoryMap: Array<[string[], number]> = [
+      [['biscuit', 'cookie', 'gateau', 'cake'], 1],
+      [['cereal', 'breakfast', 'petit-dejeuner'], 2],
+      [['dairy', 'laitier', 'fromage', 'yaourt', 'yogurt', 'milk', 'lait'], 3],
+      [['meat', 'viande', 'charcuterie', 'saucisse'], 4],
+      [['soda', 'soft-drink', 'boisson-sucree', 'cola', 'juice'], 5],
+      [['water', 'eau', 'jus'], 6],
+      [['conserve', 'canned'], 7],
+      [['spice', 'condiment', 'sauce', 'epice'], 8],
+      [['oil', 'huile', 'graisse', 'fat'], 9],
+      [['snack', 'chip', 'crisp', 'apero'], 10],
+      [['bread', 'pain', 'viennoiserie', 'boulangerie'], 11],
+      [['meal', 'plat-prepare', 'ready-meal'], 12],
+    ]
+    for (const [keywords, catId] of categoryMap) {
+      if (offCategories.some(c => keywords.some(k => c.includes(k)))) {
+        categoryId = catId
+        break
+      }
+    }
+
     return {
       barcode: code,
       name: p.product_name_fr || p.product_name || 'Inconnu',
       brand: p.brands || 'Inconnu',
+      categoryId,
       nutriscore: p.nutriscore_grade?.toUpperCase() ?? null,
       nova: p.nova_group ?? null,
       image: p.image_front_url ?? null,
@@ -112,6 +138,7 @@ export default function OffImporter() {
       barcode: offProduct.barcode,
       name_fr: offProduct.name,
       brand: offProduct.brand,
+      category_id: offProduct.categoryId,
       nutriscore_grade: scoreResult.nutriscore_grade,
       nova_group: scoreResult.nova_group,
       scan_score: scoreResult.total,

@@ -33,7 +33,7 @@ let fetchError: string | null = null
 // 1. Chercher dans Directus (isolé — un échec ici ne bloque pas le fallback OFF)
 try {
   const directusRes = await fetch(
-    `${DIRECTUS_URL}/items/products?filter[barcode][_eq]=${barcode}&filter[status][_eq]=published&limit=1&fields=*`
+    `${DIRECTUS_URL}/items/products?filter[barcode][_eq]=${barcode}&filter[status][_eq]=published&limit=1&fields=*,category_id.id,category_id.name_fr,category_id.slug`
   )
   //`directus:${directusRes.status} `
 
@@ -90,6 +90,14 @@ try {
           additives: additiveRisks,
         })
         scoreObj = scoreResult as unknown as Record<string, unknown>
+      }
+
+      // Extraire la catégorie si c'est un objet imbriqué
+      const categoryObj = typeof p.category_id === 'object' && p.category_id ? p.category_id as Record<string, unknown> : null
+      if (categoryObj) {
+        p.category_name = categoryObj.name_fr
+        p.category_slug = categoryObj.slug
+        p.category_id = categoryObj.id
       }
 
       scanResult = {
@@ -329,10 +337,16 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           {/* Infos */}
           <div class="flex-1 min-w-0">
             <h1 class="text-xl sm:text-2xl font-bold text-foreground">{product.name_fr}</h1>
-            <a href={`/marque/${encodeURIComponent(product.brand as string)}`} class="text-sm text-muted-foreground mt-0.5 hover:text-primary hover:underline">
-              {product.brand}
-            </a>
-            <p class="text-xs text-muted-foreground font-mono mt-1">{product.barcode}</p>
+            <div class="flex flex-wrap items-center gap-x-1 mt-0.5">
+              <a href={`/marque/${encodeURIComponent(product.brand as string)}`} class="text-sm text-muted-foreground hover:text-primary hover:underline">
+                {product.brand}
+              </a>
+              {product.category_id && (
+                <span class="text-sm text-muted-foreground">·
+                  <a href={`/categories/${product.category_slug ?? product.category_id}`} class="hover:text-primary hover:underline">{product.category_name ?? 'Catégorie'}</a>
+                </span>
+              )}
+            </div>
             <div class="flex flex-wrap gap-1.5 mt-2">
               {scanResult.source === 'open_food_facts' && (
                 <Badge variant="outline" className="text-xs">Open Food Facts</Badge>
@@ -345,6 +359,26 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               )}
             </div>
           </div>
+
+          {/* Code-barres à droite */}
+          <div class="hidden sm:flex flex-col items-end flex-shrink-0">
+            <div class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg bg-muted/50">
+              {/* Barres stylisées */}
+              <div class="flex items-end gap-px h-8">
+                {Array.from(String(barcode || '')).map((d, i) => (
+                  <div
+                    class="bg-foreground rounded-sm"
+                    style={`width: 2px; height: ${12 + (parseInt(d) * 2)}px;`}
+                  />
+                ))}
+              </div>
+              <span class="text-xs font-mono text-muted-foreground tracking-widest">{barcode}</span>
+            </div>
+          </div>
+        </div>
+        {/* Code-barres mobile (sous l'en-tête) */}
+        <div class="sm:hidden flex justify-center">
+          <span class="text-xs font-mono text-muted-foreground bg-muted/50 px-3 py-1 rounded-full tracking-widest">{barcode}</span>
         </div>
 
         {/* Score complet */}
