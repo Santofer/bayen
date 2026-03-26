@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getAccessToken } from '@/lib/auth'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
+import { RefreshCw, CheckCircle } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -282,7 +283,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       {state === 'idle' && (
         <>
           <div className="flex items-start gap-3">
-            <span className="text-xl">🔄</span>
+            <RefreshCw size={18} className="text-blue-600 flex-shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-medium text-blue-900">Données incomplètes</p>
               <p className="text-xs text-blue-700 mt-0.5">
@@ -311,7 +312,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
 
       {state === 'done' && (
         <div className="text-center">
-          <p className="text-sm font-medium text-green-800">✅ Produit enrichi !</p>
+          <p className="text-sm font-medium text-green-800 flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> Produit enrichi !</p>
           <p className="text-xs text-green-700 mt-1">{enriched.join(' · ')}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={() => window.location.reload()}>
             Recharger la page

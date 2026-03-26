@@ -6,6 +6,9 @@
 
 import { Badge } from '@/components/ui/badge'
 import { useLocale } from '@/lib/i18n'
+import {
+  Tag, Factory, Candy, Droplet, Sparkles, Wheat, Dumbbell, Zap, FlaskConical, HeartPulse,
+} from 'lucide-react'
 
 interface HealthAnalysisProps {
   nutrition: {
@@ -24,7 +27,7 @@ interface HealthAnalysisProps {
 }
 
 interface HealthAlert {
-  icon: string
+  icon: React.ReactNode
   title: string
   description: string
   level: 'good' | 'moderate' | 'warning' | 'danger'
@@ -53,7 +56,7 @@ function generateAlerts(props: HealthAnalysisProps): HealthAlert[] {
     }
     const info = gradeInfo[grade]
     if (info) {
-      alerts.push({ icon: '🏷️', title: `Nutri-Score ${grade}`, description: info.desc, level: info.level })
+      alerts.push({ icon: <Tag size={18} className="text-current" />, title: `Nutri-Score ${grade}`, description: info.desc, level: info.level })
     }
   }
 
@@ -67,57 +70,57 @@ function generateAlerts(props: HealthAnalysisProps): HealthAlert[] {
     }
     const info = novaInfo[props.novaGroup]
     if (info) {
-      alerts.push({ icon: '🏭', title: `NOVA ${props.novaGroup} — ${props.novaGroup === 4 ? 'Ultra-transformé' : props.novaGroup === 1 ? 'Non transformé' : 'Transformé'}`, description: info.desc, level: info.level })
+      alerts.push({ icon: <Factory size={18} className="text-current" />, title: `NOVA ${props.novaGroup} — ${props.novaGroup === 4 ? 'Ultra-transformé' : props.novaGroup === 1 ? 'Non transformé' : 'Transformé'}`, description: info.desc, level: info.level })
     }
   }
 
   // Sucres
   if (n.sugars != null) {
     if (n.sugars > 22.5) {
-      alerts.push({ icon: '🍬', title: `Sucres élevés : ${n.sugars} g / 100g`, description: 'Ce produit contient une quantité élevée de sucres (> 22,5 g/100g). L\'OMS recommande de limiter les sucres ajoutés à moins de 25 g par jour.', level: 'danger' })
+      alerts.push({ icon: <Candy size={18} className="text-current" />, title: `Sucres élevés : ${n.sugars} g / 100g`, description: 'Ce produit contient une quantité élevée de sucres (> 22,5 g/100g). L\'OMS recommande de limiter les sucres ajoutés à moins de 25 g par jour.', level: 'danger' })
     } else if (n.sugars > 12.5) {
-      alerts.push({ icon: '🍬', title: `Sucres modérés : ${n.sugars} g / 100g`, description: 'Ce produit contient une quantité modérée de sucres. Vérifiez les portions consommées.', level: 'warning' })
+      alerts.push({ icon: <Candy size={18} className="text-current" />, title: `Sucres modérés : ${n.sugars} g / 100g`, description: 'Ce produit contient une quantité modérée de sucres. Vérifiez les portions consommées.', level: 'warning' })
     } else if (n.sugars <= 5) {
-      alerts.push({ icon: '🍬', title: `Faible en sucres : ${n.sugars} g / 100g`, description: 'Ce produit est faible en sucres (≤ 5 g/100g). Bon point !', level: 'good' })
+      alerts.push({ icon: <Candy size={18} className="text-current" />, title: `Faible en sucres : ${n.sugars} g / 100g`, description: 'Ce produit est faible en sucres (≤ 5 g/100g). Bon point !', level: 'good' })
     }
   }
 
   // Graisses saturées
   if (n.fat_saturated != null) {
     if (n.fat_saturated > 5) {
-      alerts.push({ icon: '🧈', title: `Graisses saturées élevées : ${n.fat_saturated} g / 100g`, description: 'Riche en acides gras saturés (> 5 g/100g). Les AGS en excès augmentent le risque cardiovasculaire. Privilégiez les produits à base d\'huile d\'olive ou de colza.', level: 'danger' })
+      alerts.push({ icon: <Droplet size={18} className="text-current" />, title: `Graisses saturées élevées : ${n.fat_saturated} g / 100g`, description: 'Riche en acides gras saturés (> 5 g/100g). Les AGS en excès augmentent le risque cardiovasculaire. Privilégiez les produits à base d\'huile d\'olive ou de colza.', level: 'danger' })
     } else if (n.fat_saturated > 1.5) {
-      alerts.push({ icon: '🧈', title: `Graisses saturées modérées : ${n.fat_saturated} g / 100g`, description: 'Teneur modérée en acides gras saturés.', level: 'moderate' })
+      alerts.push({ icon: <Droplet size={18} className="text-current" />, title: `Graisses saturées modérées : ${n.fat_saturated} g / 100g`, description: 'Teneur modérée en acides gras saturés.', level: 'moderate' })
     }
   }
 
   // Sel
   if (n.salt != null) {
     if (n.salt > 1.5) {
-      alerts.push({ icon: '🧂', title: `Sel élevé : ${n.salt} g / 100g`, description: `Ce produit contient ${n.salt} g de sel pour 100g (> 1,5 g). L'excès de sel favorise l'hypertension. L'OMS recommande max 5 g/jour.`, level: 'danger' })
+      alerts.push({ icon: <Sparkles size={18} className="text-current" />, title: `Sel élevé : ${n.salt} g / 100g`, description: `Ce produit contient ${n.salt} g de sel pour 100g (> 1,5 g). L'excès de sel favorise l'hypertension. L'OMS recommande max 5 g/jour.`, level: 'danger' })
     } else if (n.salt > 0.6) {
-      alerts.push({ icon: '🧂', title: `Sel modéré : ${n.salt} g / 100g`, description: 'Teneur modérée en sel. Surveillez votre apport total journalier.', level: 'moderate' })
+      alerts.push({ icon: <Sparkles size={18} className="text-current" />, title: `Sel modéré : ${n.salt} g / 100g`, description: 'Teneur modérée en sel. Surveillez votre apport total journalier.', level: 'moderate' })
     }
   }
 
   // Fibres
   if (n.fiber != null) {
     if (n.fiber >= 6) {
-      alerts.push({ icon: '🌾', title: `Riche en fibres : ${n.fiber} g / 100g`, description: 'Excellente source de fibres (≥ 6 g/100g). Les fibres favorisent la digestion et la satiété.', level: 'good' })
+      alerts.push({ icon: <Wheat size={18} className="text-current" />, title: `Riche en fibres : ${n.fiber} g / 100g`, description: 'Excellente source de fibres (≥ 6 g/100g). Les fibres favorisent la digestion et la satiété.', level: 'good' })
     } else if (n.fiber >= 3) {
-      alerts.push({ icon: '🌾', title: `Source de fibres : ${n.fiber} g / 100g`, description: 'Bonne source de fibres (≥ 3 g/100g).', level: 'good' })
+      alerts.push({ icon: <Wheat size={18} className="text-current" />, title: `Source de fibres : ${n.fiber} g / 100g`, description: 'Bonne source de fibres (≥ 3 g/100g).', level: 'good' })
     }
   }
 
   // Protéines
   if (n.proteins != null && n.proteins >= 20) {
-    alerts.push({ icon: '💪', title: `Riche en protéines : ${n.proteins} g / 100g`, description: 'Excellente source de protéines. Les protéines contribuent au maintien de la masse musculaire.', level: 'good' })
+    alerts.push({ icon: <Dumbbell size={18} className="text-current" />, title: `Riche en protéines : ${n.proteins} g / 100g`, description: 'Excellente source de protéines. Les protéines contribuent au maintien de la masse musculaire.', level: 'good' })
   }
 
   // Énergie
   if (n.energy_kcal != null) {
     if (n.energy_kcal > 500) {
-      alerts.push({ icon: '⚡', title: `Très calorique : ${n.energy_kcal} kcal / 100g`, description: 'Produit très riche en calories. Attention aux portions.', level: 'warning' })
+      alerts.push({ icon: <Zap size={18} className="text-current" />, title: `Très calorique : ${n.energy_kcal} kcal / 100g`, description: 'Produit très riche en calories. Attention aux portions.', level: 'warning' })
     }
   }
 
@@ -125,11 +128,11 @@ function generateAlerts(props: HealthAnalysisProps): HealthAlert[] {
   if (props.additives && props.additives.length > 0) {
     const count = props.additives.length
     if (count >= 5) {
-      alerts.push({ icon: '⚗️', title: `${count} additifs détectés`, description: 'Ce produit contient un nombre élevé d\'additifs. Certains additifs peuvent avoir des effets indésirables en cas de consommation régulière.', level: 'danger' })
+      alerts.push({ icon: <FlaskConical size={18} className="text-current" />, title: `${count} additifs détectés`, description: 'Ce produit contient un nombre élevé d\'additifs. Certains additifs peuvent avoir des effets indésirables en cas de consommation régulière.', level: 'danger' })
     } else if (count >= 3) {
-      alerts.push({ icon: '⚗️', title: `${count} additifs détectés`, description: 'Présence de plusieurs additifs. Consultez la liste pour vérifier s\'ils sont à éviter.', level: 'warning' })
+      alerts.push({ icon: <FlaskConical size={18} className="text-current" />, title: `${count} additifs détectés`, description: 'Présence de plusieurs additifs. Consultez la liste pour vérifier s\'ils sont à éviter.', level: 'warning' })
     } else {
-      alerts.push({ icon: '⚗️', title: `${count} additif${count > 1 ? 's' : ''} détecté${count > 1 ? 's' : ''}`, description: 'Peu d\'additifs dans ce produit.', level: 'moderate' })
+      alerts.push({ icon: <FlaskConical size={18} className="text-current" />, title: `${count} additif${count > 1 ? 's' : ''} détecté${count > 1 ? 's' : ''}`, description: 'Peu d\'additifs dans ce produit.', level: 'moderate' })
     }
   }
 
@@ -150,7 +153,7 @@ export default function HealthAnalysis(props: HealthAnalysisProps) {
     <div className="rounded-xl border bg-card p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-          🏥 Analyse santé
+          <HeartPulse size={16} className="text-current" /> Analyse santé
         </h2>
         <div className="flex gap-1.5">
           {goodCount > 0 && (

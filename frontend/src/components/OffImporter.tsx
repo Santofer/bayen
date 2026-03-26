@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { getAccessToken } from '@/lib/auth'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
+import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -484,7 +485,7 @@ export default function OffImporter() {
 
           {state === 'done' && product && (
             <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
-              <p className="text-sm text-green-800 font-medium">✅ {product.name} importé avec succès !</p>
+              <p className="text-sm text-green-800 font-medium flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> {product.name} importé avec succès !</p>
               <a href={`/produit/${product.barcode}`} className="text-sm text-primary hover:underline mt-2 inline-block">Voir la fiche →</a>
               <div className="mt-3">
                 <Button variant="outline" size="sm" onClick={() => { setState('idle'); setBarcode(''); setProduct(null) }}>
@@ -535,10 +536,10 @@ export default function OffImporter() {
               {batchResults.map((r, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs py-1 border-b last:border-0">
                   <span className="font-mono text-muted-foreground w-28 flex-shrink-0">{r.barcode}</span>
-                  {r.status === 'imported' && <span className="text-green-600">✅ {r.name}</span>}
-                  {r.status === 'exists' && <span className="text-amber-600">⚠️ Déjà existant</span>}
-                  {r.status === 'not_found' && <span className="text-muted-foreground">❌ Non trouvé sur OFF</span>}
-                  {r.status === 'error' && <span className="text-red-600">❌ Erreur</span>}
+                  {r.status === 'imported' && <span className="text-green-600 flex items-center gap-1"><CheckCircle size={14} className="text-current" /> {r.name}</span>}
+                  {r.status === 'exists' && <span className="text-amber-600 flex items-center gap-1"><AlertTriangle size={14} className="text-current" /> Déjà existant</span>}
+                  {r.status === 'not_found' && <span className="text-muted-foreground flex items-center gap-1"><XCircle size={14} className="text-current" /> Non trouvé sur OFF</span>}
+                  {r.status === 'error' && <span className="text-red-600 flex items-center gap-1"><XCircle size={14} className="text-current" /> Erreur</span>}
                 </div>
               ))}
             </div>

@@ -68,12 +68,8 @@ const categoryLabels: Record<string, string> = {
   autre: 'Autre',
 }
 
-const allergenEmoji: Record<string, string> = {
-  gluten: '🌾', lait: '🥛', lactose: '🥛', oeufs: '🥚',
-  arachide: '🥜', fruits_a_coque: '🌰', soja: '🫘',
-  poisson: '🐟', crustaces: '🦐', sesame: '🌰',
-  moutarde: '🍃', celeri: '🍃', lupin: '🫘',
-}
+// SVG inline pour l'icône d'avertissement allergène (Lucide AlertTriangle)
+const alertSvg = '<svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
 ---
 
 <Layout title={`${name} — Ingrédients | Bayen`}>
@@ -87,8 +83,8 @@ const allergenEmoji: Record<string, string> = {
       <div class="space-y-6">
         {/* En-tête */}
         <div class="flex items-start gap-4">
-          <div class="w-16 h-16 rounded-xl bg-muted flex items-center justify-center text-3xl flex-shrink-0">
-            {ingredient.icon}
+          <div class="w-16 h-16 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/></svg>
           </div>
           <div>
             <h1 class="text-2xl font-bold">{ingredient.name_fr}</h1>
@@ -101,7 +97,7 @@ const allergenEmoji: Record<string, string> = {
               </span>
               {ingredient.is_allergen && (
                 <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium">
-                  {allergenEmoji[ingredient.allergen_type ?? ''] ?? '⚠️'} Allergène{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
+                  <svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Allergène{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
                 </span>
               )}
             </div>

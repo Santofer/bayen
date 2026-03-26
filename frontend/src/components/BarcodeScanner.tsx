@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Check, Camera, Keyboard } from 'lucide-react'
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void
@@ -185,7 +186,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
           {lastScanned && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-              ✓ {lastScanned}
+              <Check size={14} className="text-current inline-block mr-1" />{lastScanned}
             </div>
           )}
 
@@ -234,7 +235,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
       )}
 
       <Button variant="ghost" size="sm" onClick={() => setShowManual(!showManual)} className="text-muted-foreground">
-        {showManual ? '📷 Utiliser la caméra' : '⌨️ Saisir manuellement'}
+        {showManual ? <><Camera size={14} className="text-current inline-block mr-1" />Utiliser la caméra</> : <><Keyboard size={14} className="text-current inline-block mr-1" />Saisir manuellement</>}
       </Button>
     </div>
   )

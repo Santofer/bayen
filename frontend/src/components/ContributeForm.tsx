@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken } from '@/lib/auth'
+import { Camera, Check, Lightbulb, UtensilsCrossed, FileText } from 'lucide-react'
 
 interface ContributeFormProps {
   initialBarcode?: string
@@ -581,7 +582,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           {/* Photos (mode édition — les 3 photos) */}
           {isEditMode && (
             <div className="rounded-xl border bg-card p-5 space-y-4">
-              <h3 className="text-sm font-medium text-foreground">📷 Photos du produit</h3>
+              <h3 className="text-sm font-medium text-foreground flex items-center gap-1.5"><Camera size={16} className="text-current" /> Photos du produit</h3>
               {[
                 { key: 'front' as const, label: 'Photo face avant', field: 'image_front' },
                 { key: 'nutrition' as const, label: 'Tableau nutritionnel', field: 'image_nutrition' },
@@ -590,7 +591,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                 <div key={key} className="space-y-1">
                   <label className="block text-xs font-medium text-muted-foreground">{label}</label>
                   {existingProduct[field] && (
-                    <p className="text-[10px] text-green-600">✓ Image existante</p>
+                    <p className="text-[10px] text-green-600 flex items-center gap-0.5"><Check size={12} className="text-current" /> Image existante</p>
                   )}
                   <input
                     type="file"
@@ -605,7 +606,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                 </div>
               ))}
               <p className="text-[10px] text-muted-foreground">
-                💡 Uploadez le tableau nutritionnel pour remplir automatiquement les valeurs via OCR
+                <Lightbulb size={14} className="text-current inline-block mr-0.5" /> Uploadez le tableau nutritionnel pour remplir automatiquement les valeurs via OCR
               </p>
             </div>
           )}
@@ -613,7 +614,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           {/* Valeurs nutritionnelles (mode édition) */}
           {isEditMode && (
             <div className="rounded-xl border bg-card p-5 space-y-3">
-              <h3 className="text-sm font-medium text-foreground">🥗 Valeurs nutritionnelles (pour 100g)</h3>
+              <h3 className="text-sm font-medium text-foreground flex items-center gap-1.5"><UtensilsCrossed size={16} className="text-current" /> Valeurs nutritionnelles (pour 100g)</h3>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { key: 'energy_kcal', label: 'Énergie (kcal)', placeholder: 'ex: 450' },
@@ -647,7 +648,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           {/* Ingrédients (mode édition) */}
           {isEditMode && (
             <div className="rounded-xl border bg-card p-5 space-y-2">
-              <label className="block text-sm font-medium text-foreground">📝 Ingrédients</label>
+              <label className="block text-sm font-medium text-foreground flex items-center gap-1.5"><FileText size={16} className="text-current" /> Ingrédients</label>
               <textarea
                 rows={3}
                 placeholder="Liste des ingrédients..."

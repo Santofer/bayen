@@ -45,13 +45,13 @@ const rankLabels: Record<string, string> = {
   'vérifié': 'Vérifié',
 }
 
-const medals = ['🥇', '🥈', '🥉']
+const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600']
 ---
 
 <Layout title="Classement des contributeurs — Bayen">
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     <div class="text-center mb-8">
-      <h1 class="text-2xl font-bold tracking-tight">🏆 Classement des contributeurs</h1>
+      <h1 class="text-2xl font-bold tracking-tight flex items-center justify-center gap-2"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>Classement des contributeurs</h1>
       <p class="text-sm text-muted-foreground mt-2">
         Merci à tous ceux qui enrichissent la base de données Bayen !
       </p>
@@ -68,14 +68,14 @@ const medals = ['🥇', '🥈', '🥉']
           const name = user.display_name ?? user.first_name ?? 'Anonyme'
           const color = rankColors[user.rank] ?? rankColors.nouveau
           const rankLabel = rankLabels[user.rank] ?? 'Nouveau'
-          const medal = index < 3 ? medals[index] : null
+          const medalColor = index < 3 ? medalColors[index] : null
 
           return (
             <div class="flex items-center gap-3 rounded-xl border bg-card p-3 hover:shadow-sm transition-shadow">
               {/* Position */}
               <div class="w-8 text-center flex-shrink-0">
-                {medal ? (
-                  <span class="text-xl">{medal}</span>
+                {medalColor ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={medalColor}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
                 ) : (
                   <span class="text-sm font-bold text-muted-foreground">{index + 1}</span>
                 )}

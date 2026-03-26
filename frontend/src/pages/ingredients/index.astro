@@ -30,18 +30,18 @@ try {
 } catch {}
 
 // Grouper par catégorie
-const categories: Record<string, { label: string; icon: string; items: Ingredient[] }> = {
-  cereale: { label: 'Céréales', icon: '🌾', items: [] },
-  sucre: { label: 'Sucres & chocolat', icon: '🍬', items: [] },
-  graisse: { label: 'Huiles & graisses', icon: '🫒', items: [] },
-  laitier: { label: 'Produits laitiers', icon: '🥛', items: [] },
-  proteine: { label: 'Protéines & noix', icon: '🥩', items: [] },
-  fruit_legume: { label: 'Fruits & légumes', icon: '🍅', items: [] },
-  sel: { label: 'Sel & minéraux', icon: '🧂', items: [] },
-  eau: { label: 'Eau', icon: '💧', items: [] },
-  arome: { label: 'Arômes & épices', icon: '🍃', items: [] },
-  additif: { label: 'Additifs alimentaires', icon: '⚗️', items: [] },
-  autre: { label: 'Autres', icon: '🔹', items: [] },
+const categories: Record<string, { label: string; items: Ingredient[] }> = {
+  cereale: { label: 'Céréales', items: [] },
+  sucre: { label: 'Sucres & chocolat', items: [] },
+  graisse: { label: 'Huiles & graisses', items: [] },
+  laitier: { label: 'Produits laitiers', items: [] },
+  proteine: { label: 'Protéines & noix', items: [] },
+  fruit_legume: { label: 'Fruits & légumes', items: [] },
+  sel: { label: 'Sel & minéraux', items: [] },
+  eau: { label: 'Eau', items: [] },
+  arome: { label: 'Arômes & épices', items: [] },
+  additif: { label: 'Additifs alimentaires', items: [] },
+  autre: { label: 'Autres', items: [] },
 }
 
 for (const ing of ingredients) {
@@ -53,7 +53,7 @@ for (const ing of ingredients) {
 <Layout title="Base d'ingrédients — Bayen">
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold tracking-tight">🧪 Base d'ingrédients</h1>
+      <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/></svg>Base d'ingrédients</h1>
       <p class="text-sm text-muted-foreground mt-1">
         {ingredients.length} ingrédients référencés. Cliquez sur un ingrédient pour voir les produits qui le contiennent.
       </p>
@@ -61,7 +61,7 @@ for (const ing of ingredients) {
 
     {/* Légende */}
     <div class="flex flex-wrap gap-2 mb-6">
-      <span class="text-xs px-2 py-1 rounded-full bg-red-50 border border-red-200 text-red-700">⚠️ Allergène</span>
+      <span class="text-xs px-2 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 inline-flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Allergène</span>
       <span class="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">Ingrédient courant</span>
     </div>
 
@@ -72,7 +72,6 @@ for (const ing of ingredients) {
         .map(([key, cat]) => (
           <div>
             <h2 class="text-sm font-bold text-foreground flex items-center gap-2 mb-3 sticky top-14 bg-background py-1 z-10">
-              <span class="text-lg">{cat.icon}</span>
               {cat.label}
               <span class="text-xs font-normal text-muted-foreground">({cat.items.length})</span>
             </h2>
@@ -87,9 +86,8 @@ for (const ing of ingredients) {
                       : 'bg-muted text-foreground hover:bg-muted/80 border border-transparent',
                   ]}
                 >
-                  <span>{ing.icon}</span>
                   <span class="font-medium">{locale === 'ary' && ing.name_ar ? ing.name_ar : ing.name_fr}</span>
-                  {ing.is_allergen && <span class="text-red-500">⚠️</span>}
+                  {ing.is_allergen && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>}
                 </a>
               ))}
             </div>

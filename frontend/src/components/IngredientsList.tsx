@@ -9,6 +9,11 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import type { Locale } from '@/lib/translations'
+import {
+  ClipboardList, AlertTriangle, Wheat, Milk, Egg, Nut, TreeDeciduous,
+  Bean, Fish, Shell, CircleDot, Leaf, Candy, Droplet, Beef, Apple,
+  Sparkles, Droplets, FlaskConical,
+} from 'lucide-react'
 
 export interface StructuredIngredient {
   id: number
@@ -29,10 +34,37 @@ interface IngredientsListProps {
   locale: Locale
 }
 
-const TRACE_EMOJI: Record<string, string> = {
-  gluten: '🌾', lait: '🥛', lactose: '🥛', 'œufs': '🥚', oeufs: '🥚',
-  arachide: '🥜', 'fruits à coque': '🌰', soja: '🫘', poisson: '🐟',
-  'crustacés': '🦐', 'sésame': '🌰', moutarde: '🍃', 'céleri': '🍃', lupin: '🫘',
+/** Icône Lucide pour un type de trace/allergène */
+function traceIcon(trace: string): React.ReactNode {
+  const key = trace.toLowerCase()
+  if (key === 'gluten') return <Wheat size={14} className="text-current" />
+  if (key === 'lait' || key === 'lactose') return <Milk size={14} className="text-current" />
+  if (key === 'œufs' || key === 'oeufs') return <Egg size={14} className="text-current" />
+  if (key === 'arachide') return <Nut size={14} className="text-current" />
+  if (key === 'fruits à coque') return <TreeDeciduous size={14} className="text-current" />
+  if (key === 'soja' || key === 'lupin') return <Bean size={14} className="text-current" />
+  if (key === 'poisson') return <Fish size={14} className="text-current" />
+  if (key === 'crustacés') return <Shell size={14} className="text-current" />
+  if (key === 'sésame') return <CircleDot size={14} className="text-current" />
+  if (key === 'moutarde' || key === 'céleri') return <Leaf size={14} className="text-current" />
+  return <AlertTriangle size={14} className="text-current" />
+}
+
+/** Icône Lucide pour une catégorie d'ingrédient */
+function categoryIcon(category: string): React.ReactNode {
+  switch (category) {
+    case 'cereale': return <Wheat size={16} className="text-current" />
+    case 'sucre': return <Candy size={16} className="text-current" />
+    case 'graisse': return <Droplet size={16} className="text-current" />
+    case 'laitier': return <Milk size={16} className="text-current" />
+    case 'proteine': return <Beef size={16} className="text-current" />
+    case 'fruit_legume': return <Apple size={16} className="text-current" />
+    case 'sel': return <Sparkles size={16} className="text-current" />
+    case 'eau': return <Droplets size={16} className="text-current" />
+    case 'arome': return <Leaf size={16} className="text-current" />
+    case 'additif': return <FlaskConical size={16} className="text-current" />
+    default: return <CircleDot size={16} className="text-current" />
+  }
 }
 
 export default function IngredientsList({ ingredients, traces, ingredientsText, locale }: IngredientsListProps) {
@@ -59,7 +91,9 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
     <div className="rounded-xl border bg-card p-6 space-y-4">
       {/* En-tête */}
       <div className="flex items-center gap-2">
-        <h2 className="text-sm font-bold text-foreground">📋 Ingrédients</h2>
+        <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+          <ClipboardList size={16} className="text-current" /> Ingrédients
+        </h2>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">
           {hasStructured ? sorted.length : parsedTags.length}
         </span>
@@ -81,7 +115,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                 )}
               >
                 {/* Icône */}
-                <span className="text-base flex-shrink-0 w-6 text-center">{ing.icon}</span>
+                <span className="text-base flex-shrink-0 w-6 text-center">{categoryIcon(ing.category)}</span>
 
                 {/* Nom */}
                 <span className={cn('flex-1 min-w-0', ing.is_allergen && 'font-semibold text-red-800')}>
@@ -92,7 +126,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                   ) : (
                     <span>{ing.is_allergen ? name.toUpperCase() : name}</span>
                   )}
-                  {ing.is_allergen && <span className="ml-1 text-xs">⚠️</span>}
+                  {ing.is_allergen && <span className="ml-1 inline-flex align-text-bottom"><AlertTriangle size={12} className="text-current" /></span>}
                 </span>
 
                 {/* Pourcentage */}
@@ -121,7 +155,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                   'bg-muted/50 text-foreground'
                 )}
               >
-                {isAllergen && <span className="mr-0.5">⚠️</span>}
+                {isAllergen && <span className="mr-0.5 inline-flex"><AlertTriangle size={12} className="text-current" /></span>}
                 {tag}
               </span>
             )
@@ -132,11 +166,13 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
       {/* Traces */}
       {traces && traces.length > 0 && (
         <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 mt-3">
-          <p className="text-xs font-semibold text-amber-800 mb-2">⚠️ Peut contenir des traces de :</p>
+          <p className="text-xs font-semibold text-amber-800 mb-2 flex items-center gap-1">
+            <AlertTriangle size={12} className="text-current" /> Peut contenir des traces de :
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {traces.map((trace) => (
               <span key={trace} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-white border border-amber-200 text-amber-800">
-                <span>{TRACE_EMOJI[trace.toLowerCase()] ?? '⚠️'}</span>
+                <span>{traceIcon(trace)}</span>
                 {trace}
               </span>
             ))}

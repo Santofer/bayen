@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
+import { Check, AlertTriangle } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -169,7 +170,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           disabled={hasConfirmed || submitting}
           className={cn(hasConfirmed && 'text-green-600')}
         >
-          {hasConfirmed ? `✓ ${t('product.confirm')}` : `✓ ${t('product.confirm')}`}
+          <Check size={14} className="text-current" /> {t('product.confirm')}
         </Button>
         <Button
           variant="outline"
@@ -177,7 +178,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           onClick={() => setShowReport(!showReport)}
           disabled={submitting}
         >
-          ⚠️ {t('product.report')}
+          <AlertTriangle size={14} className="text-current" /> {t('product.report')}
         </Button>
       </div>
 
