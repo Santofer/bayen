@@ -280,6 +280,20 @@ export async function uploadFile(
   return result.data.id
 }
 
+/** Supprimer un produit (admin uniquement) */
+export async function deleteProduct(
+  id: string,
+  token: string
+): Promise<boolean> {
+  const response = await fetch(`${CLIENT_API_URL}/items/products/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return response.ok
+}
+
 // ────────────────────────────────────────────────────────────────
 // Auth
 // ────────────────────────────────────────────────────────────────

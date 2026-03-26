@@ -121,6 +121,7 @@ export interface UserProfile {
   points: number
   contributions_count: number
   rank: UserRank
+  role?: 'admin' | 'user' | null
 }
 
 // ────────────────────────────────────────────────────────────────

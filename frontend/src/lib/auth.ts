@@ -251,7 +251,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
   if (!token) return null
 
   try {
-    const response = await fetch(`${API_URL}/users/me`, {
+    const response = await fetch(`${API_URL}/users/me?fields=*,role.name,role.admin_access`, {
       headers: { Authorization: `Bearer ${token}` },
     })
 
@@ -260,6 +260,12 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     const data = await response.json()
     const user = (data as { data: Record<string, unknown> }).data
 
+    // Déterminer si l'utilisateur est admin
+    const roleObj = user.role as Record<string, unknown> | string | null
+    const isAdmin = typeof roleObj === 'object' && roleObj !== null
+      ? (roleObj.name === 'Administrator' || roleObj.admin_access === true)
+      : false
+
     return {
       id: user.id as string,
       email: user.email as string,
@@ -267,6 +273,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
       points: (user.points as number) ?? 0,
       contributions_count: (user.contributions_count as number) ?? 0,
       rank: (user.rank as UserProfile['rank']) ?? 'nouveau',
+      role: isAdmin ? 'admin' : 'user',
     } satisfies UserProfile
   } catch {
     return null

@@ -122,6 +122,9 @@ export default function UserMenu() {
             <p className="font-medium text-sm truncate">{user.display_name || user.email}</p>
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
+              {user.role === 'admin' && (
+                <Badge className="text-xs bg-red-600 text-white hover:bg-red-700">Admin</Badge>
+              )}
               <Badge variant="secondary" className="text-xs">
                 {rankLabels[user.rank]}
               </Badge>
@@ -144,6 +147,18 @@ export default function UserMenu() {
               </svg>
               {t('nav.account')}
             </a>
+            {user.role === 'admin' && (
+              <a
+                href="/admin/import-off"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                  <path d="M12 3v12" /><path d="m8 11 4 4 4-4" /><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" />
+                </svg>
+                Import OFF (admin)
+              </a>
+            )}
             <button
               type="button"
               onClick={() => void handleLogout()}

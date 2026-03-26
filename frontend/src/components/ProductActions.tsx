@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
-import { Check, AlertTriangle } from 'lucide-react'
+import { deleteProduct } from '@/lib/directus'
+import { Check, AlertTriangle, Trash2 } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -26,8 +27,11 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
   const { t } = useLocale()
   const [loggedIn, setLoggedIn] = useState(false)
   const [userRank, setUserRank] = useState<string>('nouveau')
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [confirmCount, setConfirmCount] = useState(0)
   const [hasConfirmed, setHasConfirmed] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [reportText, setReportText] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -43,12 +47,19 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       try {
         // Récupérer le profil pour vérifier le rang
-        const userRes = await fetch(`${DIRECTUS_URL}/users/me?fields=id,rank`, {
+        const userRes = await fetch(`${DIRECTUS_URL}/users/me?fields=id,rank,role.name,role.admin_access`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (userRes.ok) {
           const userData = await userRes.json()
           setUserRank(userData.data.rank ?? 'nouveau')
+
+          // Détecter le rôle admin
+          const roleObj = userData.data.role
+          if (typeof roleObj === 'object' && roleObj !== null &&
+              (roleObj.name === 'Administrator' || roleObj.admin_access === true)) {
+            setUserRole('admin')
+          }
 
           // Compter les confirmations existantes
           const confirmRes = await fetch(
@@ -147,9 +158,30 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
     setSubmitting(false)
   }, [canAct, reportText, productId])
 
-  // Ne rien afficher si pas connecté ou pas le niveau requis
+  const isAdmin = userRole === 'admin'
+
+  const handleDelete = useCallback(async () => {
+    setDeleting(true)
+    try {
+      const token = getAccessToken()
+      if (!token) return
+      const success = await deleteProduct(productId, token)
+      if (success) {
+        window.location.href = '/'
+      } else {
+        setFeedback('Erreur lors de la suppression')
+      }
+    } catch {
+      setFeedback('Erreur lors de la suppression')
+    } finally {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }, [productId])
+
+  // Ne rien afficher si pas connecté ou pas le niveau requis (sauf admin)
   if (!loggedIn) return null
-  if (!canAct) return null
+  if (!canAct && !isAdmin) return null
 
   return (
     <div className="space-y-3">
@@ -181,6 +213,39 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           <AlertTriangle size={14} className="text-current" /> {t('product.report')}
         </Button>
       </div>
+
+      {/* Bouton supprimer (admin uniquement) */}
+      {isAdmin && !showDeleteConfirm && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowDeleteConfirm(true)}
+          className="text-red-600 border-red-200 hover:bg-red-50"
+        >
+          <Trash2 size={14} /> Supprimer ce produit
+        </Button>
+      )}
+
+      {/* Confirmation suppression */}
+      {showDeleteConfirm && (
+        <div className="rounded-xl border-2 border-red-300 bg-red-50 p-4 space-y-3">
+          <p className="text-sm font-medium text-red-800">Supprimer définitivement ce produit ?</p>
+          <p className="text-xs text-red-600">Cette action est irréversible.</p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? 'Suppression...' : 'Confirmer la suppression'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
+              Annuler
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Modale signalement */}
       {showReport && (
