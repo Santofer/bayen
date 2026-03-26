@@ -1,5 +1,5 @@
 ---
-// Page fiche produit (SSR) — appel /custom/scan + affichage ScoreDisplay
+// Page fiche produit (SSR) — query Directus puis fallback Open Food Facts
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge.tsx'
 
 const { barcode } = Astro.params
 
-// Appel à l'endpoint /custom/scan côté serveur
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api-bayen.n0.ma/assets'
 
@@ -26,19 +25,81 @@ let scanResult: {
 let fetchError: string | null = null
 
 try {
-  // Générer un session_id serveur pour le scan SSR
-  const sessionId = crypto.randomUUID()
+  // 1. Chercher dans Directus
+  const directusRes = await fetch(
+    `${DIRECTUS_URL}/items/products?filter[barcode][_eq]=${barcode}&filter[status][_eq]=published&limit=1&fields=*`,
+    { signal: AbortSignal.timeout(5000) }
+  )
 
-  const response = await fetch(`${DIRECTUS_URL}/custom/scan`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ barcode, session_id: sessionId }),
-  })
+  if (directusRes.ok) {
+    const directusData = await directusRes.json()
+    const products = directusData.data ?? []
 
-  if (response.ok) {
-    scanResult = await response.json()
-  } else {
-    fetchError = `Erreur API : ${response.status}`
+    if (products.length > 0) {
+      const p = products[0]
+      scanResult = {
+        found: true,
+        source: 'directus',
+        product: p,
+        score: {
+          total: p.scan_score,
+          nutriscore_grade: p.nutriscore_grade,
+          nova_group: p.nova_group,
+          label: p.score_label,
+        },
+      }
+    }
+  }
+
+  // 2. Fallback Open Food Facts si non trouvé dans Directus
+  if (!scanResult.found) {
+    const offRes = await fetch(
+      `https://world.openfoodfacts.org/api/v2/product/${barcode}`,
+      {
+        headers: { 'User-Agent': 'Bayen/1.0 (contact@n0.ma)' },
+        signal: AbortSignal.timeout(8000),
+      }
+    )
+
+    if (offRes.ok) {
+      const offData = await offRes.json()
+      if (offData.status === 1 && offData.product) {
+        const p = offData.product
+        scanResult = {
+          found: true,
+          source: 'open_food_facts',
+          product: {
+            barcode,
+            name_fr: p.product_name_fr || p.product_name || 'Inconnu',
+            brand: p.brands || 'Inconnu',
+            nutriscore_grade: p.nutriscore_grade?.toUpperCase() ?? null,
+            nova_group: p.nova_group ?? null,
+            energy_kcal: p.nutriments?.['energy-kcal_100g'] ?? null,
+            fat_total: p.nutriments?.fat_100g ?? null,
+            fat_saturated: p.nutriments?.['saturated-fat_100g'] ?? null,
+            carbs_total: p.nutriments?.carbohydrates_100g ?? null,
+            sugars: p.nutriments?.sugars_100g ?? null,
+            proteins: p.nutriments?.proteins_100g ?? null,
+            salt: p.nutriments?.salt_100g ?? null,
+            fiber: p.nutriments?.fiber_100g ?? null,
+            ingredients_text: p.ingredients_text_fr || p.ingredients_text || '',
+            image_front: p.image_front_url || null,
+            additives: (p.additives_tags || [])
+              .map((t: string) => { const m = t.match(/e(\d+[a-z]?)/i); return m ? `E${m[1].toUpperCase()}` : null; })
+              .filter(Boolean),
+            is_organic: !!(p.labels_tags || []).find((l: string) => l.includes('bio') || l.includes('organic')),
+            is_halal: !!(p.labels_tags || []).find((l: string) => l.includes('halal')),
+            scan_count: 0,
+          },
+          score: {
+            total: null,
+            nutriscore_grade: p.nutriscore_grade?.toUpperCase() ?? null,
+            nova_group: p.nova_group ?? null,
+            label: null,
+          },
+        }
+      }
+    }
   }
 } catch (err) {
   fetchError = 'Impossible de contacter le serveur'

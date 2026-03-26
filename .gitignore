@@ -45,3 +45,6 @@ npm-debug.log*
 
 # Divers
 .claude/
+directus/extensions/bayen-api/node_modules/
+directus/extensions/bayen-api/dist/
+directus/extensions/bayen-api/package-lock.json

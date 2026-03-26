@@ -7,21 +7,11 @@
  *   GET  /custom/search     → Recherche full-text produits
  */
 
-import type { EndpointConfig } from '@directus/extensions'
+import type { Router } from 'express'
 import { registerScanEndpoint } from './scan.js'
 
-const endpoint: EndpointConfig = {
-  id: 'custom',
-  handler: (router, context) => {
-    // Chemin A — scan code-barres
-    registerScanEndpoint(router, context as Parameters<typeof registerScanEndpoint>[1])
-
-    // Chemin B — OCR + parsing (TODO: phase 2)
-    // registerOcrScoreEndpoint(router, context)
-
-    // Recherche full-text (TODO: phase 1)
-    // registerSearchEndpoint(router, context)
-  },
+// Directus 11 endpoint — export de fonction directe
+// Les routes seront accessibles sous /custom/... (nom du dossier de l'extension)
+export default (router: Router, context: Record<string, unknown>) => {
+  registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
 }
-
-export default endpoint
