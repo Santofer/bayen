@@ -22,6 +22,7 @@ interface UserProfile {
   points: number
   contributions_count: number
   rank: string
+  isAdmin: boolean
 }
 
 interface Contribution {
@@ -79,9 +80,16 @@ export default function AccountDashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const userData = await fetchWithAuth(`${DIRECTUS_URL}/users/me?fields=id,email,first_name,display_name,points,contributions_count,rank`)
+        const userData = await fetchWithAuth(`${DIRECTUS_URL}/users/me`)
         const u = userData.data
-        // Directus utilise first_name pour le nom d'affichage
+        // Vérifier si admin via le rôle
+        let isAdmin = false
+        if (typeof u.role === 'string' && u.role) {
+          try {
+            const roleData = await fetchWithAuth(`${DIRECTUS_URL}/roles/${u.role}?fields=name`)
+            isAdmin = roleData.data?.name === 'Administrator'
+          } catch { /* pas critique */ }
+        }
         const profile: UserProfile = {
           id: u.id,
           email: u.email,
@@ -89,6 +97,7 @@ export default function AccountDashboard() {
           points: u.points ?? 0,
           contributions_count: u.contributions_count ?? 0,
           rank: u.rank ?? 'nouveau',
+          isAdmin,
         }
         setUser(profile)
         setDisplayName(profile.display_name ?? '')
@@ -181,7 +190,12 @@ export default function AccountDashboard() {
             </div>
           )}
           <p className="text-sm text-muted-foreground">{user.email}</p>
-          <Badge className="mt-1 text-white" style={{ backgroundColor: rank.color }}>{rank.label}</Badge>
+          <div className="flex gap-1.5 mt-1">
+            {user.isAdmin && (
+              <Badge className="text-white bg-red-600 hover:bg-red-700">Admin</Badge>
+            )}
+            <Badge className="text-white" style={{ backgroundColor: rank.color }}>{rank.label}</Badge>
+          </div>
         </div>
       </div>
 
