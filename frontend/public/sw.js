@@ -1,7 +1,8 @@
 /**
  * Service Worker Bayen — stratégies de cache
  *
- * - Shell (HTML, CSS, JS) : CacheFirst avec fallback réseau
+ * - Shell (JS, CSS, assets statiques) : CacheFirst
+ * - Pages (document) : NetworkFirst — JAMAIS CacheFirst pour éviter les redirections cachées
  * - API Directus : NetworkFirst, fallback cache 24h
  * - Images CDN : CacheFirst, max 500 entrées, expiry 7 jours
  * - Offline : page offline statique
@@ -9,27 +10,16 @@
  * Référence : SPEC.md §9
  */
 
-const CACHE_SHELL = 'bayen-shell-v1'
-const CACHE_API = 'bayen-api-v1'
-const CACHE_IMAGES = 'bayen-images-v1'
+const CACHE_VERSION = 'v2'
+const CACHE_SHELL = `bayen-shell-${CACHE_VERSION}`
+const CACHE_API = `bayen-api-${CACHE_VERSION}`
+const CACHE_IMAGES = `bayen-images-${CACHE_VERSION}`
+const CACHE_PAGES = `bayen-pages-${CACHE_VERSION}`
 
-const SHELL_URLS = [
-  '/',
-  '/scan',
-  '/additifs',
-  '/recherche',
-  '/contribuer',
-]
+const VALID_CACHES = [CACHE_SHELL, CACHE_API, CACHE_IMAGES, CACHE_PAGES]
 
-// Installation — pré-cache du shell
+// Installation — pré-cache des assets statiques uniquement (pas les pages)
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_SHELL).then((cache) => {
-      return cache.addAll(SHELL_URLS).catch(() => {
-        // Ignorer les erreurs de pré-cache (pages SSR)
-      })
-    })
-  )
   self.skipWaiting()
 })
 
@@ -39,7 +29,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys
-          .filter((key) => !key.startsWith('bayen-'))
+          .filter((key) => !VALID_CACHES.includes(key))
           .map((key) => caches.delete(key))
       )
     })
@@ -54,9 +44,14 @@ self.addEventListener('fetch', (event) => {
   // Ignorer les requêtes non-GET
   if (event.request.method !== 'GET') return
 
+  // Ignorer les requêtes cross-origin sauf images CDN
+  if (url.origin !== self.location.origin && !url.hostname.includes('cdn')) {
+    return
+  }
+
   // API Directus — NetworkFirst avec cache 24h
   if (url.hostname.includes('api-bayen') || url.pathname.startsWith('/items/')) {
-    event.respondWith(networkFirst(event.request, CACHE_API, 24 * 60 * 60))
+    event.respondWith(networkFirst(event.request, CACHE_API))
     return
   }
 
@@ -64,32 +59,45 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.includes('/assets/') ||
     url.hostname.includes('cdn') ||
-    /\.(jpg|jpeg|png|webp|gif|svg)$/.test(url.pathname)
+    /\.(jpg|jpeg|png|webp|gif|svg|ico)$/i.test(url.pathname)
   ) {
-    event.respondWith(cacheFirst(event.request, CACHE_IMAGES))
+    event.respondWith(cacheFirstSafe(event.request, CACHE_IMAGES))
     return
   }
 
-  // Shell (pages, JS, CSS) — CacheFirst avec fallback réseau
+  // Pages HTML (navigation) — NetworkFirst OBLIGATOIRE
+  // Ne JAMAIS utiliser CacheFirst pour les documents (risque de cacher des redirections)
+  if (event.request.destination === 'document' || event.request.mode === 'navigate') {
+    event.respondWith(networkFirst(event.request, CACHE_PAGES))
+    return
+  }
+
+  // Assets statiques (JS, CSS, fonts) — CacheFirst
   if (
-    event.request.destination === 'document' ||
     event.request.destination === 'script' ||
     event.request.destination === 'style' ||
+    event.request.destination === 'font' ||
     url.pathname.startsWith('/_astro/')
   ) {
-    event.respondWith(cacheFirst(event.request, CACHE_SHELL))
+    event.respondWith(cacheFirstSafe(event.request, CACHE_SHELL))
     return
   }
 })
 
-// Stratégie CacheFirst
-async function cacheFirst(request, cacheName) {
+/**
+ * CacheFirst sécurisé — ne cache JAMAIS les réponses redirigées ou en erreur
+ */
+async function cacheFirstSafe(request, cacheName) {
   const cached = await caches.match(request)
-  if (cached) return cached
+  // Ne renvoyer le cache QUE si c'est une réponse valide (pas une redirection)
+  if (cached && !cached.redirected && cached.status >= 200 && cached.status < 300) {
+    return cached
+  }
 
   try {
     const response = await fetch(request)
-    if (response.ok) {
+    // Ne cacher QUE les réponses 200 OK, non-redirigées, non-opaques
+    if (response.ok && !response.redirected && response.type !== 'opaque') {
       const cache = await caches.open(cacheName)
       cache.put(request, response.clone())
 
@@ -100,12 +108,16 @@ async function cacheFirst(request, cacheName) {
     }
     return response
   } catch {
-    return new Response('Offline', { status: 503 })
+    // Fallback offline pour les assets statiques
+    return new Response('', { status: 503, statusText: 'Offline' })
   }
 }
 
-// Stratégie NetworkFirst avec timeout
-async function networkFirst(request, cacheName, maxAgeSeconds) {
+/**
+ * NetworkFirst — réseau d'abord, fallback cache
+ * Ne cache JAMAIS les redirections
+ */
+async function networkFirst(request, cacheName) {
   try {
     const response = await Promise.race([
       fetch(request),
@@ -113,18 +125,35 @@ async function networkFirst(request, cacheName, maxAgeSeconds) {
         setTimeout(() => reject(new Error('timeout')), 5000)
       ),
     ])
-    if (response.ok) {
+    // Ne cacher QUE les 200 OK sans redirection
+    if (response.ok && !response.redirected) {
       const cache = await caches.open(cacheName)
       cache.put(request, response.clone())
     }
     return response
   } catch {
     const cached = await caches.match(request)
-    if (cached) return cached
-    return new Response(JSON.stringify({ error: 'offline' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    if (cached && !cached.redirected && cached.status >= 200 && cached.status < 300) {
+      return cached
+    }
+    // Fallback pour les documents : retourner la page d'accueil cachée
+    if (request.destination === 'document' || request.mode === 'navigate') {
+      const homeCache = await caches.match('/')
+      if (homeCache && !homeCache.redirected) {
+        return homeCache
+      }
+    }
+    return new Response(
+      request.destination === 'document'
+        ? '<html><body><h1>Hors ligne</h1><p>Vérifiez votre connexion internet.</p></body></html>'
+        : JSON.stringify({ error: 'offline' }),
+      {
+        status: 503,
+        headers: {
+          'Content-Type': request.destination === 'document' ? 'text/html; charset=utf-8' : 'application/json',
+        },
+      }
+    )
   }
 }
 
@@ -133,7 +162,6 @@ async function limitCache(cacheName, maxEntries) {
   const cache = await caches.open(cacheName)
   const keys = await cache.keys()
   if (keys.length > maxEntries) {
-    // Supprimer les plus anciennes
     const toDelete = keys.slice(0, keys.length - maxEntries)
     for (const key of toDelete) {
       await cache.delete(key)
