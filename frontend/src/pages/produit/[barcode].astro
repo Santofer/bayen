@@ -7,6 +7,7 @@ import ScoreDisplay from '@/components/ScoreDisplay.tsx'
 import ProductCard from '@/components/ProductCard.tsx'
 import ProductActions from '@/components/ProductActions.tsx'
 import OffImportButton from '@/components/OffImportButton.tsx'
+import EnrichFromOff from '@/components/EnrichFromOff.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import { getLocale, t } from '@/lib/i18n'
@@ -439,6 +440,21 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               client:load
             />
           </div>
+        )}
+
+        {/* Enrichir depuis OFF (produits Directus incomplets) */}
+        {scanResult.source === 'directus' && product && product.id && (
+          <EnrichFromOff
+            productId={product.id as string}
+            barcode={barcode as string}
+            existing={{
+              hasImage: !!(product.image_front),
+              hasNutrition: product.energy_kcal != null || product.fat_total != null,
+              hasIngredients: !!(product.ingredients_text),
+              hasScore: product.scan_score != null,
+            }}
+            client:load
+          />
         )}
 
         {/* Import depuis Open Food Facts */}
