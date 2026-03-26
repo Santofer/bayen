@@ -7,6 +7,12 @@
  * 3. Informations produit (nom, marque, catégorie)
  * 4. Confirmation et soumission
  *
+ * Mode édition (existingProduct fourni) :
+ * - Démarre à l'étape 'info' (saute code-barres et photos)
+ * - Pré-remplit nom et marque
+ * - Permet l'upload de photo face avant
+ * - Met à jour le produit existant au lieu d'en créer un nouveau
+ *
  * Référence : SPEC.md §9
  */
 
@@ -14,9 +20,12 @@ import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
+import { getAccessToken } from '@/lib/auth'
 
 interface ContributeFormProps {
   initialBarcode?: string
+  existingProduct?: Record<string, unknown> | null
 }
 
 type Step = 'barcode' | 'photos' | 'info' | 'confirm'
@@ -27,11 +36,23 @@ function isValidEan(code: string): boolean {
   return /^\d{8}$|^\d{13}$/.test(code)
 }
 
-export default function ContributeForm({ initialBarcode = '' }: ContributeFormProps) {
-  const [step, setStep] = useState<Step>(initialBarcode ? 'photos' : 'barcode')
+export default function ContributeForm({ initialBarcode = '', existingProduct = null }: ContributeFormProps) {
+  const { t } = useLocale()
+  const isEditMode = existingProduct !== null && existingProduct !== undefined
+
+  // En mode édition, démarrer à l'étape info (sauter code-barres et photos)
+  const initialStep: Step = isEditMode ? 'info' : (initialBarcode ? 'photos' : 'barcode')
+
+  const [step, setStep] = useState<Step>(initialStep)
   const [barcode, setBarcode] = useState(initialBarcode)
   const [photos, setPhotos] = useState<{ front?: File; nutrition?: File; ingredients?: File }>({})
-  const [productInfo, setProductInfo] = useState({ name_fr: '', brand: '' })
+  const [productInfo, setProductInfo] = useState({
+    name_fr: isEditMode ? ((existingProduct.name_fr as string) ?? '') : '',
+    brand: isEditMode ? ((existingProduct.brand as string) ?? '') : '',
+  })
+  const [frontPhotoFile, setFrontPhotoFile] = useState<File | null>(null)
+  const [frontPhotoUploading, setFrontPhotoUploading] = useState(false)
+  const [frontPhotoUploaded, setFrontPhotoUploaded] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -51,42 +72,146 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
     }
   }
 
+  // Upload de la photo face avant (mode édition)
+  const handleFrontPhotoUpload = async () => {
+    if (!frontPhotoFile || !isEditMode) return
+    setFrontPhotoUploading(true)
+    setError(null)
+
+    try {
+      const token = await getAccessToken()
+      if (!token) {
+        setError('Session expirée. Veuillez vous reconnecter.')
+        setFrontPhotoUploading(false)
+        return
+      }
+
+      // 1. Upload du fichier vers Directus /files
+      const formData = new FormData()
+      formData.append('file', frontPhotoFile)
+
+      const uploadRes = await fetch(`${DIRECTUS_URL}/files`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error(`Erreur upload: ${uploadRes.status}`)
+      }
+
+      const uploadData = await uploadRes.json() as { data: { id: string } }
+      const fileId = uploadData.data.id
+
+      // 2. PATCH le produit avec la nouvelle image
+      const productId = existingProduct.id as string
+      const patchRes = await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ image_front: fileId }),
+      })
+
+      if (!patchRes.ok) {
+        throw new Error(`Erreur mise à jour: ${patchRes.status}`)
+      }
+
+      setFrontPhotoUploaded(true)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'upload')
+    } finally {
+      setFrontPhotoUploading(false)
+    }
+  }
+
   // Soumission
   const handleSubmit = async () => {
     setSubmitting(true)
     setError(null)
 
     try {
-      // Envoyer vers l'endpoint OCR si on a une photo nutrition
-      if (photos.nutrition) {
-        const formData = new FormData()
-        formData.append('barcode', barcode)
-        if (photos.nutrition) formData.append('image_nutrition', photos.nutrition)
-        if (photos.ingredients) formData.append('image_ingredients', photos.ingredients)
-        if (photos.front) formData.append('image_front', photos.front)
-
-        const res = await fetch(`${DIRECTUS_URL}/custom/ocr-score`, {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (res.ok) {
-          setSubmitted(true)
+      if (isEditMode) {
+        // Mode édition : mettre à jour le produit existant
+        const token = await getAccessToken()
+        if (!token) {
+          setError('Session expirée. Veuillez vous reconnecter.')
+          setSubmitting(false)
           return
         }
-      }
 
-      // Fallback : créer le produit directement en mode draft
-      // Note : requiert une authentification utilisateur
-      setSubmitted(true)
-    } catch (err) {
-      setError('Erreur lors de l\'envoi. Vérifiez votre connexion.')
+        const productId = existingProduct.id as string
+        const patchData: Record<string, unknown> = {
+          name_fr: productInfo.name_fr.trim(),
+          brand: productInfo.brand.trim(),
+        }
+
+        const res = await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(patchData),
+        })
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => null) as { errors?: Array<{ message: string }> } | null
+          throw new Error(errorData?.errors?.[0]?.message ?? `Erreur ${res.status}`)
+        }
+
+        // Créer une contribution de type fix_data
+        await fetch(`${DIRECTUS_URL}/items/contributions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            product_id: productId,
+            type: 'fix_data',
+            status: 'approved',
+            data_before: {
+              name_fr: existingProduct.name_fr,
+              brand: existingProduct.brand,
+            },
+            data_after: patchData,
+          }),
+        })
+
+        setSubmitted(true)
+      } else {
+        // Mode création : envoyer vers l'endpoint OCR si on a une photo nutrition
+        if (photos.nutrition) {
+          const formData = new FormData()
+          formData.append('barcode', barcode)
+          if (photos.nutrition) formData.append('image_nutrition', photos.nutrition)
+          if (photos.ingredients) formData.append('image_ingredients', photos.ingredients)
+          if (photos.front) formData.append('image_front', photos.front)
+
+          const res = await fetch(`${DIRECTUS_URL}/custom/ocr-score`, {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (res.ok) {
+            setSubmitted(true)
+            return
+          }
+        }
+
+        // Fallback : créer le produit directement en mode draft
+        setSubmitted(true)
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi. Vérifiez votre connexion.')
     } finally {
       setSubmitting(false)
     }
   }
 
-  // Rendu selon l'étape
+  // Rendu après soumission réussie
   if (submitted) {
     return (
       <div className="rounded-xl border bg-card p-8 text-center">
@@ -95,17 +220,27 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">Merci pour votre contribution !</h2>
+        <h2 className="text-xl font-bold text-foreground mb-2">
+          {isEditMode ? 'Produit mis à jour !' : t('contribute.thanks')}
+        </h2>
         <p className="text-sm text-muted-foreground mb-1">
-          Le produit <span className="font-mono font-medium">{barcode}</span> a été soumis.
+          Le produit <span className="font-mono font-medium">{barcode}</span> a été {isEditMode ? 'mis à jour' : 'soumis'}.
         </p>
-        <p className="text-sm text-muted-foreground mb-6">
-          Un modérateur vérifiera les données avant publication.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button onClick={() => { setSubmitted(false); setStep('barcode'); setBarcode(''); setPhotos({}); setProductInfo({ name_fr: '', brand: '' }) }}>
-            Ajouter un autre produit
-          </Button>
+        {!isEditMode && (
+          <p className="text-sm text-muted-foreground mb-6">
+            Un modérateur vérifiera les données avant publication.
+          </p>
+        )}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+          {isEditMode ? (
+            <Button asChild>
+              <a href={`/produit/${barcode}`}>Voir la fiche produit</a>
+            </Button>
+          ) : (
+            <Button onClick={() => { setSubmitted(false); setStep('barcode'); setBarcode(''); setPhotos({}); setProductInfo({ name_fr: '', brand: '' }) }}>
+              {t('contribute.addAnother')}
+            </Button>
+          )}
           <Button variant="outline" asChild>
             <a href="/scan">Scanner un produit</a>
           </Button>
@@ -114,14 +249,24 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
     )
   }
 
+  // Étapes visibles selon le mode
+  const visibleSteps: Step[] = isEditMode
+    ? ['info', 'confirm']
+    : ['barcode', 'photos', 'info', 'confirm']
+  const stepLabelsMap: Record<Step, string> = {
+    barcode: t('contribute.barcode'),
+    photos: t('contribute.photos'),
+    info: t('contribute.info'),
+    confirm: t('contribute.confirm'),
+  }
+
   return (
     <div className="space-y-6">
       {/* Indicateur d'étapes */}
       <div className="flex items-center gap-2">
-        {(['barcode', 'photos', 'info', 'confirm'] as Step[]).map((s, i) => {
-          const labels = ['Code-barres', 'Photos', 'Infos', 'Confirmer']
+        {visibleSteps.map((s, i) => {
           const isCurrent = s === step
-          const isPast = ['barcode', 'photos', 'info', 'confirm'].indexOf(step) > i
+          const isPast = visibleSteps.indexOf(step) > i
           return (
             <div key={s} className="flex items-center gap-2 flex-1">
               <div className={cn(
@@ -130,26 +275,26 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
                 isPast && 'bg-primary/20 text-primary',
                 !isCurrent && !isPast && 'bg-muted text-muted-foreground'
               )}>
-                {isPast ? '✓' : i + 1}
+                {isPast ? '\u2713' : i + 1}
               </div>
               <span className={cn(
                 'text-xs hidden sm:inline',
                 isCurrent ? 'text-foreground font-medium' : 'text-muted-foreground'
               )}>
-                {labels[i]}
+                {stepLabelsMap[s]}
               </span>
-              {i < 3 && <div className="flex-1 h-px bg-border" />}
+              {i < visibleSteps.length - 1 && <div className="flex-1 h-px bg-border" />}
             </div>
           )
         })}
       </div>
 
-      {/* Étape 1 : Code-barres */}
-      {step === 'barcode' && (
+      {/* Étape 1 : Code-barres (mode création uniquement) */}
+      {step === 'barcode' && !isEditMode && (
         <form onSubmit={handleBarcodeSubmit} className="space-y-4">
           <div className="rounded-xl border bg-card p-5">
             <label className="block text-sm font-medium text-foreground mb-2">
-              Code-barres du produit
+              {t('contribute.barcode')}
             </label>
             <input
               type="text"
@@ -167,21 +312,21 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
             )}
           </div>
           <Button type="submit" className="w-full" disabled={!isValidEan(barcode)}>
-            Continuer
+            {t('contribute.continue')}
           </Button>
         </form>
       )}
 
-      {/* Étape 2 : Photos */}
-      {step === 'photos' && (
+      {/* Étape 2 : Photos (mode création uniquement) */}
+      {step === 'photos' && !isEditMode && (
         <div className="space-y-4">
           <Badge variant="outline" className="font-mono">{barcode}</Badge>
 
           <div className="space-y-3">
             {([
-              { key: 'nutrition' as const, label: 'Tableau nutritionnel', required: true, hint: 'Cadrez le tableau des valeurs nutritionnelles' },
-              { key: 'ingredients' as const, label: 'Liste des ingrédients', required: false, hint: 'Photo de la liste des ingrédients' },
-              { key: 'front' as const, label: 'Face avant du produit', required: false, hint: 'Photo du packaging face avant' },
+              { key: 'nutrition' as const, label: t('contribute.photoNutrition'), required: true, hint: 'Cadrez le tableau des valeurs nutritionnelles' },
+              { key: 'ingredients' as const, label: t('contribute.photoIngredients'), required: false, hint: 'Photo de la liste des ingrédients' },
+              { key: 'front' as const, label: t('contribute.photoFront'), required: false, hint: 'Photo du packaging face avant' },
             ]).map(({ key, label, required, hint }) => (
               <div key={key} className="rounded-xl border bg-card p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -206,10 +351,10 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setStep('barcode')} className="flex-1">
-              Retour
+              {t('contribute.back')}
             </Button>
             <Button onClick={() => setStep('info')} className="flex-1" disabled={!photos.nutrition}>
-              Continuer
+              {t('contribute.continue')}
             </Button>
           </div>
         </div>
@@ -223,7 +368,7 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
           <div className="rounded-xl border bg-card p-5 space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
-                Nom du produit <span className="text-destructive">*</span>
+                {t('contribute.name')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -235,7 +380,7 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
-                Marque <span className="text-destructive">*</span>
+                {t('contribute.brand')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -247,16 +392,67 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
             </div>
           </div>
 
+          {/* Section photo face avant (mode édition) */}
+          {isEditMode && (
+            <div className="rounded-xl border bg-card p-5 space-y-3">
+              <label className="block text-sm font-medium text-foreground">
+                {t('contribute.photoFront')}
+              </label>
+              {existingProduct.image_front && !frontPhotoUploaded && (
+                <p className="text-xs text-muted-foreground">
+                  Une image existe déjà. Vous pouvez la remplacer ci-dessous.
+                </p>
+              )}
+              {frontPhotoUploaded && (
+                <div className="rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800">
+                  Photo uploadée avec succès !
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={(e) => setFrontPhotoFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer"
+              />
+              {frontPhotoFile && !frontPhotoUploaded && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleFrontPhotoUpload}
+                  disabled={frontPhotoUploading}
+                >
+                  {frontPhotoUploading ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Upload en cours...
+                    </>
+                  ) : (
+                    t('contribute.uploadImage')
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setStep('photos')} className="flex-1">
-              Retour
-            </Button>
+            {!isEditMode && (
+              <Button variant="outline" onClick={() => setStep('photos')} className="flex-1">
+                {t('contribute.back')}
+              </Button>
+            )}
             <Button
               onClick={() => setStep('confirm')}
               className="flex-1"
               disabled={!productInfo.name_fr.trim() || !productInfo.brand.trim()}
             >
-              Continuer
+              {t('contribute.continue')}
             </Button>
           </div>
         </div>
@@ -274,17 +470,37 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
               <span>{productInfo.name_fr}</span>
               <span className="text-muted-foreground">Marque</span>
               <span>{productInfo.brand}</span>
-              <span className="text-muted-foreground">Photos</span>
-              <span>{Object.values(photos).filter(Boolean).length}/3</span>
+              {!isEditMode && (
+                <>
+                  <span className="text-muted-foreground">Photos</span>
+                  <span>{Object.values(photos).filter(Boolean).length}/3</span>
+                </>
+              )}
+              {isEditMode && frontPhotoUploaded && (
+                <>
+                  <span className="text-muted-foreground">Photo</span>
+                  <span className="text-green-700">Nouvelle photo uploadée</span>
+                </>
+              )}
             </div>
           </div>
 
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <p className="text-xs text-amber-800">
-              Les photos seront analysées par notre IA (OCR + Mistral) pour extraire les données nutritionnelles
-              et la liste des ingrédients. Un modérateur vérifiera les données avant publication.
-            </p>
-          </div>
+          {!isEditMode && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-xs text-amber-800">
+                Les photos seront analysées par notre IA (OCR + Mistral) pour extraire les données nutritionnelles
+                et la liste des ingrédients. Un modérateur vérifiera les données avant publication.
+              </p>
+            </div>
+          )}
+
+          {isEditMode && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <p className="text-xs text-blue-800">
+                Les modifications seront appliquées immédiatement au produit existant.
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-4">
@@ -294,16 +510,16 @@ export default function ContributeForm({ initialBarcode = '' }: ContributeFormPr
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setStep('info')} className="flex-1">
-              Retour
+              {t('contribute.back')}
             </Button>
             <Button onClick={handleSubmit} className="flex-1" disabled={submitting}>
               {submitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Envoi en cours...
+                  {isEditMode ? 'Mise à jour...' : t('contribute.sending')}
                 </>
               ) : (
-                'Soumettre le produit'
+                isEditMode ? 'Mettre à jour le produit' : t('contribute.submit')
               )}
             </Button>
           </div>

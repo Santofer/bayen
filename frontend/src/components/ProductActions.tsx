@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
@@ -21,6 +22,7 @@ interface ProductActionsProps {
 }
 
 export default function ProductActions({ productId, barcode, confidenceScore }: ProductActionsProps) {
+  const { t } = useLocale()
   const [loggedIn, setLoggedIn] = useState(false)
   const [userRank, setUserRank] = useState<string>('nouveau')
   const [confirmCount, setConfirmCount] = useState(0)
@@ -152,7 +154,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
     <div className="space-y-3">
       {/* Compteur de confirmations */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>{confirmCount} confirmation{confirmCount > 1 ? 's' : ''}</span>
+        <span>{confirmCount} {t('product.confirmations')}</span>
         {confidenceScore >= 0.8 && (
           <Badge variant="safe" className="text-xs">Vérifié</Badge>
         )}
@@ -167,7 +169,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           disabled={hasConfirmed || submitting}
           className={cn(hasConfirmed && 'text-green-600')}
         >
-          {hasConfirmed ? '✓ Confirmé' : '✓ Confirmer'}
+          {hasConfirmed ? `✓ ${t('product.confirm')}` : `✓ ${t('product.confirm')}`}
         </Button>
         <Button
           variant="outline"
@@ -175,7 +177,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           onClick={() => setShowReport(!showReport)}
           disabled={submitting}
         >
-          ⚠️ Signaler une erreur
+          ⚠️ {t('product.report')}
         </Button>
       </div>
 

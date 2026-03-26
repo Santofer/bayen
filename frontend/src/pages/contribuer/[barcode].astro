@@ -6,6 +6,26 @@ import Layout from '@/layouts/Layout.astro'
 import ContributeForm from '@/components/ContributeForm.tsx'
 
 const { barcode } = Astro.params
+
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+
+// Récupérer le produit existant depuis Directus (s'il existe)
+let existingProduct: Record<string, unknown> | null = null
+
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/items/products?filter[barcode][_eq]=${barcode}&filter[status][_eq]=published&limit=1&fields=*`
+  )
+  if (res.ok) {
+    const data = await res.json()
+    const products = data.data ?? []
+    if (products.length > 0) {
+      existingProduct = products[0]
+    }
+  }
+} catch {
+  // Silencieux — le formulaire fonctionnera en mode création
+}
 ---
 
 <Layout title={`Corriger — ${barcode} — Bayen`} description={`Corriger ou compléter les informations du produit ${barcode} sur Bayen.`}>
@@ -18,7 +38,7 @@ const { barcode } = Astro.params
         </p>
       </div>
 
-      <ContributeForm initialBarcode={barcode} client:load />
+      <ContributeForm initialBarcode={barcode} existingProduct={existingProduct} client:load />
     </div>
   </main>
 </Layout>

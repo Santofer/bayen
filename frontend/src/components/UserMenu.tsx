@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser, initAuth, isAuthenticated, logout, onAuthChange } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
 import type { UserProfile } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -31,6 +32,7 @@ const rankLabels: Record<UserProfile['rank'], string> = {
 }
 
 export default function UserMenu() {
+  const { t } = useLocale()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -90,7 +92,7 @@ export default function UserMenu() {
   if (!user) {
     return (
       <Button variant="ghost" size="sm" asChild className="ml-3">
-        <a href="/connexion">Connexion</a>
+        <a href="/connexion">{t('nav.login')}</a>
       </Button>
     )
   }
@@ -140,7 +142,7 @@ export default function UserMenu() {
                 <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
-              Mon compte
+              {t('nav.account')}
             </a>
             <button
               type="button"
@@ -152,7 +154,7 @@ export default function UserMenu() {
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
-              Déconnexion
+              {t('nav.logout')}
             </button>
           </div>
         </div>

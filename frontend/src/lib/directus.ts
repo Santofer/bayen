@@ -195,6 +195,85 @@ export async function createScan(data: {
 }
 
 // ────────────────────────────────────────────────────────────────
+// Produits — CRUD avec authentification
+// ────────────────────────────────────────────────────────────────
+
+/** Crée un produit dans Directus (requiert un token valide) */
+export async function createProduct(
+  data: Record<string, unknown>,
+  token: string
+): Promise<Record<string, unknown>> {
+  const response = await fetch(`${DIRECTUS_URL}/items/products`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null) as { errors?: Array<{ message: string }> } | null
+    const msg = errorData?.errors?.[0]?.message ?? `Erreur ${response.status}`
+    throw new Error(msg)
+  }
+
+  const result = await response.json() as { data: Record<string, unknown> }
+  return result.data
+}
+
+/** Met a jour un produit existant dans Directus */
+export async function updateProduct(
+  id: string,
+  data: Record<string, unknown>,
+  token: string
+): Promise<Record<string, unknown>> {
+  const response = await fetch(`${DIRECTUS_URL}/items/products/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null) as { errors?: Array<{ message: string }> } | null
+    const msg = errorData?.errors?.[0]?.message ?? `Erreur ${response.status}`
+    throw new Error(msg)
+  }
+
+  const result = await response.json() as { data: Record<string, unknown> }
+  return result.data
+}
+
+/** Upload un fichier vers Directus, retourne l'ID du fichier */
+export async function uploadFile(
+  file: File,
+  token: string
+): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${DIRECTUS_URL}/files`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null) as { errors?: Array<{ message: string }> } | null
+    const msg = errorData?.errors?.[0]?.message ?? `Erreur upload ${response.status}`
+    throw new Error(msg)
+  }
+
+  const result = await response.json() as { data: { id: string } }
+  return result.data.id
+}
+
+// ────────────────────────────────────────────────────────────────
 // Auth
 // ────────────────────────────────────────────────────────────────
 

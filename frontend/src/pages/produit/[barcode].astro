@@ -6,6 +6,7 @@ import Layout from '@/layouts/Layout.astro'
 import ScoreDisplay from '@/components/ScoreDisplay.tsx'
 import ProductCard from '@/components/ProductCard.tsx'
 import ProductActions from '@/components/ProductActions.tsx'
+import OffImportButton from '@/components/OffImportButton.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 
@@ -395,6 +396,20 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               productId={product.id as string}
               barcode={barcode as string}
               confidenceScore={(product.confidence_score as number) ?? 0}
+              client:load
+            />
+          </div>
+        )}
+
+        {/* Import depuis Open Food Facts */}
+        {scanResult.source === 'open_food_facts' && product && (
+          <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p class="text-sm text-amber-800 mb-3">
+              Ce produit provient d'Open Food Facts et n'est pas encore dans la base Bayen.
+            </p>
+            <OffImportButton
+              barcode={barcode as string}
+              productData={product}
               client:load
             />
           </div>
