@@ -471,6 +471,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               hasNutrition: product.energy_kcal != null || product.fat_total != null,
               hasIngredients: !!(product.ingredients_text),
               hasScore: product.scan_score != null,
+              hasAdditives: Array.isArray(product.additives) && (product.additives as unknown[]).length > 0,
             }}
             client:load
           />

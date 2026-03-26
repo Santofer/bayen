@@ -19,6 +19,7 @@ interface EnrichFromOffProps {
     hasNutrition: boolean
     hasIngredients: boolean
     hasScore: boolean
+    hasAdditives: boolean
   }
 }
 
@@ -30,7 +31,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
   const [error, setError] = useState('')
 
   // Ne rien afficher si tout est déjà complet
-  const missingCount = [!existing.hasImage, !existing.hasNutrition, !existing.hasIngredients, !existing.hasScore].filter(Boolean).length
+  const missingCount = [!existing.hasImage, !existing.hasNutrition, !existing.hasIngredients, !existing.hasScore, !existing.hasAdditives].filter(Boolean).length
   if (missingCount === 0) return null
 
   async function handleEnrich() {
@@ -172,11 +173,13 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
             <div className="flex-1">
               <p className="text-sm font-medium text-blue-900">Données incomplètes</p>
               <p className="text-xs text-blue-700 mt-0.5">
-                {!existing.hasNutrition && 'Valeurs nutritionnelles · '}
-                {!existing.hasIngredients && 'Ingrédients · '}
-                {!existing.hasImage && 'Photo · '}
-                {!existing.hasScore && 'Score · '}
-                manquant{missingCount > 1 ? 's' : ''}
+                {[
+                  !existing.hasNutrition && 'Valeurs nutritionnelles',
+                  !existing.hasIngredients && 'Ingrédients',
+                  !existing.hasAdditives && 'Additifs',
+                  !existing.hasImage && 'Photo',
+                  !existing.hasScore && 'Score',
+                ].filter(Boolean).join(' · ')} — manquant{missingCount > 1 ? 's' : ''}
               </p>
             </div>
           </div>
