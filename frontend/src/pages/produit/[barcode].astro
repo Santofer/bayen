@@ -23,19 +23,18 @@ let scanResult: {
 } = { found: false }
 
 let fetchError: string | null = null
-let debugInfo = ''
 
 // 1. Chercher dans Directus (isolé — un échec ici ne bloque pas le fallback OFF)
 try {
   const directusRes = await fetch(
     `${DIRECTUS_URL}/items/products?filter[barcode][_eq]=${barcode}&filter[status][_eq]=published&limit=1&fields=*`
   )
-  debugInfo += `directus:${directusRes.status} `
+  //`directus:${directusRes.status} `
 
   if (directusRes.ok) {
     const directusData = await directusRes.json()
     const products = directusData.data ?? []
-    debugInfo += `products:${products.length} `
+    //`products:${products.length} `
 
     if (products.length > 0) {
       const p = products[0]
@@ -53,16 +52,16 @@ try {
     }
   }
 } catch (e: unknown) {
-  debugInfo += `directus-err:${e instanceof Error ? e.message : String(e)} `
+  //`directus-err:${e instanceof Error ? e.message : String(e)} `
 }
 
 // 2. Fallback Open Food Facts si non trouvé dans Directus
 try {
   if (!scanResult.found) {
     const offUrl = `https://world.openfoodfacts.org/api/v2/product/${barcode}.json`
-    debugInfo += `fetching-off `
+    //`fetching-off `
     const offRes = await fetch(offUrl)
-    debugInfo += `off:${offRes.status} `
+    //`off:${offRes.status} `
 
     if (offRes.ok) {
       const offData = await offRes.json()
@@ -105,7 +104,7 @@ try {
     }
   }
 } catch (e: unknown) {
-  debugInfo += `off-err:${e instanceof Error ? e.message : String(e)} `
+  //`off-err:${e instanceof Error ? e.message : String(e)} `
   fetchError = 'Impossible de contacter Open Food Facts'
 }
 
@@ -176,8 +175,6 @@ const ogImage = product?.image_front ? `${CDN_URL}/${product.image_front}` : und
           </svg>
         </div>
         <h1 class="text-xl font-bold text-foreground mb-2">Produit non trouvé</h1>
-        <!-- Debug temporaire -->
-        <p class="text-xs text-red-400 font-mono mb-2">debug: {debugInfo}</p>
         <p class="text-sm text-muted-foreground mb-1">
           Le code-barres <span class="font-mono font-medium text-foreground">{barcode}</span> n'est pas encore dans notre base.
         </p>
