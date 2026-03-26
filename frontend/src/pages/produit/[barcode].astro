@@ -24,11 +24,11 @@ let scanResult: {
 
 let fetchError: string | null = null
 
+// 1. Chercher dans Directus (isolé — un échec ici ne bloque pas le fallback OFF)
 try {
-  // 1. Chercher dans Directus
   const directusRes = await fetch(
     `${DIRECTUS_URL}/items/products?filter[barcode][_eq]=${barcode}&filter[status][_eq]=published&limit=1&fields=*`,
-    { signal: AbortSignal.timeout(5000) }
+    { signal: AbortSignal.timeout(4000) }
   )
 
   if (directusRes.ok) {
@@ -50,8 +50,12 @@ try {
       }
     }
   }
+} catch {
+  // Directus indisponible — on continue vers OFF
+}
 
-  // 2. Fallback Open Food Facts si non trouvé dans Directus
+// 2. Fallback Open Food Facts si non trouvé dans Directus
+try {
   if (!scanResult.found) {
     const offRes = await fetch(
       `https://world.openfoodfacts.org/api/v2/product/${barcode}`,
@@ -101,8 +105,8 @@ try {
       }
     }
   }
-} catch (err) {
-  fetchError = 'Impossible de contacter le serveur'
+} catch {
+  fetchError = 'Impossible de contacter Open Food Facts'
 }
 
 const product = scanResult.product as Record<string, unknown> | undefined
