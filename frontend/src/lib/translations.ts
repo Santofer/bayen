@@ -183,6 +183,20 @@ export const translations = {
   'common.save':       { fr: 'Enregistrer',              ary: 'سجّل' },
   'common.cancel':     { fr: 'Annuler',                  ary: 'لغي' },
   'common.networkError':{ fr: 'Vérifiez votre connexion', ary: 'شوف الكونيكسيون ديالك' },
+
+  // ── Alternatives ──────────────────────────────────────────
+  'alt.title':          { fr: 'Alternatives plus saines',         ary: 'بدائل صحية أكثر' },
+  'alt.bestInCategory': { fr: 'Meilleur de sa catégorie !',       ary: 'الأحسن فالفئة ديالو!' },
+  'alt.score':          { fr: 'Score',                             ary: 'النتيجة' },
+  'alt.see':            { fr: 'Voir',                              ary: 'شوف' },
+
+  // ── Partage ───────────────────────────────────────────────
+  'share.title':        { fr: 'Partager',                         ary: 'بارطاجي' },
+  'share.whatsapp':     { fr: 'WhatsApp',                         ary: 'واتساب' },
+  'share.copyLink':     { fr: 'Copier le lien',                   ary: 'كوبي الليان' },
+  'share.facebook':     { fr: 'Facebook',                         ary: 'فيسبوك' },
+  'share.copied':       { fr: 'Lien copié !',                     ary: 'تكوبيا!' },
+  'share.text':         { fr: 'Découvre le score de ce produit sur Bayen', ary: 'شوف النتيجة ديال هاد المنتوج على باين' },
 } as const
 
 /** Clé de traduction valide */

@@ -10,6 +10,8 @@ import OffImportButton from '@/components/OffImportButton.tsx'
 import EnrichFromOff from '@/components/EnrichFromOff.tsx'
 import HealthAnalysis from '@/components/HealthAnalysis.tsx'
 import IngredientsList from '@/components/IngredientsList.tsx'
+import ProductAlternatives from '@/components/ProductAlternatives.tsx'
+import ShareButton from '@/components/ShareButton.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import { getLocale, t } from '@/lib/i18n'
@@ -229,6 +231,27 @@ try {
 const product = scanResult.product as Record<string, unknown> | undefined
 const score = scanResult.score as Record<string, unknown> | undefined
 
+// Alternatives plus saines (même catégorie, meilleur score)
+let alternatives: Array<Record<string, unknown>> = []
+let isBestInCategory = false
+
+if (scanResult.source === 'directus' && product?.category_id && score?.total != null) {
+  try {
+    const categoryId = typeof product.category_id === 'object'
+      ? (product.category_id as Record<string, unknown>).id
+      : product.category_id
+    const altRes = await fetch(
+      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score&limit=3&fields=barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade`,
+      { signal: AbortSignal.timeout(3000) }
+    )
+    if (altRes.ok) {
+      const altData = await altRes.json()
+      alternatives = altData.data ?? []
+    }
+  } catch { /* non critique */ }
+  if (alternatives.length === 0) isBestInCategory = true
+}
+
 // SEO
 const pageTitle = product
   ? `${product.name_fr} (${product.brand}) — Score ${score?.total ?? '?'}/100 | Bayen`
@@ -369,6 +392,16 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                 <Badge variant="safe" className="text-xs">Halal</Badge>
               )}
             </div>
+            {/* Bouton partage */}
+            <div class="mt-3">
+              <ShareButton
+                productName={product.name_fr as string}
+                brand={(product.brand as string).split(',')[0].trim()}
+                score={score?.total as number | null ?? null}
+                barcode={barcode as string}
+                client:load
+              />
+            </div>
           </div>
 
           {/* Code-barres à droite — même hauteur que la photo */}
@@ -421,6 +454,23 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           ingredients={product.ingredients_text as string ?? ''}
           client:load
         />
+
+        {/* Alternatives plus saines */}
+        {scanResult.source === 'directus' && product?.category_id && score?.total != null && (
+          <ProductAlternatives
+            alternatives={alternatives.map((a: Record<string, unknown>) => ({
+              barcode: a.barcode as string,
+              name_fr: a.name_fr as string,
+              brand: a.brand as string,
+              image_front: a.image_front as string | null,
+              scan_score: a.scan_score as number | null,
+              score_label: a.score_label as string | null,
+              nutriscore_grade: a.nutriscore_grade as string | null,
+            }))}
+            isBestInCategory={isBestInCategory}
+            client:load
+          />
+        )}
 
         {/* Données nutritionnelles */}
         {(product.energy_kcal != null || product.proteins != null) && (
