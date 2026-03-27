@@ -22,6 +22,9 @@ export default defineConfig({
     ssr: {
       noExternal: ['@radix-ui/*'],
     },
+    optimizeDeps: {
+      exclude: ['zxing-wasm'],
+    },
   },
 
   redirects: {
