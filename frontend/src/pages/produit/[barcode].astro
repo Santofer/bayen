@@ -112,6 +112,22 @@ try {
         }
       } catch { /* pas grave, fallback texte */ }
 
+      // Si produit OFF sans image locale, récupérer l'image depuis OFF
+      if (!p.image_front && p.data_source === 'off') {
+        try {
+          const offImgRes = await fetch(
+            `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=image_front_url,image_front_small_url`,
+            { signal: AbortSignal.timeout(3000) }
+          )
+          if (offImgRes.ok) {
+            const offImgData = await offImgRes.json()
+            if (offImgData.status === 1 && offImgData.product?.image_front_url) {
+              p.image_front = offImgData.product.image_front_url
+            }
+          }
+        } catch { /* non bloquant */ }
+      }
+
       scanResult = {
         found: true,
         source: 'directus',
