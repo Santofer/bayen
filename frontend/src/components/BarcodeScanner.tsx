@@ -1,15 +1,17 @@
 /**
- * Scanner de code-barres — polyfill BarcodeDetector unifié
+ * Scanner de code-barres — capture canvas + polyfill BarcodeDetector
  *
- * Utilise le package `barcode-detector` qui fournit :
- * - L'API native BarcodeDetector sur Android Chrome (instantané)
- * - Un fallback ZXing-C++ compilé en WASM sur iOS Safari (fiable pour EAN-13)
+ * Stratégie :
+ * 1. Android Chrome : BarcodeDetector API natif (le plus rapide)
+ * 2. Autres navigateurs (iOS Safari) : polyfill barcode-detector (ZXing WASM)
+ *    avec capture manuelle des frames via canvas (contourne les limitations iOS)
  *
- * Un seul chemin de code pour toutes les plateformes.
+ * Le passage par canvas est ESSENTIEL pour iOS Safari car detector.detect(video)
+ * ne fonctionne pas de manière fiable sur WebKit — il faut dessiner la frame
+ * sur un canvas puis passer le canvas au détecteur.
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { BarcodeDetector } from 'barcode-detector'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Check, Camera, Keyboard, ScanBarcode } from 'lucide-react'
@@ -21,12 +23,21 @@ interface BarcodeScannerProps {
   className?: string
 }
 
+// Formats EAN/UPC supportés — couvre 99% des produits au Maroc
+const BARCODE_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'] as const
+
 function isValidBarcode(code: string): boolean {
   return /^\d{8,13}$/.test(code)
 }
 
+/** Détecte si le navigateur a l'API BarcodeDetector native (Android Chrome) */
+function hasNativeBarcodeDetector(): boolean {
+  return typeof globalThis !== 'undefined' && 'BarcodeDetector' in globalThis
+}
+
 export default function BarcodeScanner({ onScan, onError, disabled = false, className }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const scanningRef = useRef(false)
   const lastScannedRef = useRef<string | null>(null)
@@ -66,7 +77,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
     async function startScanner() {
       try {
-        // Demander l'accès caméra — préférer arrière, haute résolution
+        // 1. Accès caméra — préférer arrière, haute résolution pour meilleure détection
         let stream: MediaStream
         try {
           stream = await navigator.mediaDevices.getUserMedia({
@@ -78,7 +89,6 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
             audio: false,
           })
         } catch {
-          // Fallback : n'importe quelle caméra disponible
           stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
         }
 
@@ -100,15 +110,57 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
         setCameraError(null)
         setStarting(false)
 
-        // Créer le détecteur — le polyfill utilise WASM sur iOS, natif sur Android
-        const detector = new BarcodeDetector({
-          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
-        })
+        // 2. Créer le détecteur
+        // Android Chrome : API natif (pas besoin de canvas)
+        // iOS Safari : polyfill WASM + canvas obligatoire
+        const useNative = hasNativeBarcodeDetector()
 
-        // Boucle de détection
-        while (mounted && scanningRef.current && video.readyState >= 2) {
+        let detector: InstanceType<typeof globalThis.BarcodeDetector>
+
+        if (useNative) {
+          // @ts-expect-error — BarcodeDetector natif Android
+          detector = new globalThis.BarcodeDetector({ formats: [...BARCODE_FORMATS] })
+        } else {
+          // Charger le polyfill dynamiquement (lazy — WASM chargé ici)
+          const { BarcodeDetector: Polyfill } = await import('barcode-detector')
+          detector = new Polyfill({ formats: [...BARCODE_FORMATS] })
+        }
+
+        // 3. Canvas hors-écran pour capturer les frames (essentiel pour iOS)
+        if (!useNative) {
+          canvasRef.current = document.createElement('canvas')
+        }
+
+        // 4. Boucle de détection
+        const scanInterval = useNative ? 150 : 250 // WASM est plus lent, espacer davantage
+
+        while (mounted && scanningRef.current) {
+          if (video.readyState < 2) {
+            await new Promise(r => setTimeout(r, 100))
+            continue
+          }
+
           try {
-            const barcodes = await detector.detect(video)
+            let source: HTMLVideoElement | HTMLCanvasElement = video
+
+            // Sur iOS : capturer la frame sur le canvas avant détection
+            if (!useNative && canvasRef.current) {
+              const canvas = canvasRef.current
+              const vw = video.videoWidth
+              const vh = video.videoHeight
+
+              if (vw > 0 && vh > 0) {
+                canvas.width = vw
+                canvas.height = vh
+                const ctx = canvas.getContext('2d', { willReadFrequently: true })
+                if (ctx) {
+                  ctx.drawImage(video, 0, 0, vw, vh)
+                  source = canvas
+                }
+              }
+            }
+
+            const barcodes = await detector.detect(source)
             for (const bc of barcodes) {
               if (bc.rawValue && mounted) {
                 handleDetection(bc.rawValue)
@@ -117,7 +169,8 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
           } catch {
             // Erreur ponctuelle de détection — continuer
           }
-          await new Promise(r => setTimeout(r, 150))
+
+          await new Promise(r => setTimeout(r, scanInterval))
         }
       } catch (err) {
         if (!mounted) return
@@ -139,6 +192,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
     return () => {
       mounted = false
       scanningRef.current = false
+      canvasRef.current = null
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(t => t.stop())
         streamRef.current = null
@@ -172,7 +226,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
             muted
           />
 
-          {/* Overlay scan — affiché par-dessus le scanner */}
+          {/* Overlay scan */}
           {cameraActive && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <div className="relative w-64 h-32 border-2 border-white/70 rounded-lg">
