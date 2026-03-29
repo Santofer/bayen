@@ -6,7 +6,6 @@ import Layout from '@/layouts/Layout.astro'
 import ScoreDisplay from '@/components/ScoreDisplay.tsx'
 import ProductCard from '@/components/ProductCard.tsx'
 import ProductActions from '@/components/ProductActions.tsx'
-import OffImportButton from '@/components/OffImportButton.tsx'
 import EnrichFromOff from '@/components/EnrichFromOff.tsx'
 import HealthAnalysis from '@/components/HealthAnalysis.tsx'
 import IngredientsList from '@/components/IngredientsList.tsx'
@@ -226,6 +225,35 @@ try {
 } catch (e: unknown) {
   //`off-err:${e instanceof Error ? e.message : String(e)} `
   fetchError = 'Impossible de contacter Open Food Facts'
+}
+
+// 3. Auto-import dans Directus si trouvé sur OFF (fire-and-forget côté serveur)
+// L'endpoint /custom/scan gère l'import proprement (pas de problème UUID image_front)
+let autoImported = false
+if (scanResult.found && scanResult.source === 'open_food_facts') {
+  try {
+    const scanRes = await fetch(`${DIRECTUS_URL}/custom/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        barcode,
+        session_id: `auto-${Date.now()}`,
+      }),
+      signal: AbortSignal.timeout(5000),
+    })
+    if (scanRes.ok) {
+      const scanData = await scanRes.json()
+      if (scanData.found && scanData.source === 'open_food_facts') {
+        autoImported = true
+        // Mettre à jour le produit avec l'ID Directus pour les actions (confirmer, signaler)
+        if (scanData.product?.id) {
+          scanResult.product = { ...scanResult.product, id: scanData.product.id }
+        }
+      }
+    }
+  } catch {
+    // Non bloquant — le produit s'affiche quand même depuis OFF
+  }
 }
 
 const product = scanResult.product as Record<string, unknown> | undefined
@@ -568,17 +596,19 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           />
         )}
 
-        {/* Import depuis Open Food Facts */}
+        {/* Info source Open Food Facts */}
         {scanResult.source === 'open_food_facts' && product && (
-          <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <p class="text-sm text-amber-800 mb-3">
-              Ce produit provient d'Open Food Facts et n'est pas encore dans la base Bayen.
-            </p>
-            <OffImportButton
-              barcode={barcode as string}
-              productData={product}
-              client:load
-            />
+          <div class={`rounded-xl border p-4 ${autoImported ? 'border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800' : 'border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800'}`}>
+            {autoImported ? (
+              <p class="text-sm text-green-800 dark:text-green-200 flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Produit importé automatiquement depuis Open Food Facts.
+              </p>
+            ) : (
+              <p class="text-sm text-amber-800 dark:text-amber-200">
+                Ce produit provient d'Open Food Facts. Les données seront vérifiées par la communauté.
+              </p>
+            )}
           </div>
         )}
 
