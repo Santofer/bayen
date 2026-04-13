@@ -295,14 +295,14 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
   }
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+    <div className="rounded-xl border border-[#476a32]/20 bg-[#f0f2d2]/50 p-4">
       {state === 'idle' && (
         <>
           <div className="flex items-start gap-3">
-            <RefreshCw size={18} className="text-blue-600 flex-shrink-0" />
+            <RefreshCw size={18} className="text-[#476a32] flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-900">Données incomplètes</p>
-              <p className="text-xs text-blue-700 mt-0.5">
+              <p className="text-sm font-medium text-[#476a32]">Données incomplètes</p>
+              <p className="text-xs text-[#476a32]/70 mt-0.5">
                 {[
                   !existing.hasNutrition && 'Valeurs nutritionnelles',
                   !existing.hasIngredients && 'Ingrédients',
@@ -320,8 +320,8 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       )}
 
       {state === 'loading' && (
-        <div className="flex items-center gap-3 text-sm text-blue-800">
-          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center gap-3 text-sm text-[#476a32]">
+          <div className="w-4 h-4 border-2 border-[#476a32] border-t-transparent rounded-full animate-spin" />
           Recherche sur Open Food Facts...
         </div>
       )}
@@ -337,7 +337,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       )}
 
       {state === 'not_found' && (
-        <p className="text-sm text-blue-800">Ce produit n'a pas été trouvé sur Open Food Facts, ou n'a pas de données supplémentaires.</p>
+        <p className="text-sm text-[#476a32]">Ce produit n'a pas été trouvé sur Open Food Facts, ou n'a pas de données supplémentaires.</p>
       )}
 
       {state === 'error' && (

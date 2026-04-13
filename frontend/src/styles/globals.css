@@ -62,6 +62,7 @@
   --color-border: hsl(0 0% 18%);
   --color-input: hsl(0 0% 18%);
   --color-ring: hsl(72.1 60.8% 52%);
+
 }
 
 @layer base {
@@ -71,12 +72,12 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif !important;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   h1, h2, h3, h4 {
-    font-family: 'Mouse Memoirs', 'Nunito', system-ui, sans-serif;
+    font-family: 'Mouse Memoirs', 'Nunito', system-ui, sans-serif !important;
     letter-spacing: 0.02em;
   }
 }

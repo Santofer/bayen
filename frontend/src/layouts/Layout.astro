@@ -68,7 +68,7 @@ const currentPath = Astro.url.pathname
   </head>
   <body class="min-h-screen bg-background font-sans antialiased overflow-x-hidden">
     {!hideNav && (
-      <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header class="sticky top-0 z-50 w-full border-b backdrop-blur bayen-navbar">
         <div class="container flex h-14 items-center px-4 mx-auto max-w-screen-lg">
           <!-- Logo -->
           <a href="/" class="flex items-center me-6 text-primary">
@@ -80,8 +80,8 @@ const currentPath = Astro.url.pathname
             <a
               href="/scan"
               class:list={[
-                'transition-colors hover:text-foreground',
-                currentPath === '/scan' ? 'text-foreground font-medium' : 'text-muted-foreground',
+                'transition-colors hover:opacity-100',
+                currentPath === '/scan' ? 'font-medium' : 'opacity-60',
               ]}
             >
               {t('nav.scan', locale)}
@@ -89,8 +89,8 @@ const currentPath = Astro.url.pathname
             <a
               href="/recherche"
               class:list={[
-                'transition-colors hover:text-foreground',
-                currentPath === '/recherche' ? 'text-foreground font-medium' : 'text-muted-foreground',
+                'transition-colors hover:opacity-100',
+                currentPath === '/recherche' ? 'font-medium' : 'opacity-60',
               ]}
             >
               {t('nav.search', locale)}
@@ -98,8 +98,8 @@ const currentPath = Astro.url.pathname
             <a
               href="/additifs"
               class:list={[
-                'transition-colors hover:text-foreground',
-                currentPath.startsWith('/additifs') ? 'text-foreground font-medium' : 'text-muted-foreground',
+                'transition-colors hover:opacity-100',
+                currentPath.startsWith('/additifs') ? 'font-medium' : 'opacity-60',
               ]}
             >
               {t('nav.additives', locale)}
@@ -107,8 +107,8 @@ const currentPath = Astro.url.pathname
             <a
               href="/contribuer"
               class:list={[
-                'transition-colors hover:text-foreground',
-                currentPath.startsWith('/contribuer') ? 'text-foreground font-medium' : 'text-muted-foreground',
+                'transition-colors hover:opacity-100',
+                currentPath.startsWith('/contribuer') ? 'font-medium' : 'opacity-60',
               ]}
             >
               {t('nav.contribute', locale)}
@@ -279,6 +279,18 @@ const currentPath = Astro.url.pathname
       /* Safe area pour la barre de navigation mobile */
       .safe-area-pb {
         padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      /* Navbar Bayen */
+      .bayen-navbar {
+        background-color: #f0f2d2;
+        color: #476a32;
+        border-color: rgba(71, 106, 50, 0.1);
+      }
+      :where(.dark, .dark *) .bayen-navbar,
+      .dark .bayen-navbar {
+        background-color: #1a2b12;
+        color: #f0f2d2;
+        border-color: rgba(240, 242, 210, 0.1);
       }
     </style>
   </body>

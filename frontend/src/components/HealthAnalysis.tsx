@@ -36,8 +36,8 @@ interface HealthAlert {
 }
 
 const LEVEL_COLORS = {
-  good: { bg: 'bg-green-50 dark:bg-green-950/40', border: 'border-green-200 dark:border-green-800', text: 'text-green-800 dark:text-green-300', badge: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300' },
-  moderate: { bg: 'bg-yellow-50 dark:bg-yellow-950/40', border: 'border-yellow-200 dark:border-yellow-800', text: 'text-yellow-800 dark:text-yellow-300', badge: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300' },
+  good: { bg: 'bg-[#f0f2d2]/50 dark:bg-[#476a32]/20', border: 'border-[#476a32]/20 dark:border-[#476a32]/40', text: 'text-[#476a32] dark:text-[#b1cf3a]', badge: 'bg-[#476a32]/10 dark:bg-[#476a32]/30 text-[#476a32] dark:text-[#b1cf3a]' },
+  moderate: { bg: 'bg-[#b1cf3a]/10 dark:bg-[#b1cf3a]/10', border: 'border-[#b1cf3a]/30 dark:border-[#b1cf3a]/30', text: 'text-[#476a32] dark:text-[#b1cf3a]', badge: 'bg-[#b1cf3a]/20 dark:bg-[#b1cf3a]/20 text-[#476a32] dark:text-[#b1cf3a]' },
   warning: { bg: 'bg-orange-50 dark:bg-orange-950/40', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-800 dark:text-orange-300', badge: 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-300' },
   danger: { bg: 'bg-red-50 dark:bg-red-950/40', border: 'border-red-200 dark:border-red-800', text: 'text-red-800 dark:text-red-300', badge: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300' },
 }
@@ -161,7 +161,7 @@ export default function HealthAnalysis(props: HealthAnalysisProps) {
         </h2>
         <div className="flex gap-1.5">
           {goodCount > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-medium">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#476a32]/10 text-[#476a32] font-medium">
               {goodCount} {goodCount > 1 ? t('health.positivesPlural') : t('health.positives')}
             </span>
           )}
