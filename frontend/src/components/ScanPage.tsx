@@ -6,10 +6,12 @@
 import { useState, useCallback } from 'react'
 import BarcodeScanner from '@/components/BarcodeScanner'
 import { Button } from '@/components/ui/button'
+import { useLocale } from '@/lib/i18n'
 
 type ScanState = 'scanning' | 'loading' | 'not_found' | 'error'
 
 export default function ScanPage() {
+  const { t } = useLocale()
   const [state, setState] = useState<ScanState>('scanning')
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -36,9 +38,9 @@ export default function ScanPage() {
     <div className="flex flex-col items-center px-4 py-8 pb-24">
       {/* Titre */}
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Scanner un produit</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('scan.title')}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Scannez le code-barres pour obtenir le score
+          {t('scan.subtitle')}
         </p>
       </div>
 
@@ -56,7 +58,7 @@ export default function ScanPage() {
         <div className="flex flex-col items-center gap-4 py-12">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-muted-foreground">
-            Recherche du produit <span className="font-mono font-medium text-foreground">{scannedBarcode}</span>...
+            {t('scan.loading')} <span className="font-mono font-medium text-foreground">{scannedBarcode}</span>...
           </p>
         </div>
       )}
@@ -71,33 +73,33 @@ export default function ScanPage() {
               <line x1="9" y1="9" x2="15" y2="15" />
             </svg>
           </div>
-          <p className="text-sm text-foreground">{errorMessage ?? 'Une erreur est survenue'}</p>
-          <Button onClick={handleReset}>Réessayer</Button>
+          <p className="text-sm text-foreground">{errorMessage ?? t('common.error')}</p>
+          <Button onClick={handleReset}>{t('scan.retry')}</Button>
         </div>
       )}
 
       {/* Guide */}
       {state === 'scanning' && (
         <div className="mt-8 w-full max-w-sm">
-          <h2 className="text-sm font-medium text-foreground mb-3">Conseils pour un bon scan</h2>
+          <h2 className="text-sm font-medium text-foreground mb-3">{t('scan.tips.title')}</h2>
           <ul className="space-y-2 text-xs text-muted-foreground">
             <li className="flex items-start gap-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 text-primary flex-shrink-0">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Placez le code-barres bien centré dans le cadre
+              {t('scan.tip1')}
             </li>
             <li className="flex items-start gap-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 text-primary flex-shrink-0">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Assurez un bon éclairage, évitez les reflets
+              {t('scan.tip2')}
             </li>
             <li className="flex items-start gap-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 text-primary flex-shrink-0">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Distance idéale : 15–25 cm du produit
+              {t('scan.tip3')}
             </li>
           </ul>
         </div>

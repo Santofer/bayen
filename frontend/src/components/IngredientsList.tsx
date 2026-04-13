@@ -9,6 +9,7 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import type { Locale } from '@/lib/translations'
+import { t as translate } from '@/lib/i18n'
 import {
   ClipboardList, AlertTriangle, Wheat, Milk, Egg, Nut, TreeDeciduous,
   Bean, Fish, Shell, CircleDot, Leaf, Candy, Droplet, Beef, Apple,
@@ -68,6 +69,7 @@ function categoryIcon(category: string): React.ReactNode {
 }
 
 export default function IngredientsList({ ingredients, traces, ingredientsText, locale }: IngredientsListProps) {
+  const tt = (key: string) => translate(key as Parameters<typeof translate>[0], locale)
   const hasStructured = ingredients && ingredients.length > 0
 
   const sorted = useMemo(() => {
@@ -92,7 +94,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
       {/* En-tête */}
       <div className="flex items-center gap-2">
         <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-          <ClipboardList size={16} className="text-current" /> Ingrédients
+          <ClipboardList size={16} className="text-current" /> {tt('ing.title')}
         </h2>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">
           {hasStructured ? sorted.length : parsedTags.length}
@@ -169,7 +171,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
       {traces && traces.length > 0 && (
         <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-3 mt-3">
           <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-1">
-            <AlertTriangle size={12} className="text-current" /> Peut contenir des traces de :
+            <AlertTriangle size={12} className="text-current" /> {tt('ing.traces')}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {traces.map((trace) => (

@@ -42,9 +42,9 @@ interface Scan {
 // Niveaux et seuils
 const RANK_INFO: Record<string, { label: string; color: string; min: number; next: number | null }> = {
   nouveau: { label: 'Nouveau', color: '#a1a1aa', min: 0, next: 100 },
-  contributeur: { label: 'Contributeur', color: '#84cc16', min: 100, next: 500 },
+  contributeur: { label: 'Contributeur', color: '#b1cf3a', min: 100, next: 500 },
   expert: { label: 'Expert', color: '#f97316', min: 500, next: 2000 },
-  'vérifié': { label: 'Vérifié', color: '#16a34a', min: 2000, next: null },
+  'vérifié': { label: 'Vérifié', color: '#476a32', min: 2000, next: null },
 }
 
 const TYPE_LABELS: Record<string, string> = {

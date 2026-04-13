@@ -9,8 +9,8 @@
   --color-card-foreground: hsl(0 0% 3.9%);
   --color-popover: hsl(0 0% 100%);
   --color-popover-foreground: hsl(0 0% 3.9%);
-  --color-primary: hsl(142.1 76.2% 36.3%);
-  --color-primary-foreground: hsl(355.7 100% 97.3%);
+  --color-primary: hsl(97.5 35.9% 30.6%);
+  --color-primary-foreground: hsl(63.8 55.2% 88.6%);
   --color-secondary: hsl(0 0% 96.1%);
   --color-secondary-foreground: hsl(0 0% 9%);
   --color-muted: hsl(0 0% 96.1%);
@@ -21,11 +21,11 @@
   --color-destructive-foreground: hsl(0 0% 98%);
   --color-border: hsl(0 0% 89.8%);
   --color-input: hsl(0 0% 89.8%);
-  --color-ring: hsl(142.1 76.2% 36.3%);
+  --color-ring: hsl(97.5 35.9% 30.6%);
 
   /* Couleurs Bayen scoring */
-  --color-score-excellent: #16a34a;
-  --color-score-bon: #84cc16;
+  --color-score-excellent: #476a32;
+  --color-score-bon: #b1cf3a;
   --color-score-mediocre: #f97316;
   --color-score-mauvais: #ef4444;
 
@@ -49,8 +49,8 @@
   --color-card-foreground: hsl(0 0% 95%);
   --color-popover: hsl(0 0% 9%);
   --color-popover-foreground: hsl(0 0% 95%);
-  --color-primary: hsl(142.1 70.6% 45.3%);
-  --color-primary-foreground: hsl(144.9 80.4% 10%);
+  --color-primary: hsl(72.1 60.8% 52%);
+  --color-primary-foreground: hsl(97.5 35.9% 15%);
   --color-secondary: hsl(0 0% 14.9%);
   --color-secondary-foreground: hsl(0 0% 95%);
   --color-muted: hsl(0 0% 14.9%);
@@ -61,7 +61,7 @@
   --color-destructive-foreground: hsl(0 0% 98%);
   --color-border: hsl(0 0% 18%);
   --color-input: hsl(0 0% 18%);
-  --color-ring: hsl(142.4 71.8% 29.2%);
+  --color-ring: hsl(72.1 60.8% 52%);
 }
 
 @layer base {
@@ -71,6 +71,12 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Mouse Memoirs', 'Nunito', system-ui, sans-serif;
+    letter-spacing: 0.02em;
   }
 }

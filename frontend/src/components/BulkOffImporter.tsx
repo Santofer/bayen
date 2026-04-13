@@ -545,7 +545,7 @@ export default function BulkOffImporter() {
         <Button
           onClick={startImport}
           disabled={isRunning}
-          className="bg-green-600 hover:bg-green-700 text-white"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
           size="lg"
         >
           {isRunning ? (
@@ -604,7 +604,7 @@ export default function BulkOffImporter() {
           </div>
           <div className="h-2.5 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full bg-green-600 transition-all duration-300"
+              className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>

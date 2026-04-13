@@ -5,7 +5,9 @@
 
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
 import type { RiskLevel } from '@/lib/types'
+import type { TranslationKey } from '@/lib/translations'
 
 interface AdditiveTagProps {
   code: string
@@ -22,6 +24,14 @@ const RISK_VARIANTS: Record<RiskLevel, 'safe' | 'limited' | 'avoid' | 'banned'> 
   banned_ma: 'banned',
 }
 
+const RISK_LABEL_KEYS: Record<RiskLevel, TranslationKey> = {
+  safe: 'additives.safe',
+  limited: 'additives.limited',
+  avoid: 'additives.avoid',
+  banned_ma: 'additives.banned',
+}
+
+// Labels statiques FR pour usage externe sans hook (ex: AdditivesList)
 const RISK_LABELS: Record<RiskLevel, string> = {
   safe: 'Sûr',
   limited: 'Limité',
@@ -43,6 +53,8 @@ export default function AdditiveTag({
   showName = false,
   className,
 }: AdditiveTagProps) {
+  const { t } = useLocale()
+
   return (
     <Badge
       variant={RISK_VARIANTS[riskLevel]}
@@ -57,4 +69,4 @@ export default function AdditiveTag({
   )
 }
 
-export { RISK_LABELS, RISK_VARIANTS, RISK_ICONS }
+export { RISK_LABELS, RISK_VARIANTS, RISK_ICONS, RISK_LABEL_KEYS }

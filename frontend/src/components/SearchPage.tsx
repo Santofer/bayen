@@ -29,7 +29,7 @@ type SortValue = (typeof SORT_OPTIONS)[number]['value']
 const NUTRISCORE_GRADES: NutriScoreGrade[] = ['A', 'B', 'C', 'D', 'E']
 
 const NUTRISCORE_COLORS: Record<NutriScoreGrade, string> = {
-  A: 'bg-green-600',
+  A: 'bg-[#038141]',
   B: 'bg-lime-500',
   C: 'bg-yellow-400',
   D: 'bg-orange-500',

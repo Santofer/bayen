@@ -12,8 +12,8 @@ interface ProductCardProps {
 }
 
 const SCORE_COLORS: Record<ScoreLabel, string> = {
-  excellent: '#16a34a',
-  bon: '#84cc16',
+  excellent: '#476a32',
+  bon: '#b1cf3a',
   'médiocre': '#f97316',
   mauvais: '#ef4444',
 }

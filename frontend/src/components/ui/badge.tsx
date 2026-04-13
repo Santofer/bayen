@@ -11,7 +11,7 @@ const badgeVariants = cva(
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
         destructive: 'border-transparent bg-destructive text-destructive-foreground',
         outline: 'text-foreground',
-        safe: 'border-transparent bg-green-100 text-green-800',
+        safe: 'border-transparent bg-[#476a32]/15 text-[#476a32]',
         limited: 'border-transparent bg-orange-100 text-orange-800',
         avoid: 'border-transparent bg-red-100 text-red-800',
         banned: 'border-transparent bg-red-900 text-white',

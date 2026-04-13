@@ -41,9 +41,12 @@ const currentPath = Astro.url.pathname
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#16a34a" />
+    <meta name="theme-color" content="#476a32" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Mouse+Memoirs&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>{title}</title>
     <SeoHead title={title} description={description} path={path} ogImage={ogImage} ogType={ogType} jsonLd={jsonLd} noindex={noindex} />
     <!-- Appliquer locale + thème sauvegardés avant le premier paint -->
@@ -68,12 +71,8 @@ const currentPath = Astro.url.pathname
       <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div class="container flex h-14 items-center px-4 mx-auto max-w-screen-lg">
           <!-- Logo -->
-          <a href="/" class="flex items-center gap-2 font-bold text-lg text-primary mr-6">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="text-primary">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-              <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            Bayen
+          <a href="/" class="flex items-center me-6 text-primary">
+            <img src="/logo-bayn.svg" alt="Bayen" class="h-8 w-auto" style="filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
           </a>
 
           <!-- Navigation desktop -->
@@ -147,6 +146,71 @@ const currentPath = Astro.url.pathname
     )}
 
     <slot />
+
+    {!hideNav && (
+      <footer class="border-t bg-muted/30 mt-12 pb-20 md:pb-0">
+        <div class="container mx-auto max-w-screen-lg px-4 py-10">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            <!-- Marque -->
+            <div class="col-span-2 sm:col-span-1">
+              <a href="/" class="flex items-center text-primary mb-3">
+                <img src="/logo-bayn.svg" alt="Bayen" class="h-7 w-auto" style="filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
+              </a>
+              <p class="text-sm text-muted-foreground">
+                {t('home.hero1', locale)}<br />{t('home.hero2', locale)}
+              </p>
+            </div>
+
+            <!-- Navigation -->
+            <div>
+              <h3 class="font-semibold text-sm text-foreground mb-3">{t('footer.navigation', locale)}</h3>
+              <ul class="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/scan" class="hover:text-foreground transition-colors">{t('nav.scan', locale)}</a></li>
+                <li><a href="/recherche" class="hover:text-foreground transition-colors">{t('nav.search', locale)}</a></li>
+                <li><a href="/additifs" class="hover:text-foreground transition-colors">{t('nav.additives', locale)}</a></li>
+                <li><a href="/categories" class="hover:text-foreground transition-colors">{t('search.categories', locale)}</a></li>
+              </ul>
+            </div>
+
+            <!-- Participer -->
+            <div>
+              <h3 class="font-semibold text-sm text-foreground mb-3">{t('footer.participate', locale)}</h3>
+              <ul class="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/contribuer" class="hover:text-foreground transition-colors">{t('nav.contribute', locale)}</a></li>
+                <li><a href="/importer" class="hover:text-foreground transition-colors">Importer (OFF)</a></li>
+                <li><a href="/classement" class="hover:text-foreground transition-colors">{t('account.rank', locale)}</a></li>
+                <li><a href="/compte" class="hover:text-foreground transition-colors">{t('account.title', locale)}</a></li>
+              </ul>
+            </div>
+
+            <!-- Infos -->
+            <div>
+              <h3 class="font-semibold text-sm text-foreground mb-3">{t('footer.info', locale)}</h3>
+              <ul class="space-y-2 text-sm text-muted-foreground">
+                <li><a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">N0.ma</a></li>
+                <li><a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">Netspace</a></li>
+                <li><a href="mailto:contact@n0.ma" class="hover:text-foreground transition-colors">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Séparateur + crédits -->
+          <div class="border-t mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+            <p>
+              {t('footer.initiative', locale)}
+              <a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-primary font-medium">N0</a>
+              &
+              <a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-primary font-medium">Netspace</a>
+            </p>
+            <p>
+              {t('footer.dataFrom', locale)}
+              <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-primary font-medium">Open Food Facts</a>
+              (ODbL)
+            </p>
+          </div>
+        </div>
+      </footer>
+    )}
 
     {!hideNav && (
       <!-- Navigation mobile bottom -->

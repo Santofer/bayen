@@ -33,9 +33,9 @@ try {
 
 const rankColors: Record<string, string> = {
   nouveau: '#a1a1aa',
-  contributeur: '#84cc16',
+  contributeur: '#b1cf3a',
   expert: '#f97316',
-  'vérifié': '#16a34a',
+  'vérifié': '#476a32',
 }
 
 const rankLabels: Record<string, string> = {
@@ -135,9 +135,9 @@ const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600']
       <div class="flex flex-wrap gap-2">
         {[
           { name: 'Nouveau', min: 0, color: '#a1a1aa' },
-          { name: 'Contributeur', min: 100, color: '#84cc16' },
+          { name: 'Contributeur', min: 100, color: '#b1cf3a' },
           { name: 'Expert', min: 500, color: '#f97316' },
-          { name: 'Vérifié', min: 2000, color: '#16a34a' },
+          { name: 'Vérifié', min: 2000, color: '#476a32' },
         ].map(({ name, min, color }) => (
           <div class="flex items-center gap-1.5 rounded-full px-3 py-1 border text-sm">
             <div class="w-3 h-3 rounded-full" style={`background-color: ${color}`} />

@@ -27,8 +27,8 @@ interface ProductAlternativesProps {
 /** Couleur du score selon la valeur */
 function scoreColor(score: number | null): string {
   if (score == null) return '#9ca3af'
-  if (score >= 75) return '#16a34a'
-  if (score >= 50) return '#84cc16'
+  if (score >= 75) return '#476a32'
+  if (score >= 50) return '#b1cf3a'
   if (score >= 25) return '#f97316'
   return '#ef4444'
 }

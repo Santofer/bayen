@@ -404,7 +404,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
     return (
       <div className="rounded-xl border bg-card p-8 text-center">
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#476a32" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>

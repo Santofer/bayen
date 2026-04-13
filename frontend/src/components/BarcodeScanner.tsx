@@ -234,7 +234,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
                 <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-3 border-r-3 border-primary rounded-tr-lg" />
                 <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-3 border-l-3 border-primary rounded-bl-lg" />
                 <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-3 border-r-3 border-primary rounded-br-lg" />
-                <div className="absolute left-2 right-2 h-0.5 bg-primary shadow-[0_0_8px_rgba(22,163,74,0.6)] animate-scan" />
+                <div className="absolute left-2 right-2 h-0.5 bg-primary shadow-[0_0_8px_rgba(71,106,50,0.6)] animate-scan" />
               </div>
             </div>
           )}

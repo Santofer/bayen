@@ -7,8 +7,9 @@ import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useLocale } from '@/lib/i18n'
 import type { Additive, RiskLevel } from '@/lib/types'
-import { RISK_LABELS, RISK_VARIANTS } from '@/components/AdditiveTag'
+import { RISK_VARIANTS, RISK_ICONS, RISK_LABEL_KEYS } from '@/components/AdditiveTag'
 
 interface AdditivesListProps {
   additives: Additive[]
@@ -17,13 +18,14 @@ interface AdditivesListProps {
 const RISK_ORDER: RiskLevel[] = ['banned_ma', 'avoid', 'limited', 'safe']
 
 const RISK_COLORS: Record<RiskLevel, string> = {
-  safe: 'bg-green-500',
+  safe: 'bg-[#476a32]',
   limited: 'bg-orange-500',
   avoid: 'bg-red-500',
   banned_ma: 'bg-red-900',
 }
 
 export default function AdditivesList({ additives }: AdditivesListProps) {
+  const { t } = useLocale()
   const [search, setSearch] = useState('')
   const [filterRisk, setFilterRisk] = useState<RiskLevel | 'all'>('all')
 
@@ -65,7 +67,7 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
       {/* Barre de recherche */}
       <div className="relative">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rtl:left-auto rtl:right-3"
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
         >
           <circle cx="11" cy="11" r="8" />
@@ -73,17 +75,17 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
         </svg>
         <input
           type="text"
-          placeholder="Rechercher un additif (E471, tartrazine, émulsifiant…)"
+          placeholder={t('additives.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-10 rounded-lg border border-input bg-background pl-10 pr-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full h-10 rounded-lg border border-input bg-background ps-10 pe-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
 
       {/* Filtres par risque */}
       <div className="flex flex-wrap gap-2">
         {(['all', ...RISK_ORDER] as const).map((risk) => {
-          const label = risk === 'all' ? 'Tous' : RISK_LABELS[risk]
+          const label = risk === 'all' ? t('additives.all') : t(RISK_LABEL_KEYS[risk])
           const count = counts[risk] ?? 0
           const isActive = filterRisk === risk
           return (
@@ -94,7 +96,7 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
               onClick={() => setFilterRisk(risk)}
               className={cn(
                 'gap-1.5',
-                isActive && risk !== 'all' && risk === 'safe' && 'bg-green-600 hover:bg-green-700',
+                isActive && risk !== 'all' && risk === 'safe' && 'bg-[#476a32] hover:bg-[#476a32]/90',
                 isActive && risk === 'limited' && 'bg-orange-500 hover:bg-orange-600',
                 isActive && risk === 'avoid' && 'bg-red-500 hover:bg-red-600',
                 isActive && risk === 'banned_ma' && 'bg-red-900 hover:bg-red-950',
@@ -114,7 +116,7 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
 
       {/* Résultats */}
       <p className="text-sm text-muted-foreground">
-        {sorted.length} additif{sorted.length > 1 ? 's' : ''} trouvé{sorted.length > 1 ? 's' : ''}
+        {sorted.length} {t('additives.found')}
       </p>
 
       {/* Liste */}
@@ -136,7 +138,7 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
               <div className="flex items-center gap-2">
                 <span className="font-mono font-bold text-sm text-foreground">{additive.id}</span>
                 <Badge variant={RISK_VARIANTS[additive.risk_level]} className="text-[10px]">
-                  {RISK_LABELS[additive.risk_level]}
+                  {t(RISK_LABEL_KEYS[additive.risk_level])}
                 </Badge>
               </div>
               <p className="text-sm text-foreground mt-0.5">{additive.name_fr}</p>
@@ -156,7 +158,7 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
 
       {sorted.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Aucun additif trouvé pour cette recherche.</p>
+          <p className="text-muted-foreground">{t('additives.noResult')}</p>
         </div>
       )}
     </div>

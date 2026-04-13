@@ -112,6 +112,7 @@ export const translations = {
   'search.sortBestScore':   { fr: 'Meilleur score',                                   ary: 'أحسن نتيجة' },
   'search.sortNewest':      { fr: 'Plus récents',                                     ary: 'الأحدث' },
   'search.category':      { fr: 'Catégorie',                                          ary: 'الفئة' },
+  'search.categories':   { fr: 'Catégories',                                         ary: 'الفئات' },
   'search.allCategories':  { fr: 'Toutes les catégories',                              ary: 'كل الفئات' },
   'search.scoreMin':       { fr: 'Score minimum',                                     ary: 'أقل نتيجة' },
   'search.noAdditives':    { fr: 'Sans additifs à éviter',                            ary: 'بلا إضافات خايبة' },
@@ -197,6 +198,128 @@ export const translations = {
   'share.facebook':     { fr: 'Facebook',                         ary: 'فيسبوك' },
   'share.copied':       { fr: 'Lien copié !',                     ary: 'تكوبيا!' },
   'share.text':         { fr: 'Découvre le score de ce produit sur Bayen', ary: 'شوف النتيجة ديال هاد المنتوج على باين' },
+
+  // ── Additifs (page liste) ────────────────────────────────────
+  'additives.search':     { fr: 'Rechercher un additif (E471, tartrazine, émulsifiant…)', ary: 'قلّب على إضافة (E471, تارترازين, مستحلب...)' },
+  'additives.all':        { fr: 'Tous',                        ary: 'الكل' },
+  'additives.found':      { fr: 'additif(s) trouvé(s)',        ary: 'إضافة/إضافات تلقاو' },
+  'additives.noResult':   { fr: 'Aucun additif trouvé pour cette recherche.', ary: 'ما لقينا حتا إضافة فهاد البحث.' },
+  'additives.loadError':  { fr: 'Impossible de charger les additifs. Vérifiez la connexion API.', ary: 'ما قدرناش نحملو الإضافات. شوف الكونيكسيون.' },
+
+  // ── Scanner (page) ─────────────────────────────────────────
+  'scan.tip1':       { fr: 'Placez le code-barres bien centré dans le cadre',         ary: 'حط الكود فوسط الكادر' },
+  'scan.tip2':       { fr: 'Assurez un bon éclairage, évitez les reflets',            ary: 'خلّي الضو مزيان، تجنب الانعكاس' },
+  'scan.tip3':       { fr: 'Distance idéale : 15–25 cm du produit',                  ary: 'المسافة المثالية: 15–25 سم من المنتوج' },
+  'scan.retry':      { fr: 'Réessayer',                                              ary: 'عاود' },
+
+  // ── Analyse santé ──────────────────────────────────────────
+  'health.title':         { fr: 'Analyse santé',                                    ary: 'تحليل الصحة' },
+  'health.alerts':        { fr: 'alerte',                                           ary: 'تنبيه' },
+  'health.alertsPlural':  { fr: 'alertes',                                          ary: 'تنبيهات' },
+  'health.positives':     { fr: 'point positif',                                    ary: 'نقطة إيجابية' },
+  'health.positivesPlural': { fr: 'points positifs',                                ary: 'نقط إيجابية' },
+
+  // Nutri-Score alertes
+  'health.ns.a.title':    { fr: 'Nutri-Score A',                                    ary: 'نوتري سكور A' },
+  'health.ns.a.desc':     { fr: 'Excellente qualité nutritionnelle. Ce produit fait partie des meilleurs choix de sa catégorie.',
+                            ary: 'جودة غذائية ممتازة. هاد المنتوج من أحسن الخيارات فالفئة ديالو.' },
+  'health.ns.b.title':    { fr: 'Nutri-Score B',                                    ary: 'نوتري سكور B' },
+  'health.ns.b.desc':     { fr: 'Bonne qualité nutritionnelle. Un choix favorable pour une alimentation équilibrée.',
+                            ary: 'جودة غذائية مزيانة. خيار مزيان لماكلة متوازنة.' },
+  'health.ns.c.title':    { fr: 'Nutri-Score C',                                    ary: 'نوتري سكور C' },
+  'health.ns.c.desc':     { fr: "Qualité nutritionnelle moyenne. À consommer avec modération dans le cadre d'une alimentation variée.",
+                            ary: 'جودة غذائية متوسطة. كولو بالقياس فإطار ماكلة متنوعة.' },
+  'health.ns.d.title':    { fr: 'Nutri-Score D',                                    ary: 'نوتري سكور D' },
+  'health.ns.d.desc':     { fr: "Qualité nutritionnelle médiocre. Privilégiez des alternatives mieux notées quand c'est possible.",
+                            ary: 'جودة غذائية ضعيفة. حاول تلقى بديل أحسن.' },
+  'health.ns.e.title':    { fr: 'Nutri-Score E',                                    ary: 'نوتري سكور E' },
+  'health.ns.e.desc':     { fr: 'Mauvaise qualité nutritionnelle. Ce produit est à limiter dans votre alimentation quotidienne.',
+                            ary: 'جودة غذائية خايبة. حاول تنقص من هاد المنتوج فالماكلة ديالك.' },
+
+  // NOVA alertes
+  'health.nova.1.title':  { fr: 'NOVA 1 — Non transformé',                          ary: 'NOVA 1 — ما محولش' },
+  'health.nova.1.desc':   { fr: "Aliment non transformé ou minimalement transformé. C'est le meilleur choix pour votre santé.",
+                            ary: 'ماكلة ما محولاش ولا محولة شوية. أحسن حاجة لصحتك.' },
+  'health.nova.2.title':  { fr: 'NOVA 2 — Ingrédient culinaire',                    ary: 'NOVA 2 — مكون ديال الطبخ' },
+  'health.nova.2.desc':   { fr: 'Ingrédient culinaire transformé (huile, beurre, sucre...). Utilisé en cuisine pour préparer des plats.',
+                            ary: 'مكون محول (زيت، زبدة، سكر...). كيتستعمل فالطبخ باش تحضر الماكلة.' },
+  'health.nova.3.title':  { fr: 'NOVA 3 — Transformé',                              ary: 'NOVA 3 — محوّل' },
+  'health.nova.3.desc':   { fr: 'Aliment transformé (conserves, fromages, pain...). Produit modifié par des procédés industriels simples.',
+                            ary: 'ماكلة محولة (كونصيرفة، فروماج، خبز...). محولة بطريقة صناعية بسيطة.' },
+  'health.nova.4.title':  { fr: 'NOVA 4 — Ultra-transformé',                        ary: 'NOVA 4 — محوّل بزاف' },
+  'health.nova.4.desc':   { fr: "Produit ultra-transformé. Contient des additifs, arômes ou ingrédients qu'on ne trouve pas dans une cuisine domestique. La consommation régulière est associée à des risques pour la santé.",
+                            ary: 'منتوج محوّل بزاف. فيه إضافات ونكهات ما كتلقاهمش فالطبخ ديال الدار. الاستهلاك المنتظم كيأثر على الصحة.' },
+
+  // Sucres
+  'health.sugars.high':      { fr: 'Sucres élevés',                                 ary: 'سكر عالي' },
+  'health.sugars.high.desc': { fr: "Ce produit contient une quantité élevée de sucres (> 22,5 g/100g). L'OMS recommande de limiter les sucres ajoutés à moins de 25 g par jour.",
+                               ary: 'هاد المنتوج فيه بزاف ديال السكر (< 22.5 غ/100غ). المنظمة العالمية للصحة كتوصي ما تفوتش 25 غ فالنهار.' },
+  'health.sugars.mod':       { fr: 'Sucres modérés',                                 ary: 'سكر متوسط' },
+  'health.sugars.mod.desc':  { fr: 'Ce produit contient une quantité modérée de sucres. Vérifiez les portions consommées.',
+                               ary: 'هاد المنتوج فيه كمية متوسطة ديال السكر. رد بالك للكمية اللي كتاكل.' },
+  'health.sugars.low':       { fr: 'Faible en sucres',                               ary: 'قليل السكر' },
+  'health.sugars.low.desc':  { fr: 'Ce produit est faible en sucres (≤ 5 g/100g). Bon point !',
+                               ary: 'هاد المنتوج فيه شوية ديال السكر (≤ 5 غ/100غ). نقطة مزيانة!' },
+
+  // Graisses saturées
+  'health.fat.high':         { fr: 'Graisses saturées élevées',                      ary: 'دهون مشبعة عالية' },
+  'health.fat.high.desc':    { fr: "Riche en acides gras saturés (> 5 g/100g). Les AGS en excès augmentent le risque cardiovasculaire. Privilégiez les produits à base d'huile d'olive ou de colza.",
+                               ary: 'فيه بزاف ديال الدهون المشبعة (< 5 غ/100غ). كثرتها كتزيد خطر أمراض القلب. استعمل زيت الزيتون أحسن.' },
+  'health.fat.mod':          { fr: 'Graisses saturées modérées',                     ary: 'دهون مشبعة متوسطة' },
+  'health.fat.mod.desc':     { fr: 'Teneur modérée en acides gras saturés.',
+                               ary: 'كمية متوسطة ديال الدهون المشبعة.' },
+
+  // Sel
+  'health.salt.high':        { fr: 'Sel élevé',                                      ary: 'ملح عالي' },
+  'health.salt.high.desc':   { fr: "L'excès de sel favorise l'hypertension. L'OMS recommande max 5 g/jour.",
+                               ary: 'بزاف ديال الملح كيسبب ضغط الدم. المنظمة العالمية للصحة كتوصي ما تفوتش 5 غ فالنهار.' },
+  'health.salt.mod':         { fr: 'Sel modéré',                                     ary: 'ملح متوسط' },
+  'health.salt.mod.desc':    { fr: 'Teneur modérée en sel. Surveillez votre apport total journalier.',
+                               ary: 'كمية متوسطة ديال الملح. رد بالك للكمية الكلية فالنهار.' },
+
+  // Fibres
+  'health.fiber.high':       { fr: 'Riche en fibres',                                ary: 'غني بالألياف' },
+  'health.fiber.high.desc':  { fr: 'Excellente source de fibres (≥ 6 g/100g). Les fibres favorisent la digestion et la satiété.',
+                               ary: 'مصدر ممتاز ديال الألياف (≥ 6 غ/100غ). الألياف كتساعد الهضم وكتخليك شبعان.' },
+  'health.fiber.mod':        { fr: 'Source de fibres',                               ary: 'مصدر ديال الألياف' },
+  'health.fiber.mod.desc':   { fr: 'Bonne source de fibres (≥ 3 g/100g).',
+                               ary: 'مصدر مزيان ديال الألياف (≥ 3 غ/100غ).' },
+
+  // Protéines
+  'health.protein.high':     { fr: 'Riche en protéines',                             ary: 'غني بالبروتينات' },
+  'health.protein.high.desc':{ fr: 'Excellente source de protéines. Les protéines contribuent au maintien de la masse musculaire.',
+                               ary: 'مصدر ممتاز ديال البروتينات. كتساعد فالحفاظ على العضلات.' },
+
+  // Énergie
+  'health.energy.high':      { fr: 'Très calorique',                                 ary: 'سعرات حرارية عالية' },
+  'health.energy.high.desc': { fr: 'Produit très riche en calories. Attention aux portions.',
+                               ary: 'منتوج فيه بزاف ديال السعرات الحرارية. رد بالك للكمية.' },
+
+  // Additifs
+  'health.add.many':         { fr: 'additifs détectés',                              ary: 'إضافات تلقاو' },
+  'health.add.many.desc':    { fr: "Ce produit contient un nombre élevé d'additifs. Certains additifs peuvent avoir des effets indésirables en cas de consommation régulière.",
+                               ary: 'هاد المنتوج فيه بزاف ديال الإضافات. شي إضافات ممكن يكون عندها تأثير سلبي إلا تاكلتي بزاف.' },
+  'health.add.some':         { fr: 'additifs détectés',                              ary: 'إضافات تلقاو' },
+  'health.add.some.desc':    { fr: "Présence de plusieurs additifs. Consultez la liste pour vérifier s'ils sont à éviter.",
+                               ary: 'كاينين شي إضافات. شوف اللائحة باش تعرف واش خاص تجنبهم.' },
+  'health.add.few':          { fr: 'additif(s) détecté(s)',                           ary: 'إضافة/إضافات تلقاو' },
+  'health.add.few.desc':     { fr: "Peu d'additifs dans ce produit.",
+                               ary: 'هاد المنتوج فيه شوية ديال الإضافات.' },
+
+  // ── Ingrédients (section) ──────────────────────────────────
+  'ing.title':            { fr: 'Ingrédients',                                      ary: 'المكونات' },
+  'ing.traces':           { fr: 'Peut contenir des traces de :',                     ary: 'ممكن يكون فيه آثار ديال :' },
+
+  // ── Liens rapides accueil ───────────────────────────────────
+  'home.import':        { fr: 'Importer (OFF)',                                    ary: 'استوراد (OFF)' },
+  'home.ranking':       { fr: 'Classement',                                        ary: 'الترتيب' },
+
+  // ── Footer ────────────────────────────────────────────────
+  'footer.navigation':    { fr: 'Navigation',                                       ary: 'التنقل' },
+  'footer.participate':   { fr: 'Participer',                                       ary: 'شارك' },
+  'footer.info':          { fr: 'Informations',                                     ary: 'معلومات' },
+  'footer.initiative':    { fr: 'Une initiative citoyenne de',                       ary: 'مبادرة مواطنة ديال' },
+  'footer.dataFrom':      { fr: 'Données alimentaires issues de',                   ary: 'المعلومات الغذائية من' },
 } as const
 
 /** Clé de traduction valide */

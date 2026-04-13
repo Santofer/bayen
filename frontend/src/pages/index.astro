@@ -56,47 +56,88 @@ try {
   <main class="pb-24">
 
     <!-- Héro -->
-    <section class="relative overflow-hidden bg-gradient-to-b from-primary/5 to-background">
-      <div class="container mx-auto max-w-screen-lg px-4 py-16 sm:py-24 text-center">
-        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
-          {t('home.hero1', locale)}<br />
-          <span class="text-primary">{t('home.hero2', locale)}</span>
-        </h1>
-        <p class="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
-          {t('home.subtitle', locale)}
-        </p>
+    <section class="relative overflow-hidden bg-[#476a32] selection:bg-[#b1cf3a] selection:text-black">
+      <!-- Grille décorative -->
+      <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none"></div>
 
-        <!-- CTA -->
-        <div class="flex flex-col sm:flex-row gap-3 justify-center mt-8">
-          <a
-            href="/scan"
-            class="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground text-base font-medium hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 7V5a2 2 0 012-2h2" />
-              <path d="M17 3h2a2 2 0 012 2v2" />
-              <path d="M21 17v2a2 2 0 01-2 2h-2" />
-              <path d="M7 21H5a2 2 0 01-2-2v-2" />
-              <line x1="7" y1="12" x2="17" y2="12" />
-            </svg>
-            {t('home.scanBtn', locale)}
-          </a>
-          <a
-            href="/recherche"
-            class="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full border text-base font-medium hover:bg-accent transition-colors"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            {t('home.searchBtn', locale)}
-          </a>
+      <div class="relative z-10 container mx-auto max-w-screen-lg px-4 pt-16 pb-20 sm:pt-24 sm:pb-28">
+        <div class="flex flex-col items-center text-center relative">
+
+          <!-- Feuille logo en arrière-plan -->
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07]">
+            <img src="/logo-leaf.svg" alt="" class="w-[500px] h-[500px] sm:w-[600px] sm:h-[600px] text-white" style="filter: brightness(0) invert(1);" />
+          </div>
+
+          <!-- Texte massif -->
+          <div class="relative z-10 space-y-2 sm:space-y-3">
+            <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-[#f0f2d2] uppercase leading-[0.9]"
+                style="font-family: system-ui, -apple-system, sans-serif;">
+              {t('home.hero1', locale)}
+            </h1>
+            <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-[#b1cf3a] uppercase leading-[0.9]"
+                style="font-family: system-ui, -apple-system, sans-serif;">
+              {t('home.hero2', locale)}
+            </h1>
+          </div>
+
+          <!-- Sous-titre -->
+          <p class="relative z-10 mt-6 sm:mt-8 text-base sm:text-lg text-[#f0f2d2]/80 max-w-xl mx-auto leading-relaxed">
+            {t('home.subtitle', locale)}
+          </p>
+
+          <!-- CTA -->
+          <div class="relative z-10 flex flex-col sm:flex-row gap-3 justify-center mt-8">
+            <a
+              href="/scan"
+              class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-[#b1cf3a] text-[#2a3f1e] text-base font-bold hover:bg-[#c4de5a] shadow-lg hover:shadow-xl transition-all"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 012-2h2" />
+                <path d="M17 3h2a2 2 0 012 2v2" />
+                <path d="M21 17v2a2 2 0 01-2 2h-2" />
+                <path d="M7 21H5a2 2 0 01-2-2v-2" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+              </svg>
+              {t('home.scanBtn', locale)}
+            </a>
+            <a
+              href="/recherche"
+              class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border-2 border-[#f0f2d2]/30 text-[#f0f2d2] text-base font-semibold hover:bg-[#f0f2d2]/10 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              {t('home.searchBtn', locale)}
+            </a>
+          </div>
+
+          <!-- Badge circulaire -->
+          <div class="absolute -bottom-6 -right-2 sm:right-8 z-20 w-28 h-28 sm:w-36 sm:h-36 bg-[#b1cf3a] rounded-full flex items-center justify-center shadow-xl rotate-12 border-[3px] border-[#476a32]/10">
+            <div class="absolute inset-0 animate-[spin_10s_linear_infinite]">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <path id="heroCirclePath" d="M 50, 50 m -42, 0 a 42,42 0 1,1 84,0 a 42,42 0 1,1 -84,0" fill="none" />
+                <text class="font-black uppercase" style="font-size: 13px; letter-spacing: 0.18em;" fill="#2a3f1e">
+                  <textPath href="#heroCirclePath" startOffset="0%">
+                    100% GRATUIT • OPEN SOURCE •
+                  </textPath>
+                </text>
+              </svg>
+            </div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <img src="/logo-leaf.svg" alt="" class="w-10 h-10 sm:w-12 sm:h-12" style="filter: brightness(0) saturate(100%) invert(15%) sepia(20%) saturate(800%) hue-rotate(65deg);" />
+            </div>
+          </div>
+
         </div>
       </div>
+
+      <!-- Transition arrondie vers le contenu -->
+      <div class="absolute bottom-0 left-0 right-0 h-8 bg-background rounded-t-[2rem]"></div>
     </section>
 
     <!-- Stats -->
-    <section class="container mx-auto max-w-screen-lg px-4 -mt-4">
+    <section class="container mx-auto max-w-screen-lg px-4 py-2">
       <div class="grid grid-cols-3 gap-3 sm:gap-6">
         <div class="rounded-xl border bg-card p-4 text-center">
           <p class="text-2xl sm:text-3xl font-bold text-primary">
@@ -206,11 +247,11 @@ try {
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          <span class="text-xs font-medium">Importer (OFF)</span>
+          <span class="text-xs font-medium">{t('home.import', locale)}</span>
         </a>
         <a href="/classement" class="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 hover:shadow-md transition-shadow text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-          <span class="text-xs font-medium">Classement</span>
+          <span class="text-xs font-medium">{t('home.ranking', locale)}</span>
         </a>
         <a href="/categories" class="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 hover:shadow-md transition-shadow text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
@@ -219,14 +260,14 @@ try {
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
           </svg>
-          <span class="text-xs font-medium">Catégories</span>
+          <span class="text-xs font-medium">{t('search.categories', locale)}</span>
         </a>
         <a href="/additifs" class="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 hover:shadow-md transition-shadow text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
             <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
             <path d="M8.5 2h7" />
           </svg>
-          <span class="text-xs font-medium">Additifs</span>
+          <span class="text-xs font-medium">{t('nav.additives', locale)}</span>
         </a>
       </div>
     </section>

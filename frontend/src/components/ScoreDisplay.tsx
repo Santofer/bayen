@@ -9,8 +9,8 @@
  * - Badge "Non vérifié" si confidence_score < 0.8
  *
  * Couleurs :
- *   75–100 : #16a34a (excellent)
- *   50–74  : #84cc16 (bon)
+ *   75–100 : #476a32 (excellent)
+ *   50–74  : #b1cf3a (bon)
  *   25–49  : #f97316 (médiocre)
  *   0–24   : #ef4444 (mauvais)
  *
@@ -40,8 +40,8 @@ interface ScoreDisplayProps {
 // ────────────────────────────────────────────────────────────────
 
 const SCORE_COLORS: Record<string, string> = {
-  excellent: '#16a34a',
-  bon: '#84cc16',
+  excellent: '#476a32',
+  bon: '#b1cf3a',
   'médiocre': '#f97316',
   mauvais: '#ef4444',
 }
@@ -70,8 +70,8 @@ const NOVA_LABELS: Record<NovaGroup, string> = {
 }
 
 const NOVA_COLORS: Record<NovaGroup, string> = {
-  1: '#16a34a',
-  2: '#84cc16',
+  1: '#476a32',
+  2: '#b1cf3a',
   3: '#f97316',
   4: '#ef4444',
 }
@@ -302,7 +302,7 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
             <span
               className={cn(
                 'w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold text-white',
-                item.positive ? 'bg-green-500' : 'bg-red-500'
+                item.positive ? 'bg-[#476a32]' : 'bg-red-500'
               )}
             >
               {item.positive ? '+' : '−'}
@@ -315,7 +315,7 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${(item.points / item.max) * 100}%`,
-                  backgroundColor: item.positive ? '#16a34a' : '#ef4444',
+                  backgroundColor: item.positive ? '#476a32' : '#ef4444',
                 }}
               />
             </div>
