@@ -266,8 +266,8 @@ const currentPath = Astro.url.pathname
         function applyNavColors() {
           var isDark = document.documentElement.classList.contains('dark');
           var bg = isDark ? '#1c3014' : '#f0f2d2';
-          var fg = isDark ? '#f0f2d2' : '#476a32';
-          var bc = isDark ? 'rgba(240,242,210,0.1)' : 'rgba(71,106,50,0.1)';
+          var fg = isDark ? '#b1cf3a' : '#476a32';
+          var bc = isDark ? 'rgba(177,207,58,0.15)' : 'rgba(71,106,50,0.1)';
           var navs = document.querySelectorAll('[data-bayen-nav]');
           for (var i = 0; i < navs.length; i++) {
             navs[i].style.backgroundColor = bg;
@@ -282,11 +282,11 @@ const currentPath = Astro.url.pathname
           for (var j = 0; j < logos.length; j++) {
             logos[j].style.filter = logoFilter;
           }
-          // Bouton scan mobile : bg et text inversés
+          // Bouton scan mobile : lime sur vert foncé en dark, vert foncé sur crème en light
           var scanBtns = document.querySelectorAll('[data-bayen-scan-btn]');
           for (var k = 0; k < scanBtns.length; k++) {
-            scanBtns[k].style.backgroundColor = fg;
-            scanBtns[k].style.color = bg;
+            scanBtns[k].style.backgroundColor = isDark ? '#b1cf3a' : '#476a32';
+            scanBtns[k].style.color = isDark ? '#1c3014' : '#f0f2d2';
           }
         }
         // Appliquer au chargement
