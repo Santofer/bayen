@@ -79,4 +79,13 @@
     font-family: 'Mouse Memoirs', 'Nunito', system-ui, sans-serif !important;
     letter-spacing: 0.02em;
   }
+
+  /* Titres de section un peu plus grands (hors hero) */
+  h2 { font-size: 1.55rem; }
+  h3 { font-size: 1.2rem; }
+
+  @media (min-width: 640px) {
+    h2 { font-size: 1.75rem; }
+    h3 { font-size: 1.35rem; }
+  }
 }
