@@ -19,8 +19,8 @@
   --color-accent-foreground: hsl(97.5 35.9% 30.6%);
   --color-destructive: hsl(0 84.2% 60.2%);
   --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(97 20% 78%);
-  --color-input: hsl(97 20% 78%);
+  --color-border: hsl(63 30% 84%);
+  --color-input: hsl(63 30% 84%);
   --color-ring: hsl(97.5 35.9% 30.6%);
 
   /* Couleurs Bayen scoring */

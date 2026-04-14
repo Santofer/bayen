@@ -154,7 +154,7 @@ const currentPath = Astro.url.pathname
             <!-- Marque -->
             <div class="col-span-2 sm:col-span-1">
               <a href="/" class="flex items-center mb-3">
-                <img src="/logo-bayn.svg" alt="Bayen" class="h-7 w-auto" style="filter: brightness(0) invert(1);" />
+                <img src="/logo-bayn.svg" alt="Bayen" class="h-7 w-auto" data-bayen-footer-logo style="filter: brightness(0) invert(1);" />
               </a>
               <p class="text-sm opacity-70">
                 {t('home.hero1', locale)}<br />{t('home.hero2', locale)}
@@ -287,6 +287,14 @@ const currentPath = Astro.url.pathname
           for (var k = 0; k < scanBtns.length; k++) {
             scanBtns[k].style.backgroundColor = isDark ? '#b1cf3a' : '#476a32';
             scanBtns[k].style.color = isDark ? '#1c3014' : '#f0f2d2';
+          }
+          // Footer logo : crème en light (sur fond vert), lime en dark
+          var footerLogos = document.querySelectorAll('[data-bayen-footer-logo]');
+          var footerFilter = isDark
+            ? 'brightness(0) saturate(100%) invert(81%) sepia(45%) saturate(500%) hue-rotate(30deg) brightness(105%) contrast(90%)'
+            : 'brightness(0) invert(1) sepia(20%) saturate(200%) hue-rotate(20deg)';
+          for (var fl = 0; fl < footerLogos.length; fl++) {
+            footerLogos[fl].style.filter = footerFilter;
           }
         }
         // Appliquer au chargement
