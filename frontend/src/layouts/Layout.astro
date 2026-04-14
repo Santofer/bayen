@@ -148,7 +148,7 @@ const currentPath = Astro.url.pathname
     <slot />
 
     {!hideNav && (
-      <footer class="border-t mt-12 pb-20 md:pb-0 bg-[#476a32] text-[#f0f2d2] dark:bg-muted/30 dark:text-inherit">
+      <footer class="border-t mt-12 pb-20 md:pb-0 bg-[#476a32] text-[#f0f2d2] dark:bg-[hsl(105_30%_10%)] dark:text-[hsl(63_40%_92%)]">
         <div class="container mx-auto max-w-screen-lg px-4 py-10">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-8">
             <!-- Marque -->
@@ -265,7 +265,7 @@ const currentPath = Astro.url.pathname
       (function() {
         function applyNavColors() {
           var isDark = document.documentElement.classList.contains('dark');
-          var bg = isDark ? '#1a2b12' : '#f0f2d2';
+          var bg = isDark ? '#1c3014' : '#f0f2d2';
           var fg = isDark ? '#f0f2d2' : '#476a32';
           var bc = isDark ? 'rgba(240,242,210,0.1)' : 'rgba(71,106,50,0.1)';
           var navs = document.querySelectorAll('[data-bayen-nav]');
