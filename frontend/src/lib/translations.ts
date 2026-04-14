@@ -320,6 +320,54 @@ export const translations = {
   'footer.info':          { fr: 'Informations',                                     ary: 'معلومات' },
   'footer.initiative':    { fr: 'Une initiative citoyenne de',                       ary: 'مبادرة مواطنة ديال' },
   'footer.dataFrom':      { fr: 'Données alimentaires issues de',                   ary: 'المعلومات الغذائية من' },
+
+  // ── Classement ────────────────────────────────────────────
+  'rank.title':           { fr: 'Classement des contributeurs',                      ary: 'ترتيب المساهمين' },
+  'rank.subtitle':        { fr: 'Merci à tous ceux qui enrichissent la base de données Bayen !', ary: 'شكرا لكل واحد كيغني قاعدة بيانات باين!' },
+  'rank.empty':           { fr: 'Aucun contributeur pour le moment.',                ary: 'مازال ما كاين حتا مساهم.' },
+  'rank.beFirst':         { fr: 'Soyez le premier →',                               ary: 'كون الأول →' },
+  'rank.howToEarn':       { fr: 'Comment gagner des points ?',                       ary: 'كيفاش تربح النقط؟' },
+  'rank.levels':          { fr: 'Niveaux',                                           ary: 'المستويات' },
+  'rank.addProduct':      { fr: 'Ajouter un produit complet',                        ary: 'زيد منتوج كامل' },
+  'rank.addPhotos':       { fr: 'Ajouter des photos manquantes',                     ary: 'زيد تصاور ناقصة' },
+  'rank.correctData':     { fr: 'Corriger des données',                              ary: 'صحح المعلومات' },
+  'rank.scanProduct':     { fr: 'Scanner un produit',                                ary: 'سكاني منتوج' },
+  'rank.confirmedX3':     { fr: 'Contribution confirmée ×3',                         ary: 'مساهمة مأكدة ×3' },
+  'rank.nouveau':         { fr: 'Nouveau',                                           ary: 'جديد' },
+  'rank.contributeur':    { fr: 'Contributeur',                                      ary: 'مساهم' },
+  'rank.expert':          { fr: 'Expert',                                            ary: 'خبير' },
+  'rank.verified':        { fr: 'Vérifié',                                           ary: 'مأكد' },
+  'rank.contribution':    { fr: 'contribution',                                      ary: 'مساهمة' },
+  'rank.contributions':   { fr: 'contributions',                                     ary: 'مساهمات' },
+  'rank.anonymous':       { fr: 'Anonyme',                                           ary: 'مجهول' },
+  'rank.pts':             { fr: 'pts',                                               ary: 'نقط' },
+
+  // ── Connexion ─────────────────────────────────────────────
+  'login.welcome':        { fr: 'Bienvenue sur Bayen',                               ary: 'مرحبا فباين' },
+  'login.subtitle':       { fr: 'Connectez-vous pour contribuer et suivre vos scans', ary: 'دخل باش تساهم وتتبع السكانات ديالك' },
+
+  // ── Additif (fiche) ───────────────────────────────────────
+  'additive.back':             { fr: 'Tous les additifs',                             ary: 'كل الإضافات' },
+  'additive.notFound':         { fr: 'Additif non trouvé',                            ary: 'الإضافة ما لقيناهاش' },
+  'additive.notFoundDesc':     { fr: "Cet additif n'existe pas dans notre base.",     ary: 'هاد الإضافة ما كايناش عندنا.' },
+  'additive.description':      { fr: 'Description',                                   ary: 'الوصف' },
+  'additive.sources':          { fr: 'Sources',                                       ary: 'المصادر' },
+  'additive.scoreImpact':      { fr: 'Impact sur le score Bayen',                     ary: 'التأثير على نتيجة باين' },
+  'additive.risk.safe':        { fr: 'Sûr',                                           ary: 'آمن' },
+  'additive.risk.limited':     { fr: 'Limité',                                        ary: 'محدود' },
+  'additive.risk.avoid':       { fr: 'À éviter',                                      ary: 'حسن تجنبو' },
+  'additive.risk.banned':      { fr: 'Interdit au Maroc',                              ary: 'ممنوع فالمغرب' },
+  'additive.riskDesc.safe':    { fr: "Considéré comme sûr aux doses alimentaires normales (EFSA / Codex).", ary: 'آمن بالكميات العادية حسب EFSA والكوديكس.' },
+  'additive.riskDesc.limited': { fr: "DJA limitée. Consommation occasionnelle sans risque, mais l'excès est déconseillé.", ary: 'جرعة يومية محدودة. من حين لآخر ما فيه باس، لكن الإفراط ما مستحسنش.' },
+  'additive.riskDesc.avoid':   { fr: "Controversé et associé à des risques. Limiter la consommation, surtout pour les enfants.", ary: 'فيه جدل وممكن يضر. نقص منو، خصوصا عند الدراري.' },
+  'additive.riskDesc.banned':  { fr: "Interdit au Maroc et/ou dans l'UE en raison de risques sanitaires avérés.", ary: 'ممنوع فالمغرب و/أو الاتحاد الأوروبي بسبب مخاطر صحية.' },
+  'additive.impactNone':       { fr: "Aucune déduction — n'impacte pas le score.",     ary: 'حتا خصم — ما كيأثرش على النتيجة.' },
+  'additive.impactLimited':    { fr: 'Déduction de 2 points sur la composante Additifs (20 pts max).', ary: 'خصم 2 نقط من الإضافات (20 نقطة كحد أقصى).' },
+  'additive.impactAvoid':      { fr: 'Déduction de 5 points sur la composante Additifs (20 pts max).', ary: 'خصم 5 نقط من الإضافات (20 نقطة كحد أقصى).' },
+  'additive.impactBanned':     { fr: 'Déduction de 10 points sur la composante Additifs (20 pts max).', ary: 'خصم 10 نقط من الإضافات (20 نقطة كحد أقصى).' },
+
+  // ── Badge héro ────────────────────────────────────────────
+  'home.badge':           { fr: '100% GRATUIT \u2022 OPEN SOURCE \u2022',             ary: '100% مجاني \u2022 مفتوح المصدر \u2022' },
 } as const
 
 /** Clé de traduction valide */

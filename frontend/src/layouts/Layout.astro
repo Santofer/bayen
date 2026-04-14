@@ -68,7 +68,7 @@ const currentPath = Astro.url.pathname
   </head>
   <body class="min-h-screen bg-background font-sans antialiased overflow-x-hidden">
     {!hideNav && (
-      <header class="sticky top-0 z-50 w-full border-b backdrop-blur bayen-navbar">
+      <header class="sticky top-0 z-50 w-full border-b" data-bayen-nav>
         <div class="container flex h-14 items-center px-4 mx-auto max-w-screen-lg">
           <!-- Logo -->
           <a href="/" class="flex items-center me-6 text-primary">
@@ -177,7 +177,7 @@ const currentPath = Astro.url.pathname
               <h3 class="font-semibold text-sm text-foreground mb-3">{t('footer.participate', locale)}</h3>
               <ul class="space-y-2 text-sm text-muted-foreground">
                 <li><a href="/contribuer" class="hover:text-foreground transition-colors">{t('nav.contribute', locale)}</a></li>
-                <li><a href="/importer" class="hover:text-foreground transition-colors">Importer (OFF)</a></li>
+                <li><a href="/importer" class="hover:text-foreground transition-colors">{t('home.import', locale)}</a></li>
                 <li><a href="/classement" class="hover:text-foreground transition-colors">{t('account.rank', locale)}</a></li>
                 <li><a href="/compte" class="hover:text-foreground transition-colors">{t('account.title', locale)}</a></li>
               </ul>
@@ -214,7 +214,7 @@ const currentPath = Astro.url.pathname
 
     {!hideNav && (
       <!-- Navigation mobile bottom -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-pb">
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t safe-area-pb" data-bayen-nav>
         <div class="flex items-center justify-around h-16 px-2">
           <a href="/" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/' ? 'text-primary' : 'text-muted-foreground']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -260,6 +260,37 @@ const currentPath = Astro.url.pathname
       </nav>
     )}
 
+    <!-- Appliquer les couleurs navbar (inline pour éviter le tree-shaking Tailwind v4) -->
+    <script is:inline>
+      (function() {
+        function applyNavColors() {
+          var isDark = document.documentElement.classList.contains('dark');
+          var bg = isDark ? '#1a2b12' : '#f0f2d2';
+          var fg = isDark ? '#f0f2d2' : '#476a32';
+          var bc = isDark ? 'rgba(240,242,210,0.1)' : 'rgba(71,106,50,0.1)';
+          var navs = document.querySelectorAll('[data-bayen-nav]');
+          for (var i = 0; i < navs.length; i++) {
+            navs[i].style.backgroundColor = bg;
+            navs[i].style.color = fg;
+            navs[i].style.borderColor = bc;
+          }
+        }
+        // Appliquer au chargement
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', applyNavColors);
+        } else {
+          applyNavColors();
+        }
+        // Observer les changements de thème (classe .dark sur <html>)
+        var observer = new MutationObserver(function(mutations) {
+          for (var m of mutations) {
+            if (m.attributeName === 'class') applyNavColors();
+          }
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      })();
+    </script>
+
     <!-- PWA : install prompt + service worker -->
     <InstallPrompt client:idle />
     <script is:inline>
@@ -279,18 +310,6 @@ const currentPath = Astro.url.pathname
       /* Safe area pour la barre de navigation mobile */
       .safe-area-pb {
         padding-bottom: env(safe-area-inset-bottom, 0px);
-      }
-      /* Navbar Bayen */
-      .bayen-navbar {
-        background-color: #f0f2d2;
-        color: #476a32;
-        border-color: rgba(71, 106, 50, 0.1);
-      }
-      :where(.dark, .dark *) .bayen-navbar,
-      .dark .bayen-navbar {
-        background-color: #1a2b12;
-        color: #f0f2d2;
-        border-color: rgba(240, 242, 210, 0.1);
       }
     </style>
   </body>

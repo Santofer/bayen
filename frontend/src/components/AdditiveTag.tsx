@@ -31,14 +31,6 @@ const RISK_LABEL_KEYS: Record<RiskLevel, TranslationKey> = {
   banned_ma: 'additives.banned',
 }
 
-// Labels statiques FR pour usage externe sans hook (ex: AdditivesList)
-const RISK_LABELS: Record<RiskLevel, string> = {
-  safe: 'Sûr',
-  limited: 'Limité',
-  avoid: 'À éviter',
-  banned_ma: 'Interdit MA',
-}
-
 const RISK_ICONS: Record<RiskLevel, string> = {
   safe: '✓',
   limited: '⚠',
@@ -69,4 +61,4 @@ export default function AdditiveTag({
   )
 }
 
-export { RISK_LABELS, RISK_VARIANTS, RISK_ICONS, RISK_LABEL_KEYS }
+export { RISK_VARIANTS, RISK_ICONS, RISK_LABEL_KEYS }
