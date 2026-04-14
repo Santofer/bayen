@@ -18,7 +18,7 @@ import type {
 // Configuration
 // ────────────────────────────────────────────────────────────────
 
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 /**
  * URL proxy pour les appels client-side — évite les CORS

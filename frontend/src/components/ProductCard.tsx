@@ -18,7 +18,7 @@ const SCORE_COLORS: Record<ScoreLabel, string> = {
   mauvais: '#ef4444',
 }
 
-const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api-bayen.n0.ma/assets'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
 export default function ProductCard({ product, className }: ProductCardProps) {
   const scoreColor = product.score_label

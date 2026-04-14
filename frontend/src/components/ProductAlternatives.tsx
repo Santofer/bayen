@@ -44,7 +44,7 @@ function scoreBg(score: number | null): string {
 
 const CDN_URL = (typeof window !== 'undefined'
   ? (document.querySelector('meta[name="cdn-url"]')?.getAttribute('content') ?? '')
-  : '') || 'https://api-bayen.n0.ma/assets'
+  : '') || 'https://api.bayen.ma/assets'
 
 export default function ProductAlternatives({ alternatives, isBestInCategory, className }: ProductAlternativesProps) {
   const { t, isRtl: rtl } = useLocale()

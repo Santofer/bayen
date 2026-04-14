@@ -11,7 +11,7 @@ export default defineConfig({
     platformProxy: { enabled: true },
   }),
   output: 'static',
-  site: 'https://bayen.n0.ma',
+  site: 'https://bayen.ma',
 
   build: {
     assets: '_astro',

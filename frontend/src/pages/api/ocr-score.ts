@@ -1,6 +1,6 @@
 /**
  * Proxy endpoint pour le pipeline OCR complet
- * POST /api/ocr-score → proxy vers ocr.bayen.n0.ma/pipeline (Tesseract + Mistral)
+ * POST /api/ocr-score → proxy vers ocr.bayen.ma/pipeline (Tesseract + Mistral)
  *
  * Reçoit : multipart/form-data avec image_nutrition (requis), barcode
  * Retourne : JSON avec données nutritionnelles parsées ou erreur
@@ -9,7 +9,7 @@ import type { APIContext } from 'astro'
 
 export const prerender = false
 
-const OCR_URL = import.meta.env.OCR_PIPELINE_URL ?? 'https://ocr.bayen.n0.ma'
+const OCR_URL = import.meta.env.OCR_PIPELINE_URL ?? 'https://ocr.bayen.ma'
 
 export async function POST(context: APIContext): Promise<Response> {
   try {

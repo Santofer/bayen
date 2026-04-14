@@ -6,8 +6,8 @@ export const prerender = false
 
 import type { APIRoute } from 'astro'
 
-const SITE_URL = 'https://bayen.n0.ma'
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+const SITE_URL = 'https://bayen.ma'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 export const GET: APIRoute = async () => {
   // Pages statiques

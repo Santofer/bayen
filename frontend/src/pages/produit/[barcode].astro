@@ -20,8 +20,8 @@ const locale = getLocale(localeCookie)
 
 const { barcode } = Astro.params
 
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
-const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api-bayen.n0.ma/assets'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
 let scanResult: {
   found: boolean

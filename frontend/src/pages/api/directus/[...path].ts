@@ -9,7 +9,7 @@ import type { APIContext } from 'astro'
 export const prerender = false
 
 async function handleRequest(context: APIContext): Promise<Response> {
-  const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+  const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
   const path = context.params.path ?? ''
   const url = new URL(context.request.url)
   const targetUrl = `${DIRECTUS_URL}/${path}${url.search}`

@@ -23,7 +23,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
   const [copied, setCopied] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const shareUrl = `https://bayen.n0.ma/produit/${barcode}`
+  const shareUrl = `https://bayen.ma/produit/${barcode}`
   const scoreText = score != null ? ` ${score}/100` : ''
   const shareText = `${t('share.text')} — ${productName} (${brand})${scoreText}`
 

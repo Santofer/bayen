@@ -29,7 +29,7 @@ const {
   noindex = false,
 } = Astro.props
 
-const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://bayen.n0.ma'
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://bayen.ma'
 const canonicalUrl = path ? `${siteUrl}${path}` : siteUrl
 const ogImageUrl = ogImage ?? `${siteUrl}/og-default.png`
 ---

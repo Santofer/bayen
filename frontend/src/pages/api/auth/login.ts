@@ -7,7 +7,7 @@ import type { APIContext } from 'astro'
 export const prerender = false
 
 export async function POST(context: APIContext): Promise<Response> {
-  const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api-bayen.n0.ma'
+  const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
   try {
     const body = await context.request.text()
