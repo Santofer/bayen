@@ -5,18 +5,18 @@
 @theme {
   --color-background: hsl(63 45% 92%);
   --color-foreground: hsl(0 0% 3.9%);
-  --color-card: hsl(63 30% 96%);
+  --color-card: hsl(63 45% 92%);
   --color-card-foreground: hsl(0 0% 3.9%);
-  --color-popover: hsl(63 30% 96%);
+  --color-popover: hsl(63 45% 92%);
   --color-popover-foreground: hsl(0 0% 3.9%);
   --color-primary: hsl(97.5 35.9% 30.6%);
   --color-primary-foreground: hsl(63.8 55.2% 88.6%);
-  --color-secondary: hsl(0 0% 96.1%);
+  --color-secondary: hsl(63 35% 90%);
   --color-secondary-foreground: hsl(0 0% 9%);
-  --color-muted: hsl(0 0% 96.1%);
+  --color-muted: hsl(63 35% 90%);
   --color-muted-foreground: hsl(0 0% 45.1%);
-  --color-accent: hsl(0 0% 96.1%);
-  --color-accent-foreground: hsl(0 0% 9%);
+  --color-accent: hsl(63 35% 87%);
+  --color-accent-foreground: hsl(97.5 35.9% 30.6%);
   --color-destructive: hsl(0 84.2% 60.2%);
   --color-destructive-foreground: hsl(0 0% 98%);
   --color-border: hsl(0 0% 89.8%);
