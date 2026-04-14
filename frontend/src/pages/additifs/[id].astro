@@ -114,7 +114,7 @@ const pageTitle = additive
 
         <!-- Niveau de risque -->
         <div class={`rounded-xl border p-5 ${RISK_BG[riskLevel]}`}>
-          <h3 class="text-sm font-semibold mb-2" style={`color: ${RISK_COLORS[riskLevel]}`}>
+          <h3 class="font-semibold mb-2" style={`color: ${RISK_COLORS[riskLevel]}`}>
             {t(RISK_LABEL_KEYS[riskLevel] as any, locale)}
           </h3>
           <p class="text-sm text-foreground/80">
@@ -125,7 +125,7 @@ const pageTitle = additive
         <!-- Description -->
         {additive.description_fr && (
           <div class="rounded-xl border bg-card p-5">
-            <h3 class="text-sm font-semibold text-foreground mb-2">{t('additive.description', locale)}</h3>
+            <h3 class="font-semibold text-foreground mb-2">{t('additive.description', locale)}</h3>
             <p class="text-sm text-muted-foreground leading-relaxed">{(locale === 'ary' && additive.description_ar) || additive.description_fr}</p>
           </div>
         )}
@@ -133,7 +133,7 @@ const pageTitle = additive
         <!-- Sources -->
         {additive.sources && (additive.sources as string[]).length > 0 && (
           <div class="rounded-xl border bg-card p-5">
-            <h3 class="text-sm font-semibold text-foreground mb-2">{t('additive.sources', locale)}</h3>
+            <h3 class="font-semibold text-foreground mb-2">{t('additive.sources', locale)}</h3>
             <ul class="space-y-1">
               {(additive.sources as string[]).map((source: string) => (
                 <li class="text-xs text-muted-foreground flex items-center gap-2">

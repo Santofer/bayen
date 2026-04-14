@@ -80,7 +80,7 @@ export const translations = {
   'home.step2Desc':    { fr: 'Score 0–100, Nutri-Score, NOVA, additifs détaillés',                                                                             ary: 'نتيجة 0–100، نوتري سكور، NOVA، إضافات مفصلة' },
   'home.step3':        { fr: 'Choisissez',                                                                                                                     ary: 'اختار' },
   'home.step3Desc':    { fr: 'Faites de meilleurs choix pour votre santé',                                                                                     ary: 'اختار حسن لصحتك' },
-  'home.popular':      { fr: 'Produits populaires',                                                                                                            ary: 'المنتجات المشهورة' },
+  'home.popular':      { fr: 'Produits récents',                                                                                                              ary: 'المنتجات الأخيرة' },
   'home.seeAll':       { fr: 'Voir tout',                                                                                                                      ary: 'شوف كلشي' },
   'home.missingTitle': { fr: 'Un produit manque ?',                                                                                                            ary: 'كاين منتوج ناقص؟' },
   'home.missingDesc':  { fr: 'Bayen est construit par la communauté marocaine. Ajoutez les produits que vous trouvez dans vos épiceries et grandes surfaces.',  ary: 'باين مبني بالمجتمع المغربي. زيد المنتجات اللي كتلقى فالحانوت ولا المارشي.' },

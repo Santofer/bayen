@@ -20,7 +20,7 @@ let totalScans = 0
 try {
   // Produits récents (les 6 plus scannés)
   const productsRes = await fetch(
-    `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&sort=-scan_count&limit=6&fields=id,barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count`,
+    `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&sort=-date_created&limit=6&fields=id,barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count`,
     { signal: AbortSignal.timeout(5000) }
   )
   if (productsRes.ok) {
@@ -173,7 +173,7 @@ if (totalProducts < 77) totalProducts = 77
 
     <!-- Comment ça marche -->
     <section class="container mx-auto max-w-screen-lg px-4 py-12">
-      <h2 class="text-xl font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
+      <h2 class="font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
       <div class="grid sm:grid-cols-3 gap-6">
         <div class="text-center">
           <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -220,7 +220,7 @@ if (totalProducts < 77) totalProducts = 77
     {recentProducts.length > 0 && (
       <section class="container mx-auto max-w-screen-lg px-4 pb-12">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-foreground">{t('home.popular', locale)}</h2>
+          <h2 class="font-bold text-foreground">{t('home.popular', locale)}</h2>
           <a href="/recherche" class="text-sm text-primary hover:underline">{t('home.seeAll', locale)}</a>
         </div>
         <div class="grid sm:grid-cols-2 gap-3">
@@ -234,7 +234,7 @@ if (totalProducts < 77) totalProducts = 77
     <!-- CTA Contribution -->
     <section class="container mx-auto max-w-screen-lg px-4 pb-8">
       <div class="rounded-xl bg-card border border-border p-6 sm:p-8 text-center">
-        <h2 class="text-lg font-bold text-foreground">{t('home.missingTitle', locale)}</h2>
+        <h2 class="font-bold text-foreground">{t('home.missingTitle', locale)}</h2>
         <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
           {t('home.missingDesc', locale)}
         </p>

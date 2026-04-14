@@ -93,7 +93,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
     <div className={cn('relative', className)} ref={dropdownRef}>
       <Button
         onClick={handleShare}
-        className="bg-[#25D366] hover:bg-[#20BD5A] text-white gap-2 shadow-md"
+        className="bg-[#476a32] hover:bg-[#3a5829] text-[#f0f2d2] dark:bg-[#b1cf3a] dark:hover:bg-[#9dba2e] dark:text-[#1c3014] gap-2 shadow-md"
         size="sm"
       >
         <Share2 size={16} />
