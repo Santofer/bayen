@@ -3,11 +3,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-background: hsl(0 0% 100%);
+  --color-background: hsl(63 45% 92%);
   --color-foreground: hsl(0 0% 3.9%);
-  --color-card: hsl(0 0% 100%);
+  --color-card: hsl(63 30% 96%);
   --color-card-foreground: hsl(0 0% 3.9%);
-  --color-popover: hsl(0 0% 100%);
+  --color-popover: hsl(63 30% 96%);
   --color-popover-foreground: hsl(0 0% 3.9%);
   --color-primary: hsl(97.5 35.9% 30.6%);
   --color-primary-foreground: hsl(63.8 55.2% 88.6%);

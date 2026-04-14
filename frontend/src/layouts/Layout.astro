@@ -72,7 +72,7 @@ const currentPath = Astro.url.pathname
         <div class="container flex h-14 items-center px-4 mx-auto max-w-screen-lg">
           <!-- Logo -->
           <a href="/" class="flex items-center me-6 text-primary">
-            <img src="/logo-bayn.svg" alt="Bayen" class="h-8 w-auto" style="filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
+            <img src="/logo-bayn.svg" alt="Bayen" class="h-8 w-auto" data-bayen-logo style="filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
           </a>
 
           <!-- Navigation desktop -->
@@ -148,63 +148,63 @@ const currentPath = Astro.url.pathname
     <slot />
 
     {!hideNav && (
-      <footer class="border-t bg-muted/30 mt-12 pb-20 md:pb-0">
+      <footer class="border-t mt-12 pb-20 md:pb-0 bg-[#476a32] text-[#f0f2d2] dark:bg-muted/30 dark:text-inherit">
         <div class="container mx-auto max-w-screen-lg px-4 py-10">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-8">
             <!-- Marque -->
             <div class="col-span-2 sm:col-span-1">
-              <a href="/" class="flex items-center text-primary mb-3">
-                <img src="/logo-bayn.svg" alt="Bayen" class="h-7 w-auto" style="filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
+              <a href="/" class="flex items-center mb-3">
+                <img src="/logo-bayn.svg" alt="Bayen" class="h-7 w-auto" style="filter: brightness(0) invert(1);" />
               </a>
-              <p class="text-sm text-muted-foreground">
+              <p class="text-sm opacity-70">
                 {t('home.hero1', locale)}<br />{t('home.hero2', locale)}
               </p>
             </div>
 
             <!-- Navigation -->
             <div>
-              <h3 class="font-semibold text-sm text-foreground mb-3">{t('footer.navigation', locale)}</h3>
-              <ul class="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/scan" class="hover:text-foreground transition-colors">{t('nav.scan', locale)}</a></li>
-                <li><a href="/recherche" class="hover:text-foreground transition-colors">{t('nav.search', locale)}</a></li>
-                <li><a href="/additifs" class="hover:text-foreground transition-colors">{t('nav.additives', locale)}</a></li>
-                <li><a href="/categories" class="hover:text-foreground transition-colors">{t('search.categories', locale)}</a></li>
+              <h3 class="font-semibold text-sm mb-3">{t('footer.navigation', locale)}</h3>
+              <ul class="space-y-2 text-sm opacity-70">
+                <li><a href="/scan" class="hover:opacity-100 transition-opacity">{t('nav.scan', locale)}</a></li>
+                <li><a href="/recherche" class="hover:opacity-100 transition-opacity">{t('nav.search', locale)}</a></li>
+                <li><a href="/additifs" class="hover:opacity-100 transition-opacity">{t('nav.additives', locale)}</a></li>
+                <li><a href="/categories" class="hover:opacity-100 transition-opacity">{t('search.categories', locale)}</a></li>
               </ul>
             </div>
 
             <!-- Participer -->
             <div>
-              <h3 class="font-semibold text-sm text-foreground mb-3">{t('footer.participate', locale)}</h3>
-              <ul class="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/contribuer" class="hover:text-foreground transition-colors">{t('nav.contribute', locale)}</a></li>
-                <li><a href="/importer" class="hover:text-foreground transition-colors">{t('home.import', locale)}</a></li>
-                <li><a href="/classement" class="hover:text-foreground transition-colors">{t('account.rank', locale)}</a></li>
-                <li><a href="/compte" class="hover:text-foreground transition-colors">{t('account.title', locale)}</a></li>
+              <h3 class="font-semibold text-sm mb-3">{t('footer.participate', locale)}</h3>
+              <ul class="space-y-2 text-sm opacity-70">
+                <li><a href="/contribuer" class="hover:opacity-100 transition-opacity">{t('nav.contribute', locale)}</a></li>
+                <li><a href="/importer" class="hover:opacity-100 transition-opacity">{t('home.import', locale)}</a></li>
+                <li><a href="/classement" class="hover:opacity-100 transition-opacity">{t('account.rank', locale)}</a></li>
+                <li><a href="/compte" class="hover:opacity-100 transition-opacity">{t('account.title', locale)}</a></li>
               </ul>
             </div>
 
             <!-- Infos -->
             <div>
-              <h3 class="font-semibold text-sm text-foreground mb-3">{t('footer.info', locale)}</h3>
-              <ul class="space-y-2 text-sm text-muted-foreground">
-                <li><a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">N0.ma</a></li>
-                <li><a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">Netspace</a></li>
-                <li><a href="mailto:contact@n0.ma" class="hover:text-foreground transition-colors">Contact</a></li>
+              <h3 class="font-semibold text-sm mb-3">{t('footer.info', locale)}</h3>
+              <ul class="space-y-2 text-sm opacity-70">
+                <li><a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="hover:opacity-100 transition-opacity">N0.ma</a></li>
+                <li><a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="hover:opacity-100 transition-opacity">Netspace</a></li>
+                <li><a href="mailto:contact@n0.ma" class="hover:opacity-100 transition-opacity">Contact</a></li>
               </ul>
             </div>
           </div>
 
           <!-- Séparateur + crédits -->
-          <div class="border-t mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div class="border-t border-current/10 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs opacity-60">
             <p>
               {t('footer.initiative', locale)}
-              <a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-primary font-medium">N0</a>
+              <a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="opacity-100 hover:underline font-medium">N0</a>
               &
-              <a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-primary font-medium">Netspace</a>
+              <a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="opacity-100 hover:underline font-medium">Netspace</a>
             </p>
             <p>
               {t('footer.dataFrom', locale)}
-              <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener noreferrer" class="text-foreground hover:text-primary font-medium">Open Food Facts</a>
+              <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener noreferrer" class="opacity-100 hover:underline font-medium">Open Food Facts</a>
               (ODbL)
             </p>
           </div>
@@ -216,14 +216,14 @@ const currentPath = Astro.url.pathname
       <!-- Navigation mobile bottom -->
       <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t safe-area-pb" data-bayen-nav>
         <div class="flex items-center justify-around h-16 px-2">
-          <a href="/" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/' ? 'text-primary' : 'text-muted-foreground']}>
+          <a href="/" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/' ? 'opacity-100 font-medium' : 'opacity-50']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             {t('nav.home', locale)}
           </a>
-          <a href="/recherche" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/recherche' ? 'text-primary' : 'text-muted-foreground']}>
+          <a href="/recherche" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/recherche' ? 'opacity-100 font-medium' : 'opacity-50']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -231,7 +231,7 @@ const currentPath = Astro.url.pathname
             {t('nav.search', locale)}
           </a>
           <a href="/scan" class="flex flex-col items-center gap-1 -mt-5">
-            <div class="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" data-bayen-scan-btn>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 7V5a2 2 0 012-2h2" />
                 <path d="M17 3h2a2 2 0 012 2v2" />
@@ -240,16 +240,16 @@ const currentPath = Astro.url.pathname
                 <line x1="7" y1="12" x2="17" y2="12" />
               </svg>
             </div>
-            <span class="text-xs text-primary font-medium">{t('nav.scan', locale)}</span>
+            <span class="text-xs font-medium">{t('nav.scan', locale)}</span>
           </a>
-          <a href="/additifs" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath.startsWith('/additifs') ? 'text-primary' : 'text-muted-foreground']}>
+          <a href="/additifs" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath.startsWith('/additifs') ? 'opacity-100 font-medium' : 'opacity-50']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
               <path d="M8.5 2h7" />
             </svg>
             {t('nav.additives', locale)}
           </a>
-          <a href="/compte" class:list={['flex flex-col items-center gap-1 text-xs transition-colors', currentPath === '/compte' ? 'text-primary' : 'text-muted-foreground']}>
+          <a href="/compte" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/compte' ? 'opacity-100 font-medium' : 'opacity-50']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
               <circle cx="12" cy="7" r="4" />
@@ -273,6 +273,20 @@ const currentPath = Astro.url.pathname
             navs[i].style.backgroundColor = bg;
             navs[i].style.color = fg;
             navs[i].style.borderColor = bc;
+          }
+          // Logo : vert foncé en light, lime en dark
+          var logos = document.querySelectorAll('[data-bayen-logo]');
+          var logoFilter = isDark
+            ? 'brightness(0) saturate(100%) invert(81%) sepia(45%) saturate(500%) hue-rotate(30deg) brightness(105%) contrast(90%)'
+            : 'brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%)';
+          for (var j = 0; j < logos.length; j++) {
+            logos[j].style.filter = logoFilter;
+          }
+          // Bouton scan mobile : bg et text inversés
+          var scanBtns = document.querySelectorAll('[data-bayen-scan-btn]');
+          for (var k = 0; k < scanBtns.length; k++) {
+            scanBtns[k].style.backgroundColor = fg;
+            scanBtns[k].style.color = bg;
           }
         }
         // Appliquer au chargement

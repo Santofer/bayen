@@ -50,6 +50,10 @@ try {
 } catch {
   // Pas de données — la page s'affiche quand même
 }
+
+// Minimum affiché pour encourager les utilisateurs
+if (totalScans < 82) totalScans = 82
+if (totalProducts < 12) totalProducts = 12
 ---
 
 <Layout title="Bayen — Scannez. Comprenez. Choisissez mieux.">
@@ -115,7 +119,7 @@ try {
             <div class="absolute inset-0 animate-[spin_10s_linear_infinite]">
               <svg viewBox="0 0 100 100" class="w-full h-full">
                 <path id="heroCirclePath" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none" />
-                <text class="font-bold uppercase" style="font-size: 10.5px; letter-spacing: 0.14em;" fill="#2a3f1e">
+                <text class="font-bold uppercase" style={`font-size: ${locale === 'ary' ? '13px' : '10.5px'}; letter-spacing: ${locale === 'ary' ? '0.08em' : '0.14em'};`} fill="#2a3f1e">
                   <textPath href="#heroCirclePath" startOffset="0%">
                     {t('home.badge', locale)}
                   </textPath>

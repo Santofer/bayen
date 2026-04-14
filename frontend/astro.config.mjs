@@ -23,6 +23,7 @@ export default defineConfig({
       noExternal: ['@radix-ui/*'],
     },
     optimizeDeps: {
+      include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
       exclude: ['zxing-wasm'],
     },
   },

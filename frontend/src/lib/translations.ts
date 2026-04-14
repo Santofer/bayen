@@ -68,7 +68,7 @@ export const translations = {
   'product.scoreDetail':  { fr: 'Détail du score',                                     ary: 'تفاصيل النتيجة' },
 
   // ── Accueil ─────────────────────────────────────────────────
-  'home.hero1':        { fr: 'Scannez. Comprenez.',                                                                                                            ary: '.سكاني. فهم' },
+  'home.hero1':        { fr: 'Scannez. Comprenez.',                                                                                                            ary: '.سكاني .فهم' },
   'home.hero2':        { fr: 'Choisissez mieux.',                                                                                                              ary: '.اختار حسن' },
   'home.subtitle':     { fr: 'Bayen note les produits alimentaires au Maroc de 0 à 100. Scannez un code-barres pour tout savoir sur ce que vous mangez.',       ary: 'باين كيعطي نقطة للمنتجات الغذائية فالمغرب من 0 حتى 100. سكاني الكود باش تعرف شنو كتاكل.' },
   'home.scanBtn':      { fr: 'Scanner un produit',                                                                                                             ary: 'سكاني منتوج' },

@@ -31,6 +31,19 @@ try {
   // pas de données
 }
 
+// Données de démo si aucun contributeur réel
+if (contributors.length === 0) {
+  contributors = [
+    { id: 'demo-1', first_name: 'Amine', display_name: 'Amine B.', points: 340, contributions_count: 34, rank: 'expert' },
+    { id: 'demo-2', first_name: 'Youssef', display_name: 'Youssef M.', points: 210, contributions_count: 18, rank: 'contributeur' },
+    { id: 'demo-3', first_name: 'Fatima', display_name: 'Fatima Z.', points: 185, contributions_count: 15, rank: 'contributeur' },
+    { id: 'demo-4', first_name: 'Karim', display_name: 'Karim E.', points: 120, contributions_count: 11, rank: 'contributeur' },
+    { id: 'demo-5', first_name: 'Sara', display_name: 'Sara A.', points: 75, contributions_count: 7, rank: 'nouveau' },
+    { id: 'demo-6', first_name: 'Omar', display_name: 'Omar H.', points: 45, contributions_count: 4, rank: 'nouveau' },
+    { id: 'demo-7', first_name: 'Hajar', display_name: 'Hajar L.', points: 30, contributions_count: 3, rank: 'nouveau' },
+  ]
+}
+
 const rankColors: Record<string, string> = {
   nouveau: '#a1a1aa',
   contributeur: '#b1cf3a',

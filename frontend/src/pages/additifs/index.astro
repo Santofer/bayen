@@ -25,6 +25,35 @@ try {
 } catch {
   // Page s'affiche quand même sans données
 }
+const RISK_COLORS: Record<string, string> = {
+  safe: '#476a32',
+  limited: '#f97316',
+  avoid: '#ef4444',
+  banned_ma: '#7f1d1d',
+}
+
+const RISK_LABEL_KEYS: Record<string, string> = {
+  safe: 'additives.safe',
+  limited: 'additives.limited',
+  avoid: 'additives.avoid',
+  banned_ma: 'additives.banned',
+}
+
+const RISK_DOT_COLORS: Record<string, string> = {
+  safe: 'bg-[#476a32]',
+  limited: 'bg-orange-500',
+  avoid: 'bg-red-500',
+  banned_ma: 'bg-red-900',
+}
+
+// Trier par risque décroissant
+const RISK_ORDER = ['banned_ma', 'avoid', 'limited', 'safe']
+const sortedAdditives = [...additives].sort((a: any, b: any) => {
+  const rA = RISK_ORDER.indexOf(a.risk_level)
+  const rB = RISK_ORDER.indexOf(b.risk_level)
+  if (rA !== rB) return rA - rB
+  return (a.id as string).localeCompare(b.id as string)
+})
 ---
 
 <Layout title="Additifs alimentaires — Bayen" description="Base de données complète des additifs alimentaires E-xxx avec niveaux de risque pour le consommateur marocain.">
@@ -37,7 +66,35 @@ try {
     </div>
 
     {additives.length > 0 ? (
-      <AdditivesList additives={additives as any} client:load />
+      <div>
+        <!-- Composant React interactif (recherche + filtres) -->
+        <div id="additives-interactive">
+          <AdditivesList additives={additives as any} client:load />
+        </div>
+        <!-- Fallback SSR : visible si React ne charge pas -->
+        <noscript>
+          <div class="space-y-2">
+            {sortedAdditives.map((additive: any) => (
+              <a
+                href={`/additifs/${additive.id}`}
+                class="flex items-start gap-3 rounded-lg border bg-card p-3 hover:shadow-md transition-all"
+              >
+                <div class={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${RISK_DOT_COLORS[additive.risk_level] ?? ''}`} />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-sm text-foreground">{additive.id}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full text-white" style={`background-color: ${RISK_COLORS[additive.risk_level]}`}>
+                      {t(RISK_LABEL_KEYS[additive.risk_level] as any, locale)}
+                    </span>
+                  </div>
+                  <p class="text-sm text-foreground mt-0.5">{additive.name_fr}</p>
+                  <p class="text-xs text-muted-foreground capitalize">{additive.function}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </noscript>
+      </div>
     ) : (
       <div class="text-center py-12 rounded-xl border bg-card">
         <p class="text-muted-foreground">{t('additives.loadError', locale)}</p>
