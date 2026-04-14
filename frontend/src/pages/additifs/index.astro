@@ -15,7 +15,7 @@ let additives: Record<string, unknown>[] = []
 
 try {
   const res = await fetch(
-    `${DIRECTUS_URL}/items/additives?sort=id&limit=-1&fields=id,name_fr,function,risk_level,description_fr`,
+    `${DIRECTUS_URL}/items/additives?sort=id&limit=-1&fields=id,name_fr,name_ar,function,function_ar,risk_level,description_fr,description_ar`,
     { signal: AbortSignal.timeout(5000) }
   )
   if (res.ok) {

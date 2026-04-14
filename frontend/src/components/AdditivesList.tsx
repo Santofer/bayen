@@ -25,7 +25,7 @@ const RISK_COLORS: Record<RiskLevel, string> = {
 }
 
 export default function AdditivesList({ additives }: AdditivesListProps) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [search, setSearch] = useState('')
   const [filterRisk, setFilterRisk] = useState<RiskLevel | 'all'>('all')
 
@@ -45,7 +45,9 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
         return (
           a.id.toLowerCase().includes(q) ||
           a.name_fr.toLowerCase().includes(q) ||
-          a.function.toLowerCase().includes(q)
+          a.function.toLowerCase().includes(q) ||
+          ((a as any).name_ar || '').includes(q) ||
+          ((a as any).function_ar || '').includes(q)
         )
       }
       return true
@@ -141,8 +143,8 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
                   {t(RISK_LABEL_KEYS[additive.risk_level])}
                 </Badge>
               </div>
-              <p className="text-sm text-foreground mt-0.5">{additive.name_fr}</p>
-              <p className="text-xs text-muted-foreground capitalize">{additive.function}</p>
+              <p className="text-sm text-foreground mt-0.5">{(locale === 'ary' && (additive as any).name_ar) || additive.name_fr}</p>
+              <p className="text-xs text-muted-foreground capitalize">{(locale === 'ary' && (additive as any).function_ar) || additive.function}</p>
             </div>
 
             {/* Flèche */}

@@ -106,9 +106,9 @@ const pageTitle = additive
               {t(RISK_LABEL_KEYS[riskLevel] as any, locale)}
             </div>
           </div>
-          <h2 class="text-xl text-foreground">{additive.name_fr}</h2>
+          <h2 class="text-xl text-foreground">{(locale === 'ary' && additive.name_ar) || additive.name_fr}</h2>
           {additive.function && (
-            <p class="text-sm text-muted-foreground capitalize mt-1">{additive.function}</p>
+            <p class="text-sm text-muted-foreground capitalize mt-1">{(locale === 'ary' && additive.function_ar) || additive.function}</p>
           )}
         </div>
 
@@ -126,7 +126,7 @@ const pageTitle = additive
         {additive.description_fr && (
           <div class="rounded-xl border bg-card p-5">
             <h3 class="text-sm font-semibold text-foreground mb-2">{t('additive.description', locale)}</h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">{additive.description_fr}</p>
+            <p class="text-sm text-muted-foreground leading-relaxed">{(locale === 'ary' && additive.description_ar) || additive.description_fr}</p>
           </div>
         )}
 
