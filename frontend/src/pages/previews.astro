@@ -1,0 +1,306 @@
+---
+/**
+ * Page de prévisualisation des composants Bayen pour le blog.
+ * Style shadcn/ui : fond blanc, ombre subtile, focus sur un seul composant par carte.
+ *
+ * Pour capturer :
+ *   1. Ouvrir /previews dans Chrome
+ *   2. Clic-droit sur un `.preview-block` → Inspecter
+ *   3. Dans le DOM, clic-droit sur l'élément → "Capture node screenshot"
+ *   → génère un PNG avec fond transparent (si on masque body bg en devtools)
+ */
+export const prerender = false
+---
+
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <title>Bayen — Component Previews</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        background: #fafafa;
+        margin: 0;
+        padding: 60px 20px;
+        font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: #0a0a0a;
+      }
+      .preview-grid {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 80px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .preview-block {
+        position: relative;
+      }
+      .preview-label {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #a1a1a1;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
+      }
+      /* Typographie héritée shadcn-like */
+      .t-title { font-weight: 700; color: #0a0a0a; }
+      .t-muted { color: #71717a; }
+      .t-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+      /* Couleurs Bayen */
+      .bg-cream { background: #f3f5dc; }
+      .text-primary { color: #476a32; }
+      .text-lime { color: #7aa52a; }
+    </style>
+  </head>
+  <body>
+    <div class="preview-grid">
+
+      <!-- ═══ 1. PRODUCT CARD ═══ -->
+      <div class="preview-block">
+        <div class="preview-label">Product Card</div>
+        <div class="card" style="width: 420px; padding: 16px; display: flex; gap: 14px; align-items: center;">
+          <div style="position: relative; flex-shrink: 0; width: 80px; height: 80px; border-radius: 12px; overflow: hidden; background: #f3f5dc;">
+            <img src="https://images.openfoodfacts.org/images/products/611/103/500/1673/front_fr.3.400.jpg" alt="" style="width: 80px; height: 80px; object-fit: cover; display: block;" onerror="this.style.display='none'" />
+            <div style="position: absolute; top: -6px; right: -6px; width: 36px; height: 36px; border-radius: 999px; background: #476a32; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; box-shadow: 0 4px 10px rgba(71, 106, 50, 0.35); border: 3px solid white;">100</div>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px; font-weight: 700; color: #0a0a0a; line-height: 1.2;">Aïn Atlas</div>
+            <div style="font-size: 12px; color: #71717a; margin-top: 2px;">Eau minérale naturelle · 50cl</div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+              <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; background: #f0fdf4; color: #166534; font-size: 11px; font-weight: 700; border: 1px solid #bbf7d0;">
+                <span style="width: 6px; height: 6px; border-radius: 999px; background: #22c55e;"></span>
+                Excellent
+              </span>
+              <span style="padding: 2px 7px; border-radius: 6px; background: #038141; color: white; font-size: 10px; font-weight: 800; letter-spacing: 0.05em;">A</span>
+              <span style="padding: 2px 7px; border-radius: 6px; background: #f3f5dc; color: #476a32; font-size: 10px; font-weight: 800;">NOVA 1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 2. SCORE GAUGE ═══ -->
+      <div class="preview-block">
+        <div class="preview-label">Score Gauge</div>
+        <div class="card" style="width: 380px; padding: 32px; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <!-- Cercle score -->
+          <div style="position: relative; width: 180px; height: 180px;">
+            <svg width="180" height="180" viewBox="0 0 120 120" style="transform: rotate(-90deg);">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#f4f4f5" stroke-width="10" />
+              <circle cx="60" cy="60" r="52" fill="none" stroke="url(#scoreGrad)" stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="326.73" stroke-dashoffset="98.02" />
+              <defs>
+                <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#b1cf3a" />
+                  <stop offset="100%" stop-color="#476a32" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <span style="font-size: 54px; font-weight: 900; color: #476a32; line-height: 1;">70</span>
+              <span style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">/ 100</span>
+            </div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 14px; font-weight: 800; color: #476a32; letter-spacing: 0.2em; text-transform: uppercase;">Bon</div>
+            <div style="font-size: 12px; color: #71717a; margin-top: 4px;">Prince Goût Chocolat · LU</div>
+          </div>
+          <!-- Mini breakdown -->
+          <div style="width: 100%; display: flex; gap: 8px; padding-top: 16px; border-top: 1px solid #f4f4f5;">
+            <div style="flex: 1; text-align: center;">
+              <div style="font-size: 10px; color: #a1a1aa; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">Nutri</div>
+              <div style="font-size: 18px; font-weight: 800; color: #476a32; margin-top: 2px;">40<span style="font-size: 11px; color: #a1a1aa; font-weight: 600;">/50</span></div>
+            </div>
+            <div style="width: 1px; background: #f4f4f5;"></div>
+            <div style="flex: 1; text-align: center;">
+              <div style="font-size: 10px; color: #a1a1aa; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">NOVA</div>
+              <div style="font-size: 18px; font-weight: 800; color: #ef4444; margin-top: 2px;">10<span style="font-size: 11px; color: #a1a1aa; font-weight: 600;">/30</span></div>
+            </div>
+            <div style="width: 1px; background: #f4f4f5;"></div>
+            <div style="flex: 1; text-align: center;">
+              <div style="font-size: 10px; color: #a1a1aa; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">Additifs</div>
+              <div style="font-size: 18px; font-weight: 800; color: #476a32; margin-top: 2px;">20<span style="font-size: 11px; color: #a1a1aa; font-weight: 600;">/20</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 3. ADDITIVES PILLS ═══ -->
+      <div class="preview-block">
+        <div class="preview-label">Additives</div>
+        <div class="card" style="width: 440px; padding: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div style="font-size: 14px; font-weight: 700; color: #0a0a0a;">Additifs détectés</div>
+            <div style="font-size: 11px; color: #71717a; font-weight: 600;">6 total</div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 12px; font-weight: 700;">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #dc2626;"></span>
+              E110 · À éviter
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #7f1d1d; border: 1px solid #7f1d1d; color: #fff; font-size: 12px; font-weight: 700;">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #fca5a5;"></span>
+              E621 · Interdit MA
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 12px; font-weight: 700;">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #f97316;"></span>
+              E160C · Limité
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 12px; font-weight: 700;">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #f97316;"></span>
+              E551 · Limité
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px; font-weight: 700;">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #22c55e;"></span>
+              E330 · Sûr
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px; font-weight: 700;">
+              <span style="width: 6px; height: 6px; border-radius: 999px; background: #22c55e;"></span>
+              E440 · Sûr
+            </span>
+          </div>
+          <div style="margin-top: 14px; padding: 10px 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div style="font-size: 12px; color: #9a3412;">Impact sur le score <span style="font-weight: 800;">−9 points</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 4. HEALTH INSIGHT ═══ -->
+      <div class="preview-block">
+        <div class="preview-label">Health Insight</div>
+        <div class="card" style="width: 460px; padding: 20px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <div style="width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #b1cf3a, #476a32); display: flex; align-items: center; justify-content: center;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-size: 14px; font-weight: 800; color: #0a0a0a;">Analyse santé</div>
+              <div style="font-size: 11px; color: #71717a;">3 points détectés</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca;">
+              <div style="width: 32px; height: 32px; border-radius: 999px; background: #fecaca; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div style="min-width: 0;">
+                <div style="font-size: 13px; font-weight: 700; color: #991b1b;">Sucres élevés</div>
+                <div style="font-size: 11.5px; color: #b91c1c; margin-top: 2px; line-height: 1.45;">&gt; 22,5 g / 100 g · l'OMS recommande max 25 g / jour.</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 12px; background: #fff7ed; border: 1px solid #fed7aa;">
+              <div style="width: 32px; height: 32px; border-radius: 999px; background: #fed7aa; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div style="min-width: 0;">
+                <div style="font-size: 13px; font-weight: 700; color: #9a3412;">NOVA 4 — Ultra-transformé</div>
+                <div style="font-size: 11.5px; color: #c2410c; margin-top: 2px; line-height: 1.45;">Contient des additifs et ingrédients industriels.</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 12px; background: #f0fdf4; border: 1px solid #bbf7d0;">
+              <div style="width: 32px; height: 32px; border-radius: 999px; background: #bbf7d0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div style="min-width: 0;">
+                <div style="font-size: 13px; font-weight: 700; color: #166534;">Riche en fibres</div>
+                <div style="font-size: 11.5px; color: #15803d; margin-top: 2px; line-height: 1.45;">≥ 6 g / 100 g · favorise la digestion et la satiété.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 5. LEADERBOARD ═══ -->
+      <div class="preview-block">
+        <div class="preview-label">Leaderboard</div>
+        <div class="card" style="width: 460px; padding: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#476a32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+              <div style="font-size: 14px; font-weight: 800; color: #0a0a0a;">Classement</div>
+            </div>
+            <div style="font-size: 11px; color: #71717a; font-weight: 600;">Top contributeurs</div>
+          </div>
+
+          <!-- #1 -->
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: linear-gradient(90deg, #fefce8 0%, #fff 60%); border: 1px solid #fef08a; margin-bottom: 6px;">
+            <div style="width: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🥇</div>
+            <div style="width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #f97316, #ea580c); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 14px;">A</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div style="font-size: 13px; font-weight: 700; color: #0a0a0a;">Amine B.</div>
+                <span style="padding: 1px 7px; border-radius: 999px; background: #f97316; color: white; font-size: 9px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;">Expert</span>
+              </div>
+              <div style="font-size: 11px; color: #71717a; margin-top: 1px;">34 contributions</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 18px; font-weight: 900; color: #476a32; line-height: 1;">340</div>
+              <div style="font-size: 9px; color: #a1a1aa; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">pts</div>
+            </div>
+          </div>
+
+          <!-- #2 -->
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: #fafafa; border: 1px solid #f4f4f5; margin-bottom: 6px;">
+            <div style="width: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🥈</div>
+            <div style="width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #b1cf3a, #7aa52a); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 14px;">Y</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div style="font-size: 13px; font-weight: 700; color: #0a0a0a;">Youssef M.</div>
+                <span style="padding: 1px 7px; border-radius: 999px; background: #b1cf3a; color: #1c3014; font-size: 9px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;">Contributeur</span>
+              </div>
+              <div style="font-size: 11px; color: #71717a; margin-top: 1px;">18 contributions</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 18px; font-weight: 900; color: #476a32; line-height: 1;">210</div>
+              <div style="font-size: 9px; color: #a1a1aa; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">pts</div>
+            </div>
+          </div>
+
+          <!-- #3 -->
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: #fafafa; border: 1px solid #f4f4f5;">
+            <div style="width: 24px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🥉</div>
+            <div style="width: 36px; height: 36px; border-radius: 999px; background: linear-gradient(135deg, #b1cf3a, #7aa52a); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 14px;">F</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div style="font-size: 13px; font-weight: 700; color: #0a0a0a;">Fatima Z.</div>
+                <span style="padding: 1px 7px; border-radius: 999px; background: #b1cf3a; color: #1c3014; font-size: 9px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;">Contributeur</span>
+              </div>
+              <div style="font-size: 11px; color: #71717a; margin-top: 1px;">15 contributions</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 18px; font-weight: 900; color: #476a32; line-height: 1;">185</div>
+              <div style="font-size: 9px; color: #a1a1aa; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">pts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <script is:inline>
+      console.log('%c📸 Capture des previews Bayen', 'font-size:14px;font-weight:bold;color:#476a32');
+      console.log('1. Clic-droit sur un .preview-block → Inspecter');
+      console.log('2. Dans le DOM, clic-droit sur l\'élément → "Capture node screenshot"');
+      console.log('3. Pour un fond transparent : masquer body { background: white } dans Styles');
+    </script>
+  </body>
+</html>

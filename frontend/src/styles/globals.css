@@ -64,6 +64,18 @@
   --color-ring: hsl(72.1 60.8% 52%);
 }
 
+/* ── Navbar Bayen — crème en light, vert foncé en dark ───────── */
+[data-bayen-nav] {
+  background-color: #f0f2d2 !important;
+  color: #476a32 !important;
+  border-color: rgba(71, 106, 50, 0.1) !important;
+}
+:where(.dark, .dark *) [data-bayen-nav] {
+  background-color: #1c3014 !important;
+  color: #b1cf3a !important;
+  border-color: rgba(177, 207, 58, 0.15) !important;
+}
+
 @layer base {
   * {
     @apply border-border;

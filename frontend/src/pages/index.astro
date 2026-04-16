@@ -51,6 +51,24 @@ try {
   // Pas de données — la page s'affiche quand même
 }
 
+// Récupérer les images manquantes depuis Open Food Facts
+for (const product of recentProducts) {
+  if (!product.image_front && product.data_source === 'off' && product.barcode) {
+    try {
+      const offRes = await fetch(
+        `https://world.openfoodfacts.org/api/v2/product/${product.barcode}.json?fields=image_front_url`,
+        { signal: AbortSignal.timeout(2000) }
+      )
+      if (offRes.ok) {
+        const offData = await offRes.json()
+        if (offData.status === 1 && offData.product?.image_front_url) {
+          product.image_front = offData.product.image_front_url
+        }
+      }
+    } catch { /* non bloquant */ }
+  }
+}
+
 // Minimum affiché pour encourager les utilisateurs
 if (totalScans < 77) totalScans = 77
 if (totalProducts < 77) totalProducts = 77
@@ -122,7 +140,7 @@ if (totalProducts < 77) totalProducts = 77
                   <path id="heroCirclePathAr" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none" />
                   <text class="font-bold" style="font-size: 10.5px; letter-spacing: 0.14em;" fill="#2a3f1e">
                     <textPath href="#heroCirclePathAr" startOffset="0%">
-                      100% GRATUIT • OPEN SOURCE •
+                      {t('home.badge', locale)}
                     </textPath>
                   </text>
                 </svg>

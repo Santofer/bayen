@@ -27,6 +27,8 @@ export interface NutritionData {
   proteins?: number | null
   /** Points fruits/légumes/noix (0–10), fourni par le LLM ou saisi manuellement */
   fruits_vegetables_nuts_points?: number | null
+  /** Indique si le produit est une boisson (barèmes NutriScore différents) */
+  is_beverage?: boolean
 }
 
 export interface AdditiveResult {
@@ -54,6 +56,7 @@ export interface ScoreResult {
 // Méthode FSA officielle : points négatifs A − points positifs C
 // ────────────────────────────────────────────────────────────────
 
+// ── Seuils aliments solides ──
 const ENERGY_THRESHOLDS = [80, 160, 240, 320, 400, 480, 560, 640, 720]
 const SATURATED_FAT_THRESHOLDS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 const SUGARS_THRESHOLDS = [4.5, 9, 13.5, 18, 22.5, 27, 31, 36, 40]
@@ -61,6 +64,11 @@ const SALT_THRESHOLDS = [0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4, 2.7]
 
 const FIBER_THRESHOLDS = [0.9, 1.9, 2.8, 3.7, 4.7]
 const PROTEIN_THRESHOLDS = [1.6, 3.2, 4.8, 6.4, 8.0]
+
+// ── Seuils boissons (barèmes plus stricts) ──
+const BEV_ENERGY_THRESHOLDS = [7, 14, 21, 29, 36, 43, 50, 57, 64]
+const BEV_SUGARS_THRESHOLDS = [1.5, 3, 4.5, 6, 7.5, 9, 10.5, 12, 13.5]
+// Graisses saturées et sel : mêmes seuils que les aliments solides
 
 function computeNegativePoints(value: number, thresholds: number[]): number {
   for (let i = 0; i < thresholds.length; i++) {
@@ -88,14 +96,17 @@ export function computeNutriScore(
     return null
   }
 
+  const isBev = nutrition.is_beverage === true
+
+  // Points négatifs — seuils différents pour les boissons
   const energyPts = nutrition.energy_kcal != null
-    ? computeNegativePoints(nutrition.energy_kcal, ENERGY_THRESHOLDS)
+    ? computeNegativePoints(nutrition.energy_kcal, isBev ? BEV_ENERGY_THRESHOLDS : ENERGY_THRESHOLDS)
     : 0
   const satFatPts = nutrition.fat_saturated != null
     ? computeNegativePoints(nutrition.fat_saturated, SATURATED_FAT_THRESHOLDS)
     : 0
   const sugarsPts = nutrition.sugars != null
-    ? computeNegativePoints(nutrition.sugars, SUGARS_THRESHOLDS)
+    ? computeNegativePoints(nutrition.sugars, isBev ? BEV_SUGARS_THRESHOLDS : SUGARS_THRESHOLDS)
     : 0
   const saltPts = nutrition.salt != null
     ? computeNegativePoints(nutrition.salt, SALT_THRESHOLDS)
@@ -114,7 +125,10 @@ export function computeNutriScore(
   const totalC = fiberPts + proteinPts + fruitPts
 
   let fsaScore: number
-  if (totalA < 11) {
+  if (isBev) {
+    // Boissons : les fruits/légumes comptent toujours (pas de cap à totalA >= 11)
+    fsaScore = totalA - totalC
+  } else if (totalA < 11) {
     fsaScore = totalA - totalC
   } else if (fruitPts < 5) {
     fsaScore = totalA - (fiberPts + fruitPts)
@@ -125,24 +139,53 @@ export function computeNutriScore(
   let grade: NutriScoreGrade
   let bayenPoints: number
 
-  if (fsaScore <= -1) {
-    grade = 'A'
-    bayenPoints = 50
-  } else if (fsaScore <= 2) {
-    grade = 'B'
-    bayenPoints = 40
-  } else if (fsaScore <= 10) {
-    grade = 'C'
-    bayenPoints = 30
-  } else if (fsaScore <= 18) {
-    grade = 'D'
-    bayenPoints = 15
+  if (isBev) {
+    // Barème boissons : eau = A, sinon B à E (seuils plus stricts)
+    if (isWater(nutrition)) {
+      grade = 'A'
+      bayenPoints = 50
+    } else if (fsaScore <= 1) {
+      grade = 'B'
+      bayenPoints = 40
+    } else if (fsaScore <= 5) {
+      grade = 'C'
+      bayenPoints = 30
+    } else if (fsaScore <= 9) {
+      grade = 'D'
+      bayenPoints = 15
+    } else {
+      grade = 'E'
+      bayenPoints = 0
+    }
   } else {
-    grade = 'E'
-    bayenPoints = 0
+    // Barème aliments solides
+    if (fsaScore <= -1) {
+      grade = 'A'
+      bayenPoints = 50
+    } else if (fsaScore <= 2) {
+      grade = 'B'
+      bayenPoints = 40
+    } else if (fsaScore <= 10) {
+      grade = 'C'
+      bayenPoints = 30
+    } else if (fsaScore <= 18) {
+      grade = 'D'
+      bayenPoints = 15
+    } else {
+      grade = 'E'
+      bayenPoints = 0
+    }
   }
 
   return { fsaScore, grade, bayenPoints }
+}
+
+/** Détecte si les valeurs nutritionnelles correspondent à de l'eau (tout ~0) */
+function isWater(nutrition: NutritionData): boolean {
+  const e = nutrition.energy_kcal ?? 0
+  const s = nutrition.sugars ?? 0
+  const f = nutrition.fat_saturated ?? 0
+  return e <= 1 && s <= 0.5 && f <= 0.1
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -261,8 +304,17 @@ export function computeScore(params: {
   novaGroup?: NovaGroup | null
   ingredientsText?: string | null
   additives: Array<{ code: string; risk_level: RiskLevel }>
+  /** Catégorie du produit — permet de détecter les boissons */
+  categoryId?: number | null
 }): ScoreResult {
   const { nutrition, additives } = params
+
+  // Détecter automatiquement les boissons via la catégorie
+  // 5 = Boissons sucrées, 6 = Eaux & jus
+  const beverageCategoryIds = [5, 6]
+  if (params.categoryId != null && beverageCategoryIds.includes(params.categoryId)) {
+    nutrition.is_beverage = true
+  }
 
   const nutriResult = computeNutriScore(nutrition)
   const nutriscoreGrade = nutriResult?.grade ?? 'E'

@@ -48,3 +48,6 @@ npm-debug.log*
 directus/extensions/bayen-api/node_modules/
 directus/extensions/bayen-api/dist/
 directus/extensions/bayen-api/package-lock.json
+
+# Previews générés (artefacts de capture-previews.mjs)
+frontend/previews-out/

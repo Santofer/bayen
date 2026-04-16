@@ -214,8 +214,8 @@ const currentPath = Astro.url.pathname
 
     {!hideNav && (
       <!-- Navigation mobile bottom -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t safe-area-pb" data-bayen-nav>
-        <div class="flex items-center justify-around h-16 px-2">
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t" data-bayen-nav style="padding-bottom: env(safe-area-inset-bottom, 8px);">
+        <div class="flex items-center justify-around h-16 px-2 pb-1">
           <a href="/" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/' ? 'opacity-100 font-medium' : 'opacity-50']}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />

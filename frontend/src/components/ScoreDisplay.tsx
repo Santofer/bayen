@@ -76,13 +76,6 @@ const NOVA_COLORS: Record<NovaGroup, string> = {
   4: '#ef4444',
 }
 
-const RISK_LABELS: Record<RiskLevel, string> = {
-  safe: 'Sûr',
-  limited: 'Limité',
-  avoid: 'À éviter',
-  banned_ma: 'Interdit MA',
-}
-
 const RISK_VARIANTS: Record<RiskLevel, 'safe' | 'limited' | 'avoid' | 'banned'> = {
   safe: 'safe',
   limited: 'limited',

@@ -72,6 +72,7 @@ try {
           }
         }
 
+        const catId = typeof p.category_id === 'object' && p.category_id ? (p.category_id as Record<string, unknown>).id as number : p.category_id as number | null
         const scoreResult = computeScore({
           nutrition: {
             energy_kcal: p.energy_kcal,
@@ -84,6 +85,7 @@ try {
           novaGroup: p.nova_group as 1 | 2 | 3 | 4 | null,
           ingredientsText: p.ingredients_text,
           additives: additiveRisks,
+          categoryId: catId,
         })
         scoreObj = scoreResult as unknown as Record<string, unknown>
       }
