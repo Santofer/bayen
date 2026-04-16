@@ -1,6 +1,10 @@
 /**
  * Proxy endpoint pour l'inscription — évite les problèmes CORS
- * POST /api/auth/register → proxy vers Directus /users puis /auth/login
+ * POST /api/auth/register → proxy vers Directus /users/register puis /auth/login
+ *
+ * L'endpoint /users/register utilise la configuration publique de Directus
+ * (directus_settings.public_registration + public_registration_role) pour
+ * auto-assigner le rôle "Utilisateur" aux nouveaux inscrits.
  */
 import type { APIContext } from 'astro'
 
@@ -12,8 +16,8 @@ export async function POST(context: APIContext): Promise<Response> {
   try {
     const body = await context.request.json() as { email: string; password: string; first_name: string }
 
-    // Créer l'utilisateur
-    const createRes = await fetch(`${DIRECTUS_URL}/users`, {
+    // Inscription publique — le rôle est assigné côté serveur
+    const createRes = await fetch(`${DIRECTUS_URL}/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -23,9 +27,10 @@ export async function POST(context: APIContext): Promise<Response> {
       }),
     })
 
+    // /users/register retourne 204 No Content en cas de succès
     if (!createRes.ok) {
       const errData = await createRes.text()
-      return new Response(errData, {
+      return new Response(errData || JSON.stringify({ errors: [{ message: 'Inscription échouée' }] }), {
         status: createRes.status,
         headers: { 'Content-Type': 'application/json' },
       })

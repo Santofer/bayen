@@ -58,14 +58,20 @@ def preprocess_image(image):
     return image
 
 
-def call_mistral(prompt, retries=2):
-    """Appelle Mistral via Ollama avec retry"""
+# Modèle LLM — override via env var LLM_MODEL
+# gemma3:4b-it-qat : ~14s/warm, ~3.5 GB VRAM, meilleur ratio vitesse/qualité
+# alternatives testées : mistral:7b (20s), gemma4:e4b (94s, trop lent), qwen3:4b (288s, thinking mode)
+LLM_MODEL = os.environ.get('LLM_MODEL', 'gemma3:4b-it-qat')
+
+
+def call_llm(prompt, retries=2):
+    """Appelle le LLM via Ollama avec retry"""
     for attempt in range(retries + 1):
         try:
             response = requests.post(
                 f'{OLLAMA_URL}/api/generate',
                 json={
-                    'model': 'mistral:7b',
+                    'model': LLM_MODEL,
                     'prompt': f'{SYSTEM_PROMPT}\n\n{prompt}',
                     'stream': False,
                     'options': {'temperature': 0.1}
@@ -75,16 +81,16 @@ def call_mistral(prompt, retries=2):
             if response.status_code == 200:
                 data = response.json()
                 raw = data.get('response', '').strip()
-                # Extraire le JSON du texte (Mistral peut entourer de markdown)
+                # Extraire le JSON du texte (le LLM peut entourer de markdown)
                 if '```json' in raw:
                     raw = raw.split('```json')[1].split('```')[0].strip()
                 elif '```' in raw:
                     raw = raw.split('```')[1].split('```')[0].strip()
                 return json.loads(raw)
             else:
-                app.logger.warning(f'Mistral attempt {attempt+1} failed: HTTP {response.status_code}')
+                app.logger.warning(f'LLM attempt {attempt+1} failed: HTTP {response.status_code}')
         except (requests.exceptions.RequestException, json.JSONDecodeError, IndexError) as e:
-            app.logger.warning(f'Mistral attempt {attempt+1} error: {e}')
+            app.logger.warning(f'LLM attempt {attempt+1} error: {e}')
             if attempt < retries:
                 time.sleep(2)
     return None
@@ -166,20 +172,20 @@ def pipeline():
                 'duration_ms': ocr_duration
             })
 
-        # Étape 2 : Parsing via Mistral
-        mistral_start = time.time()
+        # Étape 2 : Parsing via LLM
+        llm_start = time.time()
         prompt = NUTRITION_PROMPT.format(ocr_text=ocr_text)
-        parsed = call_mistral(prompt)
-        mistral_duration = int((time.time() - mistral_start) * 1000)
+        parsed = call_llm(prompt)
+        llm_duration = int((time.time() - llm_start) * 1000)
 
         if parsed is None:
-            # Mistral a échoué — retourner le texte brut pour saisie manuelle
+            # Le LLM a échoué — retourner le texte brut pour saisie manuelle
             return jsonify({
                 'job_status': 'manual_required',
                 'ocr_confidence': round(ocr_confidence, 1),
                 'ocr_text': ocr_text,
                 'message': "L'IA n'a pas pu analyser le texte. Saisissez les données manuellement.",
-                'duration_ms': ocr_duration + mistral_duration
+                'duration_ms': ocr_duration + llm_duration
             })
 
         total_duration = int((time.time() - start_time) * 1000)
@@ -209,7 +215,9 @@ def pipeline():
             'duration_ms': total_duration,
             'timing': {
                 'ocr_ms': ocr_duration,
-                'mistral_ms': mistral_duration
+                'llm_ms': llm_duration,
+                # alias rétro-compat (à retirer une fois frontend/logs migrés)
+                'mistral_ms': llm_duration
             }
         })
 

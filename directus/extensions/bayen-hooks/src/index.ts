@@ -1,28 +1,18 @@
 /**
- * Hooks Directus — Système de points et niveaux Bayen
+ * Hooks Directus — Système de points + auto-role Bayen
  *
- * Événements :
+ * Filters :
+ * - users.create → auto-assigner le rôle "Utilisateur" si absent
+ *
+ * Actions :
  * - scans.items.create → +1 pt au user
  * - contributions.items.update (status → approved) → +50/+20/+15 pts selon type
- * - Recalcul automatique du rank après chaque attribution de points
- *
- * Barème (SPEC.md §10) :
- *   Ajouter un produit complet : 50 pts
- *   Ajouter photos manquantes : 20 pts
- *   Corriger des données : 15 pts
- *   Scanner un produit : 1 pt
- *   Contribution confirmée par 3 utilisateurs : +10 pts bonus
- *
- * Niveaux :
- *   Nouveau     : 0 pts
- *   Contributeur : 100 pts
- *   Expert       : 500 pts
- *   Vérifié      : 2000 pts + validation manuelle
  */
 
-import type { HookConfig } from '@directus/extensions'
+// ID du rôle "Utilisateur" — override via env var BAYEN_DEFAULT_USER_ROLE
+const DEFAULT_USER_ROLE_ID =
+  process.env.BAYEN_DEFAULT_USER_ROLE || '0e2f9c18-3d9f-4203-b296-43b329c3b25c'
 
-// Points par type de contribution
 const POINTS_MAP: Record<string, number> = {
   new_product: 50,
   add_image: 20,
@@ -30,7 +20,6 @@ const POINTS_MAP: Record<string, number> = {
   confirm: 10,
 }
 
-// Seuils de rang
 const RANK_THRESHOLDS = [
   { rank: 'vérifié', min: 2000 },
   { rank: 'expert', min: 500 },
@@ -39,92 +28,75 @@ const RANK_THRESHOLDS = [
 ]
 
 function computeRank(points: number, currentRank: string): string {
-  // Le rang "vérifié" nécessite une validation manuelle — on ne rétrograde pas
   if (currentRank === 'vérifié') return 'vérifié'
-
   for (const { rank, min } of RANK_THRESHOLDS) {
-    // Ne pas auto-promouvoir vers "vérifié" (validation manuelle requise)
     if (rank === 'vérifié') continue
     if (points >= min) return rank
   }
   return 'nouveau'
 }
 
-const hooks: HookConfig = {
-  // Attribution de points lors d'un scan
-  'scans.items.create': async (input, { database }) => {
-    const userId = input.user_id
-    if (!userId) return // Scan anonyme, pas de points
+// Signature : Directus passe { filter, action, init, schedule, embed } + services
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default ({ filter, action }: any) => {
+  // ── Auto-role pour les nouveaux inscrits ────────────────────────
+  filter('users.create', (payload: Record<string, unknown>) => {
+    if (!payload.role) payload.role = DEFAULT_USER_ROLE_ID
+    return payload
+  })
 
+  // ── +1 pt par scan authentifié ──────────────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  action('scans.items.create', async (meta: any, context: any) => {
+    const userId: string | undefined = meta?.payload?.user_id
+    if (!userId) return
+    const { database } = context
     try {
-      await database('directus_users')
-        .where('id', userId)
-        .increment('points', 1)
-
-      // Recalcul du rank
-      const user = await database('directus_users')
-        .where('id', userId)
-        .select('points', 'rank')
-        .first()
-
+      await database('directus_users').where('id', userId).increment('points', 1)
+      const user = await database('directus_users').where('id', userId).select('points', 'rank').first()
       if (user) {
         const newRank = computeRank(user.points, user.rank)
         if (newRank !== user.rank) {
-          await database('directus_users')
-            .where('id', userId)
-            .update({ rank: newRank })
+          await database('directus_users').where('id', userId).update({ rank: newRank })
         }
       }
     } catch (err) {
       console.error('[bayen-hooks] Erreur attribution points scan:', err)
     }
-  },
+  })
 
-  // Attribution de points quand une contribution est approuvée
-  'contributions.items.update': async (input, { database }) => {
-    // Vérifier que le status passe à "approved"
-    if (input.status !== 'approved') return
-
+  // ── Points quand contribution approuvée ─────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  action('contributions.items.update', async (meta: any, context: any) => {
+    if (meta?.payload?.status !== 'approved') return
+    const { database } = context
     try {
-      // Récupérer la contribution complète
       const contribution = await database('contributions')
-        .where('id', input.keys?.[0] ?? input.id)
+        .where('id', meta?.keys?.[0])
         .select('user_id', 'type')
         .first()
-
       if (!contribution?.user_id) return
-
       const points = POINTS_MAP[contribution.type] ?? 0
       if (points === 0) return
 
-      // Ajouter les points + incrémenter le compteur de contributions
       await database('directus_users')
         .where('id', contribution.user_id)
         .increment('points', points)
         .increment('contributions_count', 1)
 
-      // Recalcul du rank
       const user = await database('directus_users')
         .where('id', contribution.user_id)
         .select('points', 'rank')
         .first()
-
       if (user) {
         const newRank = computeRank(user.points, user.rank)
         if (newRank !== user.rank) {
-          await database('directus_users')
-            .where('id', contribution.user_id)
-            .update({ rank: newRank })
+          await database('directus_users').where('id', contribution.user_id).update({ rank: newRank })
         }
       }
-
-      console.log(
-        `[bayen-hooks] +${points} pts → user ${contribution.user_id} (${contribution.type})`
-      )
+      console.log(`[bayen-hooks] +${points} pts → user ${contribution.user_id} (${contribution.type})`)
     } catch (err) {
       console.error('[bayen-hooks] Erreur attribution points contribution:', err)
     }
-  },
+  })
 }
-
-export default hooks

@@ -338,8 +338,17 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
         })
 
         if (!createRes.ok) {
-          const errorData = await createRes.json().catch(() => null) as { errors?: Array<{ message: string }> } | null
-          throw new Error(errorData?.errors?.[0]?.message ?? `Erreur ${createRes.status}`)
+          const errorData = await createRes.json().catch(() => null) as { errors?: Array<{ message: string; extensions?: { code?: string } }> } | null
+          const code = errorData?.errors?.[0]?.extensions?.code
+          const rawMsg = errorData?.errors?.[0]?.message ?? `Erreur ${createRes.status}`
+          // Traduire les erreurs Directus courantes en français
+          if (code === 'FORBIDDEN' || createRes.status === 403) {
+            throw new Error("Tu n'as pas encore les permissions pour contribuer. Contacte un administrateur.")
+          }
+          if (code === 'RECORD_NOT_UNIQUE' || rawMsg.toLowerCase().includes('unique')) {
+            throw new Error('Ce produit existe déjà dans la base — essaye de le scanner pour le voir.')
+          }
+          throw new Error(rawMsg)
         }
 
         // Récupérer l'ID du produit créé pour y attacher les images
