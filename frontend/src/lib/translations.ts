@@ -368,6 +368,15 @@ export const translations = {
 
   // ── Badge héro ────────────────────────────────────────────
   'home.badge':           { fr: '100% GRATUIT \u2022 OPEN SOURCE \u2022',             ary: '100% مجاني \u2022 مفتوح المصدر \u2022' },
+
+  // ── Install PWA ───────────────────────────────────────────
+  'install.title':       { fr: 'Installer Bayen',                              ary: 'ثبت باين' },
+  'install.subtitle':    { fr: "Accès rapide depuis l'écran d'accueil",       ary: 'وصول سريع من الشاشة الرئيسية' },
+  'install.button':      { fr: 'Installer',                                    ary: 'ثبت' },
+  'install.later':       { fr: 'Plus tard',                                    ary: 'من بعد' },
+  'install.ios.title':   { fr: "Ajouter à l'écran d'accueil",                 ary: 'زيد للشاشة الرئيسية' },
+  'install.ios.step1':   { fr: "1. Touche l'icône Partager",                   ary: '1. كليك على أيقونة المشاركة' },
+  'install.ios.step2':   { fr: '2. "Sur l\'écran d\'accueil"',                ary: '2. "على الشاشة الرئيسية"' },
 } as const
 
 /** Clé de traduction valide */
