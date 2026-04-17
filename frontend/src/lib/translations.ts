@@ -88,6 +88,7 @@ export const translations = {
   'home.products':     { fr: 'Produits',                                                                                                                       ary: 'منتجات' },
   'home.scans':        { fr: 'Scans',                                                                                                                          ary: 'سكانات' },
   'home.free':         { fr: 'Gratuit',                                                                                                                        ary: 'بلا فلوس' },
+  'home.scansToday':   { fr: "Scans aujourd'hui",                                                                                                              ary: 'سكانات اليوم' },
 
   // ── Contribuer ──────────────────────────────────────────────
   'contribute.title':      { fr: 'Ajouter un produit',                                                           ary: 'زيد منتوج' },
