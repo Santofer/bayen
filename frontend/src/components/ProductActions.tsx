@@ -189,11 +189,12 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
   }, [productId])
 
   // Ne rien afficher si pas connecté ou pas le niveau requis (sauf admin)
+  // — retour null sans wrapper pour éviter le bloc vide sur la page produit.
   if (!loggedIn) return null
   if (!canAct && !isAdmin) return null
 
   return (
-    <div className="space-y-3">
+    <div className="rounded-xl border bg-card p-4 space-y-3">
       {/* Compteur de confirmations */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>{confirmCount} {t('product.confirmations')}</span>
