@@ -1,10 +1,18 @@
 /**
  * Carte produit pour les listes (accueil, recherche, catégorie)
- * Affiche l'image depuis le CDN local ou en fallback depuis Open Food Facts
+ *
+ * Rendu 100% SSR : pas de useState/useEffect car le composant est
+ * souvent mounté sans directive `client:*` (ex: boucle .map dans
+ * index.astro). Un état React ne s'hydrate pas dans ce cas → les
+ * handlers onLoad/onError ne s'attachent jamais et l'image reste
+ * invisible (opacity-0).
+ *
+ * L'image est affichée directement avec `opacity-100`. Le prefetch
+ * OFF est fait côté parent (index.astro) pour les produits sans image.
+ * Si l'URL échoue à charger, le placeholder SVG (bg-muted) reste
+ * visible par dessous.
  */
 
-import { useState, useEffect } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { Product, ScoreLabel } from '@/lib/types'
 
@@ -27,33 +35,10 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     ? SCORE_COLORS[product.score_label]
     : '#a1a1aa'
 
-  // Image : locale ou fallback OFF
-  const localSrc = product.image_front
+  // image_front peut être une URL externe (OFF préfetché) ou un UUID Directus
+  const imgSrc = product.image_front
     ? (product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}`)
     : null
-
-  const [imgSrc, setImgSrc] = useState<string | null>(localSrc)
-  const [imgLoaded, setImgLoaded] = useState(false)
-
-  // Si pas d'image locale, récupérer depuis OFF
-  useEffect(() => {
-    if (localSrc || !product.barcode) return
-    let cancelled = false
-
-    fetch(
-      `https://world.openfoodfacts.org/api/v2/product/${product.barcode}.json?fields=image_front_small_url,image_front_url`,
-      { signal: AbortSignal.timeout(3000) }
-    )
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        if (cancelled || !data) return
-        const url = data.product?.image_front_small_url || data.product?.image_front_url
-        if (url) setImgSrc(url)
-      })
-      .catch(() => {})
-
-    return () => { cancelled = true }
-  }, [localSrc, product.barcode])
 
   return (
     <a
@@ -63,36 +48,23 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         className
       )}
     >
-      {/* Image */}
+      {/* Image + placeholder en fond (visible si l'image échoue à charger) */}
       <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-        {imgSrc ? (
-          <>
-            {!imgLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground animate-pulse">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                  <circle cx="9" cy="9" r="2" />
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                </svg>
-              </div>
-            )}
-            <img
-              src={imgSrc}
-              alt={product.name_fr}
-              className={cn('w-full h-full object-cover transition-opacity', imgLoaded ? 'opacity-100' : 'opacity-0')}
-              loading="lazy"
-              onLoad={() => setImgLoaded(true)}
-              onError={() => { setImgSrc(null); setImgLoaded(false) }}
-            />
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-              <circle cx="9" cy="9" r="2" />
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-            </svg>
-          </div>
+        {/* Placeholder SVG en fond ; l'image passe par dessus */}
+        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+          </svg>
+        </div>
+        {imgSrc && (
+          <img
+            src={imgSrc}
+            alt={product.name_fr}
+            className="relative w-full h-full object-cover"
+            loading="lazy"
+          />
         )}
 
         {/* Score badge */}
