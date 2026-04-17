@@ -149,7 +149,7 @@ export interface ScoreResult {
 }
 
 // ────────────────────────────────────────────────────────────────
-// Réponses API /custom/scan
+// Réponses API /bayen-api/scan
 // ────────────────────────────────────────────────────────────────
 
 export interface ScanRequest {

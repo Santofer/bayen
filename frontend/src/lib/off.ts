@@ -3,7 +3,7 @@
  *
  * Utilisé côté frontend uniquement pour l'affichage préliminaire
  * (ex: pré-remplissage du formulaire de contribution).
- * L'import officiel passe par l'endpoint /custom/scan côté serveur.
+ * L'import officiel passe par l'endpoint /bayen-api/scan côté serveur.
  */
 
 const OFF_API_URL = 'https://world.openfoodfacts.org/api/v2'

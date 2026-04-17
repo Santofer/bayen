@@ -156,9 +156,9 @@ export async function getAdditiveRisks(
 // Endpoint custom /scan (Chemin A)
 // ────────────────────────────────────────────────────────────────
 
-/** Appelle POST /custom/scan — orchestration complète Chemin A */
+/** Appelle POST /bayen-api/scan — orchestration complète Chemin A */
 export async function scanBarcode(params: ScanRequest): Promise<ScanResponse> {
-  const response = await fetch(`${CLIENT_API_URL}/custom/scan`, {
+  const response = await fetch(`${CLIENT_API_URL}/bayen-api/scan`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
@@ -190,7 +190,7 @@ export async function createContribution(data: {
 // Scans
 // ────────────────────────────────────────────────────────────────
 
-/** Enregistre un scan (via l'API Directus natif, si on ne passe pas par /custom/scan) */
+/** Enregistre un scan (via l'API Directus natif, si on ne passe pas par /bayen-api/scan) */
 export async function createScan(data: {
   product_id: string
   session_id: string

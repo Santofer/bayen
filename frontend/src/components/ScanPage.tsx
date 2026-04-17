@@ -20,7 +20,7 @@ export default function ScanPage() {
     setState('loading')
     setScannedBarcode(barcode)
 
-    // Redirection vers la page produit — le SSR fera l'appel /custom/scan
+    // Redirection vers la page produit — le SSR fera l'appel /bayen-api/scan
     window.location.href = `/produit/${barcode}`
   }, [])
 

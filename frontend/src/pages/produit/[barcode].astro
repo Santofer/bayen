@@ -246,11 +246,11 @@ try {
 }
 
 // 3. Auto-import dans Directus si trouvé sur OFF (fire-and-forget côté serveur)
-// L'endpoint /custom/scan gère l'import proprement (pas de problème UUID image_front)
+// L'endpoint /bayen-api/scan gère l'import proprement (pas de problème UUID image_front)
 let autoImported = false
 if (scanResult.found && scanResult.source === 'open_food_facts') {
   try {
-    const scanRes = await fetch(`${DIRECTUS_URL}/custom/scan`, {
+    const scanRes = await fetch(`${DIRECTUS_URL}/bayen-api/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

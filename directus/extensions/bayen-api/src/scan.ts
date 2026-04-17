@@ -12,6 +12,7 @@
  */
 
 import type { Router } from 'express'
+import { randomUUID } from 'node:crypto'
 import { computeScore, type RiskLevel, type ScoreResult } from './scoring.js'
 
 // User-Agent requis par l'API Open Food Facts
@@ -70,7 +71,7 @@ interface AdditiveRecord {
 // Mapping Open Food Facts → schéma Directus
 // ────────────────────────────────────────────────────────────────
 
-function mapOffProduct(offData: Record<string, unknown>, barcode: string): Partial<ProductRecord> {
+function mapOffProduct(offData: Record<string, unknown>, barcode: string): Record<string, unknown> {
   const product = offData.product as Record<string, unknown> | undefined
   if (!product) return {}
 
@@ -125,12 +126,18 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Parti
     ingredients_text: (product.ingredients_text_fr as string)
       || (product.ingredients_text as string)
       || undefined,
-    additives: additives.length > 0 ? additives : undefined,
-    allergens: allergens.length > 0 ? allergens : undefined,
+    // additives/allergens écrits via Knex après createOne (ItemsService bug
+    // sur les colonnes JSON in-process — voir post-create UPDATE plus bas)
+    _additives_raw: additives,
+    _allergens_raw: allergens,
     is_organic: typeof product.labels === 'string'
       ? product.labels.toLowerCase().includes('bio')
       : false,
-    origin_country: (product.countries as string) ?? undefined,
+    // OFF renvoie souvent une liste très longue ; on garde le 1er pays
+    // pour ne pas dépasser varchar(100).
+    origin_country: typeof product.countries === 'string'
+      ? product.countries.split(',')[0]?.trim().slice(0, 100)
+      : undefined,
     off_id: barcode,
     data_source: 'off',
     status: 'published',
@@ -308,24 +315,55 @@ export function registerScanEndpoint(router: Router, context: {
 
       // ──────────────────────────────────────────
       // 3. Importer le produit OFF si trouvé
+      //    INSERT direct via Knex (ItemsService a un cache de schéma obsolète
+      //    qui rejette des valeurs valides — bug connu, contournement par
+      //    bypass complet d'ItemsService pour la création produit OFF).
       // ──────────────────────────────────────────
       if (offProduct && offProduct.name_fr) {
-        const newId = await productsService.createOne(offProduct as Record<string, unknown>)
-        const imported = (await productsService.readByQuery({
-          filter: { id: { _eq: newId } },
-          limit: 1,
-        }))[0]
+        const knex = database as unknown as {
+          (table: string): {
+            insert(data: Record<string, unknown>, returning?: string | string[]): Promise<Array<{ id: string }>>
+            where(col: string, val: string): {
+              update(data: Record<string, unknown>): Promise<unknown>
+              first(): Promise<Record<string, unknown> | undefined>
+            }
+          }
+        }
+
+        // Extraire les arrays pour stringification JSON séparée
+        const rawAdditives = (offProduct as Record<string, unknown>)._additives_raw as string[] | undefined
+        const rawAllergens = (offProduct as Record<string, unknown>)._allergens_raw as string[] | undefined
+        const productPayload: Record<string, unknown> = { ...offProduct }
+        delete productPayload._additives_raw
+        delete productPayload._allergens_raw
+
+        // UUID + timestamps que Directus aurait générés via ItemsService
+        const newId = randomUUID()
+        productPayload.id = newId
+        productPayload.date_created = new Date()
+        if (rawAdditives && rawAdditives.length > 0) productPayload.additives = JSON.stringify(rawAdditives)
+        if (rawAllergens && rawAllergens.length > 0) productPayload.allergens = JSON.stringify(rawAllergens)
+
+        await knex('products').insert(productPayload)
+
+        // Re-lire pour scoring
+        const imported = (await knex('products').where('id', newId).first()) as ProductRecord | undefined
+        if (!imported) throw new Error('Failed to read imported product')
+
+        // Parser les colonnes JSON re-lues (Postgres renvoie déjà des arrays via JSON parse natif)
+        if (typeof imported.additives === 'string') imported.additives = JSON.parse(imported.additives) as string[]
+        if (typeof imported.allergens === 'string') imported.allergens = JSON.parse(imported.allergens) as string[]
 
         const score = await scoreProduct(imported, database as Record<string, (...args: unknown[]) => unknown>)
 
-        // Persister le score calculé
-        await productsService.updateOne(newId, {
+        // Update score via Knex aussi
+        await knex('products').where('id', newId).update({
           scan_score: score.total,
           score_label: score.label,
           nutriscore_grade: score.nutriscore_grade,
         })
 
-        // Log le scan
+        // Log le scan via ItemsService (déclenche les hooks bayen-hooks pour points utilisateur)
         await scansService.createOne({
           product_id: newId,
           user_id: user_id ?? null,
