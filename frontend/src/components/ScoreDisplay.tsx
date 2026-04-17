@@ -29,8 +29,10 @@ import type { ScoreResult, RiskLevel, NutriScoreGrade, NovaGroup, AdditiveResult
 
 interface ScoreDisplayProps {
   score: ScoreResult
-  /** Score de confiance des données (0–1). Badge "Non vérifié" si < 0.8 */
+  /** Score de confiance des données (0–1) */
   confidenceScore?: number | null
+  /** Origine de la donnée ('off', 'community', 'ocr_tesseract', 'manual') */
+  dataSource?: string | null
   /** Classes CSS additionnelles */
   className?: string
 }
@@ -330,11 +332,23 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
 export default function ScoreDisplay({
   score,
   confidenceScore,
+  dataSource,
   className,
 }: ScoreDisplayProps) {
   const { t } = useLocale()
   const color = SCORE_COLORS[score.label] ?? SCORE_COLORS.mauvais
-  const isUnverified = confidenceScore != null && confidenceScore < 0.8
+
+  // Badge "Vérifié" : données confirmées 3× par la communauté (confidence ≥ 0.8)
+  const isVerified = confidenceScore != null && confidenceScore >= 0.8
+  // Badge "Non vérifié" : uniquement pour les contributions manuelles/OCR
+  // non encore confirmées. Pas affiché pour les imports OFF qui sont la
+  // source de référence (sinon le badge apparaît partout → bruit).
+  const isCommunityUnverified =
+    !isVerified &&
+    confidenceScore != null &&
+    confidenceScore < 0.8 &&
+    dataSource != null &&
+    ['community', 'ocr_tesseract', 'manual'].includes(dataSource)
 
   // Traduire le label du score
   const scoreLabelKeys: Record<string, 'score.excellent' | 'score.bon' | 'score.mediocre' | 'score.mauvais'> = {
@@ -354,7 +368,12 @@ export default function ScoreDisplay({
             {t('score.incomplete')}
           </Badge>
         )}
-        {isUnverified && (
+        {isVerified && (
+          <Badge variant="outline" className="text-green-700 border-green-300 bg-green-50">
+            {t('score.verified')}
+          </Badge>
+        )}
+        {isCommunityUnverified && (
           <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
             {t('score.unverified')}
           </Badge>

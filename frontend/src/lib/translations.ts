@@ -21,6 +21,7 @@ export const translations = {
   'score.mauvais':    { fr: 'Mauvais',          ary: 'خايب' },
   'score.incomplete': { fr: 'Score incomplet',  ary: 'النتيجة ناقصة' },
   'score.unverified': { fr: 'Non vérifié',      ary: 'ما مأكدش' },
+  'score.verified':   { fr: 'Vérifié',          ary: 'مؤكد' },
 
   // ── Nutri-Score ─────────────────────────────────────────────
   'nutriscore.title': { fr: 'Nutri-Score',                        ary: 'نوتري سكور' },

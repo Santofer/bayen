@@ -482,6 +482,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           <ScoreDisplay
             score={score as any}
             confidenceScore={product.confidence_score as number | null | undefined}
+            dataSource={product.data_source as string | null | undefined}
             client:load
           />
         </div>
