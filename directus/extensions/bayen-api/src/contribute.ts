@@ -15,6 +15,7 @@
 
 import type { Router, Request } from 'express'
 import { randomUUID } from 'node:crypto'
+import { notifyNewProduct } from './notify.js'
 
 interface ContributeRequest {
   barcode?: string
@@ -229,6 +230,15 @@ export function registerContributeEndpoint(router: Router, context: {
 
       // INSERT via Knex (bypass ItemsService cache obsolète)
       await knex('products').insert(payload)
+
+      // Notification admin (in-app + webhook optionnel)
+      await notifyNewProduct(context.database, {
+        id: newId,
+        barcode,
+        name_fr,
+        brand: payload.brand as string,
+        data_source: 'community',
+      })
 
       res.json({
         ok: true,

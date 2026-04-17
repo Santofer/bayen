@@ -14,6 +14,7 @@
 import type { Router } from 'express'
 import { randomUUID } from 'node:crypto'
 import { computeScore, type RiskLevel, type ScoreResult } from './scoring.js'
+import { notifyNewProduct } from './notify.js'
 
 // User-Agent requis par l'API Open Food Facts
 const OFF_USER_AGENT = process.env.OFF_USER_AGENT ?? 'Bayen/1.0 (contact@n0.ma)'
@@ -89,8 +90,10 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
   const allergenTags = (product.allergens_tags as string[] | undefined) ?? []
   const allergens = allergenTags.map((tag: string) => tag.replace(/^en:/, ''))
 
-  // Grade Nutri-Score
+  // Grade Nutri-Score — colonne varchar(1), accepte uniquement A-E
+  // OFF renvoie parfois "unknown", "not-applicable", etc. → on filtre
   const nutriscoreGrade = typeof product.nutriscore_grade === 'string'
+    && /^[a-eA-E]$/.test(product.nutriscore_grade)
     ? product.nutriscore_grade.toUpperCase()
     : undefined
 
@@ -368,6 +371,15 @@ export function registerScanEndpoint(router: Router, context: {
           product_id: newId,
           user_id: user_id ?? null,
           session_id,
+        })
+
+        // Notification admin (in-app + webhook optionnel)
+        await notifyNewProduct(context.database as Record<string, (...args: unknown[]) => unknown>, {
+          id: newId,
+          barcode,
+          name_fr: imported.name_fr,
+          brand: imported.brand,
+          data_source: 'off',
         })
 
         res.json({
