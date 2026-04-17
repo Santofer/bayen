@@ -321,6 +321,12 @@ const currentPath = Astro.url.pathname
       }
     </script>
 
+    <!-- Error reporter global (fire-and-forget vers /bayen-api/log-error) -->
+    <script>
+      import { installGlobalErrorReporter } from '@/lib/report-error'
+      installGlobalErrorReporter()
+    </script>
+
     <style is:global>
       @keyframes scan {
         0%, 100% { top: 10%; }
