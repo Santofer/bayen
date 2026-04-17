@@ -265,12 +265,48 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
       } else {
         // Mode création
         const token = await getAccessToken()
+
+        // ─── Mode ANONYME (sans login) ─────────────────────────────
+        // Création basique via /bayen-api/contribute. Pas d'upload photo,
+        // pas d'OCR (réservé aux utilisateurs connectés). Le produit est
+        // immédiatement publié, la base s'enrichit sans friction.
         if (!token) {
-          setError('Session expirée. Veuillez vous reconnecter.')
-          setSubmitting(false)
+          const anonPayload: Record<string, unknown> = {
+            barcode,
+            name_fr: productInfo.name_fr.trim(),
+          }
+          if (productInfo.brand.trim()) anonPayload.brand = productInfo.brand.trim()
+          if (productInfo.ingredients_text?.trim()) anonPayload.ingredients_text = productInfo.ingredients_text.trim()
+          if (productInfo.energy_kcal != null) anonPayload.energy_kcal = productInfo.energy_kcal
+          if (productInfo.fat_total != null) anonPayload.fat_total = productInfo.fat_total
+          if (productInfo.fat_saturated != null) anonPayload.fat_saturated = productInfo.fat_saturated
+          if (productInfo.carbs_total != null) anonPayload.carbs_total = productInfo.carbs_total
+          if (productInfo.sugars != null) anonPayload.sugars = productInfo.sugars
+          if (productInfo.fiber != null) anonPayload.fiber = productInfo.fiber
+          if (productInfo.proteins != null) anonPayload.proteins = productInfo.proteins
+          if (productInfo.salt != null) anonPayload.salt = productInfo.salt
+
+          const anonRes = await fetch(`${DIRECTUS_URL}/bayen-api/contribute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(anonPayload),
+          })
+          const anonData = await anonRes.json().catch(() => null) as { error?: string; existed?: boolean } | null
+
+          if (!anonRes.ok) {
+            if (anonRes.status === 429) throw new Error('Trop de contributions. Patiente quelques minutes.')
+            throw new Error(anonData?.error ?? `Erreur ${anonRes.status}`)
+          }
+
+          // Si l'utilisateur avait sélectionné des photos, on lui rappelle gentiment
+          if (photos.front || photos.nutrition || photos.ingredients) {
+            setError('💡 Crée un compte pour ajouter les photos et débloquer l\'OCR auto.')
+          }
+          setSubmitted(true)
           return
         }
 
+        // ─── Mode CONNECTÉ (avec photos + OCR + gamification) ──────
         // Données de base du produit
         const productData: Record<string, unknown> = {
           barcode,
