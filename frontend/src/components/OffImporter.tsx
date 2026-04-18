@@ -437,8 +437,8 @@ export default function OffImporter() {
           </div>
 
           {state === 'exists' && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm text-amber-800">Ce produit existe déjà dans Bayen.</p>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4">
+              <p className="text-sm text-amber-800 dark:text-amber-200">Ce produit existe déjà dans Bayen.</p>
               <a href={`/produit/${barcode}`} className="text-sm text-primary hover:underline mt-1 inline-block">Voir la fiche →</a>
             </div>
           )}
@@ -487,8 +487,8 @@ export default function OffImporter() {
           )}
 
           {state === 'done' && product && (
-            <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
-              <p className="text-sm text-green-800 font-medium flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> {product.name} importé avec succès !</p>
+            <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30 p-4 text-center">
+              <p className="text-sm text-green-800 dark:text-green-200 font-medium flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> {product.name} importé avec succès !</p>
               <a href={`/produit/${product.barcode}`} className="text-sm text-primary hover:underline mt-2 inline-block">Voir la fiche →</a>
               <div className="mt-3">
                 <Button variant="outline" size="sm" onClick={() => { setState('idle'); setBarcode(''); setProduct(null) }}>
@@ -499,8 +499,8 @@ export default function OffImporter() {
           )}
 
           {error && state === 'error' && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
+              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
               <Button variant="outline" size="sm" className="mt-2" onClick={() => setState('idle')}>Réessayer</Button>
             </div>
           )}

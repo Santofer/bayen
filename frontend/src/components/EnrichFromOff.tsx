@@ -295,14 +295,14 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
   }
 
   return (
-    <div className="rounded-xl border border-[#476a32]/20 bg-[#f0f2d2]/50 p-4">
+    <div className="rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4">
       {state === 'idle' && (
         <>
           <div className="flex items-start gap-3">
-            <RefreshCw size={18} className="text-[#476a32] flex-shrink-0" />
+            <RefreshCw size={18} className="text-primary flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-[#476a32]">Données incomplètes</p>
-              <p className="text-xs text-[#476a32]/70 mt-0.5">
+              <p className="text-sm font-medium text-foreground">Données incomplètes</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {[
                   !existing.hasNutrition && 'Valeurs nutritionnelles',
                   !existing.hasIngredients && 'Ingrédients',
@@ -320,16 +320,16 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       )}
 
       {state === 'loading' && (
-        <div className="flex items-center gap-3 text-sm text-[#476a32]">
-          <div className="w-4 h-4 border-2 border-[#476a32] border-t-transparent rounded-full animate-spin" />
+        <div className="flex items-center gap-3 text-sm text-foreground">
+          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           Recherche sur Open Food Facts...
         </div>
       )}
 
       {state === 'done' && (
         <div className="text-center">
-          <p className="text-sm font-medium text-green-800 flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> Produit enrichi !</p>
-          <p className="text-xs text-green-700 mt-1">{enriched.join(' · ')}</p>
+          <p className="text-sm font-medium text-green-800 dark:text-green-300 flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> Produit enrichi !</p>
+          <p className="text-xs text-green-700 dark:text-green-400 mt-1">{enriched.join(' · ')}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={() => window.location.reload()}>
             Recharger la page
           </Button>
@@ -337,12 +337,12 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       )}
 
       {state === 'not_found' && (
-        <p className="text-sm text-[#476a32]">Ce produit n'a pas été trouvé sur Open Food Facts, ou n'a pas de données supplémentaires.</p>
+        <p className="text-sm text-muted-foreground">Ce produit n'a pas été trouvé sur Open Food Facts, ou n'a pas de données supplémentaires.</p>
       )}
 
       {state === 'error' && (
         <div>
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={() => setState('idle')}>Réessayer</Button>
         </div>
       )}

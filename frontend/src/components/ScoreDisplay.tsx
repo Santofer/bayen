@@ -364,17 +364,17 @@ export default function ScoreDisplay({
       {/* Badges d'avertissement */}
       <div className="flex flex-wrap gap-2 justify-center">
         {score.incomplete && (
-          <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50">
+          <Badge variant="outline" className="text-orange-600 dark:text-orange-300 border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-950/40">
             {t('score.incomplete')}
           </Badge>
         )}
         {isVerified && (
-          <Badge variant="outline" className="text-green-700 border-green-300 bg-green-50">
+          <Badge variant="outline" className="text-green-700 dark:text-green-300 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/40">
             {t('score.verified')}
           </Badge>
         )}
         {isCommunityUnverified && (
-          <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+          <Badge variant="outline" className="text-amber-600 dark:text-amber-300 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40">
             {t('score.unverified')}
           </Badge>
         )}

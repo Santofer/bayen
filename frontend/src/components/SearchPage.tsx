@@ -502,13 +502,13 @@ export default function SearchPage() {
       {/* Résultats Open Food Facts (quand Directus est vide) */}
       {!loading && products.length === 0 && offResults.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2.5">
-            <svg className="w-4 h-4 text-amber-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 px-4 py-2.5">
+            <svg className="w-4 h-4 text-amber-600 dark:text-amber-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 16v-4" />
               <path d="M12 8h.01" />
             </svg>
-            <p className="text-sm text-amber-800">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
               {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {t('search.offResults')}
             </p>
           </div>

@@ -448,8 +448,8 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
   if (submitted) {
     return (
       <div className="rounded-xl border bg-card p-8 text-center">
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#476a32" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-primary" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
@@ -705,8 +705,8 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           )}
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
+              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
             </div>
           )}
 
@@ -748,15 +748,15 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               {isEditMode && frontPhotoUploaded && (
                 <>
                   <span className="text-muted-foreground">Photo</span>
-                  <span className="text-green-700">Nouvelle photo uploadée</span>
+                  <span className="text-green-700 dark:text-green-400">Nouvelle photo uploadée</span>
                 </>
               )}
             </div>
           </div>
 
           {!isEditMode && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs text-amber-800">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4">
+              <p className="text-xs text-amber-800 dark:text-amber-200">
                 Les photos seront analysées par notre IA (OCR + Mistral) pour extraire les données nutritionnelles
                 et la liste des ingrédients. Un modérateur vérifiera les données avant publication.
               </p>
@@ -764,16 +764,16 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           )}
 
           {isEditMode && (
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <p className="text-xs text-blue-800">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4">
+              <p className="text-xs text-blue-800 dark:text-blue-200">
                 Les modifications seront appliquées immédiatement au produit existant.
               </p>
             </div>
           )}
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
+              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
             </div>
           )}
 

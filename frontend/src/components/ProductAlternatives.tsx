@@ -33,13 +33,13 @@ function scoreColor(score: number | null): string {
   return '#ef4444'
 }
 
-/** Couleur de fond légère du score */
+/** Couleur de fond légère du score (adaptée dark) */
 function scoreBg(score: number | null): string {
-  if (score == null) return 'bg-gray-100'
-  if (score >= 75) return 'bg-green-50'
-  if (score >= 50) return 'bg-lime-50'
-  if (score >= 25) return 'bg-orange-50'
-  return 'bg-red-50'
+  if (score == null) return 'bg-gray-100 dark:bg-gray-800/50'
+  if (score >= 75) return 'bg-green-50 dark:bg-green-950/40'
+  if (score >= 50) return 'bg-lime-50 dark:bg-lime-950/40'
+  if (score >= 25) return 'bg-orange-50 dark:bg-orange-950/40'
+  return 'bg-red-50 dark:bg-red-950/40'
 }
 
 const CDN_URL = (typeof window !== 'undefined'
@@ -62,15 +62,15 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
       {/* Meilleur de sa catégorie */}
       {isBestInCategory && (
         <div className={cn(
-          'flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200',
+          'flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
           rtl && 'flex-row-reverse'
         )}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100">
-            <Trophy size={20} className="text-amber-600" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/60">
+            <Trophy size={20} className="text-amber-600 dark:text-amber-300" />
           </div>
           <div>
-            <p className="font-semibold text-amber-900">{t('alt.bestInCategory')}</p>
-            <p className="text-sm text-amber-700">
+            <p className="font-semibold text-amber-900 dark:text-amber-200">{t('alt.bestInCategory')}</p>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
               {rtl ? 'هاد المنتوج عندو أحسن نتيجة فالفئة ديالو' : 'Ce produit a le meilleur score de sa catégorie'}
             </p>
           </div>
