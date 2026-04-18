@@ -72,6 +72,39 @@ interface AdditiveRecord {
 // Mapping Open Food Facts → schéma Directus
 // ────────────────────────────────────────────────────────────────
 
+// Mapping categories_tags OFF → ID catégorie Bayen (12 catégories en DB).
+// Ordre important : les regex sont évalués dans l'ordre, premier match gagne.
+const OFF_CATEGORY_RULES: Array<{ id: number; patterns: RegExp[] }> = [
+  { id: 6, patterns: [/waters?$/, /mineral-waters?$/, /juices?$/, /fruit-juices?$/, /vegetable-juices?$/] }, // eaux-jus
+  { id: 5, patterns: [/sodas?$/, /sugary-drinks$/, /colas?$/, /energy-drinks$/, /carbonated/, /iced-teas/] }, // boissons-sucrees
+  { id: 3, patterns: [/milks?$/, /yoghurts?$/, /yogurts?$/, /cheeses?$/, /butters?$/, /dairy/, /creams?$/] },  // produits-laitiers
+  { id: 4, patterns: [/meats?$/, /sausages?$/, /charcuterie/, /ham$/, /bacon$/, /salami/, /pork$/, /beef$/, /chicken$/] }, // charcuterie-viandes
+  { id: 2, patterns: [/breakfast-cereals$/, /mueslis?$/, /granolas?$/, /cereals?$/, /oats?$/, /cornflakes/,
+                      /spreads?$/, /chocolate-spreads?$/, /pates-a-tartiner/, /hazelnut-spreads?/] },         // cereales-petit-dejeuner (inclut pâtes à tartiner)
+  { id: 1, patterns: [/biscuits?$/, /cookies$/, /wafers$/, /shortbread/, /madeleines?$/] },                   // biscuits
+  { id: 10, patterns: [/chips$/, /crisps$/, /snacks?$/, /crackers$/, /pretzels?$/, /popcorn$/, /salty-snacks/] }, // snacks-chips
+  { id: 11, patterns: [/breads?$/, /pastries$/, /viennoiseries?$/, /croissants?$/, /baguettes?$/, /bakery-products/] }, // pain-viennoiseries
+  { id: 12, patterns: [/prepared-meals$/, /ready-meals$/, /frozen-meals$/, /microwave-meals/, /pizzas?$/] }, // plats-prepares
+  { id: 7, patterns: [/canned/, /preserves?$/, /tinned/, /tomato-pastes?$/, /pickled/, /jams?$/, /marmalades?$/] }, // conserves
+  { id: 9, patterns: [/vegetable-oils?$/, /olive-oils?$/, /sunflower-oils?$/, /fats$/, /margarines?$/] },     // huiles-graisses
+  { id: 8, patterns: [/spices$/, /condiments$/, /sauces$/, /vinegars?$/, /salts?$/, /peppers$/, /herbs$/,
+                      /sugars?$/, /sweeteners$/, /honeys?$/] },                                               // epices-condiments
+]
+
+function mapOffToBayenCategory(offTags: string[]): number | undefined {
+  // OFF renvoie `en:sweet-snacks` — on cherche le match le plus spécifique
+  // (tag le plus précis, qui apparaît généralement en dernier dans la liste)
+  for (let i = offTags.length - 1; i >= 0; i--) {
+    const tag = offTags[i]
+    if (typeof tag !== 'string') continue
+    const clean = tag.replace(/^[a-z]{2}:/, '').toLowerCase()
+    for (const rule of OFF_CATEGORY_RULES) {
+      if (rule.patterns.some((p) => p.test(clean))) return rule.id
+    }
+  }
+  return undefined
+}
+
 function mapOffProduct(offData: Record<string, unknown>, barcode: string): Record<string, unknown> {
   const product = offData.product as Record<string, unknown> | undefined
   if (!product) return {}
@@ -89,6 +122,10 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
   // Extraction des allergènes
   const allergenTags = (product.allergens_tags as string[] | undefined) ?? []
   const allergens = allergenTags.map((tag: string) => tag.replace(/^en:/, ''))
+
+  // Catégorie Bayen : deviner depuis les categories_tags OFF
+  const categoryTags = (product.categories_tags as string[] | undefined) ?? []
+  const categoryId = mapOffToBayenCategory(categoryTags)
 
   // Grade Nutri-Score — colonne varchar(1), accepte uniquement A-E
   // OFF renvoie parfois "unknown", "not-applicable", etc. → on filtre
@@ -146,6 +183,7 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
     status: 'published',
     confidence_score: 0.7, // Données OFF non vérifiées localement
     scan_count: 1,
+    category_id: categoryId,
   }
 }
 

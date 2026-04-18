@@ -39,6 +39,27 @@ try {
   }
 } catch {}
 
+// Prefetch des images OFF manquantes (idem page d'accueil)
+await Promise.all(
+  products
+    .filter((p) => !p.image_front && p.barcode)
+    .map(async (product) => {
+      try {
+        const offRes = await fetch(
+          `https://world.openfoodfacts.org/api/v2/product/${product.barcode}.json?fields=image_front_small_url,image_front_url`,
+          { signal: AbortSignal.timeout(2500) }
+        )
+        if (offRes.ok) {
+          const offData = await offRes.json()
+          if (offData.status === 1) {
+            const url = offData.product?.image_front_small_url || offData.product?.image_front_url
+            if (url) product.image_front = url
+          }
+        }
+      } catch { /* non bloquant */ }
+    })
+)
+
 const categoryName = (category?.name_fr as string) ?? (category?.name as string) ?? slug ?? ''
 const pageTitle = category
   ? `${categoryName} — Bayen`
@@ -46,7 +67,7 @@ const pageTitle = category
 ---
 
 <Layout title={pageTitle}>
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-8">
 
     {/* Catégorie non trouvée */}
     {!category && (
@@ -90,7 +111,7 @@ const pageTitle = category
         {products.length > 0 ? (
           <div class="grid gap-3">
             {products.map((product) => (
-              <ProductCard product={product as any} client:load />
+              <ProductCard product={product as any} />
             ))}
           </div>
         ) : (

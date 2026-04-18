@@ -3,64 +3,129 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
-import { getLocale, t } from '@/lib/i18n'
+import { getLocale } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 interface Category {
-  id: string
+  id: number
   slug: string
-  name_fr?: string
-  name?: string
-  product_count?: number
+  name_fr: string
+  name_ar?: string | null
+  icon?: string | null
+  product_count: number
 }
 
 let categories: Category[] = []
 try {
-  const res = await fetch(
-    `${DIRECTUS_URL}/items/categories?sort=name_fr&limit=-1&fields=id,slug,name_fr,name,product_count`
-  )
-  if (res.ok) {
-    const data = await res.json()
-    categories = data.data ?? []
-  }
-} catch {}
+  // Récupérer catégories + comptage en parallèle
+  const [catRes, countRes] = await Promise.all([
+    fetch(
+      `${DIRECTUS_URL}/items/categories?sort=name_fr&limit=-1&fields=id,slug,name_fr,name_ar,icon`,
+      { signal: AbortSignal.timeout(4000) }
+    ),
+    fetch(
+      `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&groupBy[]=category_id&aggregate[count]=id&limit=-1`,
+      { signal: AbortSignal.timeout(4000) }
+    ),
+  ])
 
-const pageTitle = `Catégories — Bayen`
+  const rawCats: Omit<Category, 'product_count'>[] = catRes.ok
+    ? (await catRes.json()).data ?? []
+    : []
+
+  // Map catégorie → count
+  const countMap = new Map<number, number>()
+  if (countRes.ok) {
+    const countData = await countRes.json()
+    for (const row of countData.data ?? []) {
+      const cid = typeof row.category_id === 'object' ? row.category_id?.id : row.category_id
+      const cnt = parseInt(row.count?.id ?? '0', 10)
+      if (cid != null && !isNaN(cnt)) countMap.set(Number(cid), cnt)
+    }
+  }
+
+  categories = rawCats.map((c) => ({
+    ...c,
+    product_count: countMap.get(c.id) ?? 0,
+  }))
+
+  // Trier : catégories avec produits en premier, puis par nom
+  categories.sort((a, b) => {
+    if ((a.product_count > 0) !== (b.product_count > 0)) {
+      return a.product_count > 0 ? -1 : 1
+    }
+    return a.name_fr.localeCompare(b.name_fr, 'fr')
+  })
+} catch {
+  // Page s'affiche même si l'API est down
+}
+
+// Mapping slug → emoji pour les catégories (fallback si icône absente)
+const CATEGORY_EMOJIS: Record<string, string> = {
+  biscuits: '🍪',
+  'cereales-petit-dejeuner': '🥣',
+  'produits-laitiers': '🥛',
+  'charcuterie-viandes': '🥩',
+  'boissons-sucrees': '🥤',
+  'eaux-jus': '💧',
+  conserves: '🥫',
+  'epices-condiments': '🌶️',
+  'huiles-graisses': '🫒',
+  'snacks-chips': '🍿',
+  'pain-viennoiseries': '🥐',
+  'plats-prepares': '🍱',
+}
+
+const pageTitle = locale === 'ary' ? 'الفئات — باين' : 'Catégories — Bayen'
+const pageHeading = locale === 'ary' ? 'الفئات' : 'Catégories'
+const pageSubtitle = locale === 'ary'
+  ? `${categories.length} فئة`
+  : `${categories.length} catégorie${categories.length !== 1 ? 's' : ''}`
+const emptyMsg = locale === 'ary'
+  ? 'حتا فئة ما متوفرة دابا.'
+  : 'Aucune catégorie disponible pour le moment.'
+const productsSuffix = (count: number) => {
+  if (locale === 'ary') return `${count} منتج`
+  return `${count} produit${count !== 1 ? 's' : ''}`
+}
 ---
 
-<Layout title={pageTitle}>
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <h1 class="text-2xl font-bold text-foreground mb-1">Catégories</h1>
-    <p class="text-sm text-muted-foreground mb-6">
-      {categories.length} catégorie{categories.length !== 1 ? 's' : ''}
-    </p>
+<Layout title={pageTitle} path="/categories">
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-8">
+    <h1 class="text-2xl font-bold text-foreground mb-1">{pageHeading}</h1>
+    <p class="text-sm text-muted-foreground mb-6">{pageSubtitle}</p>
 
     {categories.length > 0 ? (
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {categories.map((cat) => (
-          <a
-            href={`/categories/${cat.slug}`}
-            class="group rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-primary/20"
-          >
-            <h2 class="font-medium text-foreground group-hover:text-primary transition-colors">
-              {cat.name_fr ?? cat.name ?? cat.slug}
-            </h2>
-            {cat.product_count != null && (
-              <p class="text-xs text-muted-foreground mt-1">
-                {cat.product_count} produit{cat.product_count !== 1 ? 's' : ''}
-              </p>
-            )}
-          </a>
-        ))}
+        {categories.map((cat) => {
+          const emoji = CATEGORY_EMOJIS[cat.slug] ?? '📦'
+          const name = locale === 'ary' && cat.name_ar ? cat.name_ar : cat.name_fr
+          return (
+            <a
+              href={`/categories/${cat.slug}`}
+              class={`group rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-primary/20 ${cat.product_count === 0 ? 'opacity-60' : ''}`}
+            >
+              <div class="flex items-center gap-3">
+                <span class="text-2xl leading-none flex-shrink-0" aria-hidden="true">{emoji}</span>
+                <div class="min-w-0 flex-1">
+                  <h2 class="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                    {name}
+                  </h2>
+                  <p class="text-xs text-muted-foreground mt-0.5">
+                    {productsSuffix(cat.product_count)}
+                  </p>
+                </div>
+              </div>
+            </a>
+          )
+        })}
       </div>
     ) : (
       <div class="rounded-xl border bg-card p-8 text-center">
-        <p class="text-sm text-muted-foreground">
-          Aucune catégorie disponible pour le moment.
-        </p>
+        <p class="text-sm text-muted-foreground">{emptyMsg}</p>
       </div>
     )}
   </main>
