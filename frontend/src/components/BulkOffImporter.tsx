@@ -220,11 +220,13 @@ export default function BulkOffImporter() {
     }
   }
 
-  /** Importer un seul produit OFF dans Directus */
-  async function importSingleProduct(
-    p: OffSearchProduct,
-    token: string
-  ): Promise<boolean> {
+  /** Importer un seul produit OFF dans Directus
+   *  Récupère un token frais à chaque appel pour éviter TOKEN_EXPIRED
+   *  (le JWT Directus expire ~15 min, un import massif dure plus que ça).
+   */
+  async function importSingleProduct(p: OffSearchProduct): Promise<boolean> {
+    const token = await getAccessToken()
+    if (!token) throw new Error('Session expirée — merci de te reconnecter')
     const name = p.product_name_fr || p.product_name || 'Inconnu'
     const brand = (p.brands || 'Inconnu').split(',')[0].trim()
     const nutriments = p.nutriments ?? ({} as OffNutriments)
@@ -378,11 +380,12 @@ export default function BulkOffImporter() {
     while (!stopRef.current) {
       addLog('skipped', `--- Page ${page} ---`)
 
-      // Retry jusqu'à 3 fois : le cold-start du Worker Cloudflare Pages
-      // fait échouer le premier appel (502) mais les suivants passent.
+      // Le proxy /bayen-api/off-search gère déjà cache (15min), throttle 6s,
+      // et retry 503 avec backoff 2s/4s. Un seul retry client avec 15s de
+      // pause — suffisant si OFF est sévèrement rate-limité.
       let offData: OffSearchResponse | null = null
       let lastError = ''
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
         if (stopRef.current) break
         try {
           const res = await fetch(buildOffUrl(page))
@@ -395,14 +398,14 @@ export default function BulkOffImporter() {
         } catch (err) {
           lastError = err instanceof Error ? err.message : 'inconnu'
         }
-        if (attempt < 3) {
-          addLog('skipped', `Retry page ${page} dans 2s... (${lastError})`)
-          await new Promise((r) => setTimeout(r, 2000))
+        if (attempt < 2) {
+          addLog('skipped', `Retry page ${page} dans 15s... (${lastError})`)
+          await new Promise((r) => setTimeout(r, 15000))
         }
       }
 
       if (!offData) {
-        addLog('error', `Erreur OFF page ${page} après 3 tentatives : ${lastError}`)
+        addLog('error', `Erreur OFF page ${page} après retries : ${lastError}`)
         break
       }
 
@@ -447,9 +450,9 @@ export default function BulkOffImporter() {
           continue
         }
 
-        // Importer
+        // Importer — le token frais est résolu dans importSingleProduct
         try {
-          await importSingleProduct(product, token)
+          await importSingleProduct(product)
           localStats.imported += 1
           addLog('imported', `Importe: ${name} (${code})`)
         } catch (err) {
