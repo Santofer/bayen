@@ -148,6 +148,40 @@ function cleanTraces(tracesTags: string[]): string[] {
 // Composant principal
 // ────────────────────────────────────────────────────────────────
 
+// Clé localStorage pour la reprise d'import interrompu.
+// Contient la dernière page COMPLÉTÉE avec succès et les stats cumulées.
+const RESUME_KEY = 'bayen_bulkoff_resume'
+
+interface ResumeState {
+  nextPage: number // page à laquelle reprendre
+  stats: ImportStats
+  updatedAt: number
+}
+
+function loadResume(): ResumeState | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(RESUME_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as ResumeState
+    // Expiration : 24 h (au-delà, on repart de zéro)
+    if (Date.now() - parsed.updatedAt > 24 * 3600 * 1000) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function saveResume(state: ResumeState): void {
+  try {
+    localStorage.setItem(RESUME_KEY, JSON.stringify(state))
+  } catch { /* quota / privé */ }
+}
+
+function clearResume(): void {
+  try { localStorage.removeItem(RESUME_KEY) } catch { /* idem */ }
+}
+
 export default function BulkOffImporter() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [isRunning, setIsRunning] = useState(false)
@@ -162,9 +196,15 @@ export default function BulkOffImporter() {
     errors: 0,
   })
   const [logs, setLogs] = useState<LogEntry[]>([])
+  const [resume, setResume] = useState<ResumeState | null>(null)
 
   const stopRef = useRef(false)
   const logEndRef = useRef<HTMLDivElement>(null)
+
+  // Détecter un import interrompu au montage
+  useEffect(() => {
+    setResume(loadResume())
+  }, [])
 
   // Auto-scroll le log vers le bas
   useEffect(() => {
@@ -341,13 +381,18 @@ export default function BulkOffImporter() {
     return true
   }
 
-  /** Lancer l'import massif */
-  async function startImport() {
+  /** Lancer l'import massif
+   *  @param fromResume si true, reprend depuis l'état sauvegardé en localStorage
+   */
+  async function startImport(fromResume = false) {
     stopRef.current = false
     setIsRunning(true)
     setIsDone(false)
     setLogs([])
-    setStats({
+
+    // Stats initiales : soit fraîches, soit cumulatives depuis la reprise
+    const resumeState = fromResume ? loadResume() : null
+    const initialStats: ImportStats = resumeState?.stats ?? {
       pagesScanned: 0,
       pageCount: 0,
       foundOnOff: 0,
@@ -355,7 +400,13 @@ export default function BulkOffImporter() {
       alreadyInBayen: 0,
       imported: 0,
       errors: 0,
-    })
+    }
+    setStats(initialStats)
+
+    if (!fromResume) {
+      clearResume()
+      setResume(null)
+    }
 
     const token = await getAccessToken()
     if (!token) {
@@ -364,17 +415,12 @@ export default function BulkOffImporter() {
       return
     }
 
-    let page = 1
-    let totalPageCount = 0
-    const localStats: ImportStats = {
-      pagesScanned: 0,
-      pageCount: 0,
-      foundOnOff: 0,
-      filtered: 0,
-      alreadyInBayen: 0,
-      imported: 0,
-      errors: 0,
+    let page = resumeState?.nextPage ?? 1
+    if (resumeState) {
+      addLog('skipped', `Reprise à la page ${page} (${initialStats.imported} produits déjà importés)`)
     }
+    let totalPageCount = initialStats.pageCount
+    const localStats: ImportStats = { ...initialStats }
 
     // Parcourir les pages OFF
     while (!stopRef.current) {
@@ -473,6 +519,15 @@ export default function BulkOffImporter() {
 
       setStats({ ...localStats })
 
+      // Sauvegarder l'état pour reprise éventuelle (page suivante)
+      const resumeSnapshot: ResumeState = {
+        nextPage: page + 1,
+        stats: { ...localStats },
+        updatedAt: Date.now(),
+      }
+      saveResume(resumeSnapshot)
+      setResume(resumeSnapshot)
+
       // Derniere page ou arret demande
       if (page >= totalPageCount || offData.products.length === 0) {
         break
@@ -483,12 +538,18 @@ export default function BulkOffImporter() {
 
     setIsRunning(false)
     setIsDone(true)
-    addLog(
-      stopRef.current ? 'skipped' : 'imported',
-      stopRef.current
-        ? '--- Import arrete par l\'utilisateur ---'
-        : '--- Import termine ---'
-    )
+
+    // Arrêt naturel (toutes les pages ont été traitées) → clear resume
+    const completedAll = !stopRef.current && totalPageCount > 0 && page >= totalPageCount
+    if (completedAll) {
+      clearResume()
+      setResume(null)
+      addLog('imported', '--- Import termine ---')
+    } else if (stopRef.current) {
+      addLog('skipped', '--- Import arrete par l\'utilisateur — reprise possible ---')
+    } else {
+      addLog('skipped', '--- Import interrompu — reprise possible ---')
+    }
   }
 
   /** Arreter l'import */
@@ -537,26 +598,61 @@ export default function BulkOffImporter() {
         </p>
       </div>
 
+      {/* Bandeau de reprise si import interrompu */}
+      {resume && !isRunning && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 space-y-2">
+          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+            Import interrompu détecté
+          </p>
+          <p className="text-xs text-amber-800 dark:text-amber-300">
+            Dernier arrêt : page <strong>{resume.nextPage - 1}</strong> terminée ·
+            {' '}<strong>{resume.stats.imported}</strong> produits importés ·
+            {' '}<strong>{resume.stats.errors}</strong> erreurs ·
+            {' '}il y a {Math.round((Date.now() - resume.updatedAt) / 60000)} min
+          </p>
+        </div>
+      )}
+
       {/* Boutons d'action */}
-      <div className="flex gap-3">
-        <Button
-          onClick={startImport}
-          disabled={isRunning}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          size="lg"
-        >
-          {isRunning ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Import en cours...
-            </>
-          ) : (
-            <>
+      <div className="flex flex-wrap gap-3">
+        {resume && !isRunning ? (
+          <>
+            <Button
+              onClick={() => startImport(true)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              size="lg"
+            >
               <Download className="mr-2 h-4 w-4" />
-              Lancer l&apos;import
-            </>
-          )}
-        </Button>
+              Reprendre à la page {resume.nextPage}
+            </Button>
+            <Button
+              onClick={() => startImport(false)}
+              variant="outline"
+              size="lg"
+            >
+              Recommencer depuis le début
+            </Button>
+          </>
+        ) : (
+          <Button
+            onClick={() => startImport(false)}
+            disabled={isRunning}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            size="lg"
+          >
+            {isRunning ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Import en cours...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Lancer l&apos;import
+              </>
+            )}
+          </Button>
+        )}
 
         {isRunning && (
           <Button
