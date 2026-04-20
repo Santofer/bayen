@@ -89,31 +89,10 @@ interface ImportStats {
 // Constantes
 // ────────────────────────────────────────────────────────────────
 
-const OFF_SEARCH_URL = 'https://world.openfoodfacts.org/cgi/search.pl'
-const OFF_FIELDS = [
-  'code',
-  'product_name_fr',
-  'product_name',
-  'brands',
-  'nutriscore_grade',
-  'nova_group',
-  'nutriments',
-  'ingredients_text_fr',
-  'ingredients_text',
-  'additives_tags',
-  'image_front_url',
-  'image_nutrition_url',
-  'image_ingredients_url',
-  'categories_tags',
-  'traces_tags',
-  'ingredients',
-].join(',')
-
+// Le proxy Astro contourne CORS : le navigateur ne peut pas taper
+// world.openfoodfacts.org directement (Load failed). Voir /api/off-search.ts.
 function buildOffUrl(page: number): string {
-  return (
-    `${OFF_SEARCH_URL}?tagtype_0=countries&tag_contains_0=contains&tag_0=morocco` +
-    `&action=process&json=true&page_size=100&page=${page}&fields=${OFF_FIELDS}`
-  )
+  return `/api/off-search?page=${page}&country=morocco&page_size=100`
 }
 
 /** Traduction des traces OFF vers le français */
