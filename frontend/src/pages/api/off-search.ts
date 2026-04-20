@@ -64,12 +64,15 @@ export async function GET(context: APIContext): Promise<Response> {
       })
     }
 
-    const body = await res.text()
-    return new Response(body, {
+    // IMPORTANT : retourner le body en streaming (ReadableStream) plutôt que
+    // d'await .text() puis reconstruire. Cloudflare Pages Workers crash sur
+    // les réponses volumineuses (page_size=100 sur OFF = ~200 KB+ avec tous
+    // les fields) si on buffer en mémoire avant de retourner.
+    return new Response(res.body, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        // Cache 5 min côté Cloudflare pour éviter de hammer OFF sur retries
+        // Cache 5 min côté Cloudflare pour amortir les retries
         'Cache-Control': 'public, max-age=300',
       },
     })
