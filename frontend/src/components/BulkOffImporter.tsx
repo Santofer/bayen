@@ -377,19 +377,31 @@ export default function BulkOffImporter() {
     while (!stopRef.current) {
       addLog('skipped', `--- Page ${page} ---`)
 
-      let offData: OffSearchResponse
-      try {
-        const res = await fetch(buildOffUrl(page))
-        if (!res.ok) {
-          addLog('error', `Erreur OFF page ${page}: HTTP ${res.status}`)
-          break
+      // Retry jusqu'à 3 fois : le cold-start du Worker Cloudflare Pages
+      // fait échouer le premier appel (502) mais les suivants passent.
+      let offData: OffSearchResponse | null = null
+      let lastError = ''
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        if (stopRef.current) break
+        try {
+          const res = await fetch(buildOffUrl(page))
+          if (res.ok) {
+            offData = (await res.json()) as OffSearchResponse
+            if (attempt > 1) addLog('skipped', `(réussi après ${attempt} tentatives)`)
+            break
+          }
+          lastError = `HTTP ${res.status}`
+        } catch (err) {
+          lastError = err instanceof Error ? err.message : 'inconnu'
         }
-        offData = (await res.json()) as OffSearchResponse
-      } catch (err) {
-        addLog(
-          'error',
-          `Erreur reseau page ${page}: ${err instanceof Error ? err.message : 'inconnu'}`
-        )
+        if (attempt < 3) {
+          addLog('skipped', `Retry page ${page} dans 2s... (${lastError})`)
+          await new Promise((r) => setTimeout(r, 2000))
+        }
+      }
+
+      if (!offData) {
+        addLog('error', `Erreur OFF page ${page} après 3 tentatives : ${lastError}`)
         break
       }
 
