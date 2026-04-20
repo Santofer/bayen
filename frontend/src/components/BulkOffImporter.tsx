@@ -89,10 +89,11 @@ interface ImportStats {
 // Constantes
 // ────────────────────────────────────────────────────────────────
 
-// Le proxy Astro contourne CORS : le navigateur ne peut pas taper
-// world.openfoodfacts.org directement (Load failed). Voir /api/off-search.ts.
+// Proxy Directus (avec cache + throttle + retry) : plus stable qu'un
+// Worker Cloudflare Pages, et partage le cache entre tous les clients.
+// Voir bayen-api/src/off-search.ts.
 function buildOffUrl(page: number): string {
-  return `/api/off-search?page=${page}&country=morocco&page_size=100`
+  return `/api/directus/bayen-api/off-search?page=${page}&country=morocco&page_size=100`
 }
 
 /** Traduction des traces OFF vers le français */
