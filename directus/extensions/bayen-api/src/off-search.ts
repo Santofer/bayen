@@ -40,7 +40,13 @@ const OFF_FIELDS = [
 
 // ── Cache + throttle (process memory) ─────────────────────────────
 const CACHE_TTL_MS = 15 * 60 * 1000 // 15 min
-const THROTTLE_MS = 6_000 // ≥ 6 s entre 2 appels OFF (rate limit ~10 req/min)
+const THROTTLE_MS = 10_000 // ≥ 10 s entre 2 appels OFF (OFF rate-limit ~6 req/min)
+
+// Backoff observé en prod : OFF blacklist notre IP ~60-90s après un rate-limit
+// sévère. Contraint par le timeout tunnel Cloudflare (~100s), on plafonne
+// à 3 tentatives côté serveur ; si tout échoue, le client retry après pause.
+const BACKOFFS_MS = [20_000, 60_000] // 20s, 60s
+const MAX_ATTEMPTS = BACKOFFS_MS.length + 1 // = 3 tentatives au total
 
 interface CacheEntry {
   body: Buffer
@@ -60,8 +66,8 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function fetchOffWithRetry(url: string): Promise<Buffer> {
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    // Throttle : pause jusqu'à laisser passer 6s depuis le dernier appel
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    // Throttle : pause jusqu'à laisser passer THROTTLE_MS depuis le dernier appel
     const elapsed = Date.now() - lastOffCallAt
     if (elapsed < THROTTLE_MS) await sleep(THROTTLE_MS - elapsed)
     lastOffCallAt = Date.now()
@@ -75,17 +81,22 @@ async function fetchOffWithRetry(url: string): Promise<Buffer> {
       return Buffer.from(await res.arrayBuffer())
     }
 
-    // 503 = rate-limit OFF → backoff exponentiel puis retry
-    if (res.status === 503 && attempt < 3) {
-      const backoff = 2_000 * Math.pow(2, attempt - 1) // 2s, 4s
-      console.warn(`[bayen-api/off-search] OFF 503 (attempt ${attempt}), backoff ${backoff}ms`)
+    // 503 ou 429 = rate-limit OFF → backoff puis retry
+    if ((res.status === 503 || res.status === 429) && attempt < MAX_ATTEMPTS) {
+      // Si OFF renvoie un Retry-After, on le respecte (sinon backoff fixe)
+      const retryAfterHeader = res.headers.get('Retry-After')
+      const retryAfterMs = retryAfterHeader ? parseInt(retryAfterHeader, 10) * 1000 : 0
+      const backoff = Math.max(retryAfterMs, BACKOFFS_MS[attempt - 1] ?? 60_000)
+      console.warn(
+        `[bayen-api/off-search] OFF ${res.status} (attempt ${attempt}/${MAX_ATTEMPTS}), backoff ${Math.round(backoff / 1000)}s`
+      )
       await sleep(backoff)
       continue
     }
 
     throw new Error(`OFF HTTP ${res.status}`)
   }
-  throw new Error('OFF HTTP 503 après 3 tentatives')
+  throw new Error(`OFF rate-limit persistant après ${MAX_ATTEMPTS} tentatives`)
 }
 
 export function registerOffSearchEndpoint(router: Router): void {

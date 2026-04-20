@@ -380,12 +380,13 @@ export default function BulkOffImporter() {
     while (!stopRef.current) {
       addLog('skipped', `--- Page ${page} ---`)
 
-      // Le proxy /bayen-api/off-search gère déjà cache (15min), throttle 6s,
-      // et retry 503 avec backoff 2s/4s. Un seul retry client avec 15s de
-      // pause — suffisant si OFF est sévèrement rate-limité.
+      // Le proxy /bayen-api/off-search gère cache (15min), throttle 10s,
+      // et backoff 20s/60s côté serveur (plafond tunnel Cloudflare). Si le
+      // serveur abandonne, on retry 2× côté client avec pause 2 min pour
+      // laisser OFF décanter après un bannissement sévère.
       let offData: OffSearchResponse | null = null
       let lastError = ''
-      for (let attempt = 1; attempt <= 2; attempt++) {
+      for (let attempt = 1; attempt <= 3; attempt++) {
         if (stopRef.current) break
         try {
           const res = await fetch(buildOffUrl(page))
@@ -398,14 +399,15 @@ export default function BulkOffImporter() {
         } catch (err) {
           lastError = err instanceof Error ? err.message : 'inconnu'
         }
-        if (attempt < 2) {
-          addLog('skipped', `Retry page ${page} dans 15s... (${lastError})`)
-          await new Promise((r) => setTimeout(r, 15000))
+        if (attempt < 3) {
+          const pauseSec = 120 // 2 min pour laisser OFF relâcher le blacklist
+          addLog('skipped', `Page ${page} : ${lastError}, pause ${pauseSec}s puis retry...`)
+          await new Promise((r) => setTimeout(r, pauseSec * 1000))
         }
       }
 
       if (!offData) {
-        addLog('error', `Erreur OFF page ${page} après retries : ${lastError}`)
+        addLog('error', `Page ${page} impossible après 3 tentatives (${lastError}) — import stoppé`)
         break
       }
 
