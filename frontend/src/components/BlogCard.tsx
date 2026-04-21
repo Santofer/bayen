@@ -98,8 +98,8 @@ export default function BlogCard({
         className
       )}
     >
-      {/* Cover 16:9 — placeholder SVG visible si pas d'image */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
+      {/* Cover 4:3 — placeholder SVG visible si pas d'image */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
           <svg
             width="32"

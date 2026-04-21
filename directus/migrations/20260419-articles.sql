@@ -74,7 +74,7 @@ SELECT * FROM (VALUES
   ('articles', 'excerpt_fr',       NULL,            'input-multiline',    'raw',       NULL, false, false, false,  7, 'full',  'Résumé court (~160 caractères, utilisé pour les cards et le SEO).', NULL),
   ('articles', 'excerpt_ar',       NULL,            'input-multiline',    'raw',       NULL, false, false, false,  8, 'full',  'Résumé en darija (optionnel).', NULL),
 
-  ('articles', 'cover_image',      'file',          'file-image',         'image',     NULL, false, false, false,  9, 'full',  'Image de couverture (ratio 16:9 idéal).', NULL),
+  ('articles', 'cover_image',      'file',          'file-image',         'image',     NULL, false, false, false,  9, 'full',  'Image de couverture (ratio 4:3 idéal).', NULL),
 
   ('articles', 'reading_time_min', NULL,            'input',              'raw',       NULL, false, false, false, 10, 'half',  'Temps de lecture estimé en minutes.', NULL),
   ('articles', 'date_published',   NULL,            'datetime',           'datetime',  NULL, false, false, false, 11, 'half',  'Date visible sur l''article. Laisser vide avant publication.', NULL),
