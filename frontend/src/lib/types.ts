@@ -19,6 +19,30 @@ export type ContributionType = 'new_product' | 'fix_data' | 'add_image' | 'confi
 export type ContributionStatus = 'pending' | 'approved' | 'rejected'
 export type UserRank = 'nouveau' | 'contributeur' | 'expert' | 'vérifié'
 
+// Blog
+export type ArticleCategory = 'bien-etre' | 'habitudes' | 'guides' | 'actualites'
+export type ArticleStatus = 'draft' | 'published' | 'archived'
+
+export interface Article {
+  id: string
+  slug: string
+  title_fr: string
+  title_ar?: string | null
+  excerpt_fr?: string | null
+  excerpt_ar?: string | null
+  content_fr: string
+  content_ar?: string | null
+  /** UUID vers directus_files */
+  cover_image?: string | null
+  category: ArticleCategory
+  reading_time_min?: number | null
+  status: ArticleStatus
+  date_published?: string | null
+  date_created: string
+  date_updated?: string | null
+  created_by?: string | null
+}
+
 // ────────────────────────────────────────────────────────────────
 // Collections Directus
 // ────────────────────────────────────────────────────────────────
