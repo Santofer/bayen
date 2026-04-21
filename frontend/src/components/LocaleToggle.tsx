@@ -1,5 +1,5 @@
 /**
- * Bouton de basculement FR / درجة
+ * Bouton de basculement FR / الدارجة
  * Affiche la locale vers laquelle on bascule (pas la locale courante)
  */
 
@@ -17,7 +17,7 @@ export default function LocaleToggle() {
   }
 
   // On affiche ce vers quoi on va basculer
-  const label = locale === 'fr' ? 'درجة' : 'FR'
+  const label = locale === 'fr' ? 'الدارجة' : 'FR'
 
   return (
     <Button
