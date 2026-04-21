@@ -10,6 +10,7 @@ export const translations = {
   'nav.search':     { fr: 'Recherche',     ary: 'بحث' },
   'nav.additives':  { fr: 'Additifs',      ary: 'إضافات' },
   'nav.contribute': { fr: 'Contribuer',    ary: 'ساهم' },
+  'nav.blog':       { fr: 'Blog',          ary: 'المدونة' },
   'nav.account':    { fr: 'Compte',        ary: 'حسابي' },
   'nav.login':      { fr: 'Connexion',     ary: 'دخول' },
   'nav.logout':     { fr: 'Déconnexion',   ary: 'خروج' },
@@ -370,6 +371,25 @@ export const translations = {
 
   // ── Badge héro ────────────────────────────────────────────
   'home.badge':           { fr: '100% GRATUIT \u2022 OPEN SOURCE \u2022',             ary: '100% مجاني \u2022 مفتوح المصدر \u2022' },
+
+  // ── Blog ──────────────────────────────────────────────────
+  'blog.title':              { fr: 'Le blog Bayen',                                                       ary: 'مدونة باين' },
+  'blog.description':        { fr: 'Bien-être, habitudes de consommation et réflexe Bayen.',              ary: 'العافية، عادات الشراء ورفلكس باين.' },
+  'blog.recentTitle':        { fr: 'Articles récents',                                                     ary: 'مقالات جديدة' },
+  'blog.seeAll':             { fr: 'Voir tous les articles',                                               ary: 'شوف كل المقالات' },
+  'blog.readMore':           { fr: "Lire l'article",                                                       ary: 'قرا المقال' },
+  'blog.readingTimeMin':     { fr: 'min de lecture',                                                       ary: 'دقيقة قراية' },
+  'blog.publishedOn':        { fr: 'Publié le',                                                            ary: 'نشر فـ' },
+  'blog.back':               { fr: '← Retour au blog',                                                     ary: '→ رجع للمدونة' },
+  'blog.notFound':           { fr: 'Article introuvable',                                                  ary: 'المقال ما لقيناهش' },
+  'blog.notFoundDesc':       { fr: "Cet article n'existe pas ou a été archivé.",                           ary: 'هاد المقال ما كاينش ولا تأرشف.' },
+  'blog.related':            { fr: 'Articles similaires',                                                  ary: 'مقالات فنفس الموضوع' },
+  'blog.empty':              { fr: "Pas encore d'articles publiés. Reviens bientôt !",                     ary: 'بعدا ما كاين حتا مقال. جي من بعد!' },
+  'blog.allCategories':      { fr: 'Toutes',                                                               ary: 'الكل' },
+  'blog.category.bien-etre': { fr: 'Bien-être',                                                            ary: 'العافية' },
+  'blog.category.habitudes': { fr: 'Habitudes',                                                            ary: 'العادات' },
+  'blog.category.guides':    { fr: 'Guides',                                                               ary: 'دليل' },
+  'blog.category.actualites':{ fr: 'Actualités',                                                           ary: 'الأخبار' },
 
   // ── Install PWA ───────────────────────────────────────────
   'install.title':       { fr: 'Installer Bayen',                              ary: 'ثبت باين' },

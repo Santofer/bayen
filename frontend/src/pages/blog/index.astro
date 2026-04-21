@@ -1,0 +1,98 @@
+---
+// Page listing du blog — SSR (données fraîches à chaque requête)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import BlogCard from '@/components/BlogCard.tsx'
+import { getLocale, t } from '@/lib/i18n'
+import type { Article, ArticleCategory } from '@/lib/types'
+
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
+
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+
+// Filtre catégorie optionnel via query param
+const requestedCategory = Astro.url.searchParams.get('cat')
+const VALID_CATEGORIES: ArticleCategory[] = ['bien-etre', 'habitudes', 'guides', 'actualites']
+const selectedCategory: ArticleCategory | null = VALID_CATEGORIES.includes(requestedCategory as ArticleCategory)
+  ? (requestedCategory as ArticleCategory)
+  : null
+
+// Fetch articles publiés
+let articles: Article[] = []
+try {
+  const filterJson = selectedCategory
+    ? `{"_and":[{"status":{"_eq":"published"}},{"category":{"_eq":"${selectedCategory}"}}]}`
+    : `{"status":{"_eq":"published"}}`
+  const url = `${DIRECTUS_URL}/items/articles?filter=${encodeURIComponent(filterJson)}&sort=-date_published&limit=60&fields=id,slug,title_fr,title_ar,excerpt_fr,excerpt_ar,cover_image,category,reading_time_min,date_published,date_created`
+  const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
+  if (res.ok) {
+    const data = await res.json()
+    articles = (data.data ?? []) as Article[]
+  }
+} catch {
+  // Page s'affiche quand même
+}
+
+const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: string; color: string }> = [
+  { value: null,          labelKey: 'blog.allCategories',       color: '#94a3b8' },
+  { value: 'bien-etre',   labelKey: 'blog.category.bien-etre',  color: '#476a32' },
+  { value: 'habitudes',   labelKey: 'blog.category.habitudes',  color: '#b1cf3a' },
+  { value: 'guides',      labelKey: 'blog.category.guides',     color: '#0f766e' },
+  { value: 'actualites',  labelKey: 'blog.category.actualites', color: '#f97316' },
+]
+---
+
+<Layout
+  title={`${t('blog.title', locale)} — Bayen`}
+  description={t('blog.description', locale)}
+  path="/blog"
+>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-12">
+    {/* En-tête */}
+    <header class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-foreground">
+        {t('blog.title', locale)}
+      </h1>
+      <p class="text-sm sm:text-base text-muted-foreground mt-2 max-w-xl">
+        {t('blog.description', locale)}
+      </p>
+    </header>
+
+    {/* Filtres par catégorie — pills cliquables */}
+    <nav class="flex flex-wrap gap-2 mb-8" aria-label="Filtres catégories">
+      {CATEGORIES.map((cat) => {
+        const isActive = cat.value === selectedCategory
+        const href = cat.value ? `/blog?cat=${cat.value}` : '/blog'
+        return (
+          <a
+            href={href}
+            class:list={[
+              'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+              isActive
+                ? 'text-white border-transparent'
+                : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30',
+            ]}
+            style={isActive ? `background-color: ${cat.color}` : undefined}
+          >
+            {t(cat.labelKey as any, locale)}
+          </a>
+        )
+      })}
+    </nav>
+
+    {/* Grille des articles */}
+    {articles.length > 0 ? (
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {articles.map((article) => (
+          <BlogCard article={article} locale={locale} />
+        ))}
+      </div>
+    ) : (
+      <div class="rounded-xl border bg-card p-12 text-center text-muted-foreground">
+        <p>{t('blog.empty', locale)}</p>
+      </div>
+    )}
+  </main>
+</Layout>

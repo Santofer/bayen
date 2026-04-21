@@ -1,0 +1,296 @@
+---
+// Page détail article du blog — SSR
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import BlogCard from '@/components/BlogCard.tsx'
+import { getLocale, t } from '@/lib/i18n'
+import type { Article, ArticleCategory } from '@/lib/types'
+import { marked } from 'marked'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const { slug } = Astro.params
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
+
+// Fetch article par slug
+let article: Article | null = null
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/items/articles?filter[slug][_eq]=${encodeURIComponent(slug ?? '')}&filter[status][_eq]=published&limit=1`,
+    { signal: AbortSignal.timeout(5000) }
+  )
+  if (res.ok) {
+    const data = await res.json()
+    article = ((data.data ?? [])[0] as Article) ?? null
+  }
+} catch {
+  // Page 404 s'affichera ci-dessous
+}
+
+// Articles similaires (même catégorie, hors article courant)
+let relatedArticles: Article[] = []
+if (article) {
+  try {
+    const url = `${DIRECTUS_URL}/items/articles?filter[status][_eq]=published&filter[category][_eq]=${article.category}&filter[id][_neq]=${article.id}&sort=-date_published&limit=3&fields=id,slug,title_fr,title_ar,excerpt_fr,excerpt_ar,cover_image,category,reading_time_min,date_published`
+    const res = await fetch(url, { signal: AbortSignal.timeout(3000) })
+    if (res.ok) {
+      const data = await res.json()
+      relatedArticles = (data.data ?? []) as Article[]
+    }
+  } catch {
+    // non bloquant
+  }
+}
+
+// Données d'affichage
+const title = article
+  ? (locale === 'ary' && article.title_ar) || article.title_fr
+  : null
+const excerpt = article
+  ? (locale === 'ary' && article.excerpt_ar) || article.excerpt_fr
+  : null
+const contentRaw = article
+  ? (locale === 'ary' && article.content_ar) || article.content_fr
+  : ''
+
+// Markdown → HTML (marked 18 safe par défaut, on ne fait pas confiance à l'input
+// mais le contenu vient de l'admin Directus authentifié donc c'est OK)
+let contentHtml = ''
+if (contentRaw) {
+  const result = marked.parse(contentRaw, { async: false, breaks: true, gfm: true })
+  contentHtml = typeof result === 'string' ? result : ''
+}
+
+const coverUrl = article?.cover_image
+  ? article.cover_image.startsWith('http')
+    ? article.cover_image
+    : `${CDN_URL}/${article.cover_image}`
+  : null
+
+const CATEGORY_LABELS_FR: Record<ArticleCategory, string> = {
+  'bien-etre': 'Bien-être',
+  habitudes: 'Habitudes',
+  guides: 'Guides',
+  actualites: 'Actualités',
+}
+const CATEGORY_COLORS: Record<ArticleCategory, string> = {
+  'bien-etre': '#476a32',
+  habitudes: '#b1cf3a',
+  guides: '#0f766e',
+  actualites: '#f97316',
+}
+
+// Format date (réutilise la logique de BlogCard)
+const MONTHS_FR = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']
+const MONTHS_ARY = ['يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو', 'يوليوز', 'غشت', 'شتنبر', 'أكتوبر', 'نونبر', 'دجنبر']
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return ''
+  try {
+    const d = new Date(iso)
+    const months = locale === 'ary' ? MONTHS_ARY : MONTHS_FR
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+  } catch { return '' }
+}
+const dateStr = article ? formatDate(article.date_published ?? article.date_created) : ''
+
+const pageTitle = article ? `${title} — Bayen` : `${t('blog.notFound', locale)} — Bayen`
+const metaDescription = excerpt ?? t('blog.description', locale)
+const ogImage = coverUrl ?? undefined
+
+// JSON-LD BlogPosting pour SEO
+const jsonLd = article ? {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: excerpt,
+  image: coverUrl ? [coverUrl] : undefined,
+  datePublished: article.date_published ?? article.date_created,
+  dateModified: article.date_updated ?? article.date_published ?? article.date_created,
+  author: { '@type': 'Organization', name: 'Bayen' },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Bayen',
+    logo: { '@type': 'ImageObject', url: 'https://bayen.ma/icons/icon-512.png' },
+  },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': `https://bayen.ma/blog/${article.slug}` },
+} : undefined
+---
+
+<Layout
+  title={pageTitle}
+  description={metaDescription}
+  path={`/blog/${slug ?? ''}`}
+  ogImage={ogImage}
+  ogType="article"
+  jsonLd={jsonLd}
+  noindex={!article}
+>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-12">
+    {/* Retour */}
+    <a href="/blog" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      {t('blog.back', locale)}
+    </a>
+
+    {!article ? (
+      <div class="rounded-xl border bg-card p-12 text-center">
+        <h1 class="text-2xl font-bold text-foreground mb-2">
+          {t('blog.notFound', locale)}
+        </h1>
+        <p class="text-sm text-muted-foreground max-w-md mx-auto">
+          {t('blog.notFoundDesc', locale)}
+        </p>
+      </div>
+    ) : (
+      <article class="max-w-3xl mx-auto">
+        {/* Cover hero */}
+        {coverUrl && (
+          <div class="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted mb-6">
+            <img src={coverUrl} alt={title as string} class="w-full h-full object-cover" loading="eager" />
+          </div>
+        )}
+
+        {/* Catégorie + méta */}
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+          <span
+            class="px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
+            style={`background-color: ${CATEGORY_COLORS[article.category]}`}
+          >
+            {t(`blog.category.${article.category}` as any, locale)}
+          </span>
+          {dateStr && (
+            <span class="text-xs text-muted-foreground">
+              {t('blog.publishedOn', locale)} {dateStr}
+            </span>
+          )}
+          {article.reading_time_min && (
+            <span class="text-xs text-muted-foreground">
+              · {article.reading_time_min} {t('blog.readingTimeMin', locale)}
+            </span>
+          )}
+        </div>
+
+        {/* Titre */}
+        <h1 class="text-3xl sm:text-4xl font-bold text-foreground leading-tight mb-4">
+          {title}
+        </h1>
+
+        {/* Excerpt en chapeau */}
+        {excerpt && (
+          <p class="text-lg text-muted-foreground leading-relaxed mb-8">
+            {excerpt}
+          </p>
+        )}
+
+        {/* Contenu markdown rendu */}
+        <div class="bayen-prose" set:html={contentHtml} />
+
+        {/* Bas de page */}
+        <div class="mt-12 pt-6 border-t">
+          <a href="/blog" class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+            {t('blog.back', locale)}
+          </a>
+        </div>
+
+        {/* Articles similaires */}
+        {relatedArticles.length > 0 && (
+          <section class="mt-16">
+            <h2 class="text-xl font-bold text-foreground mb-4">
+              {t('blog.related', locale)}
+            </h2>
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedArticles.map((related) => (
+                <BlogCard article={related} locale={locale} variant="compact" />
+              ))}
+            </div>
+          </section>
+        )}
+      </article>
+    )}
+  </main>
+</Layout>
+
+<style is:global>
+  /* Styles typographiques pour le contenu markdown rendu */
+  .bayen-prose {
+    color: hsl(var(--foreground));
+    line-height: 1.7;
+    font-size: 1rem;
+  }
+  .bayen-prose > * + * { margin-top: 1em; }
+  .bayen-prose h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2em;
+    margin-bottom: 0.5em;
+    color: hsl(var(--foreground));
+    line-height: 1.3;
+  }
+  .bayen-prose h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+    color: hsl(var(--foreground));
+    line-height: 1.3;
+  }
+  .bayen-prose h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+  .bayen-prose p { color: hsl(var(--foreground)); }
+  .bayen-prose a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-weight: 500;
+  }
+  .bayen-prose a:hover { text-decoration-thickness: 2px; }
+  .bayen-prose strong { font-weight: 700; color: hsl(var(--foreground)); }
+  .bayen-prose em { font-style: italic; }
+  .bayen-prose ul, .bayen-prose ol {
+    padding-inline-start: 1.5rem;
+  }
+  .bayen-prose ul { list-style-type: disc; }
+  .bayen-prose ol { list-style-type: decimal; }
+  .bayen-prose li { margin-top: 0.25em; }
+  .bayen-prose blockquote {
+    border-inline-start: 4px solid hsl(var(--primary));
+    padding-inline-start: 1rem;
+    color: hsl(var(--muted-foreground));
+    font-style: italic;
+  }
+  .bayen-prose code {
+    background-color: hsl(var(--muted));
+    padding: 0.15em 0.35em;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .bayen-prose pre {
+    background-color: hsl(var(--muted));
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+  }
+  .bayen-prose pre code {
+    background: none;
+    padding: 0;
+  }
+  .bayen-prose img {
+    width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    margin: 1em 0;
+  }
+  .bayen-prose hr {
+    border: none;
+    border-top: 1px solid hsl(var(--border));
+    margin: 2em 0;
+  }
+</style>
