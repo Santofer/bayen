@@ -4,7 +4,9 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import ProductCard from '@/components/ProductCard.tsx'
+import BlogCarousel from '@/components/BlogCarousel.tsx'
 import { getLocale, t } from '@/lib/i18n'
+import type { Article } from '@/lib/types'
 
 // Locale depuis le cookie SSR
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -14,6 +16,7 @@ const locale = getLocale(localeCookie)
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 let recentProducts: Record<string, unknown>[] = []
+let recentArticles: Article[] = []
 let totalProducts = 0
 let totalScans = 0
 let scansToday = 0
@@ -23,7 +26,7 @@ try {
   const todayIso = new Date().toISOString().slice(0, 10)
 
   // Appels en parallèle pour réduire le TTFB
-  const [productsRes, countRes, scansRes, scansTodayRes] = await Promise.all([
+  const [productsRes, countRes, scansRes, scansTodayRes, articlesRes] = await Promise.all([
     fetch(
       `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&sort=-date_created&limit=6&fields=id,barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count,data_source`,
       { signal: AbortSignal.timeout(5000) }
@@ -39,6 +42,10 @@ try {
     fetch(
       `${DIRECTUS_URL}/items/scans?filter[date_created][_gte]=${todayIso}&aggregate[count]=id`,
       { signal: AbortSignal.timeout(3000) }
+    ),
+    fetch(
+      `${DIRECTUS_URL}/items/articles?filter[status][_eq]=published&sort=-date_published&limit=8&fields=id,slug,title_fr,title_ar,excerpt_fr,excerpt_ar,cover_image,category,reading_time_min,date_published,date_created`,
+      { signal: AbortSignal.timeout(4000) }
     ),
   ])
 
@@ -57,6 +64,10 @@ try {
   if (scansTodayRes.ok) {
     const todayData = await scansTodayRes.json()
     scansToday = todayData.data?.[0]?.count?.id ?? 0
+  }
+  if (articlesRes.ok) {
+    const articlesData = await articlesRes.json()
+    recentArticles = (articlesData.data ?? []) as Article[]
   }
 } catch {
   // Pas de données — la page s'affiche quand même
@@ -252,6 +263,17 @@ await Promise.all(
         </div>
       </div>
     </section>
+
+    <!-- Articles récents (blog) -->
+    {recentArticles.length > 0 && (
+      <section class="container mx-auto max-w-screen-lg px-4 pb-12">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-foreground">{t('blog.recentTitle', locale)}</h2>
+          <a href="/blog" class="text-sm text-primary hover:underline">{t('blog.seeAll', locale)}</a>
+        </div>
+        <BlogCarousel articles={recentArticles} locale={locale} client:idle />
+      </section>
+    )}
 
     <!-- Produits populaires -->
     {recentProducts.length > 0 && (
