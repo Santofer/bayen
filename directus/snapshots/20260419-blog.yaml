@@ -1,0 +1,4958 @@
+version: 1
+directus: 11.17.3
+vendor: postgres
+collections:
+  - collection: additives
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: additives
+      color: null
+      display_template: '{{id}} — {{name_fr}}'
+      group: null
+      hidden: false
+      icon: science
+      item_duplication_fields: null
+      note: Additifs alimentaires E-xxx avec niveaux de risque
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: additives
+  - collection: ai_logs
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: ai_logs
+      color: null
+      display_template: '{{type}} — {{success}}'
+      group: null
+      hidden: true
+      icon: smart_toy
+      item_duplication_fields: null
+      note: Logs OCR Tesseract et parsing Mistral
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: ai_logs
+  - collection: articles
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: articles
+      color: null
+      display_template: '{{title_fr}} — {{category}}'
+      group: null
+      hidden: false
+      icon: article
+      item_duplication_fields: null
+      note: Articles du blog Bayen (bien-être, habitudes, guides, actualités).
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: articles
+  - collection: categories
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: categories
+      color: null
+      display_template: '{{name_fr}}'
+      group: null
+      hidden: false
+      icon: category
+      item_duplication_fields: null
+      note: Catégories de produits alimentaires
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: categories
+  - collection: contributions
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: status
+      archive_value: rejected
+      collapse: open
+      collection: contributions
+      color: null
+      display_template: '{{type}} — {{status}}'
+      group: null
+      hidden: true
+      icon: volunteer_activism
+      item_duplication_fields: null
+      note: >-
+        Journal interne — utilisé par le hook pour attribuer les points. Géré
+        automatiquement, ne pas éditer manuellement.
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: pending
+      versioning: false
+    schema:
+      name: contributions
+  - collection: error_logs
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: error_logs
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: bug_report
+      item_duplication_fields: null
+      note: Erreurs remontées par le frontend et les endpoints.
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: error_logs
+  - collection: ingredients
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: ingredients
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: nutrition
+      item_duplication_fields: null
+      note: Base d'ingrédients alimentaires
+      preview_url: null
+      singleton: false
+      sort: 6
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: ingredients
+  - collection: products
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: status
+      archive_value: rejected
+      collapse: open
+      collection: products
+      color: null
+      display_template: '{{name_fr}} — {{brand}}'
+      group: null
+      hidden: false
+      icon: grocery
+      item_duplication_fields: null
+      note: >-
+        Produits — auto-importés depuis OpenFoodFacts au scan, ou ajoutés via
+        contribution.
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: draft
+      versioning: false
+    schema:
+      name: products
+  - collection: products_ingredients
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: products_ingredients
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: link
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: 20
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: products_ingredients
+  - collection: scans
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: scans
+      color: null
+      display_template: '{{product_id}} — {{date_created}}'
+      group: null
+      hidden: false
+      icon: qr_code_scanner
+      item_duplication_fields: null
+      note: Activité scan — historique en temps réel des codes-barres scannés.
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: scans
+fields:
+  - collection: additives
+    field: id
+    type: string
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: false
+      interface: input
+      note: 'Ex: "E471"'
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: id
+      table: additives
+      data_type: character varying
+      default_value: null
+      max_length: 10
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: name_fr
+    type: string
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: name_fr
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: name_fr
+      table: additives
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: function
+    type: string
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: function
+      group: null
+      hidden: false
+      interface: input
+      note: émulsifiant, colorant, conservateur…
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: function
+      table: additives
+      data_type: character varying
+      default_value: null
+      max_length: 100
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: risk_level
+    type: string
+    meta:
+      collection: additives
+      conditions: null
+      display: labels
+      display_options: null
+      field: risk_level
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - background: '#16a34a'
+            foreground: '#ffffff'
+            text: Sûr
+            value: safe
+          - background: '#f97316'
+            foreground: '#ffffff'
+            text: Limité
+            value: limited
+          - background: '#ef4444'
+            foreground: '#ffffff'
+            text: À éviter
+            value: avoid
+          - background: '#7f1d1d'
+            foreground: '#ffffff'
+            text: Interdit au Maroc
+            value: banned_ma
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: risk_level
+      table: additives
+      data_type: character varying
+      default_value: null
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: description_fr
+    type: text
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: description_fr
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description_fr
+      table: additives
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: sources
+    type: json
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: sources
+      group: null
+      hidden: false
+      interface: input-code
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: sources
+      table: additives
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: name_ar
+    type: string
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: name_ar
+      group: null
+      hidden: false
+      interface: input
+      note: Traduction arabe/darija
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name_ar
+      table: additives
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: function_ar
+    type: string
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: function_ar
+      group: null
+      hidden: false
+      interface: input
+      note: Traduction arabe/darija
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: function_ar
+      table: additives
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: additives
+    field: description_ar
+    type: text
+    meta:
+      collection: additives
+      conditions: null
+      display: null
+      display_options: null
+      field: description_ar
+      group: null
+      hidden: false
+      interface: input
+      note: Traduction arabe/darija
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description_ar
+      table: additives
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: id
+    type: uuid
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: ai_logs
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: product_id
+    type: uuid
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{name_fr}}'
+      field: product_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: product_id
+      table: ai_logs
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: products
+      foreign_key_column: id
+  - collection: ai_logs
+    field: type
+    type: string
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: null
+      display_options: null
+      field: type
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: OCR Tesseract
+            value: ocr_tesseract
+          - text: Parsing Mistral
+            value: mistral_parsing
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: type
+      table: ai_logs
+      data_type: character varying
+      default_value: null
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: input
+    type: text
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: null
+      display_options: null
+      field: input
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: input
+      table: ai_logs
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: output
+    type: text
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: null
+      display_options: null
+      field: output
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: output
+      table: ai_logs
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: duration_ms
+    type: integer
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: null
+      display_options: null
+      field: duration_ms
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: duration_ms
+      table: ai_logs
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: success
+    type: boolean
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: boolean
+      display_options: null
+      field: success
+      group: null
+      hidden: false
+      interface: boolean
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special:
+        - cast-boolean
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: success
+      table: ai_logs
+      data_type: boolean
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: error_message
+    type: string
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: null
+      display_options: null
+      field: error_message
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: error_message
+      table: ai_logs
+      data_type: character varying
+      default_value: null
+      max_length: 500
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: ai_logs
+    field: date_created
+    type: timestamp
+    meta:
+      collection: ai_logs
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_created
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 9
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: ai_logs
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: created_by
+    type: uuid
+    meta:
+      collection: articles
+      conditions: null
+      display: user
+      display_options:
+        template: '{{first_name}} {{last_name}}'
+      field: created_by
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 16
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: created_by
+      table: articles
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: articles
+    field: excerpt_ar
+    type: string
+    meta:
+      collection: articles
+      conditions: null
+      display: raw
+      display_options: null
+      field: excerpt_ar
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: Résumé en darija (optionnel).
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: excerpt_ar
+      table: articles
+      data_type: character varying
+      default_value: null
+      max_length: 300
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: slug
+    type: string
+    meta:
+      collection: articles
+      conditions: null
+      display: raw
+      display_options: null
+      field: slug
+      group: null
+      hidden: false
+      interface: input
+      note: >-
+        Identifiant URL : /blog/mon-slug. Lettres minuscules, tirets, pas
+        d'espaces.
+      options:
+        slug: true
+        trim: true
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: slug
+      table: articles
+      data_type: character varying
+      default_value: null
+      max_length: 120
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: date_created
+    type: timestamp
+    meta:
+      collection: articles
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 14
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: articles
+      data_type: timestamp with time zone
+      default_value: now()
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: id
+    type: uuid
+    meta:
+      collection: articles
+      conditions: null
+      display: raw
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: id
+      table: articles
+      data_type: uuid
+      default_value: gen_random_uuid()
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: title_ar
+    type: string
+    meta:
+      collection: articles
+      conditions: null
+      display: raw
+      display_options: null
+      field: title_ar
+      group: null
+      hidden: false
+      interface: input
+      note: Titre en darija (optionnel, fallback vers FR).
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title_ar
+      table: articles
+      data_type: character varying
+      default_value: null
+      max_length: 200
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: content_ar
+    type: text
+    meta:
+      collection: articles
+      conditions: null
+      display: formatted-value
+      display_options: null
+      field: content_ar
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: Contenu en darija (optionnel, fallback vers FR).
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 13
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: content_ar
+      table: articles
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: reading_time_min
+    type: integer
+    meta:
+      collection: articles
+      conditions: null
+      display: raw
+      display_options: null
+      field: reading_time_min
+      group: null
+      hidden: false
+      interface: input
+      note: Temps de lecture estimé en minutes.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: reading_time_min
+      table: articles
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: status
+    type: string
+    meta:
+      collection: articles
+      conditions: null
+      display: labels
+      display_options:
+        choices:
+          - background: '#94a3b8'
+            foreground: '#ffffff'
+            text: Brouillon
+            value: draft
+          - background: '#16a34a'
+            foreground: '#ffffff'
+            text: Publié
+            value: published
+          - background: '#78716c'
+            foreground: '#ffffff'
+            text: Archivé
+            value: archived
+        showAsDot: true
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: Un article en brouillon reste invisible pour les visiteurs.
+      options:
+        choices:
+          - text: Brouillon
+            value: draft
+          - text: Publié
+            value: published
+          - text: Archivé
+            value: archived
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: status
+      table: articles
+      data_type: character varying
+      default_value: draft
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: cover_image
+    type: uuid
+    meta:
+      collection: articles
+      conditions: null
+      display: image
+      display_options: null
+      field: cover_image
+      group: null
+      hidden: false
+      interface: file-image
+      note: Image de couverture (ratio 16:9 idéal).
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special:
+        - file
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: cover_image
+      table: articles
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_files
+      foreign_key_column: id
+  - collection: articles
+    field: content_fr
+    type: text
+    meta:
+      collection: articles
+      conditions: null
+      display: formatted-value
+      display_options: null
+      field: content_fr
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: >-
+        Contenu en Markdown. Supporte ## titres, **gras**, listes, liens,
+        images.
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: content_fr
+      table: articles
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: excerpt_fr
+    type: string
+    meta:
+      collection: articles
+      conditions: null
+      display: raw
+      display_options: null
+      field: excerpt_fr
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: Résumé court (~160 caractères, utilisé pour les cards et le SEO).
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: excerpt_fr
+      table: articles
+      data_type: character varying
+      default_value: null
+      max_length: 300
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: date_published
+    type: timestamp
+    meta:
+      collection: articles
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_published
+      group: null
+      hidden: false
+      interface: datetime
+      note: Date visible sur l'article. Laisser vide avant publication.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 11
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_published
+      table: articles
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: articles
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 15
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: articles
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: title_fr
+    type: string
+    meta:
+      collection: articles
+      conditions: null
+      display: raw
+      display_options: null
+      field: title_fr
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title_fr
+      table: articles
+      data_type: character varying
+      default_value: null
+      max_length: 200
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: articles
+    field: category
+    type: string
+    meta:
+      collection: articles
+      conditions: null
+      display: labels
+      display_options:
+        choices:
+          - background: '#476a32'
+            foreground: '#ffffff'
+            text: Bien-être
+            value: bien-etre
+          - background: '#b1cf3a'
+            foreground: '#ffffff'
+            text: Habitudes
+            value: habitudes
+          - background: '#0f766e'
+            foreground: '#ffffff'
+            text: Guides
+            value: guides
+          - background: '#f97316'
+            foreground: '#ffffff'
+            text: Actualités
+            value: actualites
+        showAsDot: true
+      field: category
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Bien-être
+            value: bien-etre
+          - text: Habitudes
+            value: habitudes
+          - text: Guides
+            value: guides
+          - text: Actualités
+            value: actualites
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: category
+      table: articles
+      data_type: character varying
+      default_value: bien-etre
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: categories
+    field: id
+    type: integer
+    meta:
+      collection: categories
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: categories
+      data_type: integer
+      default_value: nextval('categories_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: categories
+    field: name_fr
+    type: string
+    meta:
+      collection: categories
+      conditions: null
+      display: null
+      display_options: null
+      field: name_fr
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: name_fr
+      table: categories
+      data_type: character varying
+      default_value: null
+      max_length: 100
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: categories
+    field: name_ar
+    type: string
+    meta:
+      collection: categories
+      conditions: null
+      display: null
+      display_options: null
+      field: name_ar
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: name_ar
+      table: categories
+      data_type: character varying
+      default_value: null
+      max_length: 100
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: categories
+    field: slug
+    type: string
+    meta:
+      collection: categories
+      conditions: null
+      display: null
+      display_options: null
+      field: slug
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: slug
+      table: categories
+      data_type: character varying
+      default_value: null
+      max_length: 100
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: categories
+    field: parent_id
+    type: integer
+    meta:
+      collection: categories
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{name_fr}}'
+      field: parent_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: parent_id
+      table: categories
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: categories
+      foreign_key_column: id
+  - collection: categories
+    field: icon
+    type: string
+    meta:
+      collection: categories
+      conditions: null
+      display: null
+      display_options: null
+      field: icon
+      group: null
+      hidden: false
+      interface: input
+      note: Nom icône Lucide
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: icon
+      table: categories
+      data_type: character varying
+      default_value: null
+      max_length: 50
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: contributions
+    field: id
+    type: uuid
+    meta:
+      collection: contributions
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: contributions
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: contributions
+    field: product_id
+    type: uuid
+    meta:
+      collection: contributions
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{name_fr}}'
+      field: product_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: product_id
+      table: contributions
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: products
+      foreign_key_column: id
+  - collection: contributions
+    field: user_id
+    type: uuid
+    meta:
+      collection: contributions
+      conditions: null
+      display: user
+      display_options: null
+      field: user_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_id
+      table: contributions
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: contributions
+    field: type
+    type: string
+    meta:
+      collection: contributions
+      conditions: null
+      display: labels
+      display_options: null
+      field: type
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Nouveau produit
+            value: new_product
+          - text: Correction données
+            value: fix_data
+          - text: Ajout image
+            value: add_image
+          - text: Confirmation
+            value: confirm
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: type
+      table: contributions
+      data_type: character varying
+      default_value: null
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: contributions
+    field: data_before
+    type: json
+    meta:
+      collection: contributions
+      conditions: null
+      display: null
+      display_options: null
+      field: data_before
+      group: null
+      hidden: false
+      interface: input-code
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: data_before
+      table: contributions
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: contributions
+    field: data_after
+    type: json
+    meta:
+      collection: contributions
+      conditions: null
+      display: null
+      display_options: null
+      field: data_after
+      group: null
+      hidden: false
+      interface: input-code
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: data_after
+      table: contributions
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: contributions
+    field: status
+    type: string
+    meta:
+      collection: contributions
+      conditions: null
+      display: labels
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - background: '#f97316'
+            foreground: '#ffffff'
+            text: En attente
+            value: pending
+          - background: '#16a34a'
+            foreground: '#ffffff'
+            text: Approuvé
+            value: approved
+          - background: '#ef4444'
+            foreground: '#ffffff'
+            text: Rejeté
+            value: rejected
+      readonly: false
+      required: true
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: status
+      table: contributions
+      data_type: character varying
+      default_value: pending
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: contributions
+    field: reviewed_by
+    type: uuid
+    meta:
+      collection: contributions
+      conditions: null
+      display: user
+      display_options: null
+      field: reviewed_by
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: reviewed_by
+      table: contributions
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: contributions
+    field: date_created
+    type: timestamp
+    meta:
+      collection: contributions
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_created
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 9
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: contributions
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: directus_users
+    field: display_name
+    type: string
+    meta:
+      collection: directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: display_name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 100
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: display_name
+      table: directus_users
+      data_type: character varying
+      default_value: null
+      max_length: 100
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: directus_users
+    field: points
+    type: integer
+    meta:
+      collection: directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: points
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 101
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: points
+      table: directus_users
+      data_type: integer
+      default_value: 0
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: directus_users
+    field: contributions_count
+    type: integer
+    meta:
+      collection: directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: contributions_count
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 102
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: contributions_count
+      table: directus_users
+      data_type: integer
+      default_value: 0
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: directus_users
+    field: rank
+    type: string
+    meta:
+      collection: directus_users
+      conditions: null
+      display: labels
+      display_options: null
+      field: rank
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Nouveau
+            value: nouveau
+          - text: Contributeur
+            value: contributeur
+          - text: Expert
+            value: expert
+          - background: '#16a34a'
+            foreground: '#ffffff'
+            text: Vérifié
+            value: vérifié
+      readonly: false
+      required: false
+      searchable: true
+      sort: 103
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: rank
+      table: directus_users
+      data_type: character varying
+      default_value: nouveau
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: id
+    type: integer
+    meta:
+      collection: error_logs
+      conditions: null
+      display: raw
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: id
+      table: error_logs
+      data_type: integer
+      default_value: nextval('error_logs_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: timestamp
+    type: timestamp
+    meta:
+      collection: error_logs
+      conditions: null
+      display: datetime
+      display_options: null
+      field: timestamp
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 2
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: timestamp
+      table: error_logs
+      data_type: timestamp with time zone
+      default_value: now()
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: source
+    type: string
+    meta:
+      collection: error_logs
+      conditions: null
+      display: labels
+      display_options: null
+      field: source
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: source
+      table: error_logs
+      data_type: character varying
+      default_value: frontend
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: severity
+    type: string
+    meta:
+      collection: error_logs
+      conditions: null
+      display: labels
+      display_options: null
+      field: severity
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: severity
+      table: error_logs
+      data_type: character varying
+      default_value: error
+      max_length: 10
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: message
+    type: text
+    meta:
+      collection: error_logs
+      conditions: null
+      display: raw
+      display_options: null
+      field: message
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: message
+      table: error_logs
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: url
+    type: text
+    meta:
+      collection: error_logs
+      conditions: null
+      display: raw
+      display_options: null
+      field: url
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: url
+      table: error_logs
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: user_agent
+    type: text
+    meta:
+      collection: error_logs
+      conditions: null
+      display: raw
+      display_options: null
+      field: user_agent
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: user_agent
+      table: error_logs
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: stack
+    type: text
+    meta:
+      collection: error_logs
+      conditions: null
+      display: raw
+      display_options: null
+      field: stack
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: stack
+      table: error_logs
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: error_logs
+    field: context
+    type: json
+    meta:
+      collection: error_logs
+      conditions: null
+      display: raw
+      display_options: null
+      field: context
+      group: null
+      hidden: false
+      interface: input-code
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: context
+      table: error_logs
+      data_type: jsonb
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: id
+    type: uuid
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: products
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: barcode
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: barcode
+      group: null
+      hidden: false
+      interface: input
+      note: EAN-13 ou EAN-8
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: barcode
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: name_fr
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: name_fr
+      group: null
+      hidden: false
+      interface: input
+      note: Nom en français
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: name_fr
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: name_ar
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: name_ar
+      group: null
+      hidden: false
+      interface: input
+      note: Nom en arabe (optionnel)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: name_ar
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: brand
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: brand
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: brand
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: category_id
+    type: integer
+    meta:
+      collection: products
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{name_fr}}'
+      field: category_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: category_id
+      table: products
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: categories
+      foreign_key_column: id
+  - collection: products
+    field: image_front
+    type: uuid
+    meta:
+      collection: products
+      conditions: null
+      display: image
+      display_options: null
+      field: image_front
+      group: null
+      hidden: false
+      interface: file-image
+      note: Photo face avant
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special:
+        - file
+      translations: null
+      validation: null
+      validation_message: null
+      width: third
+    schema:
+      name: image_front
+      table: products
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: image_nutrition
+    type: uuid
+    meta:
+      collection: products
+      conditions: null
+      display: image
+      display_options: null
+      field: image_nutrition
+      group: null
+      hidden: false
+      interface: file-image
+      note: Photo tableau nutritionnel
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special:
+        - file
+      translations: null
+      validation: null
+      validation_message: null
+      width: third
+    schema:
+      name: image_nutrition
+      table: products
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: image_ingredients
+    type: uuid
+    meta:
+      collection: products
+      conditions: null
+      display: image
+      display_options: null
+      field: image_ingredients
+      group: null
+      hidden: false
+      interface: file-image
+      note: Photo liste ingrédients
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special:
+        - file
+      translations: null
+      validation: null
+      validation_message: null
+      width: third
+    schema:
+      name: image_ingredients
+      table: products
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: nutriscore_grade
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: labels
+      display_options: null
+      field: nutriscore_grade
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: A
+            value: A
+          - text: B
+            value: B
+          - text: C
+            value: C
+          - text: D
+            value: D
+          - text: E
+            value: E
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: nutriscore_grade
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 1
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: nova_group
+    type: integer
+    meta:
+      collection: products
+      conditions: null
+      display: labels
+      display_options: null
+      field: nova_group
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: 1 — Non transformé
+            value: 1
+          - text: 2 — Ingrédient culinaire
+            value: 2
+          - text: 3 — Transformé
+            value: 3
+          - text: 4 — Ultra-transformé
+            value: 4
+      readonly: false
+      required: false
+      searchable: true
+      sort: 11
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: nova_group
+      table: products
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: scan_score
+    type: integer
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: scan_score
+      group: null
+      hidden: false
+      interface: input
+      note: Score global Bayen 0–100
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: scan_score
+      table: products
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: score_label
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: labels
+      display_options: null
+      field: score_label
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - background: '#16a34a'
+            foreground: '#ffffff'
+            text: Excellent
+            value: excellent
+          - background: '#84cc16'
+            foreground: '#ffffff'
+            text: Bon
+            value: bon
+          - background: '#f97316'
+            foreground: '#ffffff'
+            text: Médiocre
+            value: médiocre
+          - background: '#ef4444'
+            foreground: '#ffffff'
+            text: Mauvais
+            value: mauvais
+      readonly: false
+      required: false
+      searchable: true
+      sort: 13
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: score_label
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: energy_kcal
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: energy_kcal
+      group: null
+      hidden: false
+      interface: input
+      note: Pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 14
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: energy_kcal
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: fat_total
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: fat_total
+      group: null
+      hidden: false
+      interface: input
+      note: Lipides pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 15
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: fat_total
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: fat_saturated
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: fat_saturated
+      group: null
+      hidden: false
+      interface: input
+      note: AGS pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 16
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: fat_saturated
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: carbs_total
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: carbs_total
+      group: null
+      hidden: false
+      interface: input
+      note: Glucides pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 17
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: carbs_total
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: sugars
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: sugars
+      group: null
+      hidden: false
+      interface: input
+      note: Sucres pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 18
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: sugars
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: fiber
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: fiber
+      group: null
+      hidden: false
+      interface: input
+      note: Fibres pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 19
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: fiber
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: proteins
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: proteins
+      group: null
+      hidden: false
+      interface: input
+      note: Protéines pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 20
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: proteins
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: salt
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: salt
+      group: null
+      hidden: false
+      interface: input
+      note: Sel pour 100g
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 21
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: salt
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: ingredients_text
+    type: text
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: ingredients_text
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: Liste ingrédients brute
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 22
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: ingredients_text
+      table: products
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: additives
+    type: json
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: additives
+      group: null
+      hidden: false
+      interface: tags
+      note: 'Ex: ["E471","E150d"]'
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 23
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: additives
+      table: products
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: allergens
+    type: json
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: allergens
+      group: null
+      hidden: false
+      interface: tags
+      note: 'Ex: ["gluten","lactose"]'
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 24
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: allergens
+      table: products
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: is_organic
+    type: boolean
+    meta:
+      collection: products
+      conditions: null
+      display: boolean
+      display_options: null
+      field: is_organic
+      group: null
+      hidden: false
+      interface: boolean
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 25
+      special:
+        - cast-boolean
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: is_organic
+      table: products
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: is_halal
+    type: boolean
+    meta:
+      collection: products
+      conditions: null
+      display: boolean
+      display_options: null
+      field: is_halal
+      group: null
+      hidden: false
+      interface: boolean
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 26
+      special:
+        - cast-boolean
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: is_halal
+      table: products
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: origin_country
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: origin_country
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 27
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: origin_country
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 100
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: off_id
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: off_id
+      group: null
+      hidden: false
+      interface: input
+      note: ID Open Food Facts si existant
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 28
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: quarter
+    schema:
+      name: off_id
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: data_source
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: labels
+      display_options: null
+      field: data_source
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Open Food Facts
+            value: 'off'
+          - text: Utilisateur
+            value: user
+          - text: OCR Tesseract
+            value: ocr_tesseract
+          - text: Manuel
+            value: manual
+      readonly: false
+      required: true
+      searchable: true
+      sort: 29
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: data_source
+      table: products
+      data_type: character varying
+      default_value: user
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: status
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: labels
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Brouillon
+            value: draft
+          - background: '#f97316'
+            foreground: '#ffffff'
+            text: En attente
+            value: pending_review
+          - background: '#16a34a'
+            foreground: '#ffffff'
+            text: Publié
+            value: published
+          - background: '#ef4444'
+            foreground: '#ffffff'
+            text: Rejeté
+            value: rejected
+      readonly: false
+      required: true
+      searchable: true
+      sort: 30
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: status
+      table: products
+      data_type: character varying
+      default_value: draft
+      max_length: 20
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: confidence_score
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: confidence_score
+      group: null
+      hidden: false
+      interface: slider
+      note: 1 = données vérifiées manuellement
+      options:
+        maxValue: 1
+        minValue: 0
+        stepInterval: 0.01
+      readonly: false
+      required: false
+      searchable: true
+      sort: 31
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: confidence_score
+      table: products
+      data_type: real
+      default_value: 0
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: ocr_raw_text
+    type: text
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: ocr_raw_text
+      group: null
+      hidden: true
+      interface: input-multiline
+      note: Texte brut Tesseract (debug)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 32
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: ocr_raw_text
+      table: products
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: ocr_confidence
+    type: float
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: ocr_confidence
+      group: null
+      hidden: true
+      interface: input
+      note: Score confiance Tesseract 0–100
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 33
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: ocr_confidence
+      table: products
+      data_type: real
+      default_value: null
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: scan_count
+    type: integer
+    meta:
+      collection: products
+      conditions: null
+      display: null
+      display_options: null
+      field: scan_count
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 34
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: scan_count
+      table: products
+      data_type: integer
+      default_value: 0
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: date_created
+    type: timestamp
+    meta:
+      collection: products
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 35
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: products
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: products
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 36
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: products
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: products
+    field: created_by
+    type: uuid
+    meta:
+      collection: products
+      conditions: null
+      display: user
+      display_options: null
+      field: created_by
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 37
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: created_by
+      table: products
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: products
+    field: quantity
+    type: string
+    meta:
+      collection: products
+      conditions: null
+      display: raw
+      display_options: null
+      field: quantity
+      group: null
+      hidden: false
+      interface: input
+      note: 'Quantité/volume (ex: 400 g, 1.5 L)'
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 38
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: quantity
+      table: products
+      data_type: character varying
+      default_value: null
+      max_length: 100
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: scans
+    field: id
+    type: uuid
+    meta:
+      collection: scans
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: scans
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: scans
+    field: product_id
+    type: uuid
+    meta:
+      collection: scans
+      conditions: null
+      display: related-values
+      display_options:
+        template: '{{name_fr}}'
+      field: product_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: product_id
+      table: scans
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: products
+      foreign_key_column: id
+  - collection: scans
+    field: user_id
+    type: uuid
+    meta:
+      collection: scans
+      conditions: null
+      display: user
+      display_options: null
+      field: user_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_id
+      table: scans
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: scans
+    field: session_id
+    type: string
+    meta:
+      collection: scans
+      conditions: null
+      display: null
+      display_options: null
+      field: session_id
+      group: null
+      hidden: false
+      interface: input
+      note: Identifiant session anonyme
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: session_id
+      table: scans
+      data_type: character varying
+      default_value: null
+      max_length: 64
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: scans
+    field: device_type
+    type: string
+    meta:
+      collection: scans
+      conditions: null
+      display: null
+      display_options: null
+      field: device_type
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: device_type
+      table: scans
+      data_type: character varying
+      default_value: null
+      max_length: 50
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: scans
+    field: date_created
+    type: timestamp
+    meta:
+      collection: scans
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_created
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 6
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: scans
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+systemFields: []
+relations:
+  - collection: ai_logs
+    field: product_id
+    related_collection: products
+    meta:
+      junction_field: null
+      many_collection: ai_logs
+      many_field: product_id
+      one_allowed_collections: null
+      one_collection: products
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: ai_logs
+      column: product_id
+      foreign_key_table: products
+      foreign_key_column: id
+      constraint_name: ai_logs_product_id_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: articles
+    field: cover_image
+    related_collection: directus_files
+    meta:
+      junction_field: null
+      many_collection: articles
+      many_field: cover_image
+      one_allowed_collections: null
+      one_collection: directus_files
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: articles
+      column: cover_image
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: articles_cover_image_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: categories
+    field: parent_id
+    related_collection: categories
+    meta:
+      junction_field: null
+      many_collection: categories
+      many_field: parent_id
+      one_allowed_collections: null
+      one_collection: categories
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: categories
+      column: parent_id
+      foreign_key_table: categories
+      foreign_key_column: id
+      constraint_name: categories_parent_id_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: contributions
+    field: product_id
+    related_collection: products
+    meta:
+      junction_field: null
+      many_collection: contributions
+      many_field: product_id
+      one_allowed_collections: null
+      one_collection: products
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: contributions
+      column: product_id
+      foreign_key_table: products
+      foreign_key_column: id
+      constraint_name: contributions_product_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: contributions
+    field: user_id
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: contributions
+      many_field: user_id
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: contributions
+      column: user_id
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: contributions_user_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: contributions
+    field: reviewed_by
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: contributions
+      many_field: reviewed_by
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: contributions
+      column: reviewed_by
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: contributions_reviewed_by_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: products
+    field: category_id
+    related_collection: categories
+    meta:
+      junction_field: null
+      many_collection: products
+      many_field: category_id
+      one_allowed_collections: null
+      one_collection: categories
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: products
+      column: category_id
+      foreign_key_table: categories
+      foreign_key_column: id
+      constraint_name: products_category_id_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: products
+    field: created_by
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: products
+      many_field: created_by
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: products
+      column: created_by
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: products_created_by_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: products_ingredients
+    field: products_id
+    related_collection: products
+    meta:
+      junction_field: null
+      many_collection: products_ingredients
+      many_field: products_id
+      one_allowed_collections: null
+      one_collection: products
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: products_ingredients
+      column: products_id
+      foreign_key_table: products
+      foreign_key_column: id
+      constraint_name: products_ingredients_products_id_fkey
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: products_ingredients
+    field: ingredients_id
+    related_collection: ingredients
+    meta:
+      junction_field: null
+      many_collection: products_ingredients
+      many_field: ingredients_id
+      one_allowed_collections: null
+      one_collection: ingredients
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: products_ingredients
+      column: ingredients_id
+      foreign_key_table: ingredients
+      foreign_key_column: id
+      constraint_name: products_ingredients_ingredients_id_fkey
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: scans
+    field: product_id
+    related_collection: products
+    meta:
+      junction_field: null
+      many_collection: scans
+      many_field: product_id
+      one_allowed_collections: null
+      one_collection: products
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: scans
+      column: product_id
+      foreign_key_table: products
+      foreign_key_column: id
+      constraint_name: scans_product_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: scans
+    field: user_id
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: scans
+      many_field: user_id
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: scans
+      column: user_id
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: scans_user_id_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
