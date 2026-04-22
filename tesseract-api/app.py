@@ -1,13 +1,15 @@
 """
 Bayen OCR Pipeline API
-- /health — health check
-- /ocr — OCR brut (Tesseract)
-- /pipeline — Pipeline complet : OCR → Mistral parsing → JSON structuré
+- /health        — health check
+- /ocr           — OCR brut (Tesseract)
+- /pipeline      — Pipeline complet : OCR → LLM parsing → JSON structuré (étiquettes)
+- /meal-analyze  — Analyse photo de plat cuisiné via VLM → description + calories + score
 """
 
 from flask import Flask, request, jsonify
 import pytesseract
 from PIL import Image, ImageFilter, ImageEnhance
+import base64
 import io
 import json
 import os
@@ -94,6 +96,87 @@ def call_llm(prompt, retries=2):
             if attempt < retries:
                 time.sleep(2)
     return None
+
+
+# ─── VLM (vision-language model) pour l'analyse photo de repas ──────────
+# gemma3:4b-it-qat est nativement multimodal et déjà utilisé pour l'OCR →
+# pas de swap VRAM entre les deux features, pas de cold-start additionnel.
+VLM_MODEL = os.environ.get('VLM_MODEL', 'gemma3:4b-it-qat')
+
+MEAL_VLM_PROMPT = """Tu es un nutritionniste marocain expert. Analyse cette photo de repas et retourne UNIQUEMENT du JSON valide (aucun texte, aucun markdown).
+
+Si l'image ne montre PAS un plat ou un repas (produit emballé, personne, objet, paysage…), retourne :
+{"not_a_meal": true}
+
+Sinon, retourne ce JSON strict :
+{
+  "plat": "nom court du plat en français (ex: Tajine de poulet aux olives)",
+  "description": "2 phrases maximum en français décrivant le plat et ses principaux composants visibles",
+  "ingredients_detected": ["liste des ingrédients principaux identifiés, en français"],
+  "estimated_kcal": entier estimé pour la portion visible,
+  "estimated_portion": "1 personne" | "2 personnes" | "à partager",
+  "nutrition_per_100g": {
+    "energy_kcal": nombre,
+    "fat_total": nombre,
+    "fat_saturated": nombre,
+    "carbs_total": nombre,
+    "sugars": nombre,
+    "fiber": nombre,
+    "proteins": nombre,
+    "salt": nombre
+  },
+  "fruits_vegetables_nuts_percent": estimation 0-100 du % de fruits/légumes/noix/légumineuses visibles,
+  "nova_group": 1 à 4 selon le degré de transformation (1=brut, 4=ultra-transformé),
+  "is_beverage": true si c'est une boisson, sinon false,
+  "confidence": 0.0 à 1.0 selon ta certitude
+}
+
+Ne jamais inventer. Estime prudemment. Utilise des valeurs réalistes pour cuisine marocaine/méditerranéenne. Le JSON doit être parsable."""
+
+
+def call_vlm(image_b64, prompt, timeout=90):
+    """Appelle le VLM (Ollama multimodal) avec une image en base64."""
+    try:
+        response = requests.post(
+            f'{OLLAMA_URL}/api/generate',
+            json={
+                'model': VLM_MODEL,
+                'prompt': prompt,
+                'images': [image_b64],
+                'stream': False,
+                'options': {'temperature': 0.2}
+            },
+            timeout=timeout
+        )
+        if response.status_code != 200:
+            app.logger.warning(f'VLM HTTP {response.status_code}')
+            return None
+        data = response.json()
+        raw = data.get('response', '').strip()
+        # Le modèle entoure parfois le JSON de markdown ```json ... ```
+        if '```json' in raw:
+            raw = raw.split('```json')[1].split('```')[0].strip()
+        elif '```' in raw:
+            raw = raw.split('```')[1].split('```')[0].strip()
+        return json.loads(raw), data.get('eval_count', 0)
+    except (requests.exceptions.RequestException, json.JSONDecodeError, IndexError) as e:
+        app.logger.warning(f'VLM error: {e}')
+        return None
+
+
+def resize_for_vlm(image, max_side=1024):
+    """Redimensionne l'image pour limiter le payload vers Ollama.
+    Conserve le ratio ; convertit en RGB (JPEG ne supporte pas RGBA)."""
+    if image.mode != 'RGB':
+        image = image.convert('RGB')
+    w, h = image.size
+    if max(w, h) <= max_side:
+        return image
+    if w >= h:
+        new = (max_side, int(h * max_side / w))
+    else:
+        new = (int(w * max_side / h), max_side)
+    return image.resize(new, Image.LANCZOS)
 
 
 @app.route('/health', methods=['GET'])
@@ -223,6 +306,92 @@ def pipeline():
 
     except Exception as e:
         app.logger.error(f'Pipeline error: {e}')
+        return jsonify({
+            'job_status': 'error',
+            'error': str(e),
+            'duration_ms': int((time.time() - start_time) * 1000)
+        }), 500
+
+
+@app.route('/meal-analyze', methods=['POST'])
+def meal_analyze():
+    """
+    Analyse une photo de plat cuisiné via VLM (vision-language model).
+
+    Input  : multipart/form-data avec `image` (JPEG/PNG)
+    Output : JSON avec description, ingrédients détectés, calories estimées
+             et nutrition_per_100g prête à être scorée par scoring.ts côté
+             client. Le score Bayen final n'est PAS calculé ici — on laisse
+             le scoring déterministe au frontend pour garder une seule source
+             de vérité.
+    """
+    if 'image' not in request.files:
+        return jsonify({'error': "'image' requise", 'job_status': 'error'}), 400
+
+    start_time = time.time()
+
+    try:
+        file = request.files['image']
+        raw_bytes = file.read()
+        # Limite anti-abus : 8 MB
+        if len(raw_bytes) > 8 * 1024 * 1024:
+            return jsonify({
+                'error': 'Image trop grande (>8 MB)',
+                'job_status': 'error'
+            }), 400
+
+        image = Image.open(io.BytesIO(raw_bytes))
+        image = resize_for_vlm(image, max_side=1024)
+
+        # Encode JPEG base64 pour Ollama
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG', quality=85)
+        image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+
+        vlm_start = time.time()
+        result = call_vlm(image_b64, MEAL_VLM_PROMPT, timeout=90)
+        vlm_duration = int((time.time() - vlm_start) * 1000)
+
+        if result is None:
+            return jsonify({
+                'job_status': 'error',
+                'message': "L'IA n'a pas pu analyser l'image. Réessayez avec une meilleure photo.",
+                'duration_ms': int((time.time() - start_time) * 1000)
+            }), 502
+
+        parsed, eval_count = result
+
+        # Guard : l'image n'était pas un plat
+        if parsed.get('not_a_meal') is True:
+            return jsonify({
+                'job_status': 'not_a_meal',
+                'message': "Cette photo ne semble pas être un plat. Prends une photo de ton assiette pour l'analyser.",
+                'duration_ms': int((time.time() - start_time) * 1000)
+            })
+
+        total_duration = int((time.time() - start_time) * 1000)
+
+        return jsonify({
+            'job_status': 'done',
+            'duration_ms': total_duration,
+            'timing': {'vlm_ms': vlm_duration},
+            'model': VLM_MODEL,
+            'analysis': {
+                'plat': parsed.get('plat'),
+                'description': parsed.get('description'),
+                'ingredients_detected': parsed.get('ingredients_detected', []),
+                'estimated_kcal': parsed.get('estimated_kcal'),
+                'estimated_portion': parsed.get('estimated_portion'),
+                'nutrition_per_100g': parsed.get('nutrition_per_100g', {}),
+                'fruits_vegetables_nuts_percent': parsed.get('fruits_vegetables_nuts_percent'),
+                'nova_group': parsed.get('nova_group'),
+                'is_beverage': bool(parsed.get('is_beverage', False)),
+                'confidence': parsed.get('confidence', 0.7),
+            },
+        })
+
+    except Exception as e:
+        app.logger.error(f'meal-analyze error: {e}')
         return jsonify({
             'job_status': 'error',
             'error': str(e),
