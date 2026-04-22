@@ -98,6 +98,15 @@ const currentPath = Astro.url.pathname
               {t('nav.search', locale)}
             </a>
             <a
+              href="/analyser-repas"
+              class:list={[
+                'transition-colors hover:opacity-100',
+                currentPath.startsWith('/analyser-repas') ? 'font-medium' : 'opacity-60',
+              ]}
+            >
+              {t('nav.meal', locale)}
+            </a>
+            <a
               href="/additifs"
               class:list={[
                 'transition-colors hover:opacity-100',
