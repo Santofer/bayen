@@ -219,6 +219,27 @@ await Promise.all(
       </div>
     </section>
 
+    <!-- CTA : Analyser un repas (feature VLM) -->
+    <section class="container mx-auto max-w-screen-lg px-4 pt-6 pb-2">
+      <a href="/analyser-repas" class="group flex items-center gap-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent hover:border-primary/40 hover:shadow-md transition-all p-4 sm:p-6">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary sm:w-7 sm:h-7">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-bold text-foreground text-base sm:text-lg">{t('meal.pageTitle', locale)}</h3>
+          <p class="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-2">
+            {t('meal.pageSubtitle', locale)}
+          </p>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary flex-shrink-0 group-hover:translate-x-1 transition-transform">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </a>
+    </section>
+
     <!-- Comment ça marche -->
     <section class="container mx-auto max-w-screen-lg px-4 py-12">
       <h2 class="font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
