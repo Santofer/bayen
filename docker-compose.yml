@@ -95,9 +95,12 @@ services:
     environment:
       OLLAMA_URL: http://host.docker.internal:11434
       # VLM pour l'analyse photo de repas (/meal-analyze)
-      # gemma4:e4b : 60-90s/image, tient en VRAM (3.5 GB sur M4000), JSON propre
-      # alternative plus rapide : gemma3:4b-it-qat (~25s) mais plus verbeux
-      VLM_MODEL: gemma4:e4b-it-q4_K_M
+      # gemma3:4b-it-qat choisi après bench empirique (4 modèles, 3 photos) :
+      #   - moondream: 5s mais ignore le prompt (recopie les placeholders)
+      #   - gemma3:4b : ~15-25s, précision ~95% (meilleur ratio vitesse/qualité)
+      #   - qwen2.5vl:7b : 140s (offload CPU sur M4000 8GB) — exclu
+      #   - gemma4:e4b : 80s, +5% de précision mais 5× plus lent — exclu
+      VLM_MODEL: gemma3:4b-it-qat
       # LLM pour l'OCR nutrition (/pipeline) — indépendant du VLM
       LLM_MODEL: gemma3:4b-it-qat
     extra_hosts:
