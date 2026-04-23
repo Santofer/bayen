@@ -90,6 +90,18 @@ services:
       dockerfile: Dockerfile
     container_name: bayen-tesseract
     restart: unless-stopped
+    ports:
+      - "5055:5000"
+    environment:
+      OLLAMA_URL: http://host.docker.internal:11434
+      # VLM pour l'analyse photo de repas (/meal-analyze)
+      # gemma4:e4b : 60-90s/image, tient en VRAM (3.5 GB sur M4000), JSON propre
+      # alternative plus rapide : gemma3:4b-it-qat (~25s) mais plus verbeux
+      VLM_MODEL: gemma4:e4b-it-q4_K_M
+      # LLM pour l'OCR nutrition (/pipeline) — indépendant du VLM
+      LLM_MODEL: gemma3:4b-it-qat
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - bayen-internal
 

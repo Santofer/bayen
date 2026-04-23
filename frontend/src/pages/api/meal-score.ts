@@ -37,8 +37,8 @@ export async function POST(context: APIContext): Promise<Response> {
     const res = await fetch(`${OCR_URL}/meal-analyze`, {
       method: 'POST',
       body: forward,
-      // Le VLM prend ~25s warm, max ~60s cold → 90s de marge côté proxy.
-      signal: AbortSignal.timeout(100_000),
+      // gemma3:4b : ~25s / gemma4:e4b : ~60-90s → 200s de marge.
+      signal: AbortSignal.timeout(200_000),
     })
 
     const data = await res.text()

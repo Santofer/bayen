@@ -103,48 +103,47 @@ def call_llm(prompt, retries=2):
 # pas de swap VRAM entre les deux features, pas de cold-start additionnel.
 VLM_MODEL = os.environ.get('VLM_MODEL', 'gemma3:4b-it-qat')
 
-MEAL_VLM_PROMPT = """Tu es un analyste nutritionnel rigoureux. Ton travail consiste à décrire OBJECTIVEMENT le contenu visuel d'une photo de repas, pas à deviner un plat typique.
+MEAL_VLM_PROMPT = """Analyse cette photo de repas en décrivant UNIQUEMENT ce qui y est réellement visible.
 
-Si l'image ne montre PAS un plat ou un repas (produit emballé, personne, objet, paysage), retourne :
+Si l'image ne contient pas de nourriture ou de boisson, retourne juste :
 {"not_a_meal": true}
 
-RÈGLES IMPÉRATIVES — lis-les avant d'analyser :
+Règles impératives :
+- Tu DOIS regarder attentivement l'image avant de répondre.
+- Tu dois décrire UNIQUEMENT les éléments réellement présents sur la photo.
+- N'invente AUCUN aliment. N'ajoute rien qui ne soit pas visible.
+- Ne reprends AUCUN mot des instructions ci-dessus : les noms d'aliments dans les cases JSON ci-dessous sont des PLACEHOLDERS, pas des suggestions.
+- Si tu n'identifies pas clairement un élément, décris-le par son apparence ("pain rond brun", "viande blanche") plutôt que d'inventer un nom précis.
+- Ta confidence reflète ta certitude : 0.9 si tout est clairement identifiable, 0.5 si tu hésites, 0.2 si l'image est floue ou ambiguë.
 
-1. **Décris ce que tu VOIS, pas ce que tu AS APPRIS.** Ne présume jamais un plat "typique" à partir d'un élément de contexte (plateau en cuivre, théière, olives, pain rond…).
+Remplis CHAQUE champ en te basant sur CETTE photo précise :
 
-2. **La cuisine marocaine ne se limite PAS au tajine.** Un petit-déjeuner marocain typique contient souvent : œufs au plat, pain (msemen, harcha, khobz, baghrir, batbout), olives, huile d'olive, miel, thé à la menthe, fromage frais — SANS aucun tajine. Si tu vois une poêle avec des œufs + des galettes/pains séparés + des olives en accompagnement, c'est un PETIT-DÉJEUNER, pas un tajine.
-
-3. **Plateau ≠ plat unique.** Si l'image montre un assortiment de composantes séparées (œufs d'un côté, pain d'un autre, olives dans un ramequin, théière à part), identifie-le comme un assortiment / petit-déjeuner / mezze, pas comme un plat unique.
-
-4. **Liste chaque aliment visible individuellement** avant de nommer l'ensemble. N'invente rien qui ne soit pas visible.
-
-5. **Confidence honnête.** Si tu n'es pas sûr à 100%, baisse confidence (0.3–0.6). Ne fais pas semblant d'être certain.
-
-Retourne UNIQUEMENT ce JSON valide (pas de markdown, pas de texte autour) :
 {
-  "plat": "nom court et fidèle à ce qui est visible — exemples: 'Petit-déjeuner marocain traditionnel', 'Couscous royal', 'Tajine de poulet aux olives', 'Salade composée', 'Sandwich au thon', 'Bol de harira'. Choisis un nom général si tu hésites.",
-  "description": "2 phrases maximum, liste factuelle des composants visibles (ex: 'Deux œufs au plat dans une poêle, accompagnés de msemen, de harcha, d'olives mélangées, d'huile d'olive et d'un service de thé à la menthe.').",
-  "ingredients_detected": ["liste chaque aliment visible un par un, sans grouper — ex: 'œufs', 'msemen', 'harcha', 'olives vertes', 'olives noires', 'huile d'olive', 'thé à la menthe', 'confiture'"],
-  "estimated_kcal": entier pour la portion visible totale,
-  "estimated_portion": "1 personne" | "2 personnes" | "à partager",
+  "plat": "<nom court du plat OU type d'assortiment réellement visible>",
+  "description": "<2 phrases max décrivant FACTUELLEMENT les éléments de cette image, sans copier cette phrase>",
+  "ingredients_detected": ["<aliment 1 réellement vu>", "<aliment 2>", "<aliment 3>", ...],
+  "estimated_kcal": <entier pour la portion visible totale>,
+  "estimated_portion": "<1 personne | 2 personnes | à partager>",
   "nutrition_per_100g": {
-    "energy_kcal": nombre,
-    "fat_total": nombre,
-    "fat_saturated": nombre,
-    "carbs_total": nombre,
-    "sugars": nombre,
-    "fiber": nombre,
-    "proteins": nombre,
-    "salt": nombre
+    "energy_kcal": <nombre>,
+    "fat_total": <nombre en g>,
+    "fat_saturated": <nombre en g>,
+    "carbs_total": <nombre en g>,
+    "sugars": <nombre en g>,
+    "fiber": <nombre en g>,
+    "proteins": <nombre en g>,
+    "salt": <nombre en g>
   },
-  "fruits_vegetables_nuts_percent": estimation 0-100 du % de fruits/légumes/noix/légumineuses,
-  "nova_group": 1 (brut) à 4 (ultra-transformé) pour l'ensemble dominant,
-  "is_beverage": true uniquement si l'image est dominée par une boisson seule,
-  "confidence": 0.0 à 1.0 — baisse honnêtement si tu n'es pas certain
-}"""
+  "fruits_vegetables_nuts_percent": <0-100>,
+  "nova_group": <1-4>,
+  "is_beverage": <true uniquement si la photo est une boisson seule>,
+  "confidence": <0.0-1.0>
+}
+
+Retourne UNIQUEMENT le JSON, sans markdown, sans texte avant ou après."""
 
 
-def call_vlm(image_b64, prompt, timeout=90):
+def call_vlm(image_b64, prompt, timeout=180):
     """Appelle le VLM (Ollama multimodal) avec une image en base64."""
     try:
         response = requests.post(
@@ -360,7 +359,8 @@ def meal_analyze():
         image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
 
         vlm_start = time.time()
-        result = call_vlm(image_b64, MEAL_VLM_PROMPT, timeout=90)
+        # 180s : marge confortable même pour gemma4:e4b (typique 50-90s)
+        result = call_vlm(image_b64, MEAL_VLM_PROMPT, timeout=180)
         vlm_duration = int((time.time() - vlm_start) * 1000)
 
         if result is None:
