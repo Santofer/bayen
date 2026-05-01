@@ -12,7 +12,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-bayen_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
     volumes:
-      - /mnt/user/appdata/bayen-postgres:/var/lib/postgresql/data
+      - /mnt/disk3/files/Apps/bayen/postgres:/var/lib/postgresql/data
     networks:
       - bayen-internal
     healthcheck:
@@ -55,7 +55,7 @@ services:
       # Limites
       MAX_PAYLOAD_SIZE: 5mb
     volumes:
-      - /mnt/user/appdata/bayen-directus/uploads:/directus/uploads
+      - /mnt/disk3/files/Apps/bayen/directus-uploads:/directus/uploads
       - ./directus/extensions:/directus/extensions
       - ./directus/snapshots:/directus/snapshots
     networks:
@@ -73,7 +73,7 @@ services:
       - OLLAMA_MAX_LOADED_MODELS=1
       - OLLAMA_NUM_GPU=1
     volumes:
-      - /mnt/user/appdata/bayen-ollama:/root/.ollama
+      - /mnt/disk3/files/Apps/bayen/ollama:/root/.ollama
     deploy:
       resources:
         reservations:
