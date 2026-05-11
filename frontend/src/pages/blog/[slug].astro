@@ -98,23 +98,53 @@ const pageTitle = article ? `${title} — Bayen` : `${t('blog.notFound', locale)
 const metaDescription = excerpt ?? t('blog.description', locale)
 const ogImage = coverUrl ?? undefined
 
-// JSON-LD BlogPosting pour SEO
-const jsonLd = article ? {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: title,
-  description: excerpt,
-  image: coverUrl ? [coverUrl] : undefined,
-  datePublished: article.date_published ?? article.date_created,
-  dateModified: article.date_updated ?? article.date_published ?? article.date_created,
-  author: { '@type': 'Organization', name: 'Bayen' },
-  publisher: {
-    '@type': 'Organization',
-    name: 'Bayen',
-    logo: { '@type': 'ImageObject', url: 'https://bayen.ma/icons/icon-512.png' },
-  },
-  mainEntityOfPage: { '@type': 'WebPage', '@id': `https://bayen.ma/blog/${article.slug}` },
-} : undefined
+// JSON-LD : BlogPosting + BreadcrumbList
+const SITE_URL = 'https://bayen.ma'
+const articleContentFr: string = (article?.content_fr as string | undefined) ?? ''
+const wordCount = articleContentFr ? articleContentFr.split(/\s+/).filter(Boolean).length : undefined
+
+const jsonLd = article
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: title,
+        description: excerpt,
+        image: coverUrl ? [coverUrl] : [`${SITE_URL}/og-default.png`],
+        datePublished: article.date_published ?? article.date_created,
+        dateModified: article.date_updated ?? article.date_published ?? article.date_created,
+        wordCount,
+        timeRequired: article.reading_time_min ? `PT${article.reading_time_min}M` : undefined,
+        articleSection: CATEGORY_LABELS[article.category as ArticleCategory] ?? article.category,
+        inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
+        author: {
+          '@type': 'Person',
+          name: 'Amine Benboubker',
+          url: 'https://www.n0.ma',
+          affiliation: { '@type': 'Organization', name: 'Bayen' },
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Bayen',
+          logo: { '@type': 'ImageObject', url: `${SITE_URL}/icons/icon-512.png` },
+        },
+        mainEntityOfPage: {
+          '@type': 'WebPage',
+          '@id': `${SITE_URL}/blog/${article.slug}`,
+        },
+        url: `${SITE_URL}/blog/${article.slug}`,
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+          { '@type': 'ListItem', position: 3, name: title, item: `${SITE_URL}/blog/${article.slug}` },
+        ],
+      },
+    ]
+  : undefined
 ---
 
 <Layout

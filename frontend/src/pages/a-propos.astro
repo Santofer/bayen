@@ -1,0 +1,134 @@
+---
+// Page "À propos" — fonde la crédibilité E-E-A-T (Experience, Expertise,
+// Authoritativeness, Trustworthiness) requise par Google sur les sujets YMYL
+// (Your Money Your Life — la santé/nutrition en fait partie).
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
+
+const SITE_URL = 'https://bayen.ma'
+
+// JSON-LD AboutPage + BreadcrumbList
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    url: `${SITE_URL}/a-propos`,
+    name: 'À propos de Bayen',
+    description: "Qui est derrière Bayen, comment on travaille, et pourquoi on rend la nutrition transparente au Maroc.",
+    inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    about: { '@id': `${SITE_URL}/#organization` },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'À propos', item: `${SITE_URL}/a-propos` },
+    ],
+  },
+]
+---
+
+<Layout
+  title="À propos de Bayen — Notation transparente des produits alimentaires au Maroc"
+  description="Bayen est une initiative citoyenne marocaine, gratuite et open source, qui aide à comprendre ce qu'on mange. Découvre l'équipe, la méthode et nos valeurs."
+  path="/a-propos"
+  jsonLd={jsonLd}
+>
+  <main class="container mx-auto max-w-screen-md px-4 pt-6 pb-24">
+    <article class="prose-bayen space-y-8">
+
+      <header class="space-y-3 text-center">
+        <h1 class="text-3xl sm:text-4xl font-bold text-foreground">À propos de Bayen</h1>
+        <p class="text-base text-muted-foreground">
+          Une initiative citoyenne marocaine pour rendre la nutrition transparente — gratuite, open source, sans publicité.
+        </p>
+      </header>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Pourquoi Bayen ?</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Au Maroc, lire une étiquette alimentaire est devenu un parcours du combattant : ingrédients en arabe, additifs sous des codes E-xxx incompréhensibles, allégations marketing trompeuses ("naturel", "allégé", "riche en…"). Pendant ce temps, l'obésité et le diabète explosent — la prévalence du diabète chez les adultes a doublé en 15 ans selon l'OMS.
+        </p>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Bayen (بَيَّن — "c'est clair, ça se voit" en darija) a une seule mission : <strong class="text-foreground">tu scannes un code-barres, tu obtiens en 3 secondes une note objective de 0 à 100 et tu comprends ce que tu manges</strong>. Sans frais, sans abonnement, sans pub.
+        </p>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Qui est derrière</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Bayen est porté par <a href="https://www.n0.ma" class="text-primary hover:underline">N0</a>, le studio créatif d'Amine Benboubker basé à Casablanca, en partenariat technique avec <a href="https://netspace.ma" class="text-primary hover:underline">Netspace</a>. C'est un projet pro-bono — aucun investisseur, aucune monétisation directe, aucune donnée revendue à des tiers.
+        </p>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Les algorithmes de scoring, le code source et la méthodologie sont <strong class="text-foreground">100% publics sur GitHub</strong> : <a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">github.com/Santofer/bayen</a>. Tu peux vérifier toi-même comment chaque score est calculé.
+        </p>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Sources et méthodologie</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          On ne fabrique aucune donnée nutritionnelle. Toutes les valeurs viennent de :
+        </p>
+        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
+          <li><a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Open Food Facts</a> — la base mondiale collaborative (75% de nos produits sont auto-importés)</li>
+          <li>Contributions de la communauté marocaine (photo du tableau nutritionnel + OCR + validation)</li>
+          <li>L'algorithme <strong class="text-foreground">Nutri-Score officiel européen</strong> (Santé Publique France, 2017)</li>
+          <li>La <strong class="text-foreground">classification NOVA</strong> (Université de São Paulo, 2009) sur le degré de transformation</li>
+          <li>La liste des <strong class="text-foreground">additifs à risque selon l'EFSA</strong> (Autorité européenne) et le <strong class="text-foreground">CIRC</strong> (Centre international de recherche sur le cancer / OMS)</li>
+        </ul>
+        <p class="text-sm text-muted-foreground leading-relaxed pt-2">
+          → <a href="/methodologie" class="text-primary hover:underline font-medium">Lire la méthodologie complète du score Bayen</a>
+        </p>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Nos engagements</h2>
+        <ul class="text-sm text-muted-foreground space-y-2">
+          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Gratuit pour toujours</strong> — pas d'abonnement caché, pas de freemium déguisé</li>
+          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans publicité</strong> — l'app ne te pousse aucun produit</li>
+          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans pression commerciale</strong> — on ne reçoit aucune compensation des marques</li>
+          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Données personnelles minimales</strong> — pas de tracking invasif, analytics anonymisées (Umami)</li>
+          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Open source</strong> — le code est vérifiable par n'importe qui</li>
+          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Souveraineté</strong> — toute l'infrastructure tourne au Maroc, sur des serveurs qu'on contrôle</li>
+        </ul>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Limites assumées</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          On préfère être honnête sur ce que Bayen <em>ne fait pas</em> :
+        </p>
+        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
+          <li><strong class="text-foreground">On ne remplace pas un nutritionniste.</strong> Si tu as un régime spécifique (diabète, allergie sévère, grossesse), demande un avis médical.</li>
+          <li><strong class="text-foreground">Notre base n'est pas exhaustive.</strong> ~2000 produits indexés sur des dizaines de milliers en circulation au Maroc — la base grandit avec vos scans.</li>
+          <li><strong class="text-foreground">Un Nutri-Score A ne veut pas dire "sain à volonté".</strong> C'est un indicateur, pas une caution.</li>
+          <li><strong class="text-foreground">Les données peuvent dater.</strong> Les recettes industrielles changent, on dépend des mises à jour OFF et des contributions.</li>
+        </ul>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Contact & contribution</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Bayen est un projet ouvert. Tu peux :
+        </p>
+        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
+          <li><a href="/contribuer" class="text-primary hover:underline">Ajouter un produit manquant</a> directement depuis l'app</li>
+          <li><a href="https://github.com/Santofer/bayen/issues" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Signaler un bug ou suggérer une amélioration</a> sur GitHub</li>
+          <li>Nous écrire à <a href="mailto:contact@n0.ma" class="text-primary hover:underline">contact@n0.ma</a> pour un partenariat, un retour presse, ou un partenariat ONG/association</li>
+        </ul>
+      </section>
+
+      <footer class="text-center text-xs text-muted-foreground pt-4">
+        Dernière mise à jour : mai 2026 · Site lancé en avril 2026 · Données : Open Food Facts + contributions communauté
+      </footer>
+
+    </article>
+  </main>
+</Layout>

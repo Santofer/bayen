@@ -322,6 +322,8 @@ export const translations = {
   'footer.navigation':    { fr: 'Navigation',                                       ary: 'التنقل' },
   'footer.participate':   { fr: 'Participer',                                       ary: 'شارك' },
   'footer.info':          { fr: 'Informations',                                     ary: 'معلومات' },
+  'footer.about':         { fr: 'À propos',                                         ary: 'علينا' },
+  'footer.methodology':   { fr: 'Méthodologie',                                     ary: 'المنهجية' },
   'footer.initiative':    { fr: 'Une initiative citoyenne de',                       ary: 'مبادرة مواطنة ديال' },
   'footer.dataFrom':      { fr: 'Données alimentaires issues de',                   ary: 'المعلومات الغذائية من' },
 

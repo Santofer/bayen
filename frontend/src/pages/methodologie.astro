@@ -1,0 +1,208 @@
+---
+// Page "Méthodologie du score Bayen" — transparence complète de l'algorithme
+// pour appuyer le E-E-A-T sur les sujets YMYL (nutrition = santé).
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
+
+const SITE_URL = 'https://bayen.ma'
+
+// JSON-LD : TechArticle (article technique) + BreadcrumbList + FAQPage pour les 4 questions
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: 'Méthodologie du score Bayen : comment on calcule la note 0-100',
+    description: "Détail complet de l'algorithme de scoring Bayen : pondération Nutri-Score (50%), NOVA (30%), additifs (20%). Algorithme déterministe, ouvert et reproductible.",
+    inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
+    author: {
+      '@type': 'Organization',
+      name: 'Bayen',
+      url: SITE_URL,
+    },
+    datePublished: '2026-05-11',
+    dateModified: '2026-05-11',
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    mainEntityOfPage: `${SITE_URL}/methodologie`,
+    proficiencyLevel: 'Beginner',
+    keywords: 'Nutri-Score, NOVA, additifs, score nutritionnel, méthodologie, transparence',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Méthodologie', item: `${SITE_URL}/methodologie` },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Comment le score Bayen est-il calculé ?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Le score Bayen, noté de 0 à 100, est la somme pondérée de trois composantes : Nutri-Score officiel (50 points), groupe NOVA de transformation (30 points), et pénalités liées aux additifs à risque (20 points). C\'est un algorithme déterministe public, sans intelligence artificielle dans le calcul.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Pourquoi un produit peut avoir un Nutri-Score A mais un mauvais score Bayen ?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Le Nutri-Score ne regarde que la composition nutritionnelle (sucres, sel, graisses, fibres, protéines). Un produit peut être Nutri-Score A mais ultra-transformé (NOVA 4) avec beaucoup d\'additifs controversés — dans ce cas le score Bayen pénalise ces deux dimensions ignorées par le Nutri-Score seul.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'D\'où viennent les données nutritionnelles ?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: '75% des produits viennent d\'Open Food Facts (base mondiale collaborative) auto-importés au scan. 25% sont contribués par la communauté marocaine via photo + OCR. Les utilisateurs peuvent confirmer ou signaler les erreurs : 3 confirmations passent un produit en statut "Vérifié".',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'L\'IA décide-t-elle de la note d\'un produit ?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Non. L\'IA (modèle local gemma3 sur serveur Bayen au Maroc) sert uniquement à lire les étiquettes (OCR) et à décrire le contenu d\'une photo de plat. Le score final est toujours calculé par un algorithme déterministe, ouvert et reproductible — pas de boîte noire.',
+        },
+      },
+    ],
+  },
+]
+---
+
+<Layout
+  title="Méthodologie du score Bayen — Comment on calcule la note nutritionnelle"
+  description="Détail complet et transparent de l'algorithme : Nutri-Score (50 pts) + NOVA (30 pts) + Additifs (20 pts). Algorithme public, open source, reproductible."
+  path="/methodologie"
+  jsonLd={jsonLd}
+>
+  <main class="container mx-auto max-w-screen-md px-4 pt-6 pb-24">
+    <article class="space-y-8">
+
+      <header class="space-y-3 text-center">
+        <p class="text-xs font-semibold uppercase tracking-wide text-primary">Transparence totale</p>
+        <h1 class="text-3xl sm:text-4xl font-bold text-foreground">Méthodologie du score Bayen</h1>
+        <p class="text-base text-muted-foreground max-w-xl mx-auto">
+          Comment on calcule la note 0–100 affichée pour chaque produit. Pas de boîte noire, pas d'IA dans le calcul : un algorithme déterministe, public, vérifiable.
+        </p>
+      </header>
+
+      <section class="rounded-2xl border-2 border-primary/20 bg-primary/5 p-6 text-center">
+        <p class="text-sm text-muted-foreground mb-2">La formule en une ligne :</p>
+        <p class="text-xl sm:text-2xl font-bold text-foreground">
+          Score = Nutri-Score <span class="text-primary">(50%)</span> + NOVA <span class="text-primary">(30%)</span> + Additifs <span class="text-primary">(20%)</span>
+        </p>
+        <p class="text-xs text-muted-foreground mt-3">
+          Code source : <a href="https://github.com/Santofer/bayen/blob/main/frontend/src/lib/scoring.ts" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline font-mono">scoring.ts</a>
+        </p>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">1. Nutri-Score (50 points)</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          On utilise l'algorithme officiel européen mis au point par <strong class="text-foreground">Santé Publique France</strong> (méthode FSA-NPS modifiée). Pour 100g du produit :
+        </p>
+        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
+          <li><strong class="text-foreground">Points négatifs</strong> (à minimiser) : énergie, sucres, acides gras saturés, sel</li>
+          <li><strong class="text-foreground">Points positifs</strong> (à maximiser) : fibres, protéines, fruits/légumes/légumineuses</li>
+          <li><strong class="text-foreground">Lettres :</strong> A (vert foncé, le meilleur) → E (rouge)</li>
+        </ul>
+        <table class="text-sm w-full mt-3">
+          <thead><tr class="border-b text-muted-foreground"><th class="text-left py-2">Lettre</th><th class="text-right py-2">Points Bayen / 50</th></tr></thead>
+          <tbody>
+            <tr class="border-b"><td class="py-1">A</td><td class="text-right font-mono">50</td></tr>
+            <tr class="border-b"><td class="py-1">B</td><td class="text-right font-mono">40</td></tr>
+            <tr class="border-b"><td class="py-1">C</td><td class="text-right font-mono">30</td></tr>
+            <tr class="border-b"><td class="py-1">D</td><td class="text-right font-mono">15</td></tr>
+            <tr><td class="py-1">E</td><td class="text-right font-mono">0</td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-muted-foreground italic pt-2">
+          Pour les boissons, on applique des seuils plus stricts (catégorie 5 "boissons sucrées" et 6 "eaux & jus") car les calories liquides sont plus rapidement absorbées par l'organisme.
+        </p>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">2. Groupe NOVA (30 points)</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          La classification <strong class="text-foreground">NOVA</strong> (Pr. Carlos Monteiro, Université de São Paulo, 2009) range les aliments selon leur degré de transformation industrielle :
+        </p>
+        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
+          <li><strong class="text-foreground">NOVA 1</strong> : aliments bruts ou peu transformés (légumes, fruits, viande fraîche, lait, œufs) — <span class="font-mono text-foreground">30 pts</span></li>
+          <li><strong class="text-foreground">NOVA 2</strong> : ingrédients culinaires extraits (sucre, sel, huile, beurre) — <span class="font-mono text-foreground">25 pts</span></li>
+          <li><strong class="text-foreground">NOVA 3</strong> : aliments transformés (pain, fromage, conserves de légumes) — <span class="font-mono text-foreground">15 pts</span></li>
+          <li><strong class="text-foreground">NOVA 4</strong> : ultra-transformés (sodas, plats préparés, nuggets, biscuits fourrés, charcuterie industrielle) — <span class="font-mono text-foreground">0 pt</span></li>
+        </ul>
+        <p class="text-sm text-muted-foreground italic pt-2">
+          Une consommation élevée de NOVA 4 est associée à <strong class="text-foreground">+62% de mortalité toutes causes</strong> (étude NutriNet-Santé 2019, 45 000 participants) et +31% de diabète type 2 — d'où la pondération forte dans le score Bayen.
+        </p>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">3. Additifs (20 points)</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          On part de 20 points et on déduit pour chaque additif détecté dans la liste d'ingrédients, selon son niveau de risque (basé sur les évaluations <strong class="text-foreground">EFSA</strong>, <strong class="text-foreground">CIRC/OMS</strong> et la réglementation marocaine) :
+        </p>
+        <table class="text-sm w-full mt-2">
+          <thead><tr class="border-b text-muted-foreground">
+            <th class="text-left py-2">Niveau</th>
+            <th class="text-left py-2">Exemple</th>
+            <th class="text-right py-2">Déduction</th>
+          </tr></thead>
+          <tbody>
+            <tr class="border-b"><td class="py-1">🟢 Sûr</td><td class="text-xs text-muted-foreground">E330 (acide citrique)</td><td class="text-right font-mono">0 pt</td></tr>
+            <tr class="border-b"><td class="py-1">🟠 À limiter</td><td class="text-xs text-muted-foreground">E322 (lécithines)</td><td class="text-right font-mono">−2 pts</td></tr>
+            <tr class="border-b"><td class="py-1">🔴 À éviter</td><td class="text-xs text-muted-foreground">E951 (aspartame)</td><td class="text-right font-mono">−5 pts</td></tr>
+            <tr><td class="py-1">⚫ Interdit Maroc/UE</td><td class="text-xs text-muted-foreground">E171 (TiO₂)</td><td class="text-right font-mono">−10 pts</td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-muted-foreground italic pt-2">
+          Le minimum reste 0 : un produit avec beaucoup d'additifs ne descend pas dans le négatif sur cette composante.
+        </p>
+      </section>
+
+      <section class="rounded-2xl border bg-card p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Étiquette finale</h2>
+        <table class="text-sm w-full">
+          <thead><tr class="border-b text-muted-foreground"><th class="text-left py-2">Score / 100</th><th class="text-left py-2">Label</th><th class="text-left py-2">Couleur</th></tr></thead>
+          <tbody>
+            <tr class="border-b"><td class="py-1 font-mono">75 — 100</td><td class="py-1 font-medium">Excellent</td><td><span class="inline-block w-4 h-4 rounded-full align-middle" style="background:#476a32"></span> vert foncé</td></tr>
+            <tr class="border-b"><td class="py-1 font-mono">55 — 74</td><td class="py-1 font-medium">Bon</td><td><span class="inline-block w-4 h-4 rounded-full align-middle" style="background:#b1cf3a"></span> vert clair</td></tr>
+            <tr class="border-b"><td class="py-1 font-mono">35 — 54</td><td class="py-1 font-medium">Médiocre</td><td><span class="inline-block w-4 h-4 rounded-full align-middle" style="background:#f97316"></span> orange</td></tr>
+            <tr><td class="py-1 font-mono">0 — 34</td><td class="py-1 font-medium">Mauvais</td><td><span class="inline-block w-4 h-4 rounded-full align-middle" style="background:#ef4444"></span> rouge</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="rounded-2xl border-2 border-primary/30 bg-primary/5 p-6 space-y-3">
+        <h2 class="text-xl font-bold text-foreground">Et l'IA dans tout ça ?</h2>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Bayen utilise un modèle d'IA local (gemma3:4b multimodal, hébergé sur nos serveurs marocains) pour <strong class="text-foreground">deux tâches uniquement</strong> :
+        </p>
+        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
+          <li>Lire le tableau nutritionnel d'une photo d'étiquette (OCR + extraction de valeurs)</li>
+          <li>Décrire le contenu d'une photo de plat cuisiné (feature "Analyser mon repas")</li>
+        </ul>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          <strong class="text-foreground">Le score final n'est JAMAIS calculé par l'IA.</strong> Une fois les valeurs nutritionnelles extraites, l'algorithme déterministe ci-dessus prend la main. C'est ce qui garantit la reproductibilité : le même produit donne le même score, à chaque scan, sans variation.
+        </p>
+      </section>
+
+      <footer class="text-center text-xs text-muted-foreground pt-4 space-y-2">
+        <p>Code source : <a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">github.com/Santofer/bayen</a></p>
+        <p>Dernière mise à jour : 11 mai 2026</p>
+      </footer>
+
+    </article>
+  </main>
+</Layout>

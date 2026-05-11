@@ -307,31 +307,71 @@ const pageDescription = product
   ? `${product.name_fr} de ${product.brand} : score ${score?.total ?? '?'}/100, Nutri-Score ${score?.nutriscore_grade ?? '?'}, NOVA ${score?.nova_group ?? '?'}.`
   : `Produit ${barcode} non trouvé dans la base Bayen.`
 
-// Schema.org JSON-LD pour les fiches produit
-const jsonLd = product ? {
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: product.name_fr,
-  brand: { '@type': 'Brand', name: product.brand },
-  ...(product.image_front ? { image: (product.image_front as string).startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}` } : {}),
-  description: pageDescription,
-  sku: barcode,
-  gtin13: barcode?.length === 13 ? barcode : undefined,
-  nutrition: product.energy_kcal != null ? {
-    '@type': 'NutritionInformation',
-    calories: `${product.energy_kcal} kcal`,
-    fatContent: product.fat_total != null ? `${product.fat_total} g` : undefined,
-    sugarContent: product.sugars != null ? `${product.sugars} g` : undefined,
-    proteinContent: product.proteins != null ? `${product.proteins} g` : undefined,
-    saltContent: product.salt != null ? `${product.salt} g` : undefined,
-    fiberContent: product.fiber != null ? `${product.fiber} g` : undefined,
-  } : undefined,
-  additionalProperty: [
-    { '@type': 'PropertyValue', name: 'Score Bayen', value: score?.total ?? 'N/A' },
-    { '@type': 'PropertyValue', name: 'Nutri-Score', value: score?.nutriscore_grade ?? 'N/A' },
-    { '@type': 'PropertyValue', name: 'NOVA', value: score?.nova_group ?? 'N/A' },
-  ],
-} : undefined
+// Schema.org JSON-LD pour les fiches produit : Product + BreadcrumbList
+const SITE_URL = 'https://bayen.ma'
+const productImageUrl = product?.image_front
+  ? (product.image_front as string).startsWith('http')
+    ? (product.image_front as string)
+    : `${CDN_URL}/${product.image_front}`
+  : `${SITE_URL}/og-default.png`
+
+const jsonLd = product
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name_fr,
+        brand: { '@type': 'Brand', name: product.brand },
+        image: productImageUrl,
+        description: pageDescription,
+        sku: barcode,
+        gtin13: barcode?.length === 13 ? barcode : undefined,
+        gtin8: barcode?.length === 8 ? barcode : undefined,
+        url: `${SITE_URL}/produit/${barcode}`,
+        nutrition: product.energy_kcal != null
+          ? {
+              '@type': 'NutritionInformation',
+              calories: `${product.energy_kcal} kcal`,
+              fatContent: product.fat_total != null ? `${product.fat_total} g` : undefined,
+              saturatedFatContent: product.fat_saturated != null ? `${product.fat_saturated} g` : undefined,
+              carbohydrateContent: product.carbs_total != null ? `${product.carbs_total} g` : undefined,
+              sugarContent: product.sugars != null ? `${product.sugars} g` : undefined,
+              fiberContent: product.fiber != null ? `${product.fiber} g` : undefined,
+              proteinContent: product.proteins != null ? `${product.proteins} g` : undefined,
+              sodiumContent: product.salt != null ? `${(product.salt as number) * 400} mg` : undefined,
+              servingSize: '100g',
+            }
+          : undefined,
+        additionalProperty: [
+          { '@type': 'PropertyValue', name: 'Score Bayen', value: score?.total ?? 'N/A' },
+          { '@type': 'PropertyValue', name: 'Label Bayen', value: score?.label ?? 'N/A' },
+          { '@type': 'PropertyValue', name: 'Nutri-Score', value: score?.nutriscore_grade ?? 'N/A' },
+          { '@type': 'PropertyValue', name: 'Groupe NOVA', value: score?.nova_group ?? 'N/A' },
+          ...(Array.isArray(product.additives) && (product.additives as string[]).length > 0
+            ? [{
+                '@type': 'PropertyValue' as const,
+                name: 'Additifs détectés',
+                value: (product.additives as string[]).join(', '),
+              }]
+            : []),
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+          { '@type': 'ListItem', position: 2, name: 'Recherche', item: `${SITE_URL}/recherche` },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: product.name_fr ?? barcode,
+            item: `${SITE_URL}/produit/${barcode}`,
+          },
+        ],
+      },
+    ]
+  : undefined
 
 const imgFront = product?.image_front as string | undefined
 const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
