@@ -64,9 +64,17 @@ const categoryName = (category?.name_fr as string) ?? (category?.name as string)
 const pageTitle = category
   ? `${categoryName} — Bayen`
   : `Catégorie introuvable — Bayen`
+const pageDescription = category
+  ? `Tous les produits de la catégorie ${categoryName} disponibles au Maroc, classés par score nutritionnel.`
+  : `Catégorie introuvable sur Bayen.`
 ---
 
-<Layout title={pageTitle}>
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  path={`/categories/${slug ?? ''}`}
+  noindex={!category}
+>
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-8">
 
     {/* Catégorie non trouvée */}

@@ -10,31 +10,60 @@ const SITE_URL = 'https://bayen.ma'
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 export const GET: APIRoute = async () => {
-  // Pages statiques
+  // Pages statiques avec lastmod (date du dernier déploiement majeur).
+  // /scan et /contribuer retirés : pages applicatives sans contenu indexable,
+  // /scan en priorité 0.9 risquait de polluer le crawl budget.
+  const STATIC_LASTMOD = '2026-05-11'
   const staticPages = [
-    { url: '/', priority: '1.0', changefreq: 'daily' },
-    { url: '/scan', priority: '0.9', changefreq: 'monthly' },
-    { url: '/recherche', priority: '0.8', changefreq: 'weekly' },
-    { url: '/additifs', priority: '0.7', changefreq: 'monthly' },
-    { url: '/blog', priority: '0.8', changefreq: 'weekly' },
-    { url: '/analyser-repas', priority: '0.7', changefreq: 'monthly' },
-    { url: '/a-propos', priority: '0.6', changefreq: 'monthly' },
-    { url: '/methodologie', priority: '0.6', changefreq: 'monthly' },
-    { url: '/contribuer', priority: '0.6', changefreq: 'monthly' },
+    { url: '/', priority: '1.0', changefreq: 'daily', lastmod: STATIC_LASTMOD },
+    { url: '/recherche', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
+    { url: '/additifs', priority: '0.7', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
+    { url: '/blog', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
+    { url: '/analyser-repas', priority: '0.7', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
+    { url: '/a-propos', priority: '0.6', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
+    { url: '/methodologie', priority: '0.6', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
   ]
 
-  // Récupérer les articles de blog publiés
+  // Articles blog : timeout généreux (15s) — Directus peut être lent
+  // sur la première requête après cold-start. Fallback hardcodé si la
+  // requête échoue, pour ne JAMAIS perdre les articles du sitemap.
   let articles: Array<{ slug: string; date_published: string | null }> = []
   try {
     const res = await fetch(
       `${DIRECTUS_URL}/items/articles?filter[status][_eq]=published&fields=slug,date_published&limit=-1`,
-      { signal: AbortSignal.timeout(5000) }
+      { signal: AbortSignal.timeout(15000) }
     )
     if (res.ok) {
       const data = await res.json()
       articles = data.data ?? []
     }
-  } catch { /* continue */ }
+  } catch { /* fallback ci-dessous */ }
+
+  // Fallback statique : liste hardcodée des slugs connus à la date de build.
+  // Si Directus est down ou timeout, on garde au moins ces articles dans le sitemap.
+  if (articles.length === 0) {
+    const KNOWN_SLUGS = [
+      'bayen-est-en-ligne',
+      'comprendre-le-nutri-score',
+      'additifs-a-eviter-maroc',
+      'lire-une-etiquette-nutritionnelle',
+      'sucre-cache-produits-marocains',
+      'pourquoi-eviter-ultra-transforme',
+      'parler-nutrition-enfants',
+      'le-reflexe-bayen',
+      'alternatives-snacks-industriels',
+      'courses-methode-3-minutes',
+      'bien-manger-ramadan',
+      'diabete-alimentation-maroc-produits-a-eviter',
+      'huile-palme-maroc-produits-impact-sante',
+      'meilleurs-yaourts-maroc-comparatif',
+      'gouter-enfants-sain-maroc-idees',
+      'lire-etiquette-arabe-maroc-vocabulaire',
+      'the-marocain-sucre-reduire-sans-perdre-tradition',
+      'nutrition-sport-maroc-produits-locaux',
+    ]
+    articles = KNOWN_SLUGS.map((slug) => ({ slug, date_published: null }))
+  }
 
   // Récupérer les produits publiés
   let products: Array<{ barcode: string; date_updated: string | null }> = []
@@ -77,10 +106,11 @@ export const GET: APIRoute = async () => {
 
   // Construire le XML
   const urls = [
-    // Pages statiques
+    // Pages statiques (avec lastmod hardcodé)
     ...staticPages.map(
       (p) => `  <url>
     <loc>${SITE_URL}${p.url}</loc>
+    <lastmod>${p.lastmod}</lastmod>
     <changefreq>${p.changefreq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`

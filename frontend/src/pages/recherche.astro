@@ -6,7 +6,11 @@ import Layout from '@/layouts/Layout.astro'
 import SearchPage from '@/components/SearchPage'
 ---
 
-<Layout title="Recherche — Bayen">
+<Layout
+  title="Recherche produits alimentaires Maroc — Bayen"
+  description="Cherche parmi près de 2000 produits alimentaires vendus au Maroc. Score nutritionnel, additifs détectés, Nutri-Score, comparatifs marques marocaines."
+  path="/recherche"
+>
   <main>
     <SearchPage client:load />
   </main>

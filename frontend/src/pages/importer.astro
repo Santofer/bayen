@@ -7,7 +7,7 @@ import { getLocale, t } from '@/lib/i18n'
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 ---
 
-<Layout title="Importer depuis Open Food Facts — Bayen">
+<Layout title="Importer depuis Open Food Facts — Bayen" path="/importer" noindex={true}>
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     <AuthGuard client:load redirectPath="/importer">
       <h1 class="text-2xl font-bold tracking-tight mb-2">Importer un produit</h1>

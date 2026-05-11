@@ -6,7 +6,9 @@
   "audit_note": "Sub-agents seo-machine (tech/onpage/schema/aeo/content) tous saturés (quota Claude API atteint). Audit + actions effectués manuellement pour ne pas attendre. À relancer les sub-agents au prochain reset pour un audit indépendant + plan 30/60/90j détaillé.",
   "sections": {
     "technical": {
-      "score": 7,
+      "score": 6.5,
+      "audited_at": "2026-05-11",
+      "audit_method": "live-crawl + code analysis (PSI API quota exhausted)",
       "p0_fixed": [
         "robots.txt → sitemap URL corrigée (bayen.n0.ma → bayen.ma)",
         "13 bots IA explicitement autorisés (GPTBot, ClaudeBot, PerplexityBot, etc.)",
@@ -14,24 +16,219 @@
         "Hreflang fr-MA + ar-MA + x-default ajoutés sur toutes les pages",
         "OG image par défaut générée (SVG + PNG 1200×630 + JPG fallback)"
       ],
-      "p1_remaining": [
-        "Mesurer Core Web Vitals via PSI sur 3 pages (/, /produit/X, /blog/X)",
-        "Ajouter X-Robots-Tag pour /api/ et /compte (en plus du Disallow)",
-        "Vérifier les redirections 301/302 (audit non fait, lighthouse à lancer)",
-        "Optimiser images : audit du poids des images produit (CDN R2, formats WebP/AVIF)"
-      ]
+      "issues": [
+        {
+          "id": "P1-A",
+          "severity": "P1",
+          "title": "Bug canonical généralisé — ~170 pages pointent vers /",
+          "description": "SeoHead.astro path='/' par défaut. Affecte /additifs (150 pages), /categories (12), /marque, /ingredients, /recherche, /classement, /contribuer, /scan.",
+          "fix": "Ajouter path explicite dans <Layout> de 10 fichiers .astro",
+          "files": ["src/pages/additifs/index.astro","src/pages/additifs/[id].astro","src/pages/categories/[slug].astro","src/pages/marque/[name].astro","src/pages/ingredients/index.astro","src/pages/ingredients/[id].astro","src/pages/recherche.astro","src/pages/classement.astro","src/pages/contribuer/index.astro","src/pages/scan.astro"],
+          "effort": "S"
+        },
+        {
+          "id": "P1-B",
+          "severity": "P1",
+          "title": "/connexion et /admin/import-off sans noindex",
+          "description": "Pages privées/admin indexables sans balise noindex.",
+          "fix": "Ajouter noindex={true} dans <Layout> de connexion.astro et admin/import-off.astro",
+          "effort": "S"
+        },
+        {
+          "id": "P1-C",
+          "severity": "P1",
+          "title": "www.bayen.ma retourne 200 sans redirection 301",
+          "description": "Googlebot peut crawler les deux versions, divisant le crawl budget et le PageRank.",
+          "fix": "Cloudflare Redirect Rule : www.bayen.ma/* → https://bayen.ma/:splat 301",
+          "effort": "S"
+        },
+        {
+          "id": "P2-A",
+          "severity": "P2",
+          "title": "Google Fonts synchrones — risque LCP mobile",
+          "description": "Mouse Memoirs + Nunito chargées via <link rel=stylesheet> render-blocking dans Layout.astro.",
+          "fix": "Remplacer par preload+onload trick dans Layout.astro ligne ~49",
+          "effort": "S"
+        },
+        {
+          "id": "P2-B",
+          "severity": "P2",
+          "title": "Images CDN hero non optimisées — 658 KB JPEG vs 57 KB WebP disponible",
+          "description": "Images Directus CDN sans ?format=webp. Pas de fetchpriority=high ni preconnect vers api.bayen.ma.",
+          "fix": "Ajouter ?format=webp&width=800&quality=80 sur URLs api.bayen.ma/assets + preconnect",
+          "effort": "M"
+        },
+        {
+          "id": "P2-C",
+          "severity": "P2",
+          "title": "Assets /_astro/ cachés 4h au lieu de 1 an",
+          "description": "Fichiers hachés (contenu immuable) servis avec max-age=14400. Devrait être immutable (31536000).",
+          "fix": "Créer frontend/public/_headers avec /_astro/* Cache-Control: public, max-age=31536000, immutable",
+          "effort": "S"
+        },
+        {
+          "id": "P2-D",
+          "severity": "P2",
+          "title": "Aucun header sécurité sur les pages SSR",
+          "description": "Pages HTML sans HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, CSP.",
+          "fix": "Ajouter section /* dans public/_headers (même fichier que P2-C)",
+          "effort": "S"
+        },
+        {
+          "id": "P3-A",
+          "severity": "P3",
+          "title": "PWA manifest incomplet",
+          "description": "Manque : id, screenshots, shortcuts, apple-touch-icon dans <head>.",
+          "fix": "Enrichir manifest.webmanifest + ajouter <link rel=apple-touch-icon> dans Layout.astro",
+          "effort": "M"
+        },
+        {
+          "id": "P3-B",
+          "severity": "P3",
+          "title": "/scan (priorité 0.9) et /contribuer dans sitemap sans noindex",
+          "description": "Pages applicatives sans contenu texte indexable présentes dans le sitemap.",
+          "fix": "Retirer /scan et /contribuer de staticPages dans sitemap.xml.ts",
+          "effort": "S"
+        },
+        {
+          "id": "P3-C",
+          "severity": "P3",
+          "title": "lastmod absent sur les 9 pages statiques du sitemap",
+          "description": "Google utilise lastmod pour prioriser le recrawl.",
+          "fix": "Ajouter lastmod hardcodé dans l'array staticPages de sitemap.xml.ts",
+          "effort": "S"
+        },
+        {
+          "id": "P3-D",
+          "severity": "P3",
+          "title": "OG image fiches produit = og-default.png générique",
+          "description": "image_front non renseigné pour les produits OFF. Partages WhatsApp sans valeur visuelle.",
+          "fix": "Enrichir image_front dans Directus avec URLs images Open Food Facts lors de l'import",
+          "effort": "M"
+        }
+      ],
+      "metrics": {
+        "sitemap_urls": 2140,
+        "sitemap_products": 1951,
+        "sitemap_articles": 18,
+        "sitemap_categories": 12,
+        "sitemap_additifs": 150,
+        "sitemap_lastmod_coverage_pct": 90,
+        "ttfb_homepage_ms": 329,
+        "ttfb_product_ms": 415,
+        "ttfb_blog_ms": 253,
+        "html_size_homepage_kb": 60.2,
+        "html_size_product_kb": 50.7,
+        "html_size_blog_kb": 31.7,
+        "css_bundle_kb": 61.5,
+        "hero_image_raw_kb": 658,
+        "hero_image_webp_kb": 57,
+        "http_to_https_redirect": "301 OK",
+        "www_redirect": "200 MISSING",
+        "trailing_slash_canonical": "correct",
+        "hsts_header": false,
+        "csp_header": false,
+        "x_frame_options": false,
+        "psi_scores": "N/A (PSI API quota exhausted — relancer via Google Search Console ou PageSpeed.web.dev manuellement)"
+      }
     },
     "onpage": {
-      "score": 7,
-      "p0_fixed": [
-        "Hreflang sur toutes les pages (était absent)",
-        "OG image fallback réelle (était 404)"
+      "score": 5.6,
+      "audited_at": "2026-05-11",
+      "audit_method": "curl live HTML x10 pages + analyse Python",
+      "confirmed_ok": [
+        "Hreflang fr-MA + ar-MA + x-default : présent sur les 10 pages live",
+        "OG tags complets (og:title, og:description, og:image, og:type, og:locale) : toutes pages",
+        "Twitter Card : présente partout",
+        "JSON-LD BlogPosting enrichi (author Person, wordCount, timeRequired) : articles blog",
+        "JSON-LD Product complet (NutritionInformation, Brand, PropertyValue) : fiches produit",
+        "JSON-LD Blog + BreadcrumbList : /blog",
+        "Canonicals corrects sur /blog, /blog/[slug], /produit/[barcode], /analyser-repas",
+        "Zéro image sans alt sur les 10 pages crawlées"
       ],
-      "p1_remaining": [
-        "Vérifier titres/descriptions par page : audit page par page non fait, faire un crawl Screaming Frog ou équivalent",
-        "Alt text images : aucun audit fait, à vérifier sur ProductCard et BlogCard",
-        "Maillage interne : ajouté footer (a-propos + methodologie) mais pas de cross-linking entre articles blog → à scripter"
-      ]
+      "p1_critical": [
+        {
+          "id": "P1-1",
+          "issue": "Canonical cassé — /scan, /recherche, /additifs, /contribuer pointent tous vers https://bayen.ma/ (path non passé au Layout)",
+          "files": [
+            "frontend/src/pages/scan.astro",
+            "frontend/src/pages/recherche.astro",
+            "frontend/src/pages/additifs/index.astro",
+            "frontend/src/pages/contribuer/index.astro"
+          ],
+          "fix": "Ajouter path=\"/scan\", path=\"/recherche\", path=\"/additifs\", path=\"/contribuer\" dans chaque appel <Layout>"
+        },
+        {
+          "id": "P1-2",
+          "issue": "Meta description dupliquée x3 — /, /scan, /recherche partagent 'Bayen — Scannez. Comprenez. Choisissez mieux.' (45 chars)",
+          "files": ["frontend/src/pages/scan.astro", "frontend/src/pages/recherche.astro"],
+          "fix": "Ajouter prop description unique dans <Layout> sur /scan et /recherche (voir suggestions titres_suggested)"
+        },
+        {
+          "id": "P1-3",
+          "issue": "Meta description homepage identique au title (45 chars, zéro CTA, zéro mot-clé géo)",
+          "files": ["frontend/src/pages/index.astro"],
+          "fix": "Ajouter description prop dans <Layout> ligne 103 : 'Scannez le code-barres de vos produits alimentaires et obtenez le Nutri-Score, les additifs et un score santé 0-100. 100% gratuit — fait pour le Maroc.' (152 chars)"
+        }
+      ],
+      "p2_important": [
+        {
+          "id": "P2-1",
+          "issue": "Titles trop courts et sans ancrage géo : /scan 26 chars, /recherche 17, /contribuer 26, /blog 21, /analyser-repas 26, /produit 40",
+          "fix": "Remplacer par les titles suggérés (50-60 chars avec 'Maroc' et mot-clé principal) dans chaque page .astro"
+        },
+        {
+          "id": "P2-2",
+          "issue": "Double <h1> homepage — deux balises H1 distinctes pour effet CSS, Google lit uniquement la première 'Scannez. Comprenez.'",
+          "files": ["frontend/src/pages/index.astro"],
+          "fix": "Remplacer le second <h1> (ligne 124) par <span> ou <p> avec classe CSS identique — garder un seul H1"
+        },
+        {
+          "id": "P2-3",
+          "issue": "Meta descriptions trop courtes sur 7/10 pages (sous 140 chars cibles)",
+          "fix": "Allonger à 140-160 chars selon les suggestions page par page dans l'audit onpage.md"
+        },
+        {
+          "id": "P2-4",
+          "issue": "OG image générique (og-default.png) sur les fiches produit même quand l'image produit est disponible (ex: Nutella → og-default.png)",
+          "files": ["frontend/src/pages/produit/[barcode].astro"],
+          "fix": "Vérifier que ogImage reçoit l'URL publique de l'image produit quand elle existe (ligne 377)"
+        }
+      ],
+      "p3_optimizations": [
+        {
+          "id": "P3-1",
+          "issue": "Articles blog citent des produits nommés (Chocapic, Aicha, Hawai, Pulpy) sans lier vers /produit/[barcode]",
+          "fix": "Ajouter liens Markdown vers fiches produit dans le contenu CMS Directus des articles concernés"
+        },
+        {
+          "id": "P3-2",
+          "issue": "Contenu SSR minimal sur /scan (32 mots) et /analyser-repas (33 mots) — crawlers trouvent des pages quasi vides",
+          "fix": "Ajouter bloc <section> SSR de 100-150 mots décrivant le fonctionnement + 2-3 liens internes contextuels"
+        },
+        {
+          "id": "P3-3",
+          "issue": "OG images articles pointent vers api.bayen.ma/assets/ (Directus) au lieu de cdn.bayen.ma",
+          "files": ["frontend/src/pages/blog/[slug].astro"],
+          "fix": "Préfixer les cover_image par cdn.bayen.ma dans la construction de coverUrl (ligne 65-69)"
+        },
+        {
+          "id": "P3-4",
+          "issue": "Title produit 'Nutella (Nutella)' — marque répétée quand brand === name_fr",
+          "files": ["frontend/src/pages/produit/[barcode].astro"],
+          "fix": "Détecter si brand est inclus dans name_fr dans pageTitle (ligne 303-304) et supprimer la parenthèse redondante"
+        }
+      ],
+      "titles_suggested": {
+        "/": "Scanner produits alimentaires au Maroc — Bayen (55 chars)",
+        "/scan": "Scanner code-barres aliment au Maroc — Bayen (45 chars)",
+        "/recherche": "Recherche produits alimentaires Maroc — Bayen (46 chars)",
+        "/additifs": "Additifs alimentaires E-xxx — Risques au Maroc | Bayen (55 chars)",
+        "/contribuer": "Ajouter un produit alimentaire marocain — Bayen (48 chars)",
+        "/analyser-repas": "Analyser un repas en photo par IA — Calories | Bayen (53 chars)",
+        "/blog": "Blog nutrition et alimentation saine Maroc — Bayen (51 chars)",
+        "/blog/diabete-alimentation-maroc-produits-a-eviter": "Diabète au Maroc : 8 produits à éviter en rayon — Bayen (57 chars)"
+      }
     },
     "schema": {
       "score": 9,
@@ -50,52 +247,221 @@
       ]
     },
     "aeo_citability": {
-      "score": 8,
-      "p0_fixed": [
-        "llms.txt créé avec 8 articles pivots + ressources principales + claims sur requêtes-cibles",
-        "Bots IA autorisés dans robots.txt (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.)"
-      ],
-      "p1_remaining": [
-        "Mesurer la citabilité actuelle : tester ChatGPT / Perplexity sur 'alternative gratuite à Yuka Maroc', 'comment manger sain au Maroc'",
-        "Page Wikipedia Bayen (créer entrée si critères respectés)",
-        "Wikidata entry (lié à Wikipedia)",
-        "Distribuer le llms.txt sur llms-list (annuaires)"
+      "score": 6,
+      "audited_at": "2026-05-11",
+      "metrics": {
+        "llms_txt": {
+          "status": "present",
+          "served": true,
+          "format": "valid_markdown",
+          "score": 8,
+          "issues": [
+            "Content-Type non vérifié (WebFetch transforme en texte — vraisemblablement text/plain ou text/markdown, à confirmer via curl)",
+            "llms.txt ne liste pas les articles SEO batch du 11 mai (7 articles absents : diabète, huile palme, yaourts, goûters, étiquettes arabes, thé, sport)",
+            "Section 'Pour les agents conversationnels' manque de réponses directes courtes (format Q:A)",
+            "Pas encore soumis à llms-list.com ni à d'autres annuaires IA"
+          ]
+        },
+        "robots_txt": {
+          "status": "excellent",
+          "score": 10,
+          "bots_allowed": ["GPTBot","OAI-SearchBot","ChatGPT-User","ClaudeBot","Claude-Web","anthropic-ai","PerplexityBot","Perplexity-User","Google-Extended","CCBot","Amazonbot","Applebot-Extended","Bytespider"],
+          "issues": []
+        },
+        "sitemap_blog_coverage": {
+          "status": "critical_gap",
+          "score": 2,
+          "total_blog_articles": 18,
+          "blog_articles_in_sitemap": 0,
+          "issue": "Le sitemap.xml servi en production ne contient aucune URL /blog/[slug]. Le code sitemap.xml.ts est correct (il inclut les articles) mais l'appel Directus échoue ou timeout au moment de la génération, donc le sitemap live ne voit que /blog (index). Les 18 articles ne sont pas soumis aux crawlers Google/bots IA via le sitemap."
+        },
+        "jsonld_blog_articles": {
+          "status": "gap",
+          "score": 4,
+          "issue": "Le JSON-LD BlogPosting est dans le code de [slug].astro (SSR) et s'injecte correctement côté serveur. Mais la page étant SSR (prerender=false), si un bot IA ne rend pas le JS (ce qui est fréquent pour Perplexity et les LLMs qui crawlent), le schema peut ne pas être visible. À valider via curl --silent.",
+          "faqpage_on_articles": false,
+          "faqpage_on_methodologie": true,
+          "faqpage_on_a_propos": false,
+          "howto_on_scan": false,
+          "howto_on_contribuer": false
+        },
+        "citability_structure": {
+          "comprendre_nutri_score": {
+            "explicit_questions_as_headings": false,
+            "direct_answer_opener": false,
+            "numbered_list_present": true,
+            "sourced_statistics": false,
+            "score": 6,
+            "notes": "Contenu solide mais aucun H2 formulé comme question. L'intro ne répond pas directement en 1 phrase. Les stats (ex : '2024 reformulation') ne sont pas sourcées."
+          },
+          "additifs_a_eviter_maroc": {
+            "explicit_questions_as_headings": false,
+            "direct_answer_opener": false,
+            "numbered_list_present": true,
+            "sourced_statistics": true,
+            "score": 7,
+            "notes": "Citations OMS (E951 2023), CIRC (E320), UE (E171 2022) bien datées. Structure liste numérotée correcte. Manque une question explicite en H1/H2 du type 'Quels additifs éviter au Maroc ?'"
+          },
+          "diabete_alimentation_maroc": {
+            "explicit_questions_as_headings": false,
+            "direct_answer_opener": false,
+            "numbered_list_present": true,
+            "sourced_statistics": true,
+            "score": 7,
+            "notes": "Chiffres OMS/Ministère santé Maroc cités (12%, 2,7M). Seuils glycémiques chiffrés. Structure liste numérotée. Manque un chapeau direct type 'Les 8 produits à éviter si vous êtes diabétique au Maroc sont : pain industriel blanc, sodas...'"
+          }
+        },
+        "citability_average_score": 6.7,
+        "search_visibility": {
+          "site_indexed": "unconfirmed",
+          "note": "google.co.ma site:bayen.ma n'a pas pu être testé directement (Google bloque les scraping headless). Bayen étant lancé en avril 2026, l'indexation est probablement partielle. Le fait que le sitemap ne contienne pas les articles blog est le principal frein."
+        }
+      },
+      "issues": [
+        "CRITIQUE : 18 articles blog absents du sitemap live — Googlebot et bots IA ne les découvrent pas via sitemap",
+        "llms.txt non mis à jour avec les 7 nouveaux articles SEO (mai 2026)",
+        "Aucun HowTo JSON-LD sur /scan et /contribuer — pages à fort potentiel de citation pour les requêtes procédurales",
+        "Aucun FAQPage sur /a-propos (pourtant structurée en sections Q&A visuellement)",
+        "Structure Q&A non explicite dans les articles : les H2 sont affirmatifs, pas interrogatifs — les LLM citent mieux les pages où la question est explicitement posée en titre",
+        "Pas de chapeau direct (réponse en 1-2 phrases) en début d'article — les LLM extraient typiquement les 150-200 premiers mots",
+        "n0.ma et netspace.ma (porteurs du projet) ne mentionnent pas Bayen — backlinks et mentions manquants des sites parents"
       ]
     },
     "brand_mentions": {
-      "score": 4,
-      "current": ["github.com/Santofer/bayen", "n0.ma (footer)", "netspace.ma (footer)"],
-      "missing_to_create": [
-        "Twitter/X @bayen_ma",
-        "Instagram @bayen.ma (visuel orienté nutrition Maroc)",
-        "LinkedIn Bayen Page (B2B / partenariats)",
-        "Facebook Page (audience plus large)",
-        "Pas de mentions presse marocaine pour le moment"
+      "score": 3,
+      "audited_at": "2026-05-11",
+      "platforms": [
+        {
+          "platform": "GitHub",
+          "url": "github.com/Santofer/bayen",
+          "status": "present",
+          "quality": "weak",
+          "issues": ["0 étoiles, 0 forks, 0 releases publiées", "Pas de topics/tags définis (impossiblede découvrir via 'morocco nutrition app' sur GitHub)", "README non visible dans le preview GitHub (aucun README.md affiché)", "Pas de lien vers bayen.ma dans la description du repo", "111 commits sans aucun tag de version"]
+        },
+        {
+          "platform": "n0.ma",
+          "status": "absent",
+          "issue": "n0.ma ne mentionne pas Bayen. C'est le studio du fondateur Amine — l'absence de mention est une opportunité facile et gratuite."
+        },
+        {
+          "platform": "netspace.ma",
+          "status": "absent",
+          "issue": "netspace.ma ne mentionne pas Bayen non plus. Partenaire technique affiché dans le llms.txt mais sans lien retour."
+        },
+        {
+          "platform": "X/Twitter",
+          "status": "absent"
+        },
+        {
+          "platform": "Instagram",
+          "status": "absent"
+        },
+        {
+          "platform": "LinkedIn",
+          "status": "absent"
+        },
+        {
+          "platform": "Facebook",
+          "status": "absent"
+        },
+        {
+          "platform": "Wikipedia/Wikidata",
+          "status": "absent",
+          "eligibility": "probablement pas encore éligible (trop récent, pas de couverture presse significative)"
+        },
+        {
+          "platform": "ProductHunt",
+          "status": "absent"
+        }
       ],
+      "press_coverage": "aucune à ce jour",
       "press_targets": [
-        "Hespress (santé)",
-        "TelQuel",
-        "Le360 (lifestyle)",
-        "Le Matin (sciences/santé)",
-        "Médias 24 (startups)",
-        "Yabiladi (food)",
-        "Welovebuzz",
-        "L'Économiste (startup)"
+        {"name": "Hespress Santé", "url": "hespress.com", "audience": "3M+/mois", "angle": "Appli gratuite pour décoder les produits alimentaires marocains", "contact": "redaction@hespress.com"},
+        {"name": "Médias24", "url": "medias24.com", "audience": "startup/éco", "angle": "Startup marocaine open source en nutrition — Yuka killer local"},
+        {"name": "TelQuel", "url": "telquel.ma", "audience": "jeunes urbains", "angle": "Manger sain au Maroc : une app marocaine gratuite challenge Yuka"},
+        {"name": "Le360", "url": "le360.ma", "audience": "lifestyle", "angle": "Scannez vos produits avec cette app 100% marocaine"},
+        {"name": "L'Économiste", "url": "leconomiste.com", "audience": "business", "angle": "Open data alimentaire : Bayen construit la base nutritionnelle du Maroc"},
+        {"name": "Yabiladi", "url": "yabiladi.com", "audience": "diaspora", "angle": "Diaspora marocaine : scannez les produits avec Bayen avant de les acheter"},
+        {"name": "Welovebuzz", "url": "welovebuzz.com", "audience": "viral/jeunes", "angle": "Tests produits marocains surprenants — scores Bayen"},
+        {"name": "Le Matin", "url": "lematin.ma", "audience": "grand public", "angle": "Nutrition : une application citoyenne marocaine pour lire les étiquettes"},
+        {"name": "Maroc Hebdo", "url": "maroc-hebdo.press.ma", "audience": "santé/société", "angle": "Diabète et alimentation : l'outil numérique marocain pour s'en sortir"},
+        {"name": "H24Info", "url": "h24info.ma", "audience": "grand public", "angle": "Additifs alimentaires interdits : cette app marocaine les détecte pour vous"}
       ]
     },
     "content_eeat": {
-      "score": 6,
+      "score": 5.5,
+      "audited_at": "2026-05-11",
+      "audit_file": "seo-audit/audits/content.md",
+      "pillars": {
+        "experience": { "status": "partial", "score": 5, "notes": "Ancrage marocain fort (DH, marques locales, recettes, Ramadan) mais zéro témoignages utilisateurs visibles, pas de photos terrain, auteur ne narre pas d'expérience personnelle vécue" },
+        "expertise": { "status": "good", "score": 7, "notes": "OMS, EFSA, CIRC, NutriNet-Santé 2019, Pr. Monteiro (NOVA), Santé Publique France, Ministère Santé Maroc cités. Références sans liens hypertexte vers études primaires dans les articles de blog." },
+        "authoritativeness": { "status": "weak", "score": 4, "notes": "Auteur JSON-LD uniquement — aucun bloc bio UI. Zéro reviewer médical externe. Zéro backlinks médias marocains. Pas de partenariat institution santé affiché." },
+        "trustworthiness": { "status": "good", "score": 7, "notes": "Algorithme open source GitHub, sources déclarées, limites assumées, contact public. Date MAJ absente des articles de blog en UI." }
+      },
+      "articles_audited": 18,
+      "top_articles_eeat": [
+        {"slug": "lire-etiquette-arabe-maroc-vocabulaire", "score": 9, "note": "Contenu unique mondial, glossaire trilingue"},
+        {"slug": "meilleurs-yaourts-maroc-comparatif", "score": 8, "note": "Comparatif produits réels marocains, tableau chiffré"},
+        {"slug": "pourquoi-eviter-ultra-transforme", "score": 8, "note": "Sources NutriNet-Santé solides, chiffres cohorte"},
+        {"slug": "the-marocain-sucre-reduire-sans-perdre-tradition", "score": 8, "note": "Meilleur ancrage culturel, plan sevrage actionnable"},
+        {"slug": "diabete-alimentation-maroc-produits-a-eviter", "score": 7, "note": "YMYL rigoureux avec disclaimer médical"}
+      ],
+      "weakest_articles_eeat": [
+        {"slug": "le-reflexe-bayen", "score": 3, "note": "Trop court, valeur SEO quasi nulle"},
+        {"slug": "bayen-est-en-ligne", "score": 4, "note": "Article de lancement, pas de contenu SEO substantiel"},
+        {"slug": "parler-nutrition-enfants", "score": 5, "note": "YMYL-adjacent sans référence scientifique nommée"}
+      ],
+      "content_gaps_identified": [
+        "DLC vs DDM : dates de consommation sur étiquettes marocaines (néant absolu)",
+        "Allégations marketing trompeuses : 'allégé', '0% MG', 'naturel' au Maroc",
+        "Tableau glycémique aliments courants Maroc (manque sur article diabète)",
+        "FAQ : est-ce que l'aspartame est vraiment dangereux ?",
+        "Comment comparer deux produits avec le Nutri-Score ?",
+        "Quels additifs sont dans la liste rouge de l'ANSES ?",
+        "Recettes petit-déjeuner sain pour diabétique Maroc"
+      ],
+      "featured_snippet_opportunities": [
+        {"slug": "lire-une-etiquette-nutritionnelle", "potential": "très fort", "action": "Ajouter TL;DR + markup Table schema + FAQ"},
+        {"slug": "meilleurs-yaourts-maroc-comparatif", "potential": "fort", "action": "Convertir en tableau HTML structuré thead/tbody"},
+        {"slug": "lire-etiquette-arabe-maroc-vocabulaire", "potential": "très fort", "action": "Ajouter FAQ 'comment scanner produit arabe ?'"},
+        {"slug": "diabete-alimentation-maroc-produits-a-eviter", "potential": "fort", "action": "FAQPage schema : 'peut-on manger des dattes si diabétique ?'"},
+        {"slug": "additifs-a-eviter-maroc", "potential": "fort", "action": "FAQ schema E-codes + maillage interne /additifs/"}
+      ],
+      "missing_ui_signals": [
+        "Bloc auteur visible sous chaque article (photo + nom + bio + lien n0.ma)",
+        "Date de mise à jour affichée en UI (date_updated actuellement seulement dans JSON-LD)",
+        "Badge reviewer médical/nutritionniste sur articles YMYL",
+        "Témoignages utilisateurs sur homepage et /a-propos",
+        "Lien contextuel vers /methodologie en bas des articles santé",
+        "Screenshots app Bayen intégrés aux articles (preuve concrète)"
+      ],
       "p0_fixed": [
         "Page /a-propos créée : founder identifié, sources nommées, engagements, limites assumées",
         "Page /methodologie créée : algorithme détaillé, sources scientifiques (OMS, EFSA, CIRC, Santé Publique France), lien direct vers scoring.ts sur GitHub",
-        "Author Person Amine Benboubker (+ affiliation Bayen) ajouté au JSON-LD BlogPosting"
+        "Author Person Amine Benboubker (+ affiliation Bayen) ajouté au JSON-LD BlogPosting",
+        "18 articles publiés couvrant requêtes locales fortes (diabète Maroc, yaourts comparatif, étiquettes arabes, thé sucré, Ramadan, sport Maroc)",
+        "4 articles sans concurrent direct en FR-MA (yaourts comparatif, étiquettes arabes, thé marocain, sport produits locaux)"
       ],
-      "p1_remaining": [
-        "Bio auteur visible (UI) sur chaque article — actuellement seulement dans le JSON-LD",
-        "Reviewer médical : faire valider 3-5 articles santé par un médecin/nutritionniste marocain certifié + l'afficher",
-        "Partenariat affiché avec une association nutrition / ONG marocaine",
-        "Témoignages utilisateurs (pour le E = Experience)",
-        "Mises à jour datées visibles sur les articles (date_updated affichée)"
+      "p1_actions": [
+        "P1.1 — Bio auteur visible (UI) sur chaque article : bloc HTML nom + lien /a-propos (30 min dev)",
+        "P1.2 — Afficher date_updated en UI sur les articles blog (15 min dev)",
+        "P1.3 — FAQ schema sur 3 articles YMYL : diabète, additifs, Nutri-Score (2h rédaction + 1h dev)",
+        "P1.4 — Lier /methodologie et /a-propos depuis articles santé via encadré contextuel (30 min)",
+        "P1.5 — Ajouter liens hypertexte sources primaires sur 4-5 claims épidémiologiques forts (1h)"
+      ],
+      "p2_actions": [
+        "P2.1 — Enrichir 4 articles génériques sous médiane SERP (+400 mots chacun avec localisation Maroc)",
+        "P2.2 — Reviewer médical sur diabète + additifs + ultra-transformés (partenariat diététicienne DESU Maroc)",
+        "P2.3 — Tableaux HTML structurés thead/tbody sur yaourts et goûters (rich result Table)",
+        "P2.4 — Screenshots app Bayen intégrés dans 5 articles (30 min)",
+        "P2.5 — Créer 2 articles sur content gaps : DLC/DDM + allégations marketing trompeuses"
+      ],
+      "p3_actions": [
+        "P3.1 — Partenariat affiché AMNUT ou SMN (Association/Société Marocaine de Nutrition)",
+        "P3.2 — Témoignages utilisateurs homepage + /a-propos (collecte via formulaire ou manuellement)",
+        "P3.3 — Campagne RP médias marocains (Medias24, L'Économiste, TelQuel)",
+        "P3.4 — Photos terrain étiquettes arabes annotées dans article glossaire arabe",
+        "P3.5 — Mise à jour article Ramadan avant mars 2027 avec dates Ramadan 2027"
       ]
     },
     "content_strategy": {
@@ -127,14 +493,14 @@
       "global": 3.2
     },
     "after": {
-      "technical": 7,
-      "onpage": 7,
+      "technical": 6.5,
+      "onpage": 5.6,
       "schema": 9,
-      "aeo": 8,
-      "eeat": 6,
-      "global": 7.4
+      "aeo": 6,
+      "eeat": 5.5,
+      "global": 6.2
     },
-    "improvement_pct": 131
+    "improvement_pct": 94
   },
   "next_steps": [
     "M+0 : relancer audit sub-agents seo-machine au reset quota → cross-validation + plan 30/60/90j auto-généré",

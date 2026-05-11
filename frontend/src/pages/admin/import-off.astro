@@ -4,7 +4,7 @@ import Layout from '@/layouts/Layout.astro'
 import BulkOffImporter from '@/components/BulkOffImporter.tsx'
 ---
 
-<Layout title="Import OFF — Admin — Bayen">
+<Layout title="Import OFF — Admin — Bayen" path="/admin/import-off" noindex={true}>
   <main class="container mx-auto max-w-screen-lg px-4 py-8">
     <BulkOffImporter client:load />
   </main>

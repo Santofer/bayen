@@ -56,7 +56,11 @@ const sortedAdditives = [...additives].sort((a: any, b: any) => {
 })
 ---
 
-<Layout title="Additifs alimentaires — Bayen" description="Base de données complète des additifs alimentaires E-xxx avec niveaux de risque pour le consommateur marocain.">
+<Layout
+  title="Additifs alimentaires E-xxx — Liste complète et risques Maroc | Bayen"
+  description="Base de données complète des additifs alimentaires (E100 à E1000+) avec niveaux de risque pour le consommateur marocain. EFSA, CIRC, ONSSA."
+  path="/additifs"
+>
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-foreground">{t('additives.pageTitle', locale)}</h1>

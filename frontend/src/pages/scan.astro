@@ -6,7 +6,11 @@ import Layout from '@/layouts/Layout.astro'
 import ScanPage from '@/components/ScanPage.tsx'
 ---
 
-<Layout title="Scanner un produit — Bayen">
+<Layout
+  title="Scanner un code-barres alimentaire — Bayen Maroc"
+  description="Scanne un produit alimentaire au Maroc et obtiens son score nutritionnel 0-100, son Nutri-Score, ses additifs et son groupe NOVA en 3 secondes. 100% gratuit."
+  path="/scan"
+>
   <main class="container mx-auto max-w-screen-lg">
     <ScanPage client:load />
   </main>

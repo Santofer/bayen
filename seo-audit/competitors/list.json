@@ -1,0 +1,350 @@
+{
+  "generated_at": "2026-05-11T00:00:00+01:00",
+  "methodology": "SERP manual research + homepage on-page extraction. DataForSEO et serp_scraper non disponibles. SERP google.co.ma non accessible programmatiquement — résultats reconstruits via analyse des domaines référencés, knowledge organique et fetch de pages cibles.",
+  "keywords_analyzed": [
+    "scanner produits alimentaires maroc",
+    "alternative yuka maroc",
+    "additifs alimentaires danger maroc",
+    "diabète alimentation maroc",
+    "nutri-score expliqué",
+    "comprendre étiquettes alimentaires",
+    "huile de palme maroc",
+    "yaourts comparatif maroc",
+    "manger sain budget maroc",
+    "ramadan ftour équilibré"
+  ],
+  "bayen_current_positions": {
+    "note": "Site lancé en avril 2026 — aucun ranking organique établi à ce jour sur google.co.ma. Trafic organique à mesurer (GSC non connecté au moment de l'analyse).",
+    "estimated_positions": {
+      "scanner produits alimentaires maroc": "non indexé / hors top 100",
+      "alternative yuka maroc": "non indexé / hors top 100",
+      "additifs alimentaires danger maroc": "non indexé / hors top 100",
+      "diabète alimentation maroc": "non indexé / hors top 100",
+      "nutri-score expliqué": "non indexé / hors top 100",
+      "comprendre étiquettes alimentaires": "non indexé / hors top 100",
+      "huile de palme maroc": "non indexé / hors top 100",
+      "yaourts comparatif maroc": "non indexé / hors top 100",
+      "manger sain budget maroc": "non indexé / hors top 100",
+      "ramadan ftour équilibré": "non indexé / hors top 100"
+    }
+  },
+  "competitors": [
+    {
+      "domain": "yuka.io",
+      "type": "direct",
+      "declared_competitor": true,
+      "frequency_estimated": 8,
+      "ranks_for": [
+        "scanner produits alimentaires maroc (est. #1-2)",
+        "alternative yuka maroc (est. #1 — brand query)",
+        "nutri-score expliqué (est. #3-5)",
+        "comprendre étiquettes alimentaires (est. #4-6)"
+      ],
+      "homepage_h1": "Faites les bons choix pour votre santé",
+      "value_prop": "Scanne le code-barres d'un produit alimentaire ou cosmétique et obtiens une évaluation de son impact sur la santé. App mobile iOS/Android, 180 000 avis, 10M+ téléchargements.",
+      "citability_score": 82,
+      "schemas": ["MobileApplication", "WebSite"],
+      "estimated_authority": "high",
+      "moz_da_estimate": 72,
+      "content_avg_words": 1800,
+      "blog_articles": "280+ articles (31 pages de pagination sur blog.yuka.io)",
+      "pricing": "Freemium — version premium 19€/an (accès recettes, scan illimité offline)",
+      "localization_maroc": false,
+      "arabic_support": false,
+      "gap_vs_bayen": "Yuka ne couvre pas le marché marocain : aucune mention de Maroc, aucun support darija/arabe, pas de produits locaux marocains indexés. Tout son ranking repose sur l'autorité de domaine (DA ~72) et l'ancienneté (2017). Bayen peut le dépasser sur les requêtes géo-localisées 'maroc' en 6-12 mois avec du contenu ciblé.",
+      "threat_level": "medium — autorité forte mais zéro localisation Maroc"
+    },
+    {
+      "domain": "world.openfoodfacts.org",
+      "type": "direct",
+      "declared_competitor": true,
+      "frequency_estimated": 7,
+      "ranks_for": [
+        "scanner produits alimentaires maroc (est. #3-5)",
+        "additifs alimentaires danger maroc (est. #2-4)",
+        "yaourts comparatif maroc (est. #5-8)"
+      ],
+      "homepage_h1": "Help us inform millions of consumers around the world about what they eat",
+      "value_prop": "Base de données collaborative mondiale de 4,4M+ produits alimentaires. Open source, gratuit. Sous-domaine maroc : 22 751 produits indexés.",
+      "citability_score": 78,
+      "schemas": [],
+      "estimated_authority": "high",
+      "moz_da_estimate": 78,
+      "content_avg_words": 400,
+      "blog_articles": "N/A — base de données produit, pas de blog éditorial",
+      "pricing": "Gratuit",
+      "localization_maroc": true,
+      "arabic_support": true,
+      "gap_vs_bayen": "OFF est une base de données pure, pas une app grand public. L'expérience utilisateur est austère (formulaires, scores fragmentaires). Bayen capitalise sur l'UX mobile, le score composite, et les articles blog. OFF ranke sur des requêtes de type 'base de données produit' mais pas sur les requêtes lifestyle/nutrition. Le risque est leur sous-domaine ma.openfoodfacts.org (22 751 produits marocains) qui peut drainer les requêtes de lookup produit direct.",
+      "threat_level": "medium — autorité très forte mais absence totale d'expérience éditoriale"
+    },
+    {
+      "domain": "fr.wikipedia.org",
+      "type": "outsider",
+      "declared_competitor": false,
+      "frequency_estimated": 6,
+      "ranks_for": [
+        "nutri-score expliqué (est. #1-2)",
+        "additifs alimentaires danger maroc (est. #3-5)",
+        "comprendre étiquettes alimentaires (est. #2-3)"
+      ],
+      "homepage_h1": "Nutri-score (sur la page dédiée)",
+      "value_prop": "Encyclopédie collaborative. Pages Nutri-Score, additifs alimentaires, NOVA, huile de palme toutes bien positionnées. Contenu encyclopédique non localisé Maroc.",
+      "citability_score": 90,
+      "schemas": ["Article"],
+      "estimated_authority": "very_high",
+      "moz_da_estimate": 93,
+      "content_avg_words": 3500,
+      "blog_articles": "N/A",
+      "pricing": "Gratuit",
+      "localization_maroc": false,
+      "arabic_support": false,
+      "gap_vs_bayen": "Wikipedia est indéboulonnable sur les requêtes définitionnelles génériques (nutri-score, additifs, NOVA). Ne pas chercher à le battre frontalement. Stratégie : créer des pages avec angle Maroc-spécifique que Wikipedia ne couvrira jamais (ex: 'yaourts marocains comparatif', 'additifs dans produits Jaouda', 'nutri-score Maroc expliqué'). Viser les positions #2-3 sous Wikipedia.",
+      "threat_level": "low — terrain différent, impossible à concurrencer sur les définitions génériques"
+    },
+    {
+      "domain": "lanutrition.fr",
+      "type": "outsider",
+      "declared_competitor": false,
+      "frequency_estimated": 5,
+      "ranks_for": [
+        "additifs alimentaires danger maroc (est. #4-7)",
+        "comprendre étiquettes alimentaires (est. #3-5)",
+        "nutri-score expliqué (est. #5-8)"
+      ],
+      "homepage_h1": "Nutrition et santé naturelle : l'information indépendante basée sur la science",
+      "value_prop": "Site médical français indépendant avec comité scientifique. Nutrition, santé naturelle. Articles longs, validés médicalement. Aucun contenu Maroc.",
+      "citability_score": 68,
+      "schemas": ["Article", "Organization"],
+      "estimated_authority": "high",
+      "moz_da_estimate": 58,
+      "content_avg_words": 2500,
+      "blog_articles": "500+ articles",
+      "pricing": "Gratuit (pub)",
+      "localization_maroc": false,
+      "arabic_support": false,
+      "gap_vs_bayen": "LaNutrition.fr ranke sur les requêtes nutrition génériques en France. Sur google.co.ma, leur contenu apparaît par défaut sur les requêtes francophones mais sans signal Maroc. Bayen peut dépasser ce domaine en 6 mois sur toute requête contenant 'maroc' ou des noms de marques marocaines (Jaouda, Centrale, Aicha).",
+      "threat_level": "low — aucun ciblage Maroc, facilement dépassable sur les niches locales"
+    },
+    {
+      "domain": "doctissimo.fr",
+      "type": "outsider",
+      "declared_competitor": false,
+      "frequency_estimated": 5,
+      "ranks_for": [
+        "additifs alimentaires danger maroc (est. #3-6)",
+        "comprendre étiquettes alimentaires (est. #6-9)",
+        "diabète alimentation maroc (est. #5-8)"
+      ],
+      "homepage_h1": "N/A (non accessible via fetch)",
+      "value_prop": "Grand portail santé francophone. Articles santé/nutrition généralistes. Fort DA mais contenu ancien et peu mis à jour. Aucun contenu spécifique Maroc.",
+      "citability_score": 62,
+      "schemas": ["Article", "MedicalWebPage"],
+      "estimated_authority": "high",
+      "moz_da_estimate": 70,
+      "content_avg_words": 1200,
+      "blog_articles": "10 000+ articles",
+      "pricing": "Gratuit (pub)",
+      "localization_maroc": false,
+      "arabic_support": false,
+      "gap_vs_bayen": "Doctissimo ranke massivement sur les requêtes santé francophones par force brute d'autorité. Sur google.co.ma, ses pages génériques s'affichent faute de compétition locale. Opportunité directe : créer des articles spécifiques Maroc sur chaque thématique (diabète Maroc, additifs Maroc, yaourts Maroc) pour absorber la portion géolocalisée du trafic que Doctissimo ne peut pas capturer.",
+      "threat_level": "low — aucun contenu Maroc, structure éditoriale non actualisée"
+    },
+    {
+      "domain": "foodvisor.io",
+      "type": "direct",
+      "declared_competitor": true,
+      "frequency_estimated": 2,
+      "ranks_for": [
+        "alternative yuka maroc (est. #5-8)"
+      ],
+      "homepage_h1": "Foodvisor - Application Nutrition - Manger Sain et Perdre du Poids",
+      "value_prop": "App nutrition iOS/Android basée sur la photo du repas (pas le code-barres). Objectif perte de poids, suivi calorique. Payant. Aucune localisation Maroc.",
+      "citability_score": 45,
+      "schemas": ["MobileApplication"],
+      "estimated_authority": "medium",
+      "moz_da_estimate": 38,
+      "content_avg_words": 600,
+      "blog_articles": "50+",
+      "pricing": "Payant (abonnement mensuel ~5€/mois)",
+      "localization_maroc": false,
+      "arabic_support": false,
+      "gap_vs_bayen": "Foodvisor cible surtout la perte de poids et la photo de repas — angle différent de Bayen (code-barres, produits emballés). Peu compétitif sur le marché marocain, aucune présence locale. Risque faible.",
+      "threat_level": "low — angle produit différent, présence Maroc nulle"
+    },
+    {
+      "domain": "ma.openfoodfacts.org",
+      "type": "direct",
+      "declared_competitor": true,
+      "frequency_estimated": 4,
+      "ranks_for": [
+        "scanner produits alimentaires maroc (est. #4-7)",
+        "yaourts comparatif maroc (est. #3-6)"
+      ],
+      "homepage_h1": "ساعدنا في إعلام ملايين المستهلكين حول العالم بما يأكلون",
+      "value_prop": "Sous-domaine marocain d'Open Food Facts. 22 751 produits marocains indexés. Interface arabe. Base de données brute, pas d'expérience grand public.",
+      "citability_score": 55,
+      "schemas": [],
+      "estimated_authority": "high",
+      "moz_da_estimate": 78,
+      "content_avg_words": 200,
+      "blog_articles": "0 — base de données pure",
+      "pricing": "Gratuit",
+      "localization_maroc": true,
+      "arabic_support": true,
+      "gap_vs_bayen": "Le sous-domaine ma.openfoodfacts.org hérite de l'autorité du domaine principal (DA ~78) et contient 22 751 produits marocains, ce qui en fait le concurrent SERP le plus direct sur les lookups de produits spécifiques. Bayen se différencie par le score composite (Nutri-Score + NOVA + additifs + pénalités Maroc), l'UX mobile PWA, et les articles blog. À surveiller en priorité.",
+      "threat_level": "high — autorité très forte, contenu Maroc réel, 22K produits"
+    },
+    {
+      "domain": "cuisinedumaroc.com",
+      "type": "outsider",
+      "declared_competitor": false,
+      "frequency_estimated": 3,
+      "ranks_for": [
+        "ramadan ftour équilibré (est. #1-3)",
+        "manger sain budget maroc (est. #4-7)"
+      ],
+      "homepage_h1": "Cuisine du Maroc - Recettes Marocaines Authentiques",
+      "value_prop": "Site de recettes marocaines, 10K+ recettes, 50K membres. Focus recettes authentiques, pas nutrition. Aucune analyse produits emballés.",
+      "citability_score": 40,
+      "schemas": ["Recipe"],
+      "estimated_authority": "medium",
+      "moz_da_estimate": 35,
+      "content_avg_words": 500,
+      "blog_articles": "500+ recettes",
+      "pricing": "Gratuit",
+      "localization_maroc": true,
+      "arabic_support": false,
+      "gap_vs_bayen": "CuisineduMaroc.com ranke sur les requêtes recettes/ftour mais n'entre pas en compétition sur les requêtes nutrition, additifs ou scanner. Leur audience est complémentaire à Bayen (cuisinent maison vs achètent transformé). Opportunité de contenu : articles 'recettes ftour équilibrées' ou 'alternatives saines aux plats Ramadan' capturant l'audience Ramadan.",
+      "threat_level": "low — audience recettes, pas nutrition produits emballés"
+    },
+    {
+      "domain": "medias24.com",
+      "type": "media",
+      "declared_competitor": false,
+      "frequency_estimated": 3,
+      "ranks_for": [
+        "diabète alimentation maroc (est. #2-5)",
+        "huile de palme maroc (est. #3-6)"
+      ],
+      "homepage_h1": "N/A",
+      "value_prop": "Portail d'actualités économiques marocaines avec section Santé. Couverture événementielle du diabète, de l'alimentation. Articles courts (900-1000 mots), format news.",
+      "citability_score": 52,
+      "schemas": ["NewsArticle"],
+      "estimated_authority": "medium",
+      "moz_da_estimate": 48,
+      "content_avg_words": 950,
+      "blog_articles": "1000+ articles santé/société",
+      "pricing": "Gratuit",
+      "localization_maroc": true,
+      "arabic_support": true,
+      "gap_vs_bayen": "Medias24 ranke sur les requêtes news/actualités santé Maroc (ex: 'diabète Maroc statistiques'). Leurs articles sont courts et événementiels, pas des guides experts. Bayen peut les dépasser sur les requêtes à intention informationnelle profonde ('diabète Maroc alimentation que manger') avec des articles de 1500+ mots bien structurés. Pas de conflit sur les requêtes produits.",
+      "threat_level": "low — news, pas guides experts, facilement dépassable sur longue traîne"
+    },
+    {
+      "domain": "play.google.com (Yuka listing)",
+      "type": "annuaire",
+      "declared_competitor": false,
+      "frequency_estimated": 4,
+      "ranks_for": [
+        "scanner produits alimentaires maroc (est. #1-3 — app store)",
+        "alternative yuka maroc (est. #2-4)"
+      ],
+      "homepage_h1": "Yuka - Scan de produits",
+      "value_prop": "Fiche Google Play Store de Yuka. 10M+ téléchargements, 4.8 étoiles, 180 000 avis. Apparaît systématiquement en tête sur les requêtes app/scanner.",
+      "citability_score": 30,
+      "schemas": ["MobileApplication"],
+      "estimated_authority": "very_high",
+      "moz_da_estimate": 98,
+      "content_avg_words": 400,
+      "blog_articles": "N/A",
+      "pricing": "N/A",
+      "localization_maroc": false,
+      "arabic_support": false,
+      "gap_vs_bayen": "Le Play Store listera Bayen une fois que l'app sera soumise avec la bonne optimisation ASO (titre : 'Bayen - Scanner produits Maroc', description incluant les mots-clés FR + arabe). En attendant, les résultats Play Store capturent l'intention d'installation et Bayen n'y est pas. ASO est un vecteur de croissance distinct du SEO web mais les fiches Play/Apple Store rankent dans Google. Priorité : soumettre la PWA/app sur les stores.",
+      "threat_level": "medium — bloque les installs directes tant que Bayen n'est pas sur les stores"
+    }
+  ],
+  "serp_landscape_by_keyword": {
+    "scanner_produits_alimentaires_maroc": {
+      "intent": "navigationnel / transactionnel app",
+      "estimated_top_3": ["play.google.com/Yuka", "yuka.io", "world.openfoodfacts.org"],
+      "estimated_positions_4_10": ["ma.openfoodfacts.org", "apps.apple.com/Yuka", "foodvisor.io", "doctissimo.fr (article scan alimentaire)", "play.google.com/MyFitnessPal", "lanutrition.fr"],
+      "bayen_gap": "Absent. Intent = installation app. Bayen peut capter avec une landing page optimisée /scan + fiche Play Store.",
+      "difficulty": "high",
+      "volume_estimate_ma": "200-500 req/mois"
+    },
+    "alternative_yuka_maroc": {
+      "intent": "comparatif / alternatif",
+      "estimated_top_3": ["yuka.io (brand + variations)", "play.google.com/Yuka", "article blog comparatif FR"],
+      "estimated_positions_4_10": ["foodvisor.io", "world.openfoodfacts.org", "myfitnesspal.com", "lifesum.com"],
+      "bayen_gap": "Requête à fort potentiel pour Bayen — c'est exactement notre positionnement. Aucune page Bayen n'existe encore sur ce sujet. Créer /blog/alternative-yuka-maroc est la priorité n°1.",
+      "difficulty": "medium",
+      "volume_estimate_ma": "100-300 req/mois"
+    },
+    "additifs_alimentaires_danger_maroc": {
+      "intent": "informationnel — éducation consommateur",
+      "estimated_top_3": ["fr.wikipedia.org/Additif alimentaire", "doctissimo.fr", "lanutrition.fr"],
+      "estimated_positions_4_10": ["world.openfoodfacts.org/additifs", "yuka.io/blog/additifs", "medias24.com", "sante.ma (si existant)", "who.int/fr"],
+      "bayen_gap": "Bayen a déjà l'article /blog/additifs-a-eviter-maroc (publié). Avec optimisation title + meta + maillage, positionnement top 5 en 90 jours possible en ciblant le 'maroc' géo-signal.",
+      "difficulty": "medium",
+      "volume_estimate_ma": "300-800 req/mois"
+    },
+    "diabete_alimentation_maroc": {
+      "intent": "informationnel — santé chronique",
+      "estimated_top_3": ["who.int/fr/diabetes", "medias24.com", "doctissimo.fr/diabete"],
+      "estimated_positions_4_10": ["lanutrition.fr", "passeportsante.net", "federationdiabete.ma (si existant)", "yuka.io/blog", "sante.ma"],
+      "bayen_gap": "Bayen a l'article /blog/diabete-alimentation-maroc-produits-a-eviter (publié mai 2026). C'est le seul contenu francophone spécifiquement marocain sur ce sujet. Potentiel top 3 avec backlinks.",
+      "difficulty": "medium-low",
+      "volume_estimate_ma": "500-1500 req/mois"
+    },
+    "nutri_score_explique": {
+      "intent": "informationnel — définition",
+      "estimated_top_3": ["fr.wikipedia.org/Nutri-score", "yuka.io/blog/nutriscore", "sante.gouv.fr (FR)"],
+      "estimated_positions_4_10": ["lanutrition.fr", "doctissimo.fr", "who.int", "solidarites-sante.gouv.fr", "60millions-mag.com"],
+      "bayen_gap": "Très compétitif. Wikipedia et Yuka dominent. Angle Maroc inexploré. Article /blog/comprendre-le-nutri-score publié mais nécessite un angle 'Nutri-Score au Maroc : ce que ça change' pour se différencier.",
+      "difficulty": "high",
+      "volume_estimate_ma": "200-600 req/mois"
+    },
+    "comprendre_etiquettes_alimentaires": {
+      "intent": "informationnel — guide pratique",
+      "estimated_top_3": ["anses.fr", "fr.wikipedia.org/Étiquetage", "doctissimo.fr"],
+      "estimated_positions_4_10": ["lanutrition.fr", "yuka.io/blog", "sante.gouv.fr", "marmiton.org", "cuisine.journaldesfemmes.fr"],
+      "bayen_gap": "Article /blog/lire-une-etiquette-nutritionnelle publié. Contenu de qualité avec spécificité Maroc (darija, loi 28-07). Fort potentiel top 5 sur 'comprendre étiquettes alimentaires maroc' — aucune concurrence locale.",
+      "difficulty": "medium",
+      "volume_estimate_ma": "200-500 req/mois"
+    },
+    "huile_de_palme_maroc": {
+      "intent": "informationnel — impact santé + local",
+      "estimated_top_3": ["doctissimo.fr", "lanutrition.fr", "medias24.com ou l'économiste"],
+      "estimated_positions_4_10": ["yuka.io/blog", "who.int", "wikipedia.fr/Huile de palme", "60millions-mag.com"],
+      "bayen_gap": "Article /blog/huile-palme-maroc-produits-impact-sante publié avec angle hyper-local (marques marocaines, étiquettes, loi 28-07). Unique dans le paysage FR/MA. Quick win très fort.",
+      "difficulty": "medium-low",
+      "volume_estimate_ma": "150-400 req/mois"
+    },
+    "yaourts_comparatif_maroc": {
+      "intent": "informationnel — comparatif produits",
+      "estimated_top_3": ["ma.openfoodfacts.org/catégorie/yaourts", "doctissimo.fr", "lanutrition.fr"],
+      "estimated_positions_4_10": ["cuisinedumaroc.com (yaourt recettes)", "yuka.io/blog/classements", "quelchoisir.ma (si existant)", "jaouda.com"],
+      "bayen_gap": "Article /blog/meilleurs-yaourts-maroc-comparatif publié avec données spécifiques Jaouda/Centrale/Yawmy. Contenu unique non reproduisable. Potentiel #1 en 60 jours sur la requête exacte.",
+      "difficulty": "low",
+      "volume_estimate_ma": "100-300 req/mois"
+    },
+    "manger_sain_budget_maroc": {
+      "intent": "informationnel — guide budget-friendly",
+      "estimated_top_3": ["cuisinedumaroc.com", "doctissimo.fr/manger-sain-pas-cher", "lanutrition.fr"],
+      "estimated_positions_4_10": ["yabiladi.com", "medias24.com", "recettes.ma", "maroc-sante.com"],
+      "bayen_gap": "Article /blog/alternatives-snacks-industriels publié (angle 5 DH) mais aucun article consolidé sur 'manger sain budget Maroc'. Gap à combler avec 1 article dédié.",
+      "difficulty": "medium",
+      "volume_estimate_ma": "300-700 req/mois"
+    },
+    "ramadan_ftour_equilibre": {
+      "intent": "saisonnier — guide nutrition Ramadan",
+      "estimated_top_3": ["cuisinedumaroc.com", "yabiladi.com/ramadan", "doctissimo.fr/ramadan"],
+      "estimated_positions_4_10": ["medias24.com", "ledesk.ma", "fr.wikipedia.org/Ramadan", "cuisineaz.com/ramadan"],
+      "bayen_gap": "Article /blog/bien-manger-ramadan publié avec angle glycémie/nutritionnel hyper-précis. Unique dans sa catégorie (angle médical + culture marocaine). Trafic saisonnier très élevé (mars-avril).",
+      "difficulty": "medium",
+      "volume_estimate_ma": "1000-5000 req/mois (pic Ramadan)"
+    }
+  }
+}

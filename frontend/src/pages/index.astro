@@ -100,7 +100,11 @@ await Promise.all(
 // Si la base est vide (ex: environnement staging), on affiche 0.
 ---
 
-<Layout title="Bayen — Scannez. Comprenez. Choisissez mieux.">
+<Layout
+  title="Bayen — Notation des produits alimentaires au Maroc"
+  description="Scanne le code-barres de tes produits alimentaires et obtiens le Nutri-Score, les additifs et un score santé 0-100. 100% gratuit, sans pub. Conçu pour le Maroc."
+  path="/"
+>
   <main class="pb-24 md:pb-8">
 
     <!-- Héro -->
@@ -116,15 +120,15 @@ await Promise.all(
             <img src="/logo-leaf.svg" alt="" class="w-[400px] h-[400px] sm:w-[480px] sm:h-[480px] text-white" style="filter: brightness(0) invert(1);" />
           </div>
 
-          <!-- Texte massif -->
-          <div class="relative z-10 space-y-2 sm:space-y-3">
-            <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black tracking-[0.01em] text-[#f0f2d2] leading-[0.9]">
+          <!-- Texte massif — un seul <h1> SEO, le second visuel passe en <span> -->
+          <h1 class="relative z-10 space-y-2 sm:space-y-3">
+            <span class="block text-5xl sm:text-7xl lg:text-8xl font-black tracking-[0.01em] text-[#f0f2d2] leading-[0.9]">
               {t('home.hero1', locale)}
-            </h1>
-            <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black tracking-[0.01em] text-[#b1cf3a] leading-[0.9]">
+            </span>
+            <span class="block text-5xl sm:text-7xl lg:text-8xl font-black tracking-[0.01em] text-[#b1cf3a] leading-[0.9]">
               {t('home.hero2', locale)}
-            </h1>
-          </div>
+            </span>
+          </h1>
 
           <!-- Sous-titre -->
           <p class="relative z-10 mt-6 sm:mt-8 text-base sm:text-lg text-[#f0f2d2]/80 max-w-xl mx-auto leading-relaxed">

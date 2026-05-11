@@ -68,9 +68,18 @@ const riskLevel = (additive?.risk_level as string) ?? 'limited'
 const pageTitle = additive
   ? `${id} — ${additive.name_fr} | Bayen`
   : `Additif ${id} — Bayen`
+
+const pageDescription = additive
+  ? `${id} (${additive.name_fr}) — Niveau de risque, présence dans les produits marocains, alternatives. Selon EFSA et CIRC.`
+  : `Informations sur l'additif alimentaire ${id} au Maroc.`
 ---
 
-<Layout title={pageTitle}>
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  path={`/additifs/${id}`}
+  noindex={!additive}
+>
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     <!-- Retour -->
     <a href="/additifs" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">

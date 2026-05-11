@@ -8,7 +8,7 @@ import { getLocale, t } from '@/lib/i18n'
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 ---
 
-<Layout title="Connexion — Bayen">
+<Layout title="Connexion — Bayen" path="/connexion" noindex={true}>
   <main class="container mx-auto max-w-screen-lg px-4 py-12 pb-24">
     <div class="text-center mb-8">
       <h1 class="text-2xl font-bold tracking-tight">{t('login.welcome', locale)}</h1>

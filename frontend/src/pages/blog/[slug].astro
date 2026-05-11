@@ -93,6 +93,9 @@ function formatDate(iso: string | null | undefined): string {
   } catch { return '' }
 }
 const dateStr = article ? formatDate(article.date_published ?? article.date_created) : ''
+const dateUpdatedStr = article?.date_updated && article.date_updated !== article.date_published
+  ? formatDate(article.date_updated)
+  : ''
 
 const pageTitle = article ? `${title} — Bayen` : `${t('blog.notFound', locale)} — Bayen`
 const metaDescription = excerpt ?? t('blog.description', locale)
@@ -218,8 +221,33 @@ const jsonLd = article
         {/* Contenu markdown rendu */}
         <div class="bayen-prose" set:html={contentHtml} />
 
+        {/* Date de mise à jour si différente de la publication */}
+        {dateUpdatedStr && (
+          <p class="mt-8 text-xs text-muted-foreground italic">
+            Mis à jour le {dateUpdatedStr}
+          </p>
+        )}
+
+        {/* Bloc auteur — signal E-E-A-T (Authoritativeness) pour Google
+             sur les sujets YMYL (santé/nutrition) */}
+        <div class="mt-10 pt-6 border-t rounded-2xl bg-card border p-5 flex gap-4 items-start">
+          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-lg">
+            A
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-foreground">Amine Benboubker</p>
+            <p class="text-xs text-muted-foreground mt-0.5">
+              Fondateur de Bayen · Casablanca · Studio <a href="https://www.n0.ma" target="_blank" rel="noopener" class="text-primary hover:underline">N0.ma</a>
+            </p>
+            <p class="text-sm text-muted-foreground mt-2 leading-relaxed">
+              Articles écrits avec rigueur, en citant systématiquement les sources scientifiques (OMS, EFSA, CIRC, ANSES). Algorithme de scoring public et open source.{' '}
+              <a href="/methodologie" class="text-primary hover:underline">Notre méthodologie</a> · <a href="/a-propos" class="text-primary hover:underline">À propos de Bayen</a>
+            </p>
+          </div>
+        </div>
+
         {/* Bas de page */}
-        <div class="mt-12 pt-6 border-t">
+        <div class="mt-8 pt-6 border-t">
           <a href="/blog" class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
             {t('blog.back', locale)}
           </a>

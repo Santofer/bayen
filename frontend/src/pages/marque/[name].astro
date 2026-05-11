@@ -23,10 +23,15 @@ try {
   }
 } catch {}
 
-const pageTitle = `${brandName} — ${t('nav.home', locale)} | Bayen`
+const pageTitle = `${brandName} — Produits et scores Bayen`
+const pageDescription = `Tous les produits de la marque ${brandName} disponibles au Maroc, leur score nutritionnel et leurs additifs.`
 ---
 
-<Layout title={pageTitle}>
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  path={`/marque/${encodeURIComponent(name ?? '')}`}
+>
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     <h1 class="text-2xl font-bold text-foreground mb-1">{brandName}</h1>
     <p class="text-sm text-muted-foreground mb-6">
