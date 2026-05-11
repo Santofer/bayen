@@ -115,7 +115,7 @@ const jsonLd = article
         dateModified: article.date_updated ?? article.date_published ?? article.date_created,
         wordCount,
         timeRequired: article.reading_time_min ? `PT${article.reading_time_min}M` : undefined,
-        articleSection: CATEGORY_LABELS[article.category as ArticleCategory] ?? article.category,
+        articleSection: CATEGORY_LABELS_FR[article.category as ArticleCategory] ?? article.category,
         inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
         author: {
           '@type': 'Person',
