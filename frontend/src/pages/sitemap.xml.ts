@@ -16,8 +16,25 @@ export const GET: APIRoute = async () => {
     { url: '/scan', priority: '0.9', changefreq: 'monthly' },
     { url: '/recherche', priority: '0.8', changefreq: 'weekly' },
     { url: '/additifs', priority: '0.7', changefreq: 'monthly' },
+    { url: '/blog', priority: '0.8', changefreq: 'weekly' },
+    { url: '/analyser-repas', priority: '0.7', changefreq: 'monthly' },
+    { url: '/a-propos', priority: '0.6', changefreq: 'monthly' },
+    { url: '/methodologie', priority: '0.6', changefreq: 'monthly' },
     { url: '/contribuer', priority: '0.6', changefreq: 'monthly' },
   ]
+
+  // Récupérer les articles de blog publiés
+  let articles: Array<{ slug: string; date_published: string | null }> = []
+  try {
+    const res = await fetch(
+      `${DIRECTUS_URL}/items/articles?filter[status][_eq]=published&fields=slug,date_published&limit=-1`,
+      { signal: AbortSignal.timeout(5000) }
+    )
+    if (res.ok) {
+      const data = await res.json()
+      articles = data.data ?? []
+    }
+  } catch { /* continue */ }
 
   // Récupérer les produits publiés
   let products: Array<{ barcode: string; date_updated: string | null }> = []
@@ -90,6 +107,14 @@ export const GET: APIRoute = async () => {
     <loc>${SITE_URL}/additifs/${a.id}</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>`
+    ),
+    // Articles blog
+    ...articles.map(
+      (a) => `  <url>
+    <loc>${SITE_URL}/blog/${a.slug}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>${a.date_published ? `\n    <lastmod>${new Date(a.date_published).toISOString().split('T')[0]}</lastmod>` : ''}
   </url>`
     ),
   ]
