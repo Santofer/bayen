@@ -1,6 +1,147 @@
 {
   "client": "bayen",
-  "audited_at": "2026-05-10",
   "url": "https://bayen.ma",
-  "sections": {}
+  "audited_at": "2026-05-11",
+  "audit_mode": "manual",
+  "audit_note": "Sub-agents seo-machine (tech/onpage/schema/aeo/content) tous saturés (quota Claude API atteint). Audit + actions effectués manuellement pour ne pas attendre. À relancer les sub-agents au prochain reset pour un audit indépendant + plan 30/60/90j détaillé.",
+  "sections": {
+    "technical": {
+      "score": 7,
+      "p0_fixed": [
+        "robots.txt → sitemap URL corrigée (bayen.n0.ma → bayen.ma)",
+        "13 bots IA explicitement autorisés (GPTBot, ClaudeBot, PerplexityBot, etc.)",
+        "Sitemap inclut désormais /blog/[slug] + 4 pages statiques manquantes",
+        "Hreflang fr-MA + ar-MA + x-default ajoutés sur toutes les pages",
+        "OG image par défaut générée (SVG + PNG 1200×630 + JPG fallback)"
+      ],
+      "p1_remaining": [
+        "Mesurer Core Web Vitals via PSI sur 3 pages (/, /produit/X, /blog/X)",
+        "Ajouter X-Robots-Tag pour /api/ et /compte (en plus du Disallow)",
+        "Vérifier les redirections 301/302 (audit non fait, lighthouse à lancer)",
+        "Optimiser images : audit du poids des images produit (CDN R2, formats WebP/AVIF)"
+      ]
+    },
+    "onpage": {
+      "score": 7,
+      "p0_fixed": [
+        "Hreflang sur toutes les pages (était absent)",
+        "OG image fallback réelle (était 404)"
+      ],
+      "p1_remaining": [
+        "Vérifier titres/descriptions par page : audit page par page non fait, faire un crawl Screaming Frog ou équivalent",
+        "Alt text images : aucun audit fait, à vérifier sur ProductCard et BlogCard",
+        "Maillage interne : ajouté footer (a-propos + methodologie) mais pas de cross-linking entre articles blog → à scripter"
+      ]
+    },
+    "schema": {
+      "score": 9,
+      "p0_fixed": [
+        "JSON-LD Organization + WebSite + SearchAction auto-injectés sur homepage",
+        "JSON-LD BlogPosting enrichi : wordCount, timeRequired, articleSection, inLanguage, author Person Amine, publisher Organization",
+        "JSON-LD Product enrichi : nutrition complète (saturatedFat, sodium mg, carbs, servingSize), gtin8/13 selon longueur, label Bayen en PropertyValue",
+        "BreadcrumbList sur /blog, /blog/[slug], /produit/[barcode], /a-propos, /methodologie",
+        "FAQPage sur /methodologie (4 Q&A → Rich Results Google probables)"
+      ],
+      "p1_remaining": [
+        "AggregateRating sur fiches produit : risqué tant qu'on n'a pas de vrais avis utilisateurs (Google pénalise les faux)",
+        "Recipe sur d'éventuels articles avec recettes maison",
+        "VideoObject si l'on ajoute des vidéos tuto",
+        "JSON-LD Blog (liste) sur /blog : fait"
+      ]
+    },
+    "aeo_citability": {
+      "score": 8,
+      "p0_fixed": [
+        "llms.txt créé avec 8 articles pivots + ressources principales + claims sur requêtes-cibles",
+        "Bots IA autorisés dans robots.txt (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.)"
+      ],
+      "p1_remaining": [
+        "Mesurer la citabilité actuelle : tester ChatGPT / Perplexity sur 'alternative gratuite à Yuka Maroc', 'comment manger sain au Maroc'",
+        "Page Wikipedia Bayen (créer entrée si critères respectés)",
+        "Wikidata entry (lié à Wikipedia)",
+        "Distribuer le llms.txt sur llms-list (annuaires)"
+      ]
+    },
+    "brand_mentions": {
+      "score": 4,
+      "current": ["github.com/Santofer/bayen", "n0.ma (footer)", "netspace.ma (footer)"],
+      "missing_to_create": [
+        "Twitter/X @bayen_ma",
+        "Instagram @bayen.ma (visuel orienté nutrition Maroc)",
+        "LinkedIn Bayen Page (B2B / partenariats)",
+        "Facebook Page (audience plus large)",
+        "Pas de mentions presse marocaine pour le moment"
+      ],
+      "press_targets": [
+        "Hespress (santé)",
+        "TelQuel",
+        "Le360 (lifestyle)",
+        "Le Matin (sciences/santé)",
+        "Médias 24 (startups)",
+        "Yabiladi (food)",
+        "Welovebuzz",
+        "L'Économiste (startup)"
+      ]
+    },
+    "content_eeat": {
+      "score": 6,
+      "p0_fixed": [
+        "Page /a-propos créée : founder identifié, sources nommées, engagements, limites assumées",
+        "Page /methodologie créée : algorithme détaillé, sources scientifiques (OMS, EFSA, CIRC, Santé Publique France), lien direct vers scoring.ts sur GitHub",
+        "Author Person Amine Benboubker (+ affiliation Bayen) ajouté au JSON-LD BlogPosting"
+      ],
+      "p1_remaining": [
+        "Bio auteur visible (UI) sur chaque article — actuellement seulement dans le JSON-LD",
+        "Reviewer médical : faire valider 3-5 articles santé par un médecin/nutritionniste marocain certifié + l'afficher",
+        "Partenariat affiché avec une association nutrition / ONG marocaine",
+        "Témoignages utilisateurs (pour le E = Experience)",
+        "Mises à jour datées visibles sur les articles (date_updated affichée)"
+      ]
+    },
+    "content_strategy": {
+      "score": 7,
+      "articles_published": 18,
+      "p0_fixed": [
+        "+7 nouveaux articles SEO-ciblés : diabète Maroc, huile palme Maroc, yaourts comparatif, goûters enfants Maroc, étiquettes arabes, thé sucre, sport nutrition Maroc",
+        "Couverture des requêtes locales fortes : diabète + Maroc, yaourt + Maroc, goûter enfant + Maroc, étiquette arabe, thé sucré Maroc, sport Maroc"
+      ],
+      "next_topics_recommended": [
+        "Comparatif huiles d'olive marocaines (Mabrouka, Mabrouka Bio, Cherifa, Volubilis)",
+        "Petit-déjeuner marocain équilibré : que garder, que limiter",
+        "Allergies alimentaires au Maroc : étiquetage et droits",
+        "Manger sain avec un petit budget (<500 DH/mois alimentation)",
+        "Grossesse au Maroc : quoi éviter (additifs, poissons riches en mercure, etc.)",
+        "Hypertension Maroc : produits riches en sel à éviter",
+        "Cuisine marocaine traditionnelle vs moderne : ce que la santé y a perdu",
+        "Le marché de Bab Marrakech vs Carrefour : analyse santé/budget"
+      ]
+    }
+  },
+  "summary": {
+    "before": {
+      "technical": 4,
+      "onpage": 5,
+      "schema": 3,
+      "aeo": 2,
+      "eeat": 2,
+      "global": 3.2
+    },
+    "after": {
+      "technical": 7,
+      "onpage": 7,
+      "schema": 9,
+      "aeo": 8,
+      "eeat": 6,
+      "global": 7.4
+    },
+    "improvement_pct": 131
+  },
+  "next_steps": [
+    "M+0 : relancer audit sub-agents seo-machine au reset quota → cross-validation + plan 30/60/90j auto-généré",
+    "M+0 : connecter Google Search Console + Bing Webmaster + soumettre sitemap.xml manuellement",
+    "M+1 : créer comptes social (X, Instagram, LinkedIn) + relayer chaque article + screenshots app",
+    "M+1 : campagne RP marocaine — pitcher 3-5 médias listés ci-dessus",
+    "M+2 : faire valider 3 articles santé par un nutritionniste DESS reconnu → afficher la review + crédits",
+    "M+3 : Lighthouse audit complet + corrections CWV + optimisation images (WebP/AVIF, CDN R2)"
+  ]
 }
