@@ -6,7 +6,8 @@
 
 import { useState, useEffect } from 'react'
 import { getAccessToken } from '@/lib/auth'
-import { StreakCard, type StreakPeriod } from '@/components/ui/streak-card'
+import { StreakCard } from '@/components/ui/streak-card'
+import type { StreakPeriod } from '@/components/ui/streak-calendar'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -23,12 +24,9 @@ interface MyStatsResponse {
 
 interface StreakWidgetProps {
   labels?: {
-    title?: string
-    current?: string
+    days?: string
     longest?: string
     total?: string
-    days?: string
-    dayInitials?: [string, string, string, string, string, string, string]
   }
 }
 

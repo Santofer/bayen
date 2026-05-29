@@ -118,7 +118,6 @@ export default function Leaderboard({
       podiumRankings={podiumRankings}
       rankings={rankings}
       currentUserId={me?.id}
-      valueSuffix={pointsSuffix}
     />
   )
 }

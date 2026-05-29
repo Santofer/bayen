@@ -1,175 +1,158 @@
 /**
- * Carte de série (streak) Bayen — encourage le scan quotidien.
- * Affiche : flamme + série actuelle, plus longue série, total, et une bande
- * des 7 derniers jours (actif/inactif) dérivée du tableau `streak`.
- * Design Bayen (vert/crème, dark mode). Aucune dépendance externe.
+ * Carte de série (streak) Bayen — version 21st.dev adaptée (labels FR).
+ * Flamme + série actuelle, calendrier des jours actifs, record + total,
+ * et un dépliant "Comment ça marche".
  */
 
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import { CheckCircle2, ChevronDown, Flame, RefreshCcw } from 'lucide-react'
 
-export interface StreakPeriod {
-  periodStart: string // 'YYYY-MM-DD'
-  periodEnd: string
-}
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { StreakCalendar, type StreakPeriod } from '@/components/ui/streak-calendar'
 
 interface StreakCardProps extends React.HTMLAttributes<HTMLDivElement> {
   streak: StreakPeriod[]
   currentStreak: number
   longestStreak: number
   total: number
-  /** Date de référence "aujourd'hui" en YYYY-MM-DD (sinon date locale) */
+  /** Date de référence "aujourd'hui" YYYY-MM-DD (tz serveur Maroc) */
   today?: string
+  title?: string
+  actionLabel?: string
+  onActionClick?: () => void
+  view?: 'week' | 'month'
+  showHowItWorks?: boolean
+  howItWorksTitle?: string
+  howItWorksItems?: string[]
+  defaultHowItWorksOpen?: boolean
   labels?: {
-    title?: string
-    current?: string
+    days?: string
     longest?: string
     total?: string
-    days?: string
-    dayInitials?: [string, string, string, string, string, string, string]
   }
 }
 
-function isoToday(): string {
-  return new Date().toLocaleDateString('en-CA') // YYYY-MM-DD local
-}
-
-function shiftIso(iso: string, delta: number): string {
-  const [y, m, d] = iso.split('-').map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d))
-  dt.setUTCDate(dt.getUTCDate() + delta)
-  return dt.toISOString().slice(0, 10)
-}
-
-const FlameIcon = ({ active }: { active: boolean }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill={active ? 'currentColor' : 'none'}
-    stroke="currentColor"
-    strokeWidth={active ? 0 : 1.8}
-    aria-hidden="true"
-    className="h-full w-full"
-  >
-    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-  </svg>
-)
-
 const StreakCard = React.forwardRef<HTMLDivElement, StreakCardProps>(
-  ({ className, streak, currentStreak, longestStreak, total, today, labels, ...props }, ref) => {
+  (
+    {
+      className,
+      streak,
+      currentStreak,
+      longestStreak,
+      total,
+      today,
+      title = 'Ta série',
+      actionLabel = 'Détails',
+      onActionClick,
+      view = 'week',
+      showHowItWorks = true,
+      howItWorksTitle = 'Comment marchent les séries ?',
+      howItWorksItems = [
+        'Scanne au moins un produit chaque jour pour bâtir ta série.',
+        'Chaque jour d’activité augmente ta série d’un point.',
+        'Un jour manqué remet ta série à zéro.',
+      ],
+      defaultHowItWorksOpen = false,
+      labels,
+      ...props
+    },
+    ref
+  ) => {
+    const [isHowItWorksOpen, setIsHowItWorksOpen] = React.useState(defaultHowItWorksOpen)
+    const howItWorksContentId = React.useId()
+
     const L = {
-      title: labels?.title ?? 'Ta série',
-      current: labels?.current ?? 'Série actuelle',
+      days: labels?.days ?? 'jours',
       longest: labels?.longest ?? 'Record',
       total: labels?.total ?? 'Total scans',
-      days: labels?.days ?? 'jours',
-      dayInitials: labels?.dayInitials ?? ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
-    }
-
-    const refToday = today ?? isoToday()
-    const activeSet = React.useMemo(() => {
-      const s = new Set<string>()
-      for (const p of streak) {
-        // chaque période = 1 jour (single-day range), mais on gère les plages
-        let cur = p.periodStart
-        let guard = 0
-        while (cur <= p.periodEnd && guard < 366) {
-          s.add(cur)
-          cur = shiftIso(cur, 1)
-          guard++
-        }
-      }
-      return s
-    }, [streak])
-
-    // 7 derniers jours calendaires (du plus ancien au plus récent)
-    const last7 = React.useMemo(() => {
-      const arr: { iso: string; active: boolean; isToday: boolean }[] = []
-      for (let i = 6; i >= 0; i--) {
-        const iso = shiftIso(refToday, -i)
-        arr.push({ iso, active: activeSet.has(iso), isToday: iso === refToday })
-      }
-      return arr
-    }, [refToday, activeSet])
-
-    const dowInitial = (iso: string) => {
-      const [y, m, d] = iso.split('-').map(Number)
-      // getUTCDay : 0=dimanche … 6=samedi ; on mappe sur L M M J V S D
-      const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
-      const idx = dow === 0 ? 6 : dow - 1
-      return L.dayInitials[idx]
     }
 
     return (
-      <div
+      <section
         ref={ref}
-        className={cn('rounded-2xl border bg-card p-5 shadow-sm', className)}
+        aria-label="Carte de série"
+        className={cn('bg-card rounded-2xl border p-6 shadow-sm', className)}
         {...props}
       >
-        {/* En-tête : flamme + série actuelle */}
-        <div className="flex items-center gap-4">
-          <div
-            className={cn(
-              'flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl p-3.5',
-              currentStreak > 0
-                ? 'bg-orange-500/15 text-orange-500'
-                : 'bg-muted text-muted-foreground'
-            )}
-          >
-            <FlameIcon active={currentStreak > 0} />
+        <header className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Flame className="text-orange-500 h-6 w-6" aria-hidden="true" />
+            <h3 className="text-2xl leading-none font-semibold">{title}</h3>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm text-muted-foreground">{L.current}</p>
-            <p className="text-3xl font-black leading-none text-foreground">
-              {currentStreak}{' '}
-              <span className="text-base font-semibold text-muted-foreground">{L.days}</span>
+          {onActionClick && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={onActionClick}
+              aria-label={actionLabel}
+              className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+            >
+              {actionLabel}
+            </Button>
+          )}
+        </header>
+
+        <p className="mb-4 text-5xl leading-none font-semibold tracking-tight">
+          {currentStreak}
+          <span className="text-muted-foreground ml-2 text-2xl font-medium">{L.days}</span>
+        </p>
+
+        <StreakCalendar streak={streak} view={view} startOfWeek={1} today={today} className="max-w-none" />
+
+        <div className="mt-4 grid grid-cols-2 gap-4 border-t border-dashed pt-4" aria-label="Statistiques de série">
+          <div>
+            <p className="text-muted-foreground text-sm">{L.longest}</p>
+            <p className="text-3xl leading-tight font-semibold">
+              {longestStreak}
+              <span className="ml-1 text-2xl font-medium">{L.days}</span>
             </p>
           </div>
+          <div className="text-right">
+            <p className="text-muted-foreground text-sm">{L.total}</p>
+            <p className="text-3xl leading-tight font-semibold">{total.toLocaleString('fr-FR')}</p>
+          </div>
         </div>
 
-        {/* Bande 7 jours */}
-        <div className="mt-5 flex justify-between gap-1.5">
-          {last7.map((d) => (
-            <div key={d.iso} className="flex flex-1 flex-col items-center gap-1.5">
-              <span className="text-[10px] font-medium text-muted-foreground">
-                {dowInitial(d.iso)}
-              </span>
-              <div
+        {showHowItWorks && (
+          <div className="mt-4 border-t pt-4">
+            <button
+              type="button"
+              className="bg-muted flex w-full items-center justify-between rounded-xl px-4 py-3 text-left"
+              onClick={() => setIsHowItWorksOpen((prev) => !prev)}
+              aria-expanded={isHowItWorksOpen}
+              aria-controls={howItWorksContentId}
+            >
+              <span className="text-base font-semibold">{howItWorksTitle}</span>
+              <ChevronDown
                 className={cn(
-                  'flex aspect-square w-full max-w-[2.25rem] items-center justify-center rounded-lg text-xs',
-                  d.active
-                    ? 'bg-orange-500/20 text-orange-600'
-                    : 'border border-dashed border-muted-foreground/30 text-transparent',
-                  d.isToday && 'ring-2 ring-primary/40'
+                  'text-muted-foreground h-5 w-5 transition-transform',
+                  isHowItWorksOpen && 'rotate-180'
                 )}
-              >
-                {d.active ? (
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-                  </svg>
-                ) : (
-                  '·'
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+                aria-hidden="true"
+              />
+            </button>
 
-        {/* Stats record + total */}
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-muted/50 p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{longestStreak}</p>
-            <p className="text-xs text-muted-foreground">{L.longest}</p>
+            {isHowItWorksOpen && (
+              <div id={howItWorksContentId} className="space-y-4 px-2 pt-4">
+                {howItWorksItems.map((item, index) => {
+                  const Icon = index === 0 ? CheckCircle2 : index === 1 ? Flame : RefreshCcw
+                  return (
+                    <div key={`${item}-${index}`} className="flex items-start gap-3">
+                      <Icon className="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                      <p className="text-muted-foreground text-sm leading-snug">{item}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
-          <div className="rounded-xl bg-muted/50 p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{total.toLocaleString('fr-FR')}</p>
-            <p className="text-xs text-muted-foreground">{L.total}</p>
-          </div>
-        </div>
-      </div>
+        )}
+      </section>
     )
   }
 )
-
 StreakCard.displayName = 'StreakCard'
 
 export { StreakCard }
+export type { StreakCardProps }

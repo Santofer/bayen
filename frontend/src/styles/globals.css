@@ -36,6 +36,12 @@
   --color-nutriscore-d: #ee8100;
   --color-nutriscore-e: #e63e11;
 
+  /* Médailles leaderboard (or / argent / bronze) + succès */
+  --color-rank-1: #d4af37;
+  --color-rank-2: #9ca3af;
+  --color-rank-3: #cd7f32;
+  --color-success-600: #16a34a;
+
   --radius-lg: 0.5rem;
   --radius-md: calc(var(--radius-lg) - 2px);
   --radius-sm: calc(var(--radius-lg) - 4px);

@@ -1,143 +1,258 @@
 /**
- * Liste classée du leaderboard Bayen.
- * Chaque ligne : position, avatar initiales, nom + byline (rang), valeur.
- * La ligne de l'utilisateur courant est mise en évidence.
- * Pagination optionnelle.
+ * Liste classée du leaderboard — version 21st.dev adaptée Bayen.
+ * Avatars (URL ou initiales), couronnes top 3, variation de rang,
+ * pagination avec sélecteur de taille, repli des lignes masquées.
  */
 
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  EllipsisIcon,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
 
-export interface LeaderboardRankingItem {
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+
+interface LeaderboardRankingItem {
   userId: string
+  userName: string | null
   rank: number
-  userName: string
-  byline?: string
   value: number
+  byline?: string | null
+  avatarUrl?: string | null
+  /** Couleur d'accent pour l'avatar initiales (ex: couleur du rang Bayen) */
+  accentColor?: string | null
+  rankChange?: number
   displayed?: boolean
-  /** Couleur d'accent (ex: couleur du rang Bayen) */
-  accentColor?: string
 }
 
 interface LeaderboardRankingsProps extends React.HTMLAttributes<HTMLDivElement> {
   rankings: LeaderboardRankingItem[]
+  onUserClick?: (ranking: LeaderboardRankingItem) => void
   currentUserId?: string
   showPagination?: boolean
-  defaultPageSize?: number
-  valueSuffix?: string
+  defaultPageSize?: 10 | 25 | 50 | 100
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
+const crownColorMap = {
+  1: 'text-rank-1',
+  2: 'text-rank-2',
+  3: 'text-rank-3',
+} as const
 
-function formatValue(v: number): string {
-  return v.toLocaleString('fr-FR')
+const pageSizeOptions = [10, 25, 50, 100] as const
+
+type LeaderboardRow =
+  | { type: 'ranking'; ranking: LeaderboardRankingItem }
+  | { type: 'ellipsis'; key: string }
+
+function formatLeaderboardValue(value: number) {
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}m`
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
+  return value.toLocaleString('fr-FR')
 }
 
 const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardRankingsProps>(
   (
-    {
-      className,
-      rankings,
-      currentUserId,
-      showPagination = false,
-      defaultPageSize = 10,
-      valueSuffix,
-      ...props
-    },
+    { className, rankings, onUserClick, currentUserId, showPagination = false, defaultPageSize = 10, ...props },
     ref
   ) => {
-    const [page, setPage] = React.useState(0)
-    const visible = rankings.filter((r) => r.displayed !== false)
-    const pageSize = showPagination ? defaultPageSize : visible.length
-    const pageCount = Math.max(1, Math.ceil(visible.length / pageSize))
-    const safePage = Math.min(page, pageCount - 1)
-    const slice = showPagination
-      ? visible.slice(safePage * pageSize, safePage * pageSize + pageSize)
-      : visible
+    const [pageSize, setPageSize] = React.useState<10 | 25 | 50 | 100>(defaultPageSize)
+    const [currentPage, setCurrentPage] = React.useState(1)
+
+    const totalPages = Math.max(1, Math.ceil(rankings.length / pageSize))
+
+    React.useEffect(() => {
+      setCurrentPage(1)
+    }, [pageSize])
+
+    React.useEffect(() => {
+      if (currentPage > totalPages) setCurrentPage(totalPages)
+    }, [currentPage, totalPages])
+
+    const pagedRankings = showPagination
+      ? rankings.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+      : rankings
+
+    const rows = React.useMemo<LeaderboardRow[]>(() => {
+      const nextRows: LeaderboardRow[] = []
+      let hiddenRunCount = 0
+
+      pagedRankings.forEach((ranking, index) => {
+        const isDisplayed = ranking.displayed !== false
+        if (!isDisplayed) {
+          hiddenRunCount += 1
+          return
+        }
+        if (hiddenRunCount > 0) {
+          nextRows.push({ type: 'ellipsis', key: `ellipsis-${index}` })
+          hiddenRunCount = 0
+        }
+        nextRows.push({ type: 'ranking', ranking })
+      })
+
+      if (hiddenRunCount > 0) {
+        nextRows.push({ type: 'ellipsis', key: 'ellipsis-tail' })
+      }
+      return nextRows
+    }, [pagedRankings])
 
     return (
-      <div ref={ref} className={cn('space-y-2', className)} {...props}>
-        {slice.map((item) => {
-          const isCurrent = currentUserId && item.userId === currentUserId
-          const accent = item.accentColor ?? 'var(--color-primary, #476a32)'
-          return (
-            <div
-              key={item.userId}
-              className={cn(
-                'flex items-center gap-3 rounded-xl border p-3 transition-colors',
-                isCurrent
-                  ? 'border-primary/40 bg-primary/10 ring-1 ring-primary/20'
-                  : 'bg-card hover:bg-accent/40'
-              )}
-            >
-              {/* Position */}
-              <div className="w-7 flex-shrink-0 text-center text-sm font-bold text-muted-foreground">
-                {item.rank}
-              </div>
-
-              {/* Avatar */}
-              <div
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-                style={{ backgroundColor: accent }}
-              >
-                {initials(item.userName)}
-              </div>
-
-              {/* Nom + byline */}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-medium text-foreground">{item.userName}</p>
-                  {isCurrent && (
-                    <span className="flex-shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
-                      Toi
-                    </span>
-                  )}
+      <div ref={ref} className={cn('bg-card w-full rounded-xl border', className)} {...props}>
+        <div role="list" aria-label="Classement" className="divide-border divide-y">
+          {rows.map((row) => {
+            if (row.type === 'ellipsis') {
+              return (
+                <div
+                  key={row.key}
+                  role="listitem"
+                  aria-label="Lignes masquées"
+                  className="text-muted-foreground flex items-center justify-center px-4 py-2"
+                >
+                  <EllipsisIcon className="h-5 w-5" />
                 </div>
-                {item.byline && (
-                  <p className="truncate text-xs text-muted-foreground">{item.byline}</p>
-                )}
-              </div>
+              )
+            }
 
-              {/* Valeur */}
-              <div className="flex-shrink-0 text-right">
-                <p className="text-base font-bold text-primary">{formatValue(item.value)}</p>
-                {valueSuffix && (
-                  <p className="text-[10px] text-muted-foreground">{valueSuffix}</p>
+            const ranking = row.ranking
+            const displayName = ranking.userName || `Membre ${ranking.userId.slice(0, 6)}`
+            const showCrown = ranking.rank <= 3
+            const crownColor = crownColorMap[ranking.rank as 1 | 2 | 3]
+            const isCurrentUser = currentUserId === ranking.userId
+
+            return (
+              <div
+                key={ranking.userId}
+                role="listitem"
+                tabIndex={onUserClick ? 0 : undefined}
+                onClick={() => onUserClick?.(ranking)}
+                onKeyDown={
+                  onUserClick
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onUserClick(ranking)
+                        }
+                      }
+                    : undefined
+                }
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2',
+                  isCurrentUser && 'border-primary bg-muted rounded-md border-2',
+                  onUserClick && 'hover:bg-muted/40 cursor-pointer transition-colors'
                 )}
+              >
+                <div className="flex w-12 items-center gap-1">
+                  <span className="w-4 text-sm font-semibold tabular-nums">{ranking.rank}</span>
+                  {showCrown ? <Crown className={cn('h-5 w-5', crownColor)} aria-hidden="true" /> : null}
+                </div>
+
+                {ranking.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={ranking.avatarUrl}
+                    alt={`${displayName} avatar`}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium text-white"
+                    style={{ backgroundColor: ranking.accentColor ?? 'var(--color-primary)' }}
+                  >
+                    {(ranking.userName ?? ranking.userId).charAt(0).toUpperCase()}
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-foreground truncate font-medium">{displayName}</p>
+                    {isCurrentUser && (
+                      <span className="bg-primary text-primary-foreground flex-shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+                        Toi
+                      </span>
+                    )}
+                  </div>
+                  {ranking.byline ? (
+                    <p className="text-muted-foreground truncate text-sm">{ranking.byline}</p>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center gap-2 text-right">
+                  {typeof ranking.rankChange === 'number' && ranking.rankChange !== 0 ? (
+                    <p
+                      className={cn(
+                        'inline-flex items-center gap-1 text-xs font-medium',
+                        ranking.rankChange > 0 ? 'text-success-600' : 'text-red-600'
+                      )}
+                    >
+                      {ranking.rankChange > 0 ? (
+                        <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+                      ) : (
+                        <TrendingDown className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                      {Math.abs(ranking.rankChange)}
+                    </p>
+                  ) : null}
+                  <p className="leading-none font-semibold tabular-nums">
+                    {formatLeaderboardValue(ranking.value)}
+                  </p>
+                </div>
               </div>
+            )
+          })}
+        </div>
+
+        {showPagination ? (
+          <div className="flex items-center justify-between gap-3 border-t px-4 py-2">
+            <div className="flex items-center gap-2">
+              <label htmlFor="leaderboard-page-size" className="text-muted-foreground text-sm">
+                Afficher
+              </label>
+              <select
+                id="leaderboard-page-size"
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value) as 10 | 25 | 50 | 100)}
+                className="bg-background text-muted-foreground rounded-md border px-2 py-1 text-sm"
+              >
+                {pageSizeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
-          )
-        })}
 
-        {/* Pagination */}
-        {showPagination && pageCount > 1 && (
-          <div className="flex items-center justify-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={safePage === 0}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-40"
-            >
-              ‹
-            </button>
-            <span className="text-xs text-muted-foreground">
-              {safePage + 1} / {pageCount}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-              disabled={safePage >= pageCount - 1}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-40"
-            >
-              ›
-            </button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Page précédente"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="hover:bg-muted rounded-md border p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-muted-foreground text-sm">
+                Page {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Page suivante"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="hover:bg-muted rounded-md border p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        )}
+        ) : null}
       </div>
     )
   }
@@ -146,3 +261,4 @@ const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardRankings
 LeaderboardRankings.displayName = 'LeaderboardRankings'
 
 export { LeaderboardRankings }
+export type { LeaderboardRankingItem, LeaderboardRankingsProps }

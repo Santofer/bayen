@@ -27,7 +27,6 @@ interface LeaderboardCardProps extends React.HTMLAttributes<HTMLDivElement> {
   podiumRankings: LeaderboardPodiumRanking[]
   rankings: LeaderboardRankingItem[]
   currentUserId?: string
-  valueSuffix?: string
   runOptions?: LeaderboardRunOption[]
   selectedRunId?: string
   onRunChange?: (runId: string) => void
@@ -50,7 +49,6 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
       podiumRankings,
       rankings,
       currentUserId,
-      valueSuffix,
       runOptions,
       selectedRunId,
       onRunChange,
@@ -96,7 +94,6 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
         <LeaderboardRankings
           rankings={rankings}
           currentUserId={currentUserId}
-          valueSuffix={valueSuffix}
           showPagination={rankings.length > 10}
           defaultPageSize={10}
         />
