@@ -1,6 +1,7 @@
 ---
 export const prerender = false
 import Layout from '@/layouts/Layout.astro'
+import Leaderboard from '@/components/Leaderboard.tsx'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -44,21 +45,21 @@ if (contributors.length === 0) {
   ]
 }
 
-const rankColors: Record<string, string> = {
-  nouveau: '#a1a1aa',
-  contributeur: '#b1cf3a',
-  expert: '#f97316',
-  'vérifié': '#476a32',
+// Mapping pour le composant Leaderboard (île React)
+const tierLabels: Record<string, string> = {
+  nouveau: t('rank.nouveau', locale),
+  contributeur: t('rank.contributeur', locale),
+  expert: t('rank.expert', locale),
+  'vérifié': t('rank.verified', locale),
 }
 
-const rankLabelKeys: Record<string, string> = {
-  nouveau: 'rank.nouveau',
-  contributeur: 'rank.contributeur',
-  expert: 'rank.expert',
-  'vérifié': 'rank.verified',
-}
-
-const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600']
+const leaderboardEntries = contributors.map((u) => ({
+  userId: u.id,
+  userName: u.display_name ?? u.first_name ?? t('rank.anonymous', locale),
+  points: u.points,
+  rankTier: u.rank,
+  contributions: u.contributions_count,
+}))
 ---
 
 <Layout
@@ -80,55 +81,14 @@ const medalColors = ['text-yellow-500', 'text-gray-400', 'text-amber-600']
         <a href="/contribuer" class="text-primary hover:underline text-sm mt-2 inline-block">{t('rank.beFirst', locale)}</a>
       </div>
     ) : (
-      <div class="space-y-2">
-        {contributors.map((user, index) => {
-          const name = user.display_name ?? user.first_name ?? t('rank.anonymous', locale)
-          const color = rankColors[user.rank] ?? rankColors.nouveau
-          const rankKey = rankLabelKeys[user.rank] ?? 'rank.nouveau'
-          const rankLabel = t(rankKey as any, locale)
-          const medalColor = index < 3 ? medalColors[index] : null
-
-          return (
-            <div class="flex items-center gap-3 rounded-xl border bg-card p-3 hover:shadow-sm transition-shadow">
-              {/* Position */}
-              <div class="w-8 text-center flex-shrink-0">
-                {medalColor ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class={medalColor}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-                ) : (
-                  <span class="text-sm font-bold text-muted-foreground">{index + 1}</span>
-                )}
-              </div>
-
-              {/* Avatar */}
-              <div
-                class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                style={`background-color: ${color}`}
-              >
-                {name[0].toUpperCase()}
-              </div>
-
-              {/* Infos */}
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                  <p class="font-medium text-sm truncate">{name}</p>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium flex-shrink-0" style={`background-color: ${color}`}>
-                    {rankLabel}
-                  </span>
-                </div>
-                <p class="text-xs text-muted-foreground">
-                  {user.contributions_count} {user.contributions_count > 1 ? t('rank.contributions', locale) : t('rank.contribution', locale)}
-                </p>
-              </div>
-
-              {/* Points */}
-              <div class="text-right flex-shrink-0">
-                <p class="text-lg font-bold text-primary">{user.points}</p>
-                <p class="text-[10px] text-muted-foreground">{t('rank.pts', locale)}</p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <Leaderboard
+        client:load
+        entries={leaderboardEntries}
+        title={t('rank.title', locale)}
+        tierLabels={tierLabels}
+        contributionsLabel={t('rank.contributions', locale)}
+        pointsSuffix={t('rank.pts', locale)}
+      />
     )}
 
     {/* Système de points */}

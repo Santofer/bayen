@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { getAccessToken } from '@/lib/auth'
+import StreakWidget from '@/components/StreakWidget'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -238,6 +239,9 @@ export default function AccountDashboard() {
           </p>
         </div>
       )}
+
+      {/* Série de scans quotidiens (streak) — masqué si aucun scan */}
+      <StreakWidget />
 
       {/* Raccourcis vers les features connectées */}
       <div className="grid sm:grid-cols-2 gap-3">

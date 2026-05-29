@@ -72,8 +72,6 @@ export function registerMealScanEndpoint(
   router: Router,
   context: {
     database: Record<string, (...args: unknown[]) => unknown>
-    getSchema: () => Promise<unknown>
-    services: Record<string, unknown>
   }
 ): void {
   router.post('/meal-scan', async (req, res) => {
@@ -84,29 +82,14 @@ export function registerMealScanEndpoint(
         return
       }
 
-      // Extraire le JWT depuis l'en-tête Authorization pour identifier l'utilisateur.
-      // Si pas de token → scan éphémère (on ne stocke rien), 204.
-      const authHeader = req.headers['authorization']
-      if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+      // Directus peuple req.accountability depuis le Bearer token.
+      // Pas de user (anonyme) → scan éphémère, on ne stocke rien (204).
+      const accountability = (req as unknown as {
+        accountability?: { user?: string | null }
+      }).accountability
+      const userId = accountability?.user
+      if (!userId) {
         res.status(204).end()
-        return
-      }
-
-      // Résoudre l'user_id via AuthenticationService de Directus
-      const { AuthenticationService } = context.services as {
-        AuthenticationService: new (opts: { schema: unknown }) => {
-          verifyToken(token: string): Promise<{ id: string }>
-        }
-      }
-      const schema = await context.getSchema()
-      const authSvc = new AuthenticationService({ schema })
-      let userId: string
-      try {
-        const token = authHeader.slice('Bearer '.length).trim()
-        const verified = await authSvc.verifyToken(token)
-        userId = verified.id
-      } catch {
-        res.status(401).json({ error: 'Token invalide.' })
         return
       }
 
