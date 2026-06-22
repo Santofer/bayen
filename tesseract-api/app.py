@@ -1,9 +1,12 @@
 """
-Bayen OCR Pipeline API
-- /health        — health check
+Bayen OCR + IA Pipeline API
+- /health        — health check (config IA incluse)
 - /ocr           — OCR brut (Tesseract)
-- /pipeline      — Pipeline complet : OCR → LLM parsing → JSON structuré (étiquettes)
-- /meal-analyze  — Analyse photo de plat cuisiné via VLM → description + calories + score
+- /pipeline      — OCR étiquette → parsing nutritionnel via IA → JSON (produits)
+- /meal-analyze  — Analyse photo de plat via vision IA → estimation calories/macros
+
+IA : serveur vLLM partagé (OpenAI-compatible), modèle multimodal Qwen3.5-9B.
+Configuré par env AI_BASE_URL / AI_MODEL / AI_API_KEY.
 """
 
 from flask import Flask, request, jsonify
@@ -18,15 +21,110 @@ import requests
 
 app = Flask(__name__)
 
-# URL Ollama (réseau Docker interne)
-OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://bayen-ollama:11434')
+# ─── Configuration IA (vLLM OpenAI-compatible) ─────────────────────────
+# AI_BASE_URL inclut le /v1 ; on append /chat/completions et /models.
+AI_BASE_URL = os.environ.get('AI_BASE_URL', 'http://192.168.1.123:8000/v1').rstrip('/')
+AI_MODEL = os.environ.get('AI_MODEL', 'qwen3.5-9b')
+AI_API_KEY = os.environ.get('AI_API_KEY', 'sk-local')
 
-# Prompt système pour Mistral
-SYSTEM_PROMPT = """Tu es un expert en nutrition et en réglementation alimentaire européenne et marocaine.
-Tu analyses des listes d'ingrédients et des données nutritionnelles extraites d'étiquettes de produits alimentaires.
-Tu retournes UNIQUEMENT du JSON valide. Aucun texte avant ou après le JSON. Aucun markdown."""
+# Côté grand côté max pour les images envoyées au modèle vision.
+# Le serveur cappe à ~768×768 → envoyer plus gros = gaspillage/latence.
+AI_IMAGE_MAX_SIDE = int(os.environ.get('AI_IMAGE_MAX_SIDE', '768'))
 
-# Prompt parsing nutritionnel
+
+def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2):
+    """Appel chat/completions vLLM (OpenAI-compatible).
+
+    Force la sortie JSON stricte (response_format) et désactive le mode
+    "thinking" (réponse directe). Retourne le dict JSON parsé, ou None.
+    """
+    payload = {
+        'model': AI_MODEL,
+        'messages': messages,
+        'response_format': {'type': 'json_object'},
+        'chat_template_kwargs': {'enable_thinking': False},
+        'temperature': temperature,
+        'max_tokens': max_tokens,
+    }
+    try:
+        resp = requests.post(
+            f'{AI_BASE_URL}/chat/completions',
+            json=payload,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {AI_API_KEY}',
+            },
+            timeout=timeout,
+        )
+        if resp.status_code != 200:
+            app.logger.warning(f'AI HTTP {resp.status_code}: {resp.text[:300]}')
+            return None
+        data = resp.json()
+        content = data['choices'][0]['message']['content'].strip()
+        # response_format=json_object garantit du JSON, mais on déballe un
+        # éventuel fence markdown par sécurité.
+        if '```json' in content:
+            content = content.split('```json')[1].split('```')[0].strip()
+        elif '```' in content:
+            content = content.split('```')[1].split('```')[0].strip()
+        return json.loads(content)
+    except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError, IndexError) as e:
+        app.logger.warning(f'AI error: {e}')
+        return None
+
+
+def call_ai_text(system_prompt, user_prompt, retries=2, **kw):
+    """Parsing texte (étiquette nutritionnelle OCR → JSON structuré)."""
+    messages = [
+        {'role': 'system', 'content': system_prompt},
+        {'role': 'user', 'content': user_prompt},
+    ]
+    for attempt in range(retries + 1):
+        result = _ai_chat(messages, **kw)
+        if result is not None:
+            return result
+        if attempt < retries:
+            time.sleep(1.5)
+    return None
+
+
+def call_ai_vision(system_prompt, user_text, image_b64, timeout=60):
+    """Analyse vision : 1 image (data URL base64) + consigne texte."""
+    messages = [
+        {'role': 'system', 'content': system_prompt},
+        {'role': 'user', 'content': [
+            {'type': 'text', 'text': user_text},
+            {'type': 'image_url', 'image_url': {
+                'url': f'data:image/jpeg;base64,{image_b64}'
+            }},
+        ]},
+    ]
+    return _ai_chat(messages, max_tokens=700, timeout=timeout)
+
+
+def resize_for_ai(image, max_side=AI_IMAGE_MAX_SIDE):
+    """Redimensionne ≤ max_side sur le grand côté + convertit en RGB."""
+    if image.mode != 'RGB':
+        image = image.convert('RGB')
+    w, h = image.size
+    if max(w, h) <= max_side:
+        return image
+    if w >= h:
+        new = (max_side, int(h * max_side / w))
+    else:
+        new = (int(w * max_side / h), max_side)
+    return image.resize(new, Image.LANCZOS)
+
+
+# ─── Prompts ───────────────────────────────────────────────────────────
+
+# Parsing nutritionnel (étiquette produit, via /pipeline)
+NUTRITION_SYSTEM = (
+    "Tu es un expert en nutrition et réglementation alimentaire marocaine et "
+    "européenne. Tu analyses des données nutritionnelles extraites par OCR "
+    "d'étiquettes de produits. Tu retournes UNIQUEMENT du JSON valide."
+)
+
 NUTRITION_PROMPT = """Voici le texte brut extrait par OCR d'un tableau nutritionnel marocain (peut contenir des erreurs OCR) :
 
 {ocr_text}
@@ -52,141 +150,29 @@ Extrait les valeurs nutritionnelles pour 100g. Retourne ce JSON exact :
 Si une valeur est illisible ou absente, mets null. Ne jamais inventer de valeurs."""
 
 
-def preprocess_image(image):
-    """Prétraitement image pour améliorer l'OCR"""
-    image = image.convert('L')
-    image = ImageEnhance.Contrast(image).enhance(2.0)
-    image = image.filter(ImageFilter.SHARPEN)
-    return image
-
-
-# Modèle LLM — override via env var LLM_MODEL
-# gemma3:4b-it-qat : ~14s/warm, ~3.5 GB VRAM, meilleur ratio vitesse/qualité
-# alternatives testées : mistral:7b (20s), gemma4:e4b (94s, trop lent), qwen3:4b (288s, thinking mode)
-LLM_MODEL = os.environ.get('LLM_MODEL', 'gemma3:4b-it-qat')
-
-
-def call_llm(prompt, retries=2):
-    """Appelle le LLM via Ollama avec retry"""
-    for attempt in range(retries + 1):
-        try:
-            response = requests.post(
-                f'{OLLAMA_URL}/api/generate',
-                json={
-                    'model': LLM_MODEL,
-                    'prompt': f'{SYSTEM_PROMPT}\n\n{prompt}',
-                    'stream': False,
-                    'options': {'temperature': 0.1}
-                },
-                timeout=60
-            )
-            if response.status_code == 200:
-                data = response.json()
-                raw = data.get('response', '').strip()
-                # Extraire le JSON du texte (le LLM peut entourer de markdown)
-                if '```json' in raw:
-                    raw = raw.split('```json')[1].split('```')[0].strip()
-                elif '```' in raw:
-                    raw = raw.split('```')[1].split('```')[0].strip()
-                return json.loads(raw)
-            else:
-                app.logger.warning(f'LLM attempt {attempt+1} failed: HTTP {response.status_code}')
-        except (requests.exceptions.RequestException, json.JSONDecodeError, IndexError) as e:
-            app.logger.warning(f'LLM attempt {attempt+1} error: {e}')
-            if attempt < retries:
-                time.sleep(2)
-    return None
-
-
-# ─── VLM (vision-language model) pour l'analyse photo de repas ──────────
-# gemma3:4b-it-qat est nativement multimodal et déjà utilisé pour l'OCR →
-# pas de swap VRAM entre les deux features, pas de cold-start additionnel.
-VLM_MODEL = os.environ.get('VLM_MODEL', 'gemma3:4b-it-qat')
-
-MEAL_VLM_PROMPT = """Analyse cette photo de repas en décrivant UNIQUEMENT ce qui y est réellement visible.
-
-Si l'image ne contient pas de nourriture ou de boisson, retourne juste :
-{"not_a_meal": true}
-
-Règles impératives :
-- Tu DOIS regarder attentivement l'image avant de répondre.
-- Tu dois décrire UNIQUEMENT les éléments réellement présents sur la photo.
-- N'invente AUCUN aliment. N'ajoute rien qui ne soit pas visible.
-- Ne reprends AUCUN mot des instructions ci-dessus : les noms d'aliments dans les cases JSON ci-dessous sont des PLACEHOLDERS, pas des suggestions.
-- Si tu n'identifies pas clairement un élément, décris-le par son apparence ("pain rond brun", "viande blanche") plutôt que d'inventer un nom précis.
-- Ta confidence reflète ta certitude : 0.9 si tout est clairement identifiable, 0.5 si tu hésites, 0.2 si l'image est floue ou ambiguë.
-
-Remplis CHAQUE champ en te basant sur CETTE photo précise :
-
-{
-  "plat": "<nom court du plat OU type d'assortiment réellement visible>",
-  "description": "<2 phrases max décrivant FACTUELLEMENT les éléments de cette image, sans copier cette phrase>",
-  "ingredients_detected": ["<aliment 1 réellement vu>", "<aliment 2>", "<aliment 3>", ...],
-  "estimated_kcal": <entier pour la portion visible totale>,
-  "estimated_portion": "<1 personne | 2 personnes | à partager>",
-  "nutrition_per_100g": {
-    "energy_kcal": <nombre>,
-    "fat_total": <nombre en g>,
-    "fat_saturated": <nombre en g>,
-    "carbs_total": <nombre en g>,
-    "sugars": <nombre en g>,
-    "fiber": <nombre en g>,
-    "proteins": <nombre en g>,
-    "salt": <nombre en g>
-  },
-  "fruits_vegetables_nuts_percent": <0-100>,
-  "nova_group": <1-4>,
-  "is_beverage": <true uniquement si la photo est une boisson seule>,
-  "confidence": <0.0-1.0>
-}
-
-Retourne UNIQUEMENT le JSON, sans markdown, sans texte avant ou après."""
-
-
-def call_vlm(image_b64, prompt, timeout=180):
-    """Appelle le VLM (Ollama multimodal) avec une image en base64."""
-    try:
-        response = requests.post(
-            f'{OLLAMA_URL}/api/generate',
-            json={
-                'model': VLM_MODEL,
-                'prompt': prompt,
-                'images': [image_b64],
-                'stream': False,
-                # temp=0.1 pour réduire l'invention (cf. stéréotype "tajine")
-                'options': {'temperature': 0.1}
-            },
-            timeout=timeout
-        )
-        if response.status_code != 200:
-            app.logger.warning(f'VLM HTTP {response.status_code}')
-            return None
-        data = response.json()
-        raw = data.get('response', '').strip()
-        # Le modèle entoure parfois le JSON de markdown ```json ... ```
-        if '```json' in raw:
-            raw = raw.split('```json')[1].split('```')[0].strip()
-        elif '```' in raw:
-            raw = raw.split('```')[1].split('```')[0].strip()
-        return json.loads(raw), data.get('eval_count', 0)
-    except (requests.exceptions.RequestException, json.JSONDecodeError, IndexError) as e:
-        app.logger.warning(f'VLM error: {e}')
-        return None
-
-
-def resize_for_vlm(image, max_side=1024):
-    """Redimensionne l'image pour limiter le payload vers Ollama.
-    Conserve le ratio ; convertit en RGB (JPEG ne supporte pas RGBA)."""
-    if image.mode != 'RGB':
-        image = image.convert('RGB')
-    w, h = image.size
-    if max(w, h) <= max_side:
-        return image
-    if w >= h:
-        new = (max_side, int(h * max_side / w))
-    else:
-        new = (int(w * max_side / h), max_side)
-    return image.resize(new, Image.LANCZOS)
+# Analyse photo de plat (via /meal-analyze)
+MEAL_SYSTEM = (
+    "Tu es un nutritionniste. Tu analyses UNE photo de plat et tu retournes "
+    "UNIQUEMENT du JSON valide respectant exactement ce schéma :\n"
+    '{"plat":"", "ingredients":[], "portion_estimee_g":0, '
+    '"calories_kcal":{"min":0,"max":0}, '
+    '"macros_g":{"proteines":0,"glucides":0,"lipides":0}, '
+    '"confiance":"faible|moyenne|elevee", "remarques":""}\n\n'
+    "RÈGLES IMPÉRATIVES :\n"
+    "- Les valeurs nutritionnelles sont des ESTIMATIONS d'après la portion "
+    "VISIBLE sur la photo. Donne TOUJOURS des fourchettes (min/max) pour "
+    "calories_kcal, jamais un chiffre précis unique.\n"
+    "- macros_g (protéines, glucides, lipides) sont en grammes pour la portion "
+    "visible, estimés au mieux.\n"
+    "- confiance reflète ta certitude : \"elevee\" si plat clair et identifiable, "
+    "\"moyenne\" si partiellement, \"faible\" si flou/ambigu.\n"
+    "- N'INVENTE pas de chiffres précis. Ne donne AUCUN conseil médical ou "
+    "diététique. remarques = courte note factuelle (1 phrase max).\n"
+    "- Décris uniquement ce qui est réellement visible ; n'ajoute aucun aliment "
+    "non présent.\n"
+    "- Si l'image n'est PAS un plat (objet, personne, paysage, produit emballé), "
+    'retourne exactement {"plat":null,"remarques":"image non reconnue comme un plat"}.'
+)
 
 
 @app.route('/health', methods=['GET'])
@@ -194,13 +180,22 @@ def health():
     return jsonify({
         'status': 'ok',
         'tesseract_version': str(pytesseract.get_tesseract_version()),
-        'ollama_url': OLLAMA_URL
+        'ai_base_url': AI_BASE_URL,
+        'ai_model': AI_MODEL,
     })
+
+
+def preprocess_image(image):
+    """Prétraitement image pour améliorer l'OCR Tesseract."""
+    image = image.convert('L')
+    image = ImageEnhance.Contrast(image).enhance(2.0)
+    image = image.filter(ImageFilter.SHARPEN)
+    return image
 
 
 @app.route('/ocr', methods=['POST'])
 def ocr():
-    """OCR brut — retourne le texte extrait"""
+    """OCR brut — retourne le texte extrait."""
     if 'image' not in request.files:
         return jsonify({'error': 'No image provided'}), 400
 
@@ -222,7 +217,7 @@ def ocr():
             'text': text.strip(),
             'confidence': round(avg_confidence, 1),
             'lang': lang,
-            'word_count': len([w for w in text.split() if len(w) > 1])
+            'word_count': len([w for w in text.split() if len(w) > 1]),
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -230,12 +225,7 @@ def ocr():
 
 @app.route('/pipeline', methods=['POST'])
 def pipeline():
-    """
-    Pipeline complet : OCR → Mistral → JSON structuré
-
-    Input: multipart/form-data avec image_nutrition (requis)
-    Output: JSON avec données nutritionnelles parsées + score de confiance
-    """
+    """OCR étiquette → parsing nutritionnel IA → JSON structuré (produits)."""
     if 'image_nutrition' not in request.files:
         return jsonify({'error': 'image_nutrition requise', 'job_status': 'error'}), 400
 
@@ -255,35 +245,32 @@ def pipeline():
 
         ocr_duration = int((time.time() - start_time) * 1000)
 
-        # Vérifier la qualité OCR
         if ocr_confidence < 50:
             return jsonify({
                 'job_status': 'low_confidence',
                 'ocr_confidence': round(ocr_confidence, 1),
                 'ocr_text': ocr_text,
                 'message': 'Photo trop floue ou illisible. Essayez avec une meilleure photo.',
-                'duration_ms': ocr_duration
+                'duration_ms': ocr_duration,
             })
 
-        # Étape 2 : Parsing via LLM
-        llm_start = time.time()
+        # Étape 2 : parsing nutritionnel via IA
+        ai_start = time.time()
         prompt = NUTRITION_PROMPT.format(ocr_text=ocr_text)
-        parsed = call_llm(prompt)
-        llm_duration = int((time.time() - llm_start) * 1000)
+        parsed = call_ai_text(NUTRITION_SYSTEM, prompt)
+        ai_duration = int((time.time() - ai_start) * 1000)
 
         if parsed is None:
-            # Le LLM a échoué — retourner le texte brut pour saisie manuelle
             return jsonify({
                 'job_status': 'manual_required',
                 'ocr_confidence': round(ocr_confidence, 1),
                 'ocr_text': ocr_text,
                 'message': "L'IA n'a pas pu analyser le texte. Saisissez les données manuellement.",
-                'duration_ms': ocr_duration + llm_duration
+                'duration_ms': ocr_duration + ai_duration,
             })
 
         total_duration = int((time.time() - start_time) * 1000)
 
-        # Construire la réponse
         return jsonify({
             'job_status': 'done',
             'barcode': barcode,
@@ -306,12 +293,7 @@ def pipeline():
             },
             'parsing_confidence': parsed.get('parsing_confidence', 0.7),
             'duration_ms': total_duration,
-            'timing': {
-                'ocr_ms': ocr_duration,
-                'llm_ms': llm_duration,
-                # alias rétro-compat (à retirer une fois frontend/logs migrés)
-                'mistral_ms': llm_duration
-            }
+            'timing': {'ocr_ms': ocr_duration, 'ai_ms': ai_duration},
         })
 
     except Exception as e:
@@ -319,21 +301,33 @@ def pipeline():
         return jsonify({
             'job_status': 'error',
             'error': str(e),
-            'duration_ms': int((time.time() - start_time) * 1000)
+            'duration_ms': int((time.time() - start_time) * 1000),
         }), 500
+
+
+def _num(v, lo, hi):
+    """Coerce en nombre borné, ou None."""
+    try:
+        n = float(v)
+    except (TypeError, ValueError):
+        return None
+    if n != n:  # NaN
+        return None
+    return max(lo, min(hi, n))
+
+
+def _int(v, lo, hi):
+    n = _num(v, lo, hi)
+    return int(round(n)) if n is not None else None
 
 
 @app.route('/meal-analyze', methods=['POST'])
 def meal_analyze():
-    """
-    Analyse une photo de plat cuisiné via VLM (vision-language model).
+    """Analyse une photo de plat via vision IA.
 
-    Input  : multipart/form-data avec `image` (JPEG/PNG)
-    Output : JSON avec description, ingrédients détectés, calories estimées
-             et nutrition_per_100g prête à être scorée par scoring.ts côté
-             client. Le score Bayen final n'est PAS calculé ici — on laisse
-             le scoring déterministe au frontend pour garder une seule source
-             de vérité.
+    Input  : multipart/form-data avec `image`.
+    Output : estimation calories (fourchette) + macros + confiance.
+             Les valeurs sont des ESTIMATIONS, jamais des chiffres médicaux.
     """
     if 'image' not in request.files:
         return jsonify({'error': "'image' requise", 'job_status': 'error'}), 400
@@ -343,61 +337,73 @@ def meal_analyze():
     try:
         file = request.files['image']
         raw_bytes = file.read()
-        # Limite anti-abus : 8 MB
         if len(raw_bytes) > 8 * 1024 * 1024:
-            return jsonify({
-                'error': 'Image trop grande (>8 MB)',
-                'job_status': 'error'
-            }), 400
+            return jsonify({'error': 'Image trop grande (>8 MB)', 'job_status': 'error'}), 400
 
         image = Image.open(io.BytesIO(raw_bytes))
-        image = resize_for_vlm(image, max_side=1024)
+        image = resize_for_ai(image)
 
-        # Encode JPEG base64 pour Ollama
         buf = io.BytesIO()
         image.save(buf, format='JPEG', quality=85)
         image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
 
-        vlm_start = time.time()
-        # 180s : marge confortable même pour gemma4:e4b (typique 50-90s)
-        result = call_vlm(image_b64, MEAL_VLM_PROMPT, timeout=180)
-        vlm_duration = int((time.time() - vlm_start) * 1000)
+        ai_start = time.time()
+        parsed = call_ai_vision(MEAL_SYSTEM, 'Analyse ce plat.', image_b64, timeout=60)
+        ai_duration = int((time.time() - ai_start) * 1000)
 
-        if result is None:
+        if parsed is None:
             return jsonify({
                 'job_status': 'error',
                 'message': "L'IA n'a pas pu analyser l'image. Réessayez avec une meilleure photo.",
-                'duration_ms': int((time.time() - start_time) * 1000)
+                'duration_ms': int((time.time() - start_time) * 1000),
             }), 502
 
-        parsed, eval_count = result
-
-        # Guard : l'image n'était pas un plat
-        if parsed.get('not_a_meal') is True:
+        # Guard : pas un plat (le modèle renvoie plat=null)
+        if parsed.get('plat') in (None, '', 'null'):
             return jsonify({
                 'job_status': 'not_a_meal',
-                'message': "Cette photo ne semble pas être un plat. Prends une photo de ton assiette pour l'analyser.",
-                'duration_ms': int((time.time() - start_time) * 1000)
+                'message': parsed.get('remarques') or "Cette photo ne semble pas être un plat. Prends une photo de ton assiette.",
+                'duration_ms': int((time.time() - start_time) * 1000),
             })
+
+        # Normalisation défensive de la sortie modèle
+        cal = parsed.get('calories_kcal') or {}
+        macros = parsed.get('macros_g') or {}
+        cal_min = _int(cal.get('min'), 0, 6000)
+        cal_max = _int(cal.get('max'), 0, 6000)
+        # Garantir min <= max
+        if cal_min is not None and cal_max is not None and cal_min > cal_max:
+            cal_min, cal_max = cal_max, cal_min
+
+        confiance = str(parsed.get('confiance', 'moyenne')).lower()
+        if confiance not in ('faible', 'moyenne', 'elevee'):
+            confiance = 'moyenne'
+
+        ingredients = parsed.get('ingredients') or []
+        if isinstance(ingredients, list):
+            ingredients = [str(x) for x in ingredients if isinstance(x, (str, int, float))][:30]
+        else:
+            ingredients = []
 
         total_duration = int((time.time() - start_time) * 1000)
 
         return jsonify({
             'job_status': 'done',
             'duration_ms': total_duration,
-            'timing': {'vlm_ms': vlm_duration},
-            'model': VLM_MODEL,
+            'timing': {'ai_ms': ai_duration},
+            'model': AI_MODEL,
             'analysis': {
-                'plat': parsed.get('plat'),
-                'description': parsed.get('description'),
-                'ingredients_detected': parsed.get('ingredients_detected', []),
-                'estimated_kcal': parsed.get('estimated_kcal'),
-                'estimated_portion': parsed.get('estimated_portion'),
-                'nutrition_per_100g': parsed.get('nutrition_per_100g', {}),
-                'fruits_vegetables_nuts_percent': parsed.get('fruits_vegetables_nuts_percent'),
-                'nova_group': parsed.get('nova_group'),
-                'is_beverage': bool(parsed.get('is_beverage', False)),
-                'confidence': parsed.get('confidence', 0.7),
+                'plat': str(parsed.get('plat'))[:200],
+                'ingredients': ingredients,
+                'portion_estimee_g': _int(parsed.get('portion_estimee_g'), 0, 5000),
+                'calories_kcal': {'min': cal_min, 'max': cal_max},
+                'macros_g': {
+                    'proteines': _int(macros.get('proteines'), 0, 500),
+                    'glucides': _int(macros.get('glucides'), 0, 500),
+                    'lipides': _int(macros.get('lipides'), 0, 500),
+                },
+                'confiance': confiance,
+                'remarques': str(parsed.get('remarques', ''))[:500],
             },
         })
 
@@ -406,7 +412,7 @@ def meal_analyze():
         return jsonify({
             'job_status': 'error',
             'error': str(e),
-            'duration_ms': int((time.time() - start_time) * 1000)
+            'duration_ms': int((time.time() - start_time) * 1000),
         }), 500
 
 

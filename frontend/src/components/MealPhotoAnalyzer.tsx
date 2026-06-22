@@ -1,15 +1,15 @@
 /**
- * Composant React : prise/upload de photo de repas → analyse VLM → score Bayen
+ * Composant React : prise/upload de photo de repas → estimation IA
  *
  * Flux :
  * 1. L'utilisateur choisit ou prend une photo
  * 2. Preview local + bouton "Analyser"
- * 3. POST /api/meal-score (proxy → tesseract-api /meal-analyze, ~25s)
- * 4. Parse la réponse, calcule le score Bayen via scoring.ts (même algo que
- *    la page produit → une seule source de vérité)
- * 5. Affiche score + description + nutrition + ingrédients
- * 6. Si l'utilisateur est connecté : bouton "Sauver au journal"
- *    → POST /bayen-api/meal-scan (via Directus proxy)
+ * 3. POST /api/meal-score (proxy → tesseract-api /meal-analyze, ~5s vLLM)
+ * 4. Affiche : calories estimées (fourchette), macros, ingrédients, confiance
+ * 5. Si connecté : "Sauver au journal" → POST /bayen-api/meal-scan
+ *
+ * Les valeurs sont des ESTIMATIONS d'après la portion visible (fourchettes
+ * + niveau de confiance). Pas de score santé, pas d'avis médical.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
@@ -17,31 +17,20 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
-import { computeScore, type NutritionData, type NovaGroup } from '@/lib/scoring'
-import ScoreDisplay from './ScoreDisplay'
-import { Camera, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus } from 'lucide-react'
+import { Camera, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus, Flame } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
+type Confiance = 'faible' | 'moyenne' | 'elevee'
+
 interface MealAnalysis {
-  plat?: string | null
-  description?: string | null
-  ingredients_detected?: string[]
-  estimated_kcal?: number | null
-  estimated_portion?: string | null
-  nutrition_per_100g?: {
-    energy_kcal?: number | null
-    fat_total?: number | null
-    fat_saturated?: number | null
-    carbs_total?: number | null
-    sugars?: number | null
-    fiber?: number | null
-    proteins?: number | null
-    salt?: number | null
-  }
-  nova_group?: number | null
-  is_beverage?: boolean
-  confidence?: number | null
+  plat: string | null
+  ingredients: string[]
+  portion_estimee_g: number | null
+  calories_kcal: { min: number | null; max: number | null }
+  macros_g: { proteines: number | null; glucides: number | null; lipides: number | null }
+  confiance: Confiance
+  remarques: string
 }
 
 interface VlmResponse {
@@ -54,13 +43,26 @@ interface VlmResponse {
 
 type Screen = 'idle' | 'preview' | 'analyzing' | 'result' | 'error'
 
+const CONFIANCE_STYLE: Record<Confiance, string> = {
+  faible: 'text-amber-700 border-amber-300 bg-amber-50 dark:text-amber-300 dark:border-amber-800 dark:bg-amber-950/40',
+  moyenne: 'text-blue-700 border-blue-300 bg-blue-50 dark:text-blue-300 dark:border-blue-800 dark:bg-blue-950/40',
+  elevee: 'text-green-700 border-green-300 bg-green-50 dark:text-green-300 dark:border-green-800 dark:bg-green-950/40',
+}
+
+function formatKcalRange(cal: { min: number | null; max: number | null }): string | null {
+  const { min, max } = cal
+  if (min != null && max != null) return min === max ? `${min}` : `${min}–${max}`
+  if (max != null) return `${max}`
+  if (min != null) return `${min}`
+  return null
+}
+
 export default function MealPhotoAnalyzer() {
   const { t } = useLocale()
   const [screen, setScreen] = useState<Screen>('idle')
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [analysis, setAnalysis] = useState<MealAnalysis | null>(null)
-  const [score, setScore] = useState<ReturnType<typeof computeScore> | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [loggedIn, setLoggedIn] = useState(false)
@@ -71,12 +73,10 @@ export default function MealPhotoAnalyzer() {
   const inputCameraRef = useRef<HTMLInputElement>(null)
   const timerRef = useRef<number | null>(null)
 
-  // Check auth au montage (permet d'afficher le CTA "Sauver au journal")
   useEffect(() => {
     setLoggedIn(isAuthenticated())
   }, [])
 
-  // Timer pendant l'analyse pour rassurer l'utilisateur
   useEffect(() => {
     if (screen !== 'analyzing') {
       if (timerRef.current) window.clearInterval(timerRef.current)
@@ -90,7 +90,6 @@ export default function MealPhotoAnalyzer() {
     }
   }, [screen])
 
-  // Libération mémoire de l'URL preview
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
@@ -110,7 +109,6 @@ export default function MealPhotoAnalyzer() {
     setScreen('preview')
     setErrorMsg(null)
     setAnalysis(null)
-    setScore(null)
     setSaved(false)
   }
 
@@ -137,33 +135,7 @@ export default function MealPhotoAnalyzer() {
         return
       }
 
-      const a = data.analysis
-      setAnalysis(a)
-
-      // Calcul du score via l'algorithme déterministe (même que page produit)
-      const nutrition: NutritionData = {
-        energy_kcal: a.nutrition_per_100g?.energy_kcal ?? null,
-        fat_saturated: a.nutrition_per_100g?.fat_saturated ?? null,
-        sugars: a.nutrition_per_100g?.sugars ?? null,
-        salt: a.nutrition_per_100g?.salt ?? null,
-        fiber: a.nutrition_per_100g?.fiber ?? null,
-        proteins: a.nutrition_per_100g?.proteins ?? null,
-        is_beverage: a.is_beverage ?? false,
-      }
-      const novaGroup =
-        a.nova_group && a.nova_group >= 1 && a.nova_group <= 4
-          ? (a.nova_group as NovaGroup)
-          : null
-
-      const computed = computeScore({
-        nutrition,
-        novaGroup,
-        ingredientsText: (a.ingredients_detected ?? []).join(', '),
-        // Le VLM ne détecte pas les additifs industriels depuis une photo
-        // (pas d'étiquette visible) → array vide, pas de pénalité additive.
-        additives: [],
-      })
-      setScore(computed)
+      setAnalysis(data.analysis)
       setScreen('result')
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : t('meal.error.generic'))
@@ -176,14 +148,13 @@ export default function MealPhotoAnalyzer() {
     setFile(null)
     setPreviewUrl(null)
     setAnalysis(null)
-    setScore(null)
     setErrorMsg(null)
     setSaved(false)
     setScreen('idle')
   }
 
   const handleSave = async () => {
-    if (!analysis || !score || !file) return
+    if (!analysis || !file) return
     setSaving(true)
     try {
       const token = await getAccessToken()
@@ -208,20 +179,11 @@ export default function MealPhotoAnalyzer() {
         fileId = upData.data?.id ?? null
       }
 
-      // 2. Enregistrer le scan
+      // 2. Enregistrer le scan (nouveau schéma : estimation calories/macros)
       const saveRes = await fetch(`${DIRECTUS_URL}/bayen-api/meal-scan`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          image_file_id: fileId,
-          analysis,
-          meal_score: score.total,
-          score_label: score.label,
-          raw: { analysis, score },
-        }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ image_file_id: fileId, analysis }),
       })
       if (!saveRes.ok) {
         const errData = (await saveRes.json().catch(() => null)) as { error?: string } | null
@@ -244,9 +206,7 @@ export default function MealPhotoAnalyzer() {
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
         </div>
         <h2 className="text-xl font-bold">{t('meal.analyzing')}</h2>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-          {t('meal.analyzingHint')}
-        </p>
+        <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('meal.analyzingHint')}</p>
         <div className="text-xs font-mono text-muted-foreground">{elapsed}s</div>
       </div>
     )
@@ -270,115 +230,104 @@ export default function MealPhotoAnalyzer() {
     )
   }
 
-  if (screen === 'result' && analysis && score) {
-    const portion = analysis.estimated_portion ?? '—'
-    const ingredients = analysis.ingredients_detected ?? []
-    const kcal = analysis.estimated_kcal
+  if (screen === 'result' && analysis) {
+    const kcalRange = formatKcalRange(analysis.calories_kcal)
+    const ingredients = analysis.ingredients ?? []
+    const m = analysis.macros_g
+    const confiance = analysis.confiance ?? 'moyenne'
 
     return (
       <div className="space-y-6">
-        {/* Photo + overlay score */}
+        {/* Photo */}
         <div className="relative rounded-2xl overflow-hidden border bg-muted aspect-[4/3]">
           {previewUrl && (
-            <img
-              src={previewUrl}
-              alt={analysis.plat ?? 'Repas'}
-              className="w-full h-full object-cover"
-            />
+            <img src={previewUrl} alt={analysis.plat ?? 'Repas'} className="w-full h-full object-cover" />
           )}
         </div>
 
-        {/* Titre + portion + kcal */}
-        <div className="space-y-2 text-center">
+        {/* Titre */}
+        <div className="text-center">
           <h2 className="text-2xl font-bold">{analysis.plat}</h2>
-          <p className="text-sm text-muted-foreground">
-            {kcal != null && <span className="font-semibold text-foreground">{kcal} kcal</span>}
-            {kcal != null && <span className="mx-2">·</span>}
-            <span>{portion}</span>
-          </p>
         </div>
 
-        {/* Cercle de score */}
-        <div className="rounded-2xl border bg-card p-6">
-          <ScoreDisplay score={score} dataSource="meal_scan" />
-        </div>
-
-        {/* Description */}
-        {analysis.description && (
-          <div className="rounded-2xl border bg-card p-4">
-            <h3 className="text-sm font-semibold mb-2">{t('meal.description')}</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {analysis.description}
-            </p>
+        {/* Hero calories (fourchette) */}
+        <div className="rounded-2xl border bg-card p-6 text-center">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm mb-1">
+            <Flame className="h-4 w-4 text-orange-500" />
+            {t('meal.caloriesTitle')}
           </div>
-        )}
+          {kcalRange ? (
+            <p className="text-4xl font-bold text-foreground">
+              {kcalRange} <span className="text-xl font-medium text-muted-foreground">{t('meal.kcal')}</span>
+            </p>
+          ) : (
+            <p className="text-2xl font-bold text-muted-foreground">—</p>
+          )}
+          {analysis.portion_estimee_g != null && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('meal.forPortion')} {analysis.portion_estimee_g} g
+            </p>
+          )}
+          <div className="mt-3">
+            <Badge variant="outline" className={CONFIANCE_STYLE[confiance]}>
+              {t('meal.confianceLabel')} : {t(`meal.confiance.${confiance}`)}
+            </Badge>
+          </div>
+        </div>
 
-        {/* Ingrédients détectés */}
-        {ingredients.length > 0 && (
+        {/* Macros */}
+        {(m.proteines != null || m.glucides != null || m.lipides != null) && (
           <div className="rounded-2xl border bg-card p-4">
-            <h3 className="text-sm font-semibold mb-3">
-              {t('meal.ingredients')}{' '}
-              <span className="text-xs font-normal text-muted-foreground">
-                ({ingredients.length})
-              </span>
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {ingredients.map((ing, i) => (
-                <Badge key={i} variant="outline" className="text-xs">
-                  {ing}
-                </Badge>
+            <h3 className="text-sm font-semibold mb-3">{t('meal.macrosTitle')}</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                ['proteines', m.proteines, t('meal.proteines')],
+                ['glucides', m.glucides, t('meal.glucides')],
+                ['lipides', m.lipides, t('meal.lipides')],
+              ] as const).map(([key, val, label]) => (
+                <div key={key} className="rounded-xl bg-muted/50 p-3 text-center">
+                  <p className="text-xl font-bold text-foreground">{val != null ? `${val}` : '—'}<span className="text-sm font-medium text-muted-foreground"> g</span></p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+                </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Nutrition 100g */}
-        {analysis.nutrition_per_100g && (
+        {/* Ingrédients */}
+        {ingredients.length > 0 && (
           <div className="rounded-2xl border bg-card p-4">
-            <h3 className="text-sm font-semibold mb-3">{t('meal.nutritionPer100g')}</h3>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              {[
-                ['energy_kcal', 'kcal', t('meal.energy')],
-                ['fat_total', 'g', t('meal.fat')],
-                ['fat_saturated', 'g', t('meal.fatSaturated')],
-                ['carbs_total', 'g', t('meal.carbs')],
-                ['sugars', 'g', t('meal.sugars')],
-                ['fiber', 'g', t('meal.fiber')],
-                ['proteins', 'g', t('meal.proteins')],
-                ['salt', 'g', t('meal.salt')],
-              ].map(([key, unit, label]) => {
-                const val = analysis.nutrition_per_100g?.[
-                  key as keyof typeof analysis.nutrition_per_100g
-                ]
-                if (val == null) return null
-                return (
-                  <div key={key} className="flex justify-between border-b border-border/50 py-1">
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="font-medium">
-                      {val}
-                      {unit === 'g' ? ' g' : ''}
-                    </dd>
-                  </div>
-                )
-              })}
-            </dl>
+            <h3 className="text-sm font-semibold mb-3">
+              {t('meal.ingredients')}{' '}
+              <span className="text-xs font-normal text-muted-foreground">({ingredients.length})</span>
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {ingredients.map((ing, i) => (
+                <Badge key={i} variant="outline" className="text-xs">{ing}</Badge>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* Remarques */}
+        {analysis.remarques && (
+          <div className="rounded-2xl border bg-card p-4">
+            <h3 className="text-sm font-semibold mb-1">{t('meal.remarques')}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{analysis.remarques}</p>
+          </div>
+        )}
+
+        {/* Caveat estimation */}
+        <p className="text-xs text-muted-foreground text-center italic px-2">{t('meal.estimateCaveat')}</p>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
           {loggedIn && !saved && (
             <Button onClick={handleSave} disabled={saving} size="lg" className="flex-1">
               {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('meal.saving')}
-                </>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('meal.saving')}</>
               ) : (
-                <>
-                  <BookmarkPlus className="mr-2 h-4 w-4" />
-                  {t('meal.saveToJournal')}
-                </>
+                <><BookmarkPlus className="mr-2 h-4 w-4" />{t('meal.saveToJournal')}</>
               )}
             </Button>
           )}
@@ -386,9 +335,7 @@ export default function MealPhotoAnalyzer() {
             <div className="flex-1 rounded-md bg-green-50 border border-green-200 dark:bg-green-950/40 dark:border-green-900 px-4 py-2 flex items-center gap-2 text-green-800 dark:text-green-200 text-sm">
               <CheckCircle className="h-4 w-4" />
               {t('meal.savedOk')}{' '}
-              <a href="/compte/journal" className="ml-auto underline text-sm font-medium">
-                {t('meal.seeJournal')}
-              </a>
+              <a href="/compte/journal" className="ml-auto underline text-sm font-medium">{t('meal.seeJournal')}</a>
             </div>
           )}
           {!loggedIn && (
@@ -405,13 +352,6 @@ export default function MealPhotoAnalyzer() {
             {t('meal.another')}
           </Button>
         </div>
-
-        {/* Confidence note */}
-        {typeof analysis.confidence === 'number' && analysis.confidence < 0.7 && (
-          <p className="text-xs text-muted-foreground text-center italic">
-            {t('meal.lowConfidence')}
-          </p>
-        )}
       </div>
     )
   }
@@ -443,18 +383,14 @@ export default function MealPhotoAnalyzer() {
           >
             <Camera className="h-10 w-10" />
             <span className="font-semibold text-lg">{t('meal.takePhoto')}</span>
-            <span className="text-xs text-muted-foreground max-w-xs text-center">
-              {t('meal.takePhotoHint')}
-            </span>
+            <span className="text-xs text-muted-foreground max-w-xs text-center">{t('meal.takePhotoHint')}</span>
           </button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-background px-3 text-xs text-muted-foreground">
-                {t('meal.or')}
-              </span>
+              <span className="bg-background px-3 text-xs text-muted-foreground">{t('meal.or')}</span>
             </div>
           </div>
           <button
@@ -464,7 +400,6 @@ export default function MealPhotoAnalyzer() {
             <Upload className="h-4 w-4" />
             {t('meal.uploadFile')}
           </button>
-          {/* Inputs cachés */}
           <input
             ref={inputCameraRef}
             type="file"

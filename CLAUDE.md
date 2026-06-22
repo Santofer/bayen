@@ -19,23 +19,24 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 
 - **Frontend** : Astro 5 + React 18 + shadcn/ui + Tailwind v4
 - **Backend** : Directus 11 (CMS headless) + PostgreSQL 16
-- **OCR** : Tesseract 5 — self-hosted, CPU only, container `bayen-tesseract` (port 5001 interne)
-- **LLM** : Ollama avec mistral:7b — GPU NVIDIA M4000, container `bayen-ollama` (port 11434 interne)
+- **OCR** : Tesseract 5 — self-hosted, CPU only, container `bayen-tesseract` (port 5055 hôte → 5000 interne)
+- **IA** : serveur **vLLM partagé** (OpenAI-compatible), modèle **Qwen3.5-9B** multimodal (vision native, GPU Blackwell). Endpoint `http://192.168.1.123:8000/v1`.
 - **Infra** : Unraid (Docker) + Cloudflare Tunnel + Cloudflare Pages + Cloudflare R2
 - **Automatisation** : n8n (container partagé existant sur le serveur Unraid)
 
 ---
 
-## Contraintes matérielles — LIRE AVANT TOUTE SUGGESTION IA
+## Configuration IA — LIRE AVANT TOUTE SUGGESTION IA
 
-- GPU serveur : **NVIDIA Quadro M4000 — 8 GB VRAM uniquement**
-- Modèle Ollama actif : **mistral:7b** (~5 GB VRAM) — seul modèle autorisé en prod
-- **Ne jamais suggérer llava:13b** (10 GB VRAM — impossible sur ce GPU)
-- **Ne jamais suggérer llava:7b en prod** (coexistence impossible avec mistral:7b dans 8 GB)
-- `OLLAMA_MAX_LOADED_MODELS=1` — un seul modèle en VRAM à la fois
-- Tesseract tourne sur **CPU** — zéro VRAM, zéro conflit avec Ollama
-- Pipeline OCR : Tesseract → texte brut → mistral:7b → JSON structuré (séquentiel)
-- RAM système disponible : 10+ GB pour les containers Docker
+- L'IA passe par le **serveur vLLM partagé** (OpenAI-compatible), pas Ollama.
+- Modèle unique : **`qwen3.5-9b`** (multimodal, vision native). Pas d'autre modèle à gérer.
+- Config par env dans `bayen-tesseract` : `AI_BASE_URL` (= `http://192.168.1.123:8000/v1`), `AI_MODEL` (= `qwen3.5-9b`), `AI_API_KEY` (= `sk-local`, chaîne non vide quelconque).
+- Connexion : **IP LAN directe** (`192.168.1.123:8000`), jamais `host.docker.internal`. Le container bridge atteint l'hôte LAN.
+- Appels : `POST {AI_BASE_URL}/chat/completions` (header `Authorization: Bearer {AI_API_KEY}`), `response_format:{type:json_object}`, `chat_template_kwargs:{enable_thinking:false}`.
+- **Vision** : 1 image par requête en `image_url` data-URL base64, redimensionnée **≤ 768 px** sur le grand côté avant envoi (le serveur cappe à ~768×768).
+- `/meal-analyze` (photo de plat) : sortie = ESTIMATION calories en **fourchette** (min/max) + macros + `confiance` (faible|moyenne|elevee). Jamais de chiffre précis inventé, jamais de conseil médical. Si pas un plat → `{"plat":null,...}`.
+- `/pipeline` (étiquette produit) : Tesseract OCR → texte → IA parse → JSON nutritionnel par 100g (inchangé côté schéma produit).
+- Tesseract tourne sur **CPU** (réseau Docker interne, non exposé via Tunnel).
 
 ---
 
@@ -56,8 +57,7 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 - Toutes les requêtes Directus passent par le client SDK dans `frontend/src/lib/directus.ts`
 - Ne jamais appeler l'API Directus directement depuis les composants React ou les pages Astro
 - Endpoints custom Directus → `directus/extensions/bayen-api/src/`
-- Client Tesseract → `frontend/src/lib/tesseract.ts`
-- Client Ollama/Mistral → `frontend/src/lib/ollama.ts`
+- Pipeline OCR + IA (Tesseract + vLLM Qwen3.5-9B) → `tesseract-api/app.py`, proxifié côté frontend par `frontend/src/pages/api/ocr-score.ts` (étiquettes) et `frontend/src/pages/api/meal-score.ts` (photo de plat)
 - Algorithme de scoring déterministe → `directus/extensions/bayen-api/src/scoring.ts` (aussi importé côté frontend depuis `frontend/src/lib/scoring.ts`)
 
 ---
@@ -66,10 +66,11 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 
 - Ne jamais committer `.env` — utiliser `.env.example` comme template
 - Images produits → Cloudflare R2 via Directus (jamais servies directement depuis le serveur)
-- Le **score final est TOUJOURS calculé par l'algorithme déterministe** dans `scoring.ts`
-- Le LLM (Mistral) extrait et structure les données brutes — il ne calcule jamais le score chiffré
+- Le **score produit final est TOUJOURS calculé par l'algorithme déterministe** dans `scoring.ts`
+- L'IA (Qwen3.5-9B) extrait/structure les données brutes — elle ne calcule jamais le score produit chiffré
+- L'analyse photo de plat (`/meal-analyze`) est une **estimation** (fourchettes + confiance), pas un score santé ni un avis médical
 - Tous les textes UI en français en phase 1 — structure i18n Astro en place pour l'arabe (phase 2)
-- Tesseract et Ollama ne sont jamais exposés via Cloudflare Tunnel — réseau Docker interne uniquement
+- Tesseract n'est jamais exposé via Cloudflare Tunnel — réseau Docker interne uniquement
 - Tester les endpoints Directus custom avec `curl` avant toute intégration frontend
 
 ---
@@ -83,27 +84,27 @@ cd frontend && npm run dev
 # Démarrer tous les services Docker
 docker compose up -d
 
-# Logs des services IA
-docker compose logs -f bayen-ollama
+# Logs du pipeline OCR + IA
 docker compose logs -f bayen-tesseract
 
-# Installer le modèle Mistral dans Ollama
-docker exec -it bayen-ollama ollama pull mistral:7b
+# Vérifier le serveur IA vLLM (doit renvoyer qwen3.5-9b)
+curl -s http://192.168.1.123:8000/v1/models -H "Authorization: Bearer sk-local"
 
 # Tester l'OCR Tesseract
-curl -X POST http://localhost:5001/ocr \
+curl -X POST http://localhost:5055/ocr \
   -F "image=@test-label.jpg" \
   -F "lang=fra+ara"
 
+# Tester l'analyse photo de plat (vision Qwen3.5-9B)
+curl -X POST http://localhost:5055/meal-analyze -F "image=@plat.jpg"
+
+# Tester le pipeline étiquette (Tesseract + IA)
+curl -X POST http://localhost:5055/pipeline -F "image_nutrition=@label.jpg"
+
 # Tester l'endpoint scan principal
-curl -X POST http://localhost:8055/custom/scan \
+curl -X POST https://api.bayen.ma/bayen-api/scan \
   -H "Content-Type: application/json" \
   -d '{"barcode":"6111080016394","session_id":"test-123"}'
-
-# Tester Mistral via Ollama
-curl -X POST http://localhost:11434/api/generate \
-  -H "Content-Type: application/json" \
-  -d '{"model":"mistral:7b","prompt":"Retourne du JSON: {\"test\":true}","stream":false}'
 
 # Snapshot schéma Directus (à faire avant chaque modification de schéma)
 npx directus schema snapshot ./directus/snapshots/$(date +%Y%m%d).yaml

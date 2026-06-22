@@ -15,19 +15,27 @@ interface MealScanRow {
   id: string
   image: string | null
   plat: string | null
-  meal_score: number | null
-  score_label: string | null
+  calories_min: number | null
+  calories_max: number | null
   estimated_kcal: number | null
-  estimated_portion: string | null
+  portion_g: number | null
+  confiance: 'faible' | 'moyenne' | 'elevee' | null
   ingredients: string[] | null
   date_created: string
 }
 
-const LABEL_COLORS: Record<string, string> = {
-  excellent: '#476a32',
-  bon: '#b1cf3a',
-  'médiocre': '#f97316',
-  mauvais: '#ef4444',
+const CONFIANCE_DOT: Record<string, string> = {
+  faible: '#f59e0b',
+  moyenne: '#3b82f6',
+  elevee: '#16a34a',
+}
+
+function kcalLabel(s: MealScanRow): string | null {
+  if (s.calories_min != null && s.calories_max != null) {
+    return s.calories_min === s.calories_max ? `${s.calories_min}` : `${s.calories_min}–${s.calories_max}`
+  }
+  if (s.estimated_kcal != null) return `${s.estimated_kcal}`
+  return null
 }
 
 export default function MealJournal() {
@@ -46,7 +54,7 @@ export default function MealJournal() {
           return
         }
         const res = await fetch(
-          `${DIRECTUS_URL}/items/meal_scans?sort=-date_created&limit=50&fields=id,image,plat,meal_score,score_label,estimated_kcal,estimated_portion,ingredients,date_created`,
+          `${DIRECTUS_URL}/items/meal_scans?sort=-date_created&limit=50&fields=id,image,plat,calories_min,calories_max,estimated_kcal,portion_g,confiance,ingredients,date_created`,
           { headers: { Authorization: `Bearer ${token}` } }
         )
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -110,7 +118,8 @@ export default function MealJournal() {
   return (
     <div className="grid sm:grid-cols-2 gap-4">
       {scans.map((s) => {
-        const color = s.score_label ? LABEL_COLORS[s.score_label] ?? '#a1a1aa' : '#a1a1aa'
+        const kcal = kcalLabel(s)
+        const dot = s.confiance ? CONFIANCE_DOT[s.confiance] : null
         return (
           <article key={s.id} className="rounded-2xl border bg-card overflow-hidden">
             <div className="relative aspect-[4/3] bg-muted overflow-hidden">
@@ -126,12 +135,9 @@ export default function MealJournal() {
                   <Camera className="h-8 w-8" />
                 </div>
               )}
-              {s.meal_score != null && (
-                <div
-                  className="absolute top-2 right-2 w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
-                  style={{ backgroundColor: color }}
-                >
-                  {s.meal_score}
+              {kcal && (
+                <div className="absolute top-2 right-2 rounded-full bg-black/70 text-white text-xs font-bold px-3 py-1.5 shadow-lg backdrop-blur-sm">
+                  {kcal} {t('journal.kcal')}
                 </div>
               )}
             </div>
@@ -139,16 +145,9 @@ export default function MealJournal() {
               <h3 className="font-semibold text-foreground line-clamp-1">
                 {s.plat ?? '—'}
               </h3>
-              <p className="text-xs text-muted-foreground">
-                {s.estimated_kcal != null && (
-                  <span className="font-medium text-foreground">
-                    {s.estimated_kcal} {t('journal.kcal')}
-                  </span>
-                )}
-                {s.estimated_kcal != null && s.estimated_portion && (
-                  <span className="mx-1.5">·</span>
-                )}
-                {s.estimated_portion && <span>{s.estimated_portion}</span>}
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                {dot && <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: dot }} />}
+                {s.portion_g != null && <span>≈ {s.portion_g} g</span>}
               </p>
               <p className="text-[11px] text-muted-foreground">{formatDate(s.date_created)}</p>
             </div>

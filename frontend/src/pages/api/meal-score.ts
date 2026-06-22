@@ -1,9 +1,9 @@
 /**
- * Proxy endpoint pour l'analyse VLM d'une photo de plat
- * POST /api/meal-score → proxy vers ocr.bayen.ma/meal-analyze (Gemma3 vision)
+ * Proxy endpoint pour l'analyse vision d'une photo de plat
+ * POST /api/meal-score → proxy vers ocr.bayen.ma/meal-analyze (Qwen3.5-9B vision)
  *
  * Reçoit : multipart/form-data avec `image` (JPEG/PNG, max 8 MB)
- * Retourne : JSON avec description + ingrédients + nutrition + calories
+ * Retourne : estimation calories (fourchette) + macros + ingrédients + confiance
  */
 import type { APIContext } from 'astro'
 
@@ -37,8 +37,8 @@ export async function POST(context: APIContext): Promise<Response> {
     const res = await fetch(`${OCR_URL}/meal-analyze`, {
       method: 'POST',
       body: forward,
-      // gemma3:4b : ~25s / gemma4:e4b : ~60-90s → 200s de marge.
-      signal: AbortSignal.timeout(200_000),
+      // Qwen3.5-9B vLLM : ~5s. Marge large pour pic de charge serveur partagé.
+      signal: AbortSignal.timeout(90_000),
     })
 
     const data = await res.text()

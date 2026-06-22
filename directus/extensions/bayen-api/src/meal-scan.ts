@@ -1,13 +1,12 @@
 /**
  * Endpoint POST /bayen-api/meal-scan
  *
- * Sauvegarde une analyse photo de repas dans meal_scans pour les
+ * Sauvegarde une estimation photo de repas dans meal_scans pour les
  * utilisateurs connectés. Les anonymes ne sont PAS stockés (204).
  *
- * Le VLM est appelé côté frontend via /api/meal-score → tesseract-api
- * /meal-analyze. Cet endpoint reçoit juste le résultat + les métadonnées
- * pour persistance. Le score Bayen est calculé côté frontend via
- * scoring.ts (même algo que page produit).
+ * Schéma v2 (Qwen3.5-9B vision) : estimation calories en fourchette +
+ * macros + confiance. Le VLM est appelé côté frontend via /api/meal-score
+ * → tesseract-api /meal-analyze. Cet endpoint reçoit le résultat normalisé.
  *
  * INSERT via Knex pour éviter le bug ItemsService (cf. scan.ts).
  */
@@ -15,26 +14,22 @@
 import type { Router, Request } from 'express'
 import { randomUUID } from 'node:crypto'
 
-interface MealScanRequest {
-  image_file_id?: string | null
-  analysis?: {
-    plat?: string
-    description?: string
-    ingredients_detected?: string[]
-    estimated_kcal?: number
-    estimated_portion?: string
-    nutrition_per_100g?: Record<string, number>
-    nova_group?: number
-    is_beverage?: boolean
-    confidence?: number
-  }
-  meal_score?: number
-  score_label?: string
-  raw?: Record<string, unknown>
+interface MealAnalysis {
+  plat?: string | null
+  ingredients?: string[]
+  portion_estimee_g?: number | null
+  calories_kcal?: { min?: number | null; max?: number | null }
+  macros_g?: { proteines?: number | null; glucides?: number | null; lipides?: number | null }
+  confiance?: 'faible' | 'moyenne' | 'elevee'
+  remarques?: string
 }
 
-// Rate limit par IP : 30 scans / 10 min (un repas prend ~25s côté VLM,
-// donc au-delà de 30 c'est du spam ou un bot)
+interface MealScanRequest {
+  image_file_id?: string | null
+  analysis?: MealAnalysis
+}
+
+// Rate limit par IP : 30 scans / 10 min
 const RATE_WINDOW_MS = 10 * 60 * 1000
 const RATE_MAX = 30
 const ipHits = new Map<string, number[]>()
@@ -55,10 +50,10 @@ function clientIp(req: Request): string {
   return req.ip ?? req.socket?.remoteAddress ?? 'unknown'
 }
 
-function clamp(v: unknown, min: number, max: number): number | null {
+function clampInt(v: unknown, min: number, max: number): number | null {
   const n = typeof v === 'number' ? v : parseFloat(String(v))
   if (!isFinite(n)) return null
-  return Math.max(min, Math.min(max, n))
+  return Math.round(Math.max(min, Math.min(max, n)))
 }
 
 function sanitizeString(v: unknown, maxLen: number): string | null {
@@ -83,7 +78,7 @@ export function registerMealScanEndpoint(
       }
 
       // Directus peuple req.accountability depuis le Bearer token.
-      // Pas de user (anonyme) → scan éphémère, on ne stocke rien (204).
+      // Pas de user (anonyme) → estimation éphémère, on ne stocke rien (204).
       const accountability = (req as unknown as {
         accountability?: { user?: string | null }
       }).accountability
@@ -97,24 +92,31 @@ export function registerMealScanEndpoint(
       const a = body.analysis ?? {}
 
       const plat = sanitizeString(a.plat, 200)
-      const description = sanitizeString(a.description, 2000)
-      const ingredients = Array.isArray(a.ingredients_detected)
-        ? a.ingredients_detected.filter((x) => typeof x === 'string').slice(0, 30)
-        : []
-      const nutrition = a.nutrition_per_100g && typeof a.nutrition_per_100g === 'object'
-        ? a.nutrition_per_100g
-        : {}
-      const estimatedKcal = clamp(a.estimated_kcal, 0, 5000)
-      const portion = sanitizeString(a.estimated_portion, 50)
-      const novaGroup = clamp(a.nova_group, 1, 4)
-      const confidence = clamp(a.confidence, 0, 1)
-      const mealScore = clamp(body.meal_score, 0, 100)
-      const scoreLabel = sanitizeString(body.score_label, 20)
-
       if (!plat) {
         res.status(400).json({ error: 'Analyse incomplète (plat manquant).' })
         return
       }
+
+      const ingredients = Array.isArray(a.ingredients)
+        ? a.ingredients.filter((x) => typeof x === 'string').slice(0, 30)
+        : []
+
+      const cal = a.calories_kcal ?? {}
+      let calMin = clampInt(cal.min, 0, 6000)
+      let calMax = clampInt(cal.max, 0, 6000)
+      if (calMin != null && calMax != null && calMin > calMax) {
+        const tmp = calMin; calMin = calMax; calMax = tmp
+      }
+      // Midpoint pour le tri/affichage compact dans le journal
+      const midKcal = calMin != null && calMax != null
+        ? Math.round((calMin + calMax) / 2)
+        : (calMax ?? calMin)
+
+      const macros = a.macros_g ?? {}
+      const portionG = clampInt(a.portion_estimee_g, 0, 5000)
+
+      let confiance = sanitizeString(a.confiance, 10)
+      if (confiance && !['faible', 'moyenne', 'elevee'].includes(confiance)) confiance = 'moyenne'
 
       const knex = context.database as unknown as {
         (table: string): { insert(data: Record<string, unknown>): Promise<unknown> }
@@ -123,27 +125,26 @@ export function registerMealScanEndpoint(
       await knex('meal_scans').insert({
         id,
         user_id: userId,
-        image: sanitizeString(body.image_file_id, 36), // UUID = 36 chars
+        image: sanitizeString(body.image_file_id, 36),
         plat,
-        description,
         ingredients: JSON.stringify(ingredients),
-        nutrition: JSON.stringify(nutrition),
-        estimated_kcal: estimatedKcal,
-        estimated_portion: portion,
-        nova_group: novaGroup,
-        is_beverage: a.is_beverage === true,
-        confidence,
-        meal_score: mealScore,
-        score_label: scoreLabel,
-        raw_analysis: body.raw ? JSON.stringify(body.raw).slice(0, 20000) : null,
+        // Nouveau schéma v2
+        calories_min: calMin,
+        calories_max: calMax,
+        portion_g: portionG,
+        proteines_g: clampInt(macros.proteines, 0, 500),
+        glucides_g: clampInt(macros.glucides, 0, 500),
+        lipides_g: clampInt(macros.lipides, 0, 500),
+        confiance,
+        remarques: sanitizeString(a.remarques, 500),
+        // Compat journal / affichage compact
+        estimated_kcal: midKcal,
+        estimated_portion: portionG != null ? `${portionG} g` : null,
+        raw_analysis: JSON.stringify(a).slice(0, 20000),
         date_created: new Date(),
       })
 
-      res.json({
-        ok: true,
-        id,
-        redirect_url: '/compte/journal',
-      })
+      res.json({ ok: true, id, redirect_url: '/compte/journal' })
     } catch (err) {
       console.error('[bayen-api/meal-scan] error:', err)
       res.status(500).json({ error: 'Erreur interne.' })

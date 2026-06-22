@@ -154,6 +154,13 @@ PostgreSQL + R2 (images) + Tesseract (OCR) + Ollama (parsing)
 
 ## 4. Contraintes matérielles — GPU M4000
 
+> ⚠️ **PÉRIMÉ (juin 2026).** Cette section décrit l'architecture IA initiale
+> (Ollama + mistral:7b/gemma sur GPU M4000). **L'IA passe désormais par un
+> serveur vLLM partagé servant Qwen3.5-9B multimodal (GPU Blackwell), endpoint
+> `http://192.168.1.123:8000/v1`.** Voir la section « Configuration IA » de
+> `CLAUDE.md` pour la config courante (`AI_BASE_URL` / `AI_MODEL` / `AI_API_KEY`).
+> Les contraintes VRAM ci-dessous ne s'appliquent plus.
+
 ### Configuration serveur
 
 | Composante | Détail |

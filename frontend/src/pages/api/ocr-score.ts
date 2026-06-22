@@ -1,6 +1,6 @@
 /**
  * Proxy endpoint pour le pipeline OCR complet
- * POST /api/ocr-score → proxy vers ocr.bayen.ma/pipeline (Tesseract + Mistral)
+ * POST /api/ocr-score → proxy vers ocr.bayen.ma/pipeline (Tesseract + Qwen3.5-9B)
  *
  * Reçoit : multipart/form-data avec image_nutrition (requis), barcode
  * Retourne : JSON avec données nutritionnelles parsées ou erreur

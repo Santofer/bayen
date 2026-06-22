@@ -93,18 +93,11 @@ services:
     ports:
       - "5055:5000"
     environment:
-      OLLAMA_URL: http://host.docker.internal:11434
-      # VLM pour l'analyse photo de repas (/meal-analyze)
-      # gemma3:4b-it-qat choisi après bench empirique (4 modèles, 3 photos) :
-      #   - moondream: 5s mais ignore le prompt (recopie les placeholders)
-      #   - gemma3:4b : ~15-25s, précision ~95% (meilleur ratio vitesse/qualité)
-      #   - qwen2.5vl:7b : 140s (offload CPU sur M4000 8GB) — exclu
-      #   - gemma4:e4b : 80s, +5% de précision mais 5× plus lent — exclu
-      VLM_MODEL: gemma3:4b-it-qat
-      # LLM pour l'OCR nutrition (/pipeline) — indépendant du VLM
-      LLM_MODEL: gemma3:4b-it-qat
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      # IA : serveur vLLM partagé (OpenAI-compatible), Qwen3.5-9B multimodal.
+      # IP LAN directe (le container bridge atteint l'hôte LAN), pas host.docker.internal.
+      AI_BASE_URL: http://192.168.1.123:8000/v1
+      AI_MODEL: qwen3.5-9b
+      AI_API_KEY: sk-local
     networks:
       - bayen-internal
 
