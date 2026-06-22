@@ -17,11 +17,24 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
+import { computeScore, type NutritionData, type NovaGroup } from '@/lib/scoring'
+import ScoreDisplay from './ScoreDisplay'
 import { Camera, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus, Flame } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
 type Confiance = 'faible' | 'moyenne' | 'elevee'
+
+interface Nutrition100g {
+  energy_kcal?: number | null
+  proteines?: number | null
+  glucides?: number | null
+  sucres?: number | null
+  lipides?: number | null
+  satures?: number | null
+  fibres?: number | null
+  sel?: number | null
+}
 
 interface MealAnalysis {
   plat: string | null
@@ -29,8 +42,21 @@ interface MealAnalysis {
   portion_estimee_g: number | null
   calories_kcal: { min: number | null; max: number | null }
   macros_g: { proteines: number | null; glucides: number | null; lipides: number | null }
+  nutrition_100g?: Nutrition100g
+  nova_group?: number | null
+  fruits_legumes_pct?: number | null
+  is_beverage?: boolean
   confiance: Confiance
   remarques: string
+}
+
+/** % fruits/légumes/noix → points Nutri-Score (composante C), barème solides. */
+function fruitsPctToPoints(pct: number | null | undefined): number {
+  if (pct == null) return 0
+  if (pct >= 80) return 5
+  if (pct >= 60) return 2
+  if (pct >= 40) return 1
+  return 0
 }
 
 interface VlmResponse {
@@ -63,6 +89,7 @@ export default function MealPhotoAnalyzer() {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [analysis, setAnalysis] = useState<MealAnalysis | null>(null)
+  const [score, setScore] = useState<ReturnType<typeof computeScore> | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [loggedIn, setLoggedIn] = useState(false)
@@ -109,6 +136,7 @@ export default function MealPhotoAnalyzer() {
     setScreen('preview')
     setErrorMsg(null)
     setAnalysis(null)
+    setScore(null)
     setSaved(false)
   }
 
@@ -135,7 +163,36 @@ export default function MealPhotoAnalyzer() {
         return
       }
 
-      setAnalysis(data.analysis)
+      const a = data.analysis
+      setAnalysis(a)
+
+      // Score Bayen déterministe (même algo que les produits) à partir de la
+      // nutrition estimée par 100g. L'IA fournit les données, scoring.ts calcule.
+      const n = a.nutrition_100g ?? {}
+      const nutrition: NutritionData = {
+        energy_kcal: n.energy_kcal ?? null,
+        fat_saturated: n.satures ?? null,
+        sugars: n.sucres ?? null,
+        salt: n.sel ?? null,
+        fiber: n.fibres ?? null,
+        proteins: n.proteines ?? null,
+        fruits_vegetables_nuts_points: fruitsPctToPoints(a.fruits_legumes_pct),
+        is_beverage: a.is_beverage ?? false,
+      }
+      const novaGroup =
+        a.nova_group && a.nova_group >= 1 && a.nova_group <= 4 ? (a.nova_group as NovaGroup) : null
+
+      const hasNutrition = n.energy_kcal != null || n.satures != null || n.sucres != null
+      setScore(
+        hasNutrition
+          ? computeScore({
+              nutrition,
+              novaGroup,
+              ingredientsText: (a.ingredients ?? []).join(', '),
+              additives: [], // pas d'étiquette visible sur un plat → pas d'additifs
+            })
+          : null
+      )
       setScreen('result')
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : t('meal.error.generic'))
@@ -148,6 +205,7 @@ export default function MealPhotoAnalyzer() {
     setFile(null)
     setPreviewUrl(null)
     setAnalysis(null)
+    setScore(null)
     setErrorMsg(null)
     setSaved(false)
     setScreen('idle')
@@ -179,11 +237,16 @@ export default function MealPhotoAnalyzer() {
         fileId = upData.data?.id ?? null
       }
 
-      // 2. Enregistrer le scan (nouveau schéma : estimation calories/macros)
+      // 2. Enregistrer le scan : estimation calories/macros + score Bayen
       const saveRes = await fetch(`${DIRECTUS_URL}/bayen-api/meal-scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ image_file_id: fileId, analysis }),
+        body: JSON.stringify({
+          image_file_id: fileId,
+          analysis,
+          meal_score: score?.total ?? null,
+          score_label: score?.label ?? null,
+        }),
       })
       if (!saveRes.ok) {
         const errData = (await saveRes.json().catch(() => null)) as { error?: string } | null
@@ -250,6 +313,16 @@ export default function MealPhotoAnalyzer() {
           <h2 className="text-2xl font-bold">{analysis.plat}</h2>
         </div>
 
+        {/* Score santé Bayen (cœur de l'app) — calculé par scoring.ts */}
+        {score && (
+          <div className="rounded-2xl border bg-card p-6">
+            <ScoreDisplay score={score} dataSource="meal_scan" />
+            <p className="text-[11px] text-muted-foreground text-center mt-3 italic">
+              {t('meal.scoreEstimate')}
+            </p>
+          </div>
+        )}
+
         {/* Hero calories (fourchette) */}
         <div className="rounded-2xl border bg-card p-6 text-center">
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm mb-1">
@@ -291,6 +364,34 @@ export default function MealPhotoAnalyzer() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Nutrition estimée pour 100g (base du score) */}
+        {analysis.nutrition_100g && (analysis.nutrition_100g.energy_kcal != null || analysis.nutrition_100g.proteines != null) && (
+          <div className="rounded-2xl border bg-card p-4">
+            <h3 className="text-sm font-semibold mb-3">{t('meal.nutritionPer100g')}</h3>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              {([
+                ['energy_kcal', 'kcal', t('meal.energy')],
+                ['lipides', 'g', t('meal.fat')],
+                ['satures', 'g', t('meal.fatSaturated')],
+                ['glucides', 'g', t('meal.carbs')],
+                ['sucres', 'g', t('meal.sugars')],
+                ['fibres', 'g', t('meal.fiber')],
+                ['proteines', 'g', t('meal.proteins')],
+                ['sel', 'g', t('meal.salt')],
+              ] as const).map(([key, unit, label]) => {
+                const val = analysis.nutrition_100g?.[key]
+                if (val == null) return null
+                return (
+                  <div key={key} className="flex justify-between border-b border-border/50 py-1">
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="font-medium">{val}{unit === 'g' ? ' g' : ''}</dd>
+                  </div>
+                )
+              })}
+            </dl>
           </div>
         )}
 

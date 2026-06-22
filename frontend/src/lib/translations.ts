@@ -446,6 +446,7 @@ export const translations = {
   'meal.confiance.elevee':  { fr: 'Élevée',                                             ary: 'عالية' },
   'meal.remarques':         { fr: 'Remarque',                                           ary: 'ملاحظة' },
   'meal.estimateCaveat':    { fr: 'Estimations à partir de la photo (portion visible). Ce ne sont pas des valeurs exactes ni un avis médical.', ary: 'تقديرات من الصورة (الحصة الظاهرة). ماشي قيم دقيقة ولا نصيحة طبية.' },
+  'meal.scoreEstimate':     { fr: 'Score estimé à partir de la nutrition déduite de la photo — moins précis qu’un produit étiqueté.', ary: 'نقطة مقدرة من التغذية المستنتجة من الصورة — أقل دقة من منتج معلّب.' },
   'meal.error.title':       { fr: "Analyse impossible",                                ary: 'ما قدرناش نحللو' },
   'meal.error.notAMeal':    { fr: "Cette photo ne semble pas être un plat. Prends une photo de ton assiette.", ary: 'هاد الصورة ماشي ديال طبق. صور الأكل ديالك.' },
   'meal.error.tooLarge':    { fr: 'Image trop grande (max 8 MB).',                     ary: 'الصورة كبيرة بزاف (8 ميكا كحد أقصى).' },

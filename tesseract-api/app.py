@@ -157,21 +157,28 @@ MEAL_SYSTEM = (
     '{"plat":"", "ingredients":[], "portion_estimee_g":0, '
     '"calories_kcal":{"min":0,"max":0}, '
     '"macros_g":{"proteines":0,"glucides":0,"lipides":0}, '
+    '"nutrition_100g":{"energy_kcal":0,"proteines":0,"glucides":0,"sucres":0,'
+    '"lipides":0,"satures":0,"fibres":0,"sel":0}, '
+    '"nova_group":1, "fruits_legumes_pct":0, "is_beverage":false, '
     '"confiance":"faible|moyenne|elevee", "remarques":""}\n\n'
     "RÈGLES IMPÉRATIVES :\n"
-    "- Les valeurs nutritionnelles sont des ESTIMATIONS d'après la portion "
-    "VISIBLE sur la photo. Donne TOUJOURS des fourchettes (min/max) pour "
-    "calories_kcal, jamais un chiffre précis unique.\n"
-    "- macros_g (protéines, glucides, lipides) sont en grammes pour la portion "
-    "visible, estimés au mieux.\n"
-    "- confiance reflète ta certitude : \"elevee\" si plat clair et identifiable, "
-    "\"moyenne\" si partiellement, \"faible\" si flou/ambigu.\n"
+    "- Toutes les valeurs nutritionnelles sont des ESTIMATIONS d'après la photo. "
+    "Donne TOUJOURS une fourchette (min/max) pour calories_kcal.\n"
+    "- macros_g (protéines, glucides, lipides) = grammes pour la PORTION visible.\n"
+    "- nutrition_100g = valeurs estimées POUR 100 g du plat : energy_kcal (kcal), "
+    "proteines/glucides/sucres/lipides/satures/fibres/sel (en grammes pour 100 g). "
+    "Ces valeurs servent à calculer un score nutritionnel, sois cohérent.\n"
+    "- nova_group : 1 (brut) à 4 (ultra-transformé) selon la transformation du plat.\n"
+    "- fruits_legumes_pct : pourcentage estimé de fruits/légumes/légumineuses/noix "
+    "dans le plat (0 à 100).\n"
+    "- is_beverage : true uniquement si c'est une boisson.\n"
+    "- confiance : \"elevee\" si plat clair, \"moyenne\" si partiel, \"faible\" si "
+    "flou/ambigu.\n"
     "- N'INVENTE pas de chiffres précis. Ne donne AUCUN conseil médical ou "
-    "diététique, et AUCUN jugement de valeur sur la santé (n'utilise pas de "
-    "mots comme \"sain\", \"équilibré\", \"bon pour la santé\"). remarques = "
-    "courte note purement descriptive et factuelle (1 phrase max).\n"
-    "- Décris uniquement ce qui est réellement visible ; n'ajoute aucun aliment "
-    "non présent.\n"
+    "diététique, et AUCUN jugement de valeur sur la santé (pas de \"sain\", "
+    "\"équilibré\", \"bon pour la santé\"). remarques = note purement descriptive "
+    "et factuelle (1 phrase max).\n"
+    "- Décris uniquement ce qui est réellement visible.\n"
     "- Si l'image n'est PAS un plat (objet, personne, paysage, produit emballé), "
     'retourne exactement {"plat":null,"remarques":"image non reconnue comme un plat"}.'
 )
@@ -387,6 +394,22 @@ def meal_analyze():
         else:
             ingredients = []
 
+        # Nutrition par 100g (sert au calcul du score Bayen déterministe côté front)
+        n100 = parsed.get('nutrition_100g') or {}
+        nutrition_100g = {
+            'energy_kcal': _num(n100.get('energy_kcal'), 0, 1000),
+            'proteines': _num(n100.get('proteines'), 0, 100),
+            'glucides': _num(n100.get('glucides'), 0, 100),
+            'sucres': _num(n100.get('sucres'), 0, 100),
+            'lipides': _num(n100.get('lipides'), 0, 100),
+            'satures': _num(n100.get('satures'), 0, 100),
+            'fibres': _num(n100.get('fibres'), 0, 100),
+            'sel': _num(n100.get('sel'), 0, 100),
+        }
+
+        nova = _int(parsed.get('nova_group'), 1, 4)
+        fruits_pct = _int(parsed.get('fruits_legumes_pct'), 0, 100)
+
         total_duration = int((time.time() - start_time) * 1000)
 
         return jsonify({
@@ -404,6 +427,10 @@ def meal_analyze():
                     'glucides': _int(macros.get('glucides'), 0, 500),
                     'lipides': _int(macros.get('lipides'), 0, 500),
                 },
+                'nutrition_100g': nutrition_100g,
+                'nova_group': nova,
+                'fruits_legumes_pct': fruits_pct,
+                'is_beverage': bool(parsed.get('is_beverage', False)),
                 'confiance': confiance,
                 'remarques': str(parsed.get('remarques', ''))[:500],
             },
