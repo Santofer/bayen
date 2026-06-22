@@ -20,9 +20,10 @@ interface MealAnalysis {
   portion_estimee_g?: number | null
   calories_kcal?: { min?: number | null; max?: number | null }
   macros_g?: { proteines?: number | null; glucides?: number | null; lipides?: number | null }
-  nutrition_100g?: Record<string, number | null>
-  nova_group?: number | null
-  is_beverage?: boolean
+  verdict?: 'sain' | 'equilibre' | 'a_limiter' | 'occasionnel'
+  caracteristiques?: string[]
+  conseil?: string
+  alternatives?: string[]
   confiance?: 'faible' | 'moyenne' | 'elevee'
   remarques?: string
 }
@@ -30,8 +31,6 @@ interface MealAnalysis {
 interface MealScanRequest {
   image_file_id?: string | null
   analysis?: MealAnalysis
-  meal_score?: number | null
-  score_label?: string | null
 }
 
 // Rate limit par IP : 30 scans / 10 min
@@ -142,12 +141,17 @@ export function registerMealScanEndpoint(
         lipides_g: clampInt(macros.lipides, 0, 500),
         confiance,
         remarques: sanitizeString(a.remarques, 500),
-        // Score santé Bayen (calculé côté front par scoring.ts) + nutrition/100g
-        meal_score: clampInt(body.meal_score, 0, 100),
-        score_label: sanitizeString(body.score_label, 20),
-        nutrition: a.nutrition_100g ? JSON.stringify(a.nutrition_100g) : null,
-        nova_group: clampInt(a.nova_group, 1, 4),
-        is_beverage: a.is_beverage === true,
+        // Verdict qualitatif + conseil + alternatives (remplace le score)
+        verdict: ['sain', 'equilibre', 'a_limiter', 'occasionnel'].includes(a.verdict ?? '')
+          ? a.verdict
+          : null,
+        caracteristiques: Array.isArray(a.caracteristiques)
+          ? JSON.stringify(a.caracteristiques.filter((x) => typeof x === 'string').slice(0, 5))
+          : null,
+        conseil: sanitizeString(a.conseil, 400),
+        alternatives: Array.isArray(a.alternatives)
+          ? JSON.stringify(a.alternatives.filter((x) => typeof x === 'string').slice(0, 4))
+          : null,
         // Compat journal / affichage compact
         estimated_kcal: midKcal,
         estimated_portion: portionG != null ? `${portionG} g` : null,

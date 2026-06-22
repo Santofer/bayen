@@ -152,34 +152,39 @@ Si une valeur est illisible ou absente, mets null. Ne jamais inventer de valeurs
 
 # Analyse photo de plat (via /meal-analyze)
 MEAL_SYSTEM = (
-    "Tu es un nutritionniste. Tu analyses UNE photo de plat et tu retournes "
-    "UNIQUEMENT du JSON valide respectant exactement ce schéma :\n"
+    "Tu es un coach nutrition bienveillant. Tu analyses UNE photo de repas et tu "
+    "retournes UNIQUEMENT du JSON valide respectant exactement ce schéma :\n"
     '{"plat":"", "ingredients":[], "portion_estimee_g":0, '
     '"calories_kcal":{"min":0,"max":0}, '
     '"macros_g":{"proteines":0,"glucides":0,"lipides":0}, '
-    '"nutrition_100g":{"energy_kcal":0,"proteines":0,"glucides":0,"sucres":0,'
-    '"lipides":0,"satures":0,"fibres":0,"sel":0}, '
-    '"nova_group":1, "fruits_legumes_pct":0, "is_beverage":false, '
+    '"verdict":"sain|equilibre|a_limiter|occasionnel", '
+    '"caracteristiques":[], "conseil":"", "alternatives":[], '
     '"confiance":"faible|moyenne|elevee", "remarques":""}\n\n'
     "RÈGLES IMPÉRATIVES :\n"
-    "- Toutes les valeurs nutritionnelles sont des ESTIMATIONS d'après la photo. "
-    "Donne TOUJOURS une fourchette (min/max) pour calories_kcal.\n"
-    "- macros_g (protéines, glucides, lipides) = grammes pour la PORTION visible.\n"
-    "- nutrition_100g = valeurs estimées POUR 100 g du plat : energy_kcal (kcal), "
-    "proteines/glucides/sucres/lipides/satures/fibres/sel (en grammes pour 100 g). "
-    "Ces valeurs servent à calculer un score nutritionnel, sois cohérent.\n"
-    "- nova_group : 1 (brut) à 4 (ultra-transformé) selon la transformation du plat.\n"
-    "- fruits_legumes_pct : pourcentage estimé de fruits/légumes/légumineuses/noix "
-    "dans le plat (0 à 100).\n"
-    "- is_beverage : true uniquement si c'est une boisson.\n"
-    "- confiance : \"elevee\" si plat clair, \"moyenne\" si partiel, \"faible\" si "
-    "flou/ambigu.\n"
-    "- N'INVENTE pas de chiffres précis. Ne donne AUCUN conseil médical ou "
-    "diététique, et AUCUN jugement de valeur sur la santé (pas de \"sain\", "
-    "\"équilibré\", \"bon pour la santé\"). remarques = note purement descriptive "
-    "et factuelle (1 phrase max).\n"
+    "- calories_kcal : TOUJOURS une fourchette (min/max), estimée pour TOUT ce "
+    "qui est visible (plusieurs items = somme). macros_g = grammes pour la "
+    "portion visible totale.\n"
+    "- verdict : juge l'ensemble du repas de façon HOLISTIQUE et honnête.\n"
+    "  • \"sain\" = repas à base de légumes/légumineuses/protéines maigres, peu "
+    "transformé, peu gras/sucré.\n"
+    "  • \"equilibre\" = repas correct et raisonnable.\n"
+    "  • \"a_limiter\" = gras, sucré, salé ou calorique, à modérer.\n"
+    "  • \"occasionnel\" = fast-food, friture, très gras/calorique/sucré, à "
+    "réserver aux occasions (ex : burger + frites + soda = occasionnel).\n"
+    "- caracteristiques : 2 à 4 tags COURTS et factuels parmi ce style : "
+    "\"calorique\", \"gras\", \"frit\", \"sucré\", \"salé\", \"ultra-transformé\", "
+    "\"riche en protéines\", \"riche en fibres\", \"riche en légumes\", \"léger\".\n"
+    "- conseil : UNE phrase pratique et bienveillante, PERTINENTE par rapport au "
+    "repas RÉELLEMENT montré (ne propose pas de retirer un aliment absent). Si le "
+    "repas est déjà sain, valorise-le simplement. PAS de conseil médical/clinique, "
+    "pas de mention de maladie.\n"
+    "- alternatives : 2 à 3 alternatives concrètes plus saines au repas montré "
+    "(courtes, ex : \"Burger maison pain complet + légumes grillés\").\n"
+    "- confiance : \"elevee\" si plat clair, \"moyenne\" si partiel, \"faible\" "
+    "si flou/ambigu. N'invente pas de chiffres précis.\n"
+    "- remarques : note descriptive factuelle (1 phrase max).\n"
     "- Décris uniquement ce qui est réellement visible.\n"
-    "- Si l'image n'est PAS un plat (objet, personne, paysage, produit emballé), "
+    "- Si l'image n'est PAS un repas (objet, personne, paysage, produit emballé), "
     'retourne exactement {"plat":null,"remarques":"image non reconnue comme un plat"}.'
 )
 
@@ -394,21 +399,23 @@ def meal_analyze():
         else:
             ingredients = []
 
-        # Nutrition par 100g (sert au calcul du score Bayen déterministe côté front)
-        n100 = parsed.get('nutrition_100g') or {}
-        nutrition_100g = {
-            'energy_kcal': _num(n100.get('energy_kcal'), 0, 1000),
-            'proteines': _num(n100.get('proteines'), 0, 100),
-            'glucides': _num(n100.get('glucides'), 0, 100),
-            'sucres': _num(n100.get('sucres'), 0, 100),
-            'lipides': _num(n100.get('lipides'), 0, 100),
-            'satures': _num(n100.get('satures'), 0, 100),
-            'fibres': _num(n100.get('fibres'), 0, 100),
-            'sel': _num(n100.get('sel'), 0, 100),
-        }
+        # Verdict qualitatif holistique (remplace le score Nutri-Score, inadapté
+        # aux repas complets).
+        verdict = str(parsed.get('verdict', '')).lower().strip()
+        if verdict not in ('sain', 'equilibre', 'a_limiter', 'occasionnel'):
+            verdict = 'equilibre'
 
-        nova = _int(parsed.get('nova_group'), 1, 4)
-        fruits_pct = _int(parsed.get('fruits_legumes_pct'), 0, 100)
+        caracteristiques = parsed.get('caracteristiques') or []
+        if isinstance(caracteristiques, list):
+            caracteristiques = [str(x)[:30] for x in caracteristiques if isinstance(x, (str, int, float))][:5]
+        else:
+            caracteristiques = []
+
+        alternatives = parsed.get('alternatives') or []
+        if isinstance(alternatives, list):
+            alternatives = [str(x)[:160] for x in alternatives if isinstance(x, (str, int, float))][:4]
+        else:
+            alternatives = []
 
         total_duration = int((time.time() - start_time) * 1000)
 
@@ -427,10 +434,10 @@ def meal_analyze():
                     'glucides': _int(macros.get('glucides'), 0, 500),
                     'lipides': _int(macros.get('lipides'), 0, 500),
                 },
-                'nutrition_100g': nutrition_100g,
-                'nova_group': nova,
-                'fruits_legumes_pct': fruits_pct,
-                'is_beverage': bool(parsed.get('is_beverage', False)),
+                'verdict': verdict,
+                'caracteristiques': caracteristiques,
+                'conseil': str(parsed.get('conseil', ''))[:400],
+                'alternatives': alternatives,
                 'confiance': confiance,
                 'remarques': str(parsed.get('remarques', ''))[:500],
             },

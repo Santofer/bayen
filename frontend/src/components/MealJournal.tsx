@@ -20,8 +20,7 @@ interface MealScanRow {
   estimated_kcal: number | null
   portion_g: number | null
   confiance: 'faible' | 'moyenne' | 'elevee' | null
-  meal_score: number | null
-  score_label: string | null
+  verdict: 'sain' | 'equilibre' | 'a_limiter' | 'occasionnel' | null
   ingredients: string[] | null
   date_created: string
 }
@@ -32,11 +31,11 @@ const CONFIANCE_DOT: Record<string, string> = {
   elevee: '#16a34a',
 }
 
-const SCORE_COLORS: Record<string, string> = {
-  excellent: '#476a32',
-  bon: '#b1cf3a',
-  'médiocre': '#f97316',
-  mauvais: '#ef4444',
+const VERDICT_META: Record<string, { color: string; label: string }> = {
+  sain:        { color: '#476a32', label: 'Sain' },
+  equilibre:   { color: '#7a9e3a', label: 'Équilibré' },
+  a_limiter:   { color: '#f97316', label: 'À limiter' },
+  occasionnel: { color: '#ef4444', label: 'Occasionnel' },
 }
 
 function kcalLabel(s: MealScanRow): string | null {
@@ -63,7 +62,7 @@ export default function MealJournal() {
           return
         }
         const res = await fetch(
-          `${DIRECTUS_URL}/items/meal_scans?sort=-date_created&limit=50&fields=id,image,plat,calories_min,calories_max,estimated_kcal,portion_g,confiance,meal_score,score_label,ingredients,date_created`,
+          `${DIRECTUS_URL}/items/meal_scans?sort=-date_created&limit=50&fields=id,image,plat,calories_min,calories_max,estimated_kcal,portion_g,confiance,verdict,ingredients,date_created`,
           { headers: { Authorization: `Bearer ${token}` } }
         )
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -129,7 +128,7 @@ export default function MealJournal() {
       {scans.map((s) => {
         const kcal = kcalLabel(s)
         const dot = s.confiance ? CONFIANCE_DOT[s.confiance] : null
-        const scoreColor = s.score_label ? SCORE_COLORS[s.score_label] ?? '#a1a1aa' : null
+        const vmeta = s.verdict ? VERDICT_META[s.verdict] : null
         return (
           <article key={s.id} className="rounded-2xl border bg-card overflow-hidden">
             <div className="relative aspect-[4/3] bg-muted overflow-hidden">
@@ -145,13 +144,13 @@ export default function MealJournal() {
                   <Camera className="h-8 w-8" />
                 </div>
               )}
-              {/* Score santé Bayen */}
-              {s.meal_score != null && scoreColor && (
+              {/* Verdict qualitatif */}
+              {vmeta && (
                 <div
-                  className="absolute top-2 left-2 w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
-                  style={{ backgroundColor: scoreColor }}
+                  className="absolute top-2 left-2 rounded-full text-white text-[11px] font-bold px-2.5 py-1 shadow-lg"
+                  style={{ backgroundColor: vmeta.color }}
                 >
-                  {s.meal_score}
+                  {vmeta.label}
                 </div>
               )}
               {kcal && (
