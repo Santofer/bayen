@@ -28,7 +28,9 @@ try {
   // Appels en parallèle pour réduire le TTFB
   const [productsRes, countRes, scansRes, scansTodayRes, articlesRes] = await Promise.all([
     fetch(
-      `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&sort=-date_created&limit=6&fields=id,barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count,data_source`,
+      // Uniquement les produits AVEC image : les images sont désormais
+      // rapatriées dans Directus (backfill OFF), plus de prefetch fragile.
+      `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&filter[image_front][_nnull]=true&sort=-date_created&limit=6&fields=id,barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count,data_source`,
       { signal: AbortSignal.timeout(5000) }
     ),
     fetch(
@@ -73,28 +75,11 @@ try {
   // Pas de données — la page s'affiche quand même
 }
 
-// Récupérer les images manquantes depuis Open Food Facts — en parallèle
-// pour tous les produits sans image_front (indépendamment de data_source :
-// un produit "community" peut très bien exister sur OFF avec une image).
-await Promise.all(
-  recentProducts
-    .filter((p) => !p.image_front && p.barcode)
-    .map(async (product) => {
-      try {
-        const offRes = await fetch(
-          `https://world.openfoodfacts.org/api/v2/product/${product.barcode}.json?fields=image_front_small_url,image_front_url`,
-          { signal: AbortSignal.timeout(2500) }
-        )
-        if (offRes.ok) {
-          const offData = await offRes.json()
-          if (offData.status === 1) {
-            const url = offData.product?.image_front_small_url || offData.product?.image_front_url
-            if (url) product.image_front = url
-          }
-        }
-      } catch { /* non bloquant */ }
-    })
-)
+// NOTE : plus de prefetch OFF côté SSR — c'était fragile (rate limit OFF,
+// timeout 2,5 s × 6 produits sur CHAQUE page vue → images intermittentes
+// + TTFB dégradé). Les images sont maintenant importées dans Directus une
+// fois pour toutes (script de backfill) et servies via /assets avec
+// transformations. Le filtre image_front _nnull garantit des cartes pleines.
 
 // Plus de fake minimum : on affiche les vrais chiffres.
 // Si la base est vide (ex: environnement staging), on affiche 0.

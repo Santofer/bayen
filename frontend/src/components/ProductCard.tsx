@@ -35,9 +35,13 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     ? SCORE_COLORS[product.score_label]
     : '#a1a1aa'
 
-  // image_front peut être une URL externe (OFF préfetché) ou un UUID Directus
+  // image_front peut être une URL externe (héritage OFF) ou un UUID Directus.
+  // Pour les UUID : thumbnail transformé côté Directus (160×160 WebP ≈ 7 Ko
+  // au lieu du fichier original parfois > 500 Ko).
   const imgSrc = product.image_front
-    ? (product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}`)
+    ? (product.image_front.startsWith('http')
+        ? product.image_front
+        : `${CDN_URL}/${product.image_front}?width=160&height=160&fit=cover&quality=80&format=webp`)
     : null
 
   return (
