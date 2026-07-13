@@ -121,7 +121,11 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       if (traces.length > 0) { patchData.traces = traces }
 
       // Nutri-Score / NOVA / Quantité
-      if (p.nutriscore_grade) { patchData.nutriscore_grade = p.nutriscore_grade.toUpperCase() }
+      // OFF renvoie souvent 'unknown' / 'not-applicable' → ne garder que A–E
+      // (le champ est un varchar(1) contraint : 'UNKNOWN' provoquait un 400).
+      if (p.nutriscore_grade && /^[a-e]$/i.test(p.nutriscore_grade)) {
+        patchData.nutriscore_grade = p.nutriscore_grade.toUpperCase()
+      }
       if (p.nova_group) { patchData.nova_group = p.nova_group }
       if (p.quantity) { patchData.quantity = p.quantity }
 

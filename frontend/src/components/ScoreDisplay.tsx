@@ -166,10 +166,19 @@ function ScoreCircle({ score, label, color }: { score: number; label: string; co
 }
 
 /** Badge Nutri-Score officiel (SVG Open Food Facts) */
-function NutriScoreBar({ grade }: { grade: NutriScoreGrade }) {
+function NutriScoreBar({ grade }: { grade: NutriScoreGrade | null }) {
   const { t } = useLocale()
   const nutriscoreKeys: Record<NutriScoreGrade, 'nutriscore.a' | 'nutriscore.b' | 'nutriscore.c' | 'nutriscore.d' | 'nutriscore.e'> = {
     A: 'nutriscore.a', B: 'nutriscore.b', C: 'nutriscore.c', D: 'nutriscore.d', E: 'nutriscore.e',
+  }
+  // Pas de données nutritionnelles → pas de Nutri-Score (on n'invente pas un E).
+  if (grade == null) {
+    return (
+      <div className="space-y-1.5">
+        <h3 className="text-sm font-medium text-foreground">{t('nutriscore.title')}</h3>
+        <p className="text-xs text-muted-foreground">{t('nutriscore.unavailable')}</p>
+      </div>
+    )
   }
   return (
     <div className="space-y-1.5">
@@ -336,6 +345,33 @@ export default function ScoreDisplay({
   className,
 }: ScoreDisplayProps) {
   const { t } = useLocale()
+
+  // Non évalué : aucune donnée exploitable → on n'invente pas de score.
+  if (score.unscored || score.total == null || score.label == null) {
+    return (
+      <div className={cn('flex flex-col items-center text-center gap-4 py-4', className)}>
+        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-lg font-bold text-foreground">{t('score.notEvaluated')}</p>
+          <p className="text-sm text-muted-foreground mt-1 max-w-xs">{t('score.notEvaluatedDesc')}</p>
+        </div>
+        <a
+          href="/contribuer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          {t('score.contributeData')}
+        </a>
+      </div>
+    )
+  }
+
   const color = SCORE_COLORS[score.label] ?? SCORE_COLORS.mauvais
 
   // Badge "Vérifié" : données confirmées 3× par la communauté (confidence ≥ 0.8)

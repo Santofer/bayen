@@ -38,10 +38,13 @@ export interface AdditiveResult {
 }
 
 export interface ScoreResult {
-  total: number
-  label: ScoreLabel
+  /** null si le produit n'a aucune donnée exploitable (non évalué) */
+  total: number | null
+  /** null si non évalué */
+  label: ScoreLabel | null
   color: string
-  nutriscore_grade: NutriScoreGrade
+  /** null si non évalué */
+  nutriscore_grade: NutriScoreGrade | null
   nutriscore_points: number
   nova_group: NovaGroup | null
   nova_points: number
@@ -49,6 +52,8 @@ export interface ScoreResult {
   additives_detail: AdditiveResult[]
   fsa_score: number | null
   incomplete: boolean
+  /** true = aucune donnée pour scorer (ni nutrition, ni NOVA, ni ingrédients) */
+  unscored: boolean
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -309,6 +314,34 @@ export function computeScore(params: {
 }): ScoreResult {
   const { nutrition, additives } = params
 
+  // Non évalué : aucun signal exploitable (ni nutrition, ni NOVA déclaré, ni
+  // ingrédients). Sans ça, l'algo fabriquait un score « mauvais » (Nutri-Score
+  // E par défaut + NOVA deviné) pour des produits dont on ne sait rien — ex.
+  // une simple semoule notée 30/100. On refuse de juger sans données.
+  const hasNutrition =
+    nutrition.energy_kcal != null ||
+    nutrition.fat_saturated != null ||
+    nutrition.sugars != null ||
+    nutrition.salt != null
+  const hasNova = params.novaGroup != null
+  const hasIngredients = !!(params.ingredientsText && params.ingredientsText.trim())
+  if (!hasNutrition && !hasNova && !hasIngredients) {
+    return {
+      total: null,
+      label: null,
+      color: '#a1a1aa',
+      nutriscore_grade: null,
+      nutriscore_points: 0,
+      nova_group: null,
+      nova_points: 0,
+      additives_points: 0,
+      additives_detail: [],
+      fsa_score: null,
+      incomplete: true,
+      unscored: true,
+    }
+  }
+
   // Détecter automatiquement les boissons via la catégorie
   // 5 = Boissons sucrées, 6 = Eaux & jus
   const beverageCategoryIds = [5, 6]
@@ -317,7 +350,7 @@ export function computeScore(params: {
   }
 
   const nutriResult = computeNutriScore(nutrition)
-  const nutriscoreGrade = nutriResult?.grade ?? 'E'
+  const nutriscoreGrade = nutriResult?.grade ?? null
   const nutriscorePoints = nutriResult?.bayenPoints ?? 0
   const fsaScore = nutriResult?.fsaScore ?? null
 
@@ -348,5 +381,6 @@ export function computeScore(params: {
     additives_detail: additivesResult.detail,
     fsa_score: fsaScore,
     incomplete,
+    unscored: false,
   }
 }

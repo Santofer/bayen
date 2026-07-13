@@ -220,7 +220,7 @@ export default function SearchPage() {
                   image_front: (p.image_front_small_url || p.image_front_url || null) as string | null,
                   scan_score: null,
                   score_label: null,
-                  nutriscore_grade: p.nutriscore_grade ? (p.nutriscore_grade as string).toUpperCase() : null,
+                  nutriscore_grade: (typeof p.nutriscore_grade === 'string' && /^[a-e]$/i.test(p.nutriscore_grade)) ? p.nutriscore_grade.toUpperCase() : null,
                   nova_group: (p.nova_group as number) || null,
                   additives: [],
                   scan_count: 0,

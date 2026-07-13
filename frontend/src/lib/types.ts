@@ -159,10 +159,10 @@ export interface AdditiveResult {
 }
 
 export interface ScoreResult {
-  total: number
-  label: ScoreLabel
+  total: number | null
+  label: ScoreLabel | null
   color: string
-  nutriscore_grade: NutriScoreGrade
+  nutriscore_grade: NutriScoreGrade | null
   nutriscore_points: number
   nova_group: NovaGroup | null
   nova_points: number
@@ -170,6 +170,7 @@ export interface ScoreResult {
   additives_detail: AdditiveResult[]
   fsa_score: number | null
   incomplete: boolean
+  unscored: boolean
 }
 
 // ────────────────────────────────────────────────────────────────

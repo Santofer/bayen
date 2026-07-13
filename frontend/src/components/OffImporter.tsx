@@ -126,7 +126,7 @@ export default function OffImporter() {
       name: p.product_name_fr || p.product_name || 'Inconnu',
       brand: (p.brands || 'Inconnu').split(',')[0].trim(),
       categoryId,
-      nutriscore: p.nutriscore_grade?.toUpperCase() ?? null,
+      nutriscore: (typeof p.nutriscore_grade === 'string' && /^[a-e]$/i.test(p.nutriscore_grade)) ? p.nutriscore_grade.toUpperCase() : null,
       nova: p.nova_group ?? null,
       image: p.image_front_url ?? null,
       imageNutrition: p.image_nutrition_url ?? null,

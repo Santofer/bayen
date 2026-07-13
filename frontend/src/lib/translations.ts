@@ -24,6 +24,9 @@ export const translations = {
   'score.incomplete': { fr: 'Score incomplet',  ary: 'النتيجة ناقصة' },
   'score.unverified': { fr: 'Non vérifié',      ary: 'ما مأكدش' },
   'score.verified':   { fr: 'Vérifié',          ary: 'مؤكد' },
+  'score.notEvaluated':     { fr: 'Non évalué',                                                    ary: 'ما تقيّمش' },
+  'score.notEvaluatedDesc': { fr: "Pas assez de données pour calculer un score fiable. Aide-nous en ajoutant les infos de ce produit.", ary: 'ما كافيينش المعطيات باش نحسبو نتيجة. عاوننا بزيادة المعلومات ديال هاد المنتوج.' },
+  'score.contributeData':   { fr: 'Compléter ce produit',                                          ary: 'كمّل هاد المنتوج' },
 
   // ── Nutri-Score ─────────────────────────────────────────────
   'nutriscore.title': { fr: 'Nutri-Score',                        ary: 'نوتري سكور' },
@@ -32,6 +35,7 @@ export const translations = {
   'nutriscore.c':     { fr: 'Qualité nutritionnelle moyenne',     ary: 'جودة غذائية متوسطة' },
   'nutriscore.d':     { fr: 'Qualité nutritionnelle médiocre',    ary: 'جودة غذائية ضعيفة' },
   'nutriscore.e':     { fr: 'Mauvaise qualité nutritionnelle',    ary: 'جودة غذائية خايبة' },
+  'nutriscore.unavailable': { fr: 'Non disponible (données nutritionnelles manquantes)', ary: 'ماكايناش (نقص فمعطيات التغذية)' },
 
   // ── NOVA ────────────────────────────────────────────────────
   'nova.title': { fr: 'Transformation NOVA',   ary: 'التحويل NOVA' },
