@@ -228,6 +228,69 @@ ESTIMATE_SYSTEM = (
 )
 
 
+CATEGORIZE_SYSTEM = (
+    "Tu es un assistant qui classe des produits alimentaires vendus au Maroc "
+    "dans des catégories. On te fournit une LISTE DE CATÉGORIES (id: nom) et une "
+    "LISTE DE PRODUITS (index: nom [marque]). Pour CHAQUE produit, choisis l'id "
+    "de la catégorie la plus adaptée. Tu retournes UNIQUEMENT du JSON valide :\n"
+    '{"resultats":[{"index":0,"category_id":3}]}\n\n'
+    "RÈGLES :\n"
+    "- Utilise EXCLUSIVEMENT les id fournis dans la liste des catégories.\n"
+    "- Si le produit n'est PAS un aliment ou une boisson (médicament, cosmétique, "
+    "produit ménager, objet…) OU si la catégorie est indéterminable → "
+    "category_id = null.\n"
+    "- EXACTEMENT un résultat par produit, avec son index d'origine.\n"
+    "- Aucun texte hors du JSON."
+)
+
+
+@app.route('/categorize-batch', methods=['POST'])
+def categorize_batch():
+    """Classe un lot de produits dans des catégories (Qwen, 1 appel pour N).
+
+    Input  : JSON {items:[{index,name,brand}], categories:[{id,name}]}
+    Output : {resultats:[{index, category_id}]}  (category_id null si non-aliment)
+    """
+    data = request.get_json(silent=True) or {}
+    items = data.get('items') or []
+    categories = data.get('categories') or []
+    if not items or not categories:
+        return jsonify({'error': 'items et categories requis', 'resultats': []}), 400
+
+    valid_ids = {int(c['id']) for c in categories if str(c.get('id', '')).strip().isdigit()}
+    cat_lines = '\n'.join(f"{int(c['id'])}: {c['name']}" for c in categories if str(c.get('id', '')).strip().isdigit())
+    prod_lines = []
+    for it in items[:40]:
+        idx = it.get('index')
+        name = str(it.get('name', '')).strip()[:80]
+        brand = str(it.get('brand', '')).strip()[:40]
+        prod_lines.append(f"{idx}: {name}" + (f" [{brand}]" if brand else ""))
+
+    user = f"CATÉGORIES:\n{cat_lines}\n\nPRODUITS:\n" + '\n'.join(prod_lines)
+    start = time.time()
+
+    try:
+        parsed = call_ai_text(CATEGORIZE_SYSTEM, user, max_tokens=1200)
+        dur = int((time.time() - start) * 1000)
+        if parsed is None:
+            return jsonify({'error': "IA indisponible", 'resultats': [], 'duration_ms': dur}), 502
+
+        out = []
+        for r in (parsed.get('resultats') or []):
+            try:
+                idx = int(r.get('index'))
+            except (TypeError, ValueError):
+                continue
+            cid = r.get('category_id')
+            cid = int(cid) if (cid is not None and str(cid).strip().lstrip('-').isdigit() and int(cid) in valid_ids) else None
+            out.append({'index': idx, 'category_id': cid})
+
+        return jsonify({'resultats': out, 'duration_ms': dur, 'model': AI_MODEL})
+    except Exception as e:
+        app.logger.error(f'categorize-batch error: {e}')
+        return jsonify({'error': str(e), 'resultats': []}), 500
+
+
 @app.route('/estimate-nutrition', methods=['POST'])
 def estimate_nutrition():
     """Estime la nutrition/100g d'un aliment GÉNÉRIQUE depuis son nom (Qwen).
