@@ -189,6 +189,101 @@ MEAL_SYSTEM = (
 )
 
 
+# Estimation nutritionnelle d'un aliment générique (via /estimate-nutrition)
+# L'IA ESTIME des valeurs de référence ; le SCORE reste calculé par l'algo
+# déterministe côté app (règle CLAUDE.md : l'IA ne calcule jamais le score).
+ESTIMATE_SYSTEM = (
+    "Tu es un expert en composition nutritionnelle des aliments (tables CIQUAL / "
+    "USDA). À partir du NOM d'un produit, tu estimes ses valeurs nutritionnelles "
+    "de référence pour 100 g. Tu retournes UNIQUEMENT du JSON valide :\n"
+    '{"estimable":true, "aliment":"", '
+    '"nutrition_100g":{"energy_kcal":0,"fat_total":0,"fat_saturated":0,'
+    '"carbs_total":0,"sugars":0,"fiber":0,"proteins":0,"salt":0}, '
+    '"nova_group":1, "confiance":"faible|moyenne|elevee"}\n\n'
+    "RÈGLES IMPÉRATIVES :\n"
+    "- N'estime QUE les aliments GÉNÉRIQUES / de base dont les valeurs de "
+    "référence sont bien connues et peu variables : semoule, farine, riz, pâtes "
+    "sèches, couscous, légumineuses (lentilles, pois chiches), huiles, sucre, "
+    "sel, épices, fruits et légumes bruts, lait nature, œufs, miel, thé, café…\n"
+    "- Si le produit est une PRÉPARATION de marque ou un produit transformé "
+    "complexe dont les valeurs varient beaucoup (biscuits, chocolats, plats "
+    "préparés, sauces, sodas, yaourts aromatisés de marque…), OU un nom vague / "
+    "non identifiable → estimable=false et toutes les valeurs à null.\n"
+    "- Valeurs pour 100 g, réalistes et cohérentes entre elles.\n"
+    "- nova_group : 1=brut/minimalement transformé, 2=ingrédient culinaire, "
+    "3=transformé, 4=ultra-transformé.\n"
+    "- confiance : \"elevee\" pour un aliment de base très standard, sinon "
+    "\"moyenne\"/\"faible\".\n"
+    "- Dans le doute sur un produit de marque : estimable=false. N'invente jamais. "
+    "Pas d'avis médical."
+)
+
+
+@app.route('/estimate-nutrition', methods=['POST'])
+def estimate_nutrition():
+    """Estime la nutrition/100g d'un aliment GÉNÉRIQUE depuis son nom (Qwen).
+
+    Input  : JSON {name, brand?, category?}
+    Output : {estimable, aliment, nutrition_100g, nova_group, confiance}
+             estimable=false si produit de marque / non identifiable.
+             Le score Bayen est calculé ensuite par l'algo déterministe.
+    """
+    data = request.get_json(silent=True) or {}
+    name = str(data.get('name', '')).strip()
+    if not name:
+        return jsonify({'estimable': False, 'error': 'name requis'}), 400
+
+    context_bits = str(data.get('category', '') or data.get('brand', '')).strip()
+    start = time.time()
+
+    user = f"Produit : {name}"
+    if context_bits:
+        user += f"\nContexte (marque/catégorie) : {context_bits}"
+    user += "\n\nEstime les valeurs nutritionnelles de référence pour 100 g de cet aliment."
+
+    try:
+        parsed = call_ai_text(ESTIMATE_SYSTEM, user, max_tokens=400)
+        dur = int((time.time() - start) * 1000)
+
+        if parsed is None:
+            return jsonify({'estimable': False, 'message': "L'IA n'a pas pu estimer.", 'duration_ms': dur}), 502
+
+        if not parsed.get('estimable'):
+            return jsonify({'estimable': False, 'duration_ms': dur})
+
+        n = parsed.get('nutrition_100g') or {}
+        nutrition = {
+            'energy_kcal': _num(n.get('energy_kcal'), 0, 1000),
+            'fat_total': _num(n.get('fat_total'), 0, 100),
+            'fat_saturated': _num(n.get('fat_saturated'), 0, 100),
+            'carbs_total': _num(n.get('carbs_total'), 0, 100),
+            'sugars': _num(n.get('sugars'), 0, 100),
+            'fiber': _num(n.get('fiber'), 0, 100),
+            'proteins': _num(n.get('proteins'), 0, 100),
+            'salt': _num(n.get('salt'), 0, 100),
+        }
+        # Garde-fou : sans énergie, l'estimation n'est pas exploitable
+        if nutrition['energy_kcal'] is None:
+            return jsonify({'estimable': False, 'duration_ms': dur})
+
+        confiance = str(parsed.get('confiance', 'moyenne')).lower()
+        if confiance not in ('faible', 'moyenne', 'elevee'):
+            confiance = 'moyenne'
+
+        return jsonify({
+            'estimable': True,
+            'aliment': str(parsed.get('aliment') or name)[:120],
+            'nutrition_100g': nutrition,
+            'nova_group': _int(parsed.get('nova_group'), 1, 4),
+            'confiance': confiance,
+            'duration_ms': dur,
+            'model': AI_MODEL,
+        })
+    except Exception as e:
+        app.logger.error(f'estimate-nutrition error: {e}')
+        return jsonify({'estimable': False, 'error': str(e), 'duration_ms': int((time.time() - start) * 1000)}), 500
+
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({

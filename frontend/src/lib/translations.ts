@@ -27,6 +27,13 @@ export const translations = {
   'score.notEvaluated':     { fr: 'Non évalué',                                                    ary: 'ما تقيّمش' },
   'score.notEvaluatedDesc': { fr: "Pas assez de données pour calculer un score fiable. Aide-nous en ajoutant les infos de ce produit.", ary: 'ما كافيينش المعطيات باش نحسبو نتيجة. عاوننا بزيادة المعلومات ديال هاد المنتوج.' },
   'score.contributeData':   { fr: 'Compléter ce produit',                                          ary: 'كمّل هاد المنتوج' },
+  'score.aiEstimate':       { fr: 'Estimation IA',                                                 ary: 'تقدير بالذكاء الاصطناعي' },
+  // Estimation IA (produit sans données)
+  'estimate.button':        { fr: "Estimer avec l'IA",                                             ary: 'قدّر بالذكاء الاصطناعي' },
+  'estimate.loading':       { fr: 'Estimation en cours…',                                          ary: 'كنقدّرو…' },
+  'estimate.hint':          { fr: "Pour les aliments de base (semoule, farine, huile…), notre IA estime les valeurs de référence.", ary: 'للأطعمة الأساسية (السميدة، الطحين، الزيت…)، الذكاء الاصطناعي كيقدّر القيم المرجعية.' },
+  'estimate.notEstimable':  { fr: "Ce produit est trop spécifique pour une estimation fiable. Ajoute ses infos manuellement.", ary: 'هاد المنتوج خاص بزاف باش نقدّروه. زيد المعلومات ديالو يدويا.' },
+  'estimate.error':         { fr: "L'estimation n'a pas abouti. Réessaie.",                        ary: 'التقدير ما نجحش. عاود.' },
 
   // ── Nutri-Score ─────────────────────────────────────────────
   'nutriscore.title': { fr: 'Nutri-Score',                        ary: 'نوتري سكور' },

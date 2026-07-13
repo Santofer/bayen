@@ -9,6 +9,7 @@
  *   POST /bayen-api/meal-scan          → Sauvegarde analyse photo repas (journal perso)
  *   GET  /bayen-api/my-stats           → Stats perso : streaks + position classement
  *   GET  /bayen-api/nutrition-summary  → Résumé nutritionnel jour + 7 jours (journal)
+ *   POST /bayen-api/estimate-and-score → Estimation IA (Qwen) d'un produit sans données
  */
 
 import type { Router } from 'express'
@@ -19,6 +20,7 @@ import { registerOffSearchEndpoint } from './off-search.js'
 import { registerMealScanEndpoint } from './meal-scan.js'
 import { registerStatsEndpoint } from './stats.js'
 import { registerNutritionEndpoint } from './nutrition.js'
+import { registerEstimateEndpoint } from './estimate.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -29,4 +31,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   // (meal-scan & my-stats lisent req.accountability — Directus authentifie en amont)
   registerStatsEndpoint(router, context as unknown as Parameters<typeof registerStatsEndpoint>[1])
   registerNutritionEndpoint(router, context as unknown as Parameters<typeof registerNutritionEndpoint>[1])
+  registerEstimateEndpoint(router, context as unknown as Parameters<typeof registerEstimateEndpoint>[1])
 }

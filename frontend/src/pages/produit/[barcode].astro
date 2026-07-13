@@ -4,6 +4,7 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import ScoreDisplay from '@/components/ScoreDisplay.tsx'
+import EstimateWithAI from '@/components/EstimateWithAI.tsx'
 import ProductCard from '@/components/ProductCard.tsx'
 import ProductActions from '@/components/ProductActions.tsx'
 import EnrichFromOff from '@/components/EnrichFromOff.tsx'
@@ -518,13 +519,19 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         </div>
 
         {/* Score complet */}
-        <div class="rounded-xl border bg-card p-6">
+        <div class="rounded-xl border bg-card p-6 space-y-5">
           <ScoreDisplay
             score={score as any}
             confidenceScore={product.confidence_score as number | null | undefined}
             dataSource={product.data_source as string | null | undefined}
             client:load
           />
+          {/* Produit non évalué et présent en base → proposer l'estimation IA */}
+          {scanResult.source === 'directus' && score?.total == null && (
+            <div class="border-t pt-5">
+              <EstimateWithAI barcode={barcode as string} client:visible />
+            </div>
+          )}
         </div>
 
         {/* Analyse santé — commentaires explicatifs par nutriment */}
