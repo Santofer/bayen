@@ -8,6 +8,7 @@ export const translations = {
   'nav.home':       { fr: 'Accueil',       ary: 'الرئيسية' },
   'nav.scan':       { fr: 'Scanner',       ary: 'سكان' },
   'nav.search':     { fr: 'Recherche',     ary: 'بحث' },
+  'nav.compare':    { fr: 'Comparer',      ary: 'قارن' },
   'nav.additives':  { fr: 'Additifs',      ary: 'إضافات' },
   'nav.contribute': { fr: 'Contribuer',    ary: 'ساهم' },
   'nav.meal':       { fr: 'Mon repas',     ary: 'الوجبة ديالي' },
@@ -489,6 +490,21 @@ export const translations = {
   'nutri.weekTitle':        { fr: '7 derniers jours',                                  ary: 'آخر 7 أيام' },
   'nutri.avg':              { fr: 'Moy.',                                              ary: 'متوسط' },
   'nutri.caveat':           { fr: "Basé sur tes analyses photo — estimations, pas un suivi médical.", ary: 'مبني على تحاليل الصور — تقديرات، ماشي تتبع طبي.' },
+
+  // Comparateur de produits
+  'cmp.pageTitle':          { fr: 'Comparer 2 produits',                                  ary: 'قارن جوج منتوجات' },
+  'cmp.pageSubtitle':       { fr: 'Choisis deux produits et vois lequel est le meilleur choix, avec l\'avis de notre IA.', ary: 'اختار جوج منتوجات وشوف أيّ واحد أحسن، مع رأي الذكاء الاصطناعي.' },
+  'cmp.pickA':              { fr: 'Chercher un 1ᵉʳ produit…',                             ary: 'قلّب على المنتوج الأول…' },
+  'cmp.pickB':              { fr: 'Chercher un 2ᵉ produit…',                              ary: 'قلّب على المنتوج الثاني…' },
+  'cmp.betterChoice':       { fr: 'Meilleur choix :',                                     ary: 'الاختيار الأحسن:' },
+  'cmp.score':              { fr: 'Score',                                                ary: 'النقطة' },
+  'cmp.sugar':              { fr: 'Sucre',                                                ary: 'السكر' },
+  'cmp.satfat':             { fr: 'Graisses sat.',                                        ary: 'الدهون المشبعة' },
+  'cmp.salt':               { fr: 'Sel',                                                  ary: 'الملح' },
+  'cmp.additives':          { fr: 'Additifs',                                             ary: 'المضافات' },
+  'cmp.verdictTitle':       { fr: 'Le verdict Bayen',                                     ary: 'حكم باين' },
+  'cmp.thinking':           { fr: 'Analyse en cours…',                                    ary: 'كنحللو…' },
+  'cmp.verdictUnavailable': { fr: 'Verdict indisponible pour le moment.',                 ary: 'الحكم ماكاينش دابا.' },
 } as const
 
 /** Clé de traduction valide */

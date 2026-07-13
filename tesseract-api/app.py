@@ -358,6 +358,79 @@ def categorize_batch():
         return jsonify({'error': str(e), 'resultats': []}), 500
 
 
+COMPARE_SYSTEM = (
+    "Tu compares DEUX produits alimentaires pour aider un consommateur marocain "
+    "à choisir. On te donne leurs données (A et B) et le GAGNANT déjà déterminé "
+    "par le score Bayen. Tu retournes UNIQUEMENT du JSON :\n"
+    '{"raison":"", "conseil":""}\n\n'
+    "RÈGLES :\n"
+    "- raison : 1 à 2 phrases concrètes qui expliquent POURQUOI le gagnant est un "
+    "meilleur choix, en citant les vraies différences (sucre, sel, additifs, "
+    "transformation NOVA, graisses…). Ne contredis JAMAIS le gagnant fourni.\n"
+    "- conseil : 1 phrase pratique et bienveillante (ex. quand l'un peut convenir "
+    "quand même). PAS de conseil médical, aucune mention de maladie.\n"
+    "- Si égalité, explique qu'ils se valent et sur quoi départager.\n"
+    "- Français simple et bienveillant. N'invente aucun chiffre non fourni."
+)
+
+
+def _prod_line(p):
+    parts = [f"score {p.get('score', '?')}/100"]
+    if p.get('nutriscore'):
+        parts.append(f"Nutri-Score {p['nutriscore']}")
+    if p.get('nova') is not None:
+        parts.append(f"NOVA {p['nova']}")
+    for label, key in (('sucre', 'sugars'), ('sel', 'salt'),
+                       ('graisses saturees', 'fat_saturated')):
+        if p.get(key) is not None:
+            parts.append(f"{label} {p[key]}g")
+    n_add = p.get('additives_count')
+    if n_add is not None:
+        parts.append(f"{n_add} additif(s)")
+    return ", ".join(parts)
+
+
+@app.route('/compare-verdict', methods=['POST'])
+def compare_verdict():
+    """Verdict IA entre 2 produits. Le gagnant est fourni (déterministe), Qwen
+    rédige seulement raison + conseil.
+
+    Input : JSON {a:{name,score,...}, b:{...}, gagnant:"A|B|egalite"}
+    Output: {raison, conseil}
+    """
+    data = request.get_json(silent=True) or {}
+    a = data.get('a') or {}
+    b = data.get('b') or {}
+    gagnant = str(data.get('gagnant', 'egalite')).upper()
+    if gagnant not in ('A', 'B', 'EGALITE'):
+        gagnant = 'EGALITE'
+    if not a.get('name') or not b.get('name'):
+        return jsonify({'error': 'a.name et b.name requis'}), 400
+
+    win_txt = {'A': f"Gagnant : A ({a.get('name')})",
+               'B': f"Gagnant : B ({b.get('name')})",
+               'EGALITE': "Résultat : égalité"}[gagnant]
+    user = (f"PRODUIT A — {a.get('name')} : {_prod_line(a)}\n"
+            f"PRODUIT B — {b.get('name')} : {_prod_line(b)}\n\n{win_txt}\n\n"
+            "Explique le choix.")
+    start = time.time()
+
+    try:
+        parsed = call_ai_text(COMPARE_SYSTEM, user, max_tokens=350)
+        dur = int((time.time() - start) * 1000)
+        if parsed is None:
+            return jsonify({'error': 'IA indisponible', 'duration_ms': dur}), 502
+        return jsonify({
+            'raison': str(parsed.get('raison', ''))[:400],
+            'conseil': str(parsed.get('conseil', ''))[:300],
+            'duration_ms': dur,
+            'model': AI_MODEL,
+        })
+    except Exception as e:
+        app.logger.error(f'compare-verdict error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/estimate-nutrition', methods=['POST'])
 def estimate_nutrition():
     """Estime la nutrition/100g d'un aliment GÉNÉRIQUE depuis son nom (Qwen).
