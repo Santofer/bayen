@@ -244,6 +244,73 @@ CATEGORIZE_SYSTEM = (
 )
 
 
+NONFOOD_SYSTEM = (
+    "Tu détermines si des produits sont des ALIMENTS ou BOISSONS destinés à être "
+    "mangés ou bus. Pour CHAQUE produit (index + nom [marque]), réponds is_food "
+    "(true/false) et type. Tu retournes UNIQUEMENT du JSON valide :\n"
+    '{"resultats":[{"index":0,"is_food":true,"type":"aliment"}]}\n\n'
+    "type ∈ aliment | boisson | complement | medicament | cosmetique | autre\n"
+    "RÈGLES :\n"
+    "- is_food=true pour tout ce qui se mange ou se boit : y compris fruits secs, "
+    "noix, graines, miel, chocolat, café, thé, épices, huiles, eau, lait, sodas, "
+    "ET AUSSI les chewing-gums, bonbons, confiseries (Trident, Mentos, Clorets, "
+    "Chiclets… = aliment).\n"
+    "- is_food=false UNIQUEMENT pour : médicaments, compléments alimentaires en "
+    "gélules/comprimés/poudre (créatine, collagène, vitamines, protéines en poudre, "
+    "magnésium…), cosmétiques, produits d'hygiène/ménagers, objets, accessoires.\n"
+    "- DANS LE DOUTE, ou si le nom est un simple mot/marque sans indice CLAIR de "
+    "non-aliment (ex : TITAN, Or Blanc, Perly…) → is_food=true. On ne retire "
+    "JAMAIS un vrai aliment par erreur ; mieux vaut garder un doute que supprimer.\n"
+    "- EXACTEMENT un résultat par produit, avec son index."
+)
+
+
+@app.route('/detect-nonfood-batch', methods=['POST'])
+def detect_nonfood_batch():
+    """Détecte les non-aliments d'un lot (Qwen). Conservateur (doute → aliment).
+
+    Input  : JSON {items:[{index,name,brand}]}
+    Output : {resultats:[{index, is_food, type}]}
+    """
+    data = request.get_json(silent=True) or {}
+    items = data.get('items') or []
+    if not items:
+        return jsonify({'error': 'items requis', 'resultats': []}), 400
+
+    prod_lines = []
+    for it in items[:40]:
+        idx = it.get('index')
+        name = str(it.get('name', '')).strip()[:80]
+        brand = str(it.get('brand', '')).strip()[:40]
+        prod_lines.append(f"{idx}: {name}" + (f" [{brand}]" if brand else ""))
+    user = "PRODUITS:\n" + '\n'.join(prod_lines)
+    start = time.time()
+
+    try:
+        parsed = call_ai_text(NONFOOD_SYSTEM, user, max_tokens=1000)
+        dur = int((time.time() - start) * 1000)
+        if parsed is None:
+            return jsonify({'error': 'IA indisponible', 'resultats': [], 'duration_ms': dur}), 502
+
+        valid_types = {'aliment', 'boisson', 'complement', 'medicament', 'cosmetique', 'autre'}
+        out = []
+        for r in (parsed.get('resultats') or []):
+            try:
+                idx = int(r.get('index'))
+            except (TypeError, ValueError):
+                continue
+            is_food = bool(r.get('is_food', True))
+            typ = str(r.get('type', 'aliment')).lower().strip()
+            if typ not in valid_types:
+                typ = 'aliment' if is_food else 'autre'
+            out.append({'index': idx, 'is_food': is_food, 'type': typ})
+
+        return jsonify({'resultats': out, 'duration_ms': dur, 'model': AI_MODEL})
+    except Exception as e:
+        app.logger.error(f'detect-nonfood-batch error: {e}')
+        return jsonify({'error': str(e), 'resultats': []}), 500
+
+
 @app.route('/categorize-batch', methods=['POST'])
 def categorize_batch():
     """Classe un lot de produits dans des catégories (Qwen, 1 appel pour N).
