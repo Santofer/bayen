@@ -16,6 +16,8 @@ interface Alternative {
   scan_score: number | null
   score_label: string | null
   nutriscore_grade: string | null
+  /** Raisons factuelles pour lesquelles cette alternative est meilleure */
+  reasons?: string[]
 }
 
 interface ProductAlternativesProps {
@@ -130,6 +132,18 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
                   className="h-5"
                   loading="lazy"
                 />
+              )}
+
+              {/* Raisons factuelles « pourquoi mieux » */}
+              {alt.reasons && alt.reasons.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {alt.reasons.map((r, i) => (
+                    <li key={i} className="flex items-start gap-1 text-[11px] leading-tight text-green-700 dark:text-green-300">
+                      <span className="mt-0.5 flex-shrink-0">✓</span>
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </a>
           ))}

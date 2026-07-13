@@ -288,7 +288,7 @@ if (scanResult.source === 'directus' && product?.category_id && score?.total != 
       ? (product.category_id as Record<string, unknown>).id
       : product.category_id
     const altRes = await fetch(
-      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score&limit=3&fields=barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade`,
+      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score&limit=3&fields=barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,sugars,salt,fat_saturated,nova_group,additives`,
       { signal: AbortSignal.timeout(3000) }
     )
     if (altRes.ok) {
@@ -297,6 +297,36 @@ if (scanResult.source === 'directus' && product?.category_id && score?.total != 
     }
   } catch { /* non critique */ }
   if (alternatives.length === 0) isBestInCategory = true
+}
+
+// Raisons FACTUELLES (déterministes) pour lesquelles une alternative est
+// meilleure que le produit courant — pas d'IA ici : on compare les données
+// réelles (sucre, sel, graisses sat., additifs, NOVA) pour ne jamais mentir.
+const _n = (v: unknown): number | null => {
+  const x = typeof v === 'number' ? v : parseFloat(String(v))
+  return isFinite(x) ? x : null
+}
+const curSugars = _n(product?.sugars)
+const curSalt = _n(product?.salt)
+const curSat = _n(product?.fat_saturated)
+const curNova = _n(product?.nova_group)
+const curAddCount = Array.isArray(product?.additives) ? (product!.additives as unknown[]).length : 0
+
+function altReasons(alt: Record<string, unknown>): string[] {
+  const reasons: string[] = []
+  const addCount = Array.isArray(alt.additives) ? (alt.additives as unknown[]).length : 0
+  if (curAddCount > 0 && addCount < curAddCount) {
+    reasons.push(addCount === 0 ? 'Sans additif' : `${curAddCount - addCount} additif${curAddCount - addCount > 1 ? 's' : ''} en moins`)
+  }
+  const s = _n(alt.sugars)
+  if (curSugars != null && s != null && s <= curSugars - 2) reasons.push(`−${Math.round(curSugars - s)} g de sucre`)
+  const nova = _n(alt.nova_group)
+  if (curNova != null && nova != null && nova < curNova) reasons.push(`Moins transformé (NOVA ${nova})`)
+  const sat = _n(alt.fat_saturated)
+  if (curSat != null && sat != null && sat <= curSat - 1) reasons.push(`−${Math.round(curSat - sat)} g de graisses saturées`)
+  const salt = _n(alt.salt)
+  if (curSalt != null && salt != null && salt <= curSalt - 0.2) reasons.push(`−${(curSalt - salt).toFixed(1)} g de sel`)
+  return reasons.slice(0, 3)
 }
 
 // SEO
@@ -563,6 +593,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               scan_score: a.scan_score as number | null,
               score_label: a.score_label as string | null,
               nutriscore_grade: a.nutriscore_grade as string | null,
+              reasons: altReasons(a),
             }))}
             isBestInCategory={isBestInCategory}
             client:load
