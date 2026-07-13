@@ -6,8 +6,9 @@
  *   POST /bayen-api/contribute  → Création anonyme d'un produit (sans login)
  *   POST /bayen-api/log-error   → Ingestion des erreurs frontend
  *   GET  /bayen-api/off-search  → Proxy recherche Open Food Facts (bulk import admin)
- *   POST /bayen-api/meal-scan   → Sauvegarde analyse photo repas (journal perso)
- *   GET  /bayen-api/my-stats    → Stats perso : streaks + position classement
+ *   POST /bayen-api/meal-scan          → Sauvegarde analyse photo repas (journal perso)
+ *   GET  /bayen-api/my-stats           → Stats perso : streaks + position classement
+ *   GET  /bayen-api/nutrition-summary  → Résumé nutritionnel jour + 7 jours (journal)
  */
 
 import type { Router } from 'express'
@@ -17,6 +18,7 @@ import { registerLogErrorEndpoint } from './log-error.js'
 import { registerOffSearchEndpoint } from './off-search.js'
 import { registerMealScanEndpoint } from './meal-scan.js'
 import { registerStatsEndpoint } from './stats.js'
+import { registerNutritionEndpoint } from './nutrition.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -26,4 +28,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerMealScanEndpoint(router, context as unknown as Parameters<typeof registerMealScanEndpoint>[1])
   // (meal-scan & my-stats lisent req.accountability — Directus authentifie en amont)
   registerStatsEndpoint(router, context as unknown as Parameters<typeof registerStatsEndpoint>[1])
+  registerNutritionEndpoint(router, context as unknown as Parameters<typeof registerNutritionEndpoint>[1])
 }

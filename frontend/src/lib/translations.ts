@@ -465,6 +465,19 @@ export const translations = {
   'journal.empty':          { fr: "Tu n'as encore analysé aucun repas.",               ary: 'ما حللتي حتى وجبة.' },
   'journal.emptyCta':       { fr: 'Analyser mon premier repas',                        ary: 'حلل أول وجبة' },
   'journal.kcal':           { fr: 'kcal',                                              ary: 'سعرة' },
+
+  // Dashboard nutrition (journal)
+  'nutri.todayTitle':       { fr: "Aujourd'hui",                                       ary: 'اليوم' },
+  'nutri.goal':             { fr: 'Objectif',                                          ary: 'الهدف' },
+  'nutri.remaining':        { fr: 'Il te reste',                                       ary: 'باقي ليك' },
+  'nutri.over':             { fr: 'Dépassement de',                                    ary: 'تجاوزتي بـ' },
+  'nutri.today':            { fr: "aujourd'hui",                                       ary: 'اليوم' },
+  'nutri.mealSingular':     { fr: 'repas',                                             ary: 'وجبة' },
+  'nutri.mealsPlural':      { fr: 'repas',                                             ary: 'وجبات' },
+  'nutri.noMealToday':      { fr: "Aucun repas enregistré aujourd'hui.",               ary: 'ما سجلتي حتى وجبة اليوم.' },
+  'nutri.weekTitle':        { fr: '7 derniers jours',                                  ary: 'آخر 7 أيام' },
+  'nutri.avg':              { fr: 'Moy.',                                              ary: 'متوسط' },
+  'nutri.caveat':           { fr: "Basé sur tes analyses photo — estimations, pas un suivi médical.", ary: 'مبني على تحاليل الصور — تقديرات، ماشي تتبع طبي.' },
 } as const
 
 /** Clé de traduction valide */
