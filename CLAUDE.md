@@ -106,6 +106,13 @@ curl -X POST https://api.bayen.ma/bayen-api/scan \
   -H "Content-Type: application/json" \
   -d '{"barcode":"6111080016394","session_id":"test-123"}'
 
+# Tester le résumé nutrition (auth requise — token statique admin)
+curl https://api.bayen.ma/bayen-api/nutrition-summary \
+  -H "Authorization: Bearer <token>"
+
+# Backfill images produits (auto : cron nightly 04:30 sur le serveur ;
+# script scripts/backfill-images.py exécuté DANS bayen-tesseract)
+
 # Snapshot schéma Directus (à faire avant chaque modification de schéma)
 npx directus schema snapshot ./directus/snapshots/$(date +%Y%m%d).yaml
 
