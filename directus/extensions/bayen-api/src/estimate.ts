@@ -54,8 +54,13 @@ export function registerEstimateEndpoint(
 ): void {
   router.post('/estimate-and-score', async (req, res) => {
     try {
+      // Le batch nightly s'authentifie en admin (token statique) → pas de
+      // rate limit pour lui ; les visiteurs anonymes restent limités.
+      const isAdmin = (req as unknown as {
+        accountability?: { admin?: boolean }
+      }).accountability?.admin === true
       const ip = clientIp(req)
-      if (!checkRate(ip)) {
+      if (!isAdmin && !checkRate(ip)) {
         res.status(429).json({ error: 'Trop de demandes, réessaie dans quelques minutes.' })
         return
       }
