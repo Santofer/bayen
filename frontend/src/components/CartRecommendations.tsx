@@ -66,13 +66,13 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
         <Sparkles className="h-4 w-4 text-primary" />
         {t('cart.recoTitle')}
       </h3>
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+      <div className="rail-x flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
         {recos.map((r) => {
           const src = r.image_front
             ? (r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=160&height=160&fit=cover&format=webp`)
             : null
           return (
-            <div key={r.barcode} className="flex-shrink-0 w-[150px] rounded-lg border bg-background p-2.5">
+            <div key={r.barcode} className="card-lift flex-shrink-0 w-[150px] rounded-xl border bg-background p-2.5">
               <a href={`/produit/${r.barcode}`} className="block">
                 <div className="relative w-full aspect-square rounded-md overflow-hidden bg-muted mb-2">
                   {src && <img src={src} alt={r.name_fr} className="w-full h-full object-cover" loading="lazy" />}

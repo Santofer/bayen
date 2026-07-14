@@ -48,7 +48,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     <a
       href={`/produit/${product.barcode}`}
       className={cn(
-        'group flex gap-3 rounded-xl border bg-card p-3 transition-all hover:shadow-md hover:border-primary/20',
+        'card-lift group flex gap-3 rounded-2xl border bg-card p-3',
         className
       )}
     >

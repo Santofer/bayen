@@ -81,12 +81,12 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
 
       {/* Cards alternatives */}
       {alternatives.length > 0 && (
-        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 scrollbar-none">
+        <div className="rail-x flex gap-3 overflow-x-auto snap-x pb-2 -mx-1 px-1">
           {alternatives.map((alt) => (
             <a
               key={alt.barcode}
               href={`/produit/${alt.barcode}`}
-              className="flex-shrink-0 snap-start w-[160px] rounded-lg border bg-background p-3 hover:shadow-md transition-shadow group"
+              className="card-lift flex-shrink-0 snap-start w-[160px] rounded-xl border bg-background p-3 group"
             >
               {/* Image */}
               <div className="relative w-full aspect-square rounded-md overflow-hidden bg-muted mb-2.5">

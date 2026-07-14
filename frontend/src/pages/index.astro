@@ -185,19 +185,19 @@ try {
     <!-- Stats -->
     <section class="container mx-auto max-w-screen-lg px-4 py-2">
       <div class="grid grid-cols-3 gap-3 sm:gap-6">
-        <div class="rounded-xl border bg-card p-4 text-center">
+        <div class="rounded-2xl border bg-card p-4 text-center shadow-[var(--shadow-card)]">
           <p class="text-2xl sm:text-3xl font-bold text-primary">
             {totalProducts.toLocaleString('fr-FR')}
           </p>
           <p class="text-xs sm:text-sm text-muted-foreground mt-1">{t('home.products', locale)}</p>
         </div>
-        <div class="rounded-xl border bg-card p-4 text-center">
+        <div class="rounded-2xl border bg-card p-4 text-center shadow-[var(--shadow-card)]">
           <p class="text-2xl sm:text-3xl font-bold text-primary">
             {totalScans.toLocaleString('fr-FR')}
           </p>
           <p class="text-xs sm:text-sm text-muted-foreground mt-1">{t('home.scans', locale)}</p>
         </div>
-        <div class="rounded-xl border bg-card p-4 text-center">
+        <div class="rounded-2xl border bg-card p-4 text-center shadow-[var(--shadow-card)]">
           <p class="text-2xl sm:text-3xl font-bold text-primary">
             {scansToday > 0 ? `+${scansToday.toLocaleString('fr-FR')}` : '100%'}
           </p>
@@ -230,7 +230,7 @@ try {
     </section>
 
     <!-- Comment ça marche -->
-    <section class="container mx-auto max-w-screen-lg px-4 py-12">
+    <section class="reveal container mx-auto max-w-screen-lg px-4 py-12">
       <h2 class="font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
       <div class="grid sm:grid-cols-3 gap-6">
         <div class="text-center">
@@ -276,7 +276,7 @@ try {
 
     <!-- Articles récents (blog) -->
     {recentArticles.length > 0 && (
-      <section class="container mx-auto max-w-screen-lg px-4 pb-12">
+      <section class="reveal container mx-auto max-w-screen-lg px-4 pb-12">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-bold text-foreground">{t('blog.recentTitle', locale)}</h2>
           <a href="/blog" class="text-sm text-primary hover:underline">{t('blog.seeAll', locale)}</a>
@@ -287,7 +287,7 @@ try {
 
     <!-- Produits populaires -->
     {recentProducts.length > 0 && (
-      <section class="container mx-auto max-w-screen-lg px-4 pb-12">
+      <section class="reveal container mx-auto max-w-screen-lg px-4 pb-12">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-bold text-foreground">{t('home.popular', locale)}</h2>
           <a href="/recherche" class="text-sm text-primary hover:underline">{t('home.seeAll', locale)}</a>
@@ -301,7 +301,7 @@ try {
     )}
 
     <!-- CTA Contribution -->
-    <section class="container mx-auto max-w-screen-lg px-4 pb-8">
+    <section class="reveal container mx-auto max-w-screen-lg px-4 pb-8">
       <div class="rounded-xl bg-card border border-border p-6 sm:p-8 text-center">
         <h2 class="font-bold text-foreground">{t('home.missingTitle', locale)}</h2>
         <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
@@ -321,9 +321,9 @@ try {
     </section>
 
     <!-- Liens rapides -->
-    <section class="container mx-auto max-w-screen-lg px-4 pb-12">
+    <section class="reveal container mx-auto max-w-screen-lg px-4 pb-12">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <a href="/importer" class="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 hover:shadow-md transition-shadow text-center">
+        <a href="/importer" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
@@ -331,11 +331,11 @@ try {
           </svg>
           <span class="text-xs font-medium">{t('home.import', locale)}</span>
         </a>
-        <a href="/classement" class="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 hover:shadow-md transition-shadow text-center">
+        <a href="/classement" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
           <span class="text-xs font-medium">{t('home.ranking', locale)}</span>
         </a>
-        <a href="/categories" class="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 hover:shadow-md transition-shadow text-center">
+        <a href="/categories" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
@@ -344,7 +344,7 @@ try {
           </svg>
           <span class="text-xs font-medium">{t('search.categories', locale)}</span>
         </a>
-        <a href="/additifs" class="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 hover:shadow-md transition-shadow text-center">
+        <a href="/additifs" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
             <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
             <path d="M8.5 2h7" />

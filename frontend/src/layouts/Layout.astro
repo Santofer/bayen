@@ -368,5 +368,69 @@ const currentPath = Astro.url.pathname
         padding-bottom: env(safe-area-inset-bottom, 0px);
       }
     </style>
+
+    <script is:inline>
+      // ── Moteur d'interactions Bayen (léger, 60 fps, passif) ──────
+      (function () {
+        var html = document.documentElement;
+        var scrollTimer = null;
+
+        function onScroll() {
+          // Scrollbar visible uniquement pendant le défilement
+          if (!html.classList.contains('is-scrolling')) html.classList.add('is-scrolling');
+          if (scrollTimer) clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(function () {
+            html.classList.remove('is-scrolling');
+          }, 900);
+          // Ombre de la nav dès qu'on quitte le sommet
+          html.classList.toggle('nav-scrolled', window.scrollY > 8);
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        // Révélation douce au scroll — progressive enhancement strict :
+        // on ne masque QUE ce qui est sous le fold, et un filet de sécurité
+        // re-révèle tout élément visible à chaque scroll (jamais de contenu perdu).
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function vh() { return window.innerHeight || document.documentElement.clientHeight || 900; }
+        if (!reduce && 'IntersectionObserver' in window) {
+          var pending = [];
+          document.querySelectorAll('.reveal').forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            if (r.top > vh() * 0.92) {
+              el.classList.add('reveal-init');
+              pending.push(el);
+            }
+          });
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) reveal(e.target);
+            });
+          }, { threshold: 0.01 });
+          function reveal(el) {
+            el.classList.add('reveal-in');
+            el.classList.remove('reveal-init');
+            io.unobserve(el);
+            var idx = pending.indexOf(el);
+            if (idx > -1) pending.splice(idx, 1);
+          }
+          pending.forEach(function (el) { io.observe(el); });
+          // Filet de sécurité : tout .reveal-init déjà dans le viewport est
+          // révélé même si l'observer le rate (scroll + check périodique
+          // auto-arrêté — couvre restauration bfcache, ancres, etc.).
+          function sweep() {
+            for (var i = pending.length - 1; i >= 0; i--) {
+              var r = pending[i].getBoundingClientRect();
+              if (r.top < vh() && r.bottom > 0) reveal(pending[i]);
+            }
+          }
+          window.addEventListener('scroll', sweep, { passive: true });
+          var sweeper = setInterval(function () {
+            sweep();
+            if (pending.length === 0) clearInterval(sweeper);
+          }, 800);
+        }
+      })();
+    </script>
   </body>
 </html>
