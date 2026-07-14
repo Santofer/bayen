@@ -1,0 +1,53 @@
+<!-- @dsCard group="Fondations" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Élévation & Motion — Bayen DS</title>
+<link href="https://fonts.googleapis.com/css2?family=Mouse+Memoirs&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ease-spring:cubic-bezier(.34,1.3,.5,1);--ease-out-soft:cubic-bezier(.22,1,.36,1);
+    --shadow-card:0 1px 2px hsl(97 40% 20%/.05),0 2px 8px hsl(97 40% 20%/.05);
+    --shadow-lift:0 2px 4px hsl(97 40% 20%/.06),0 12px 28px hsl(97 40% 20%/.12)}
+  body{font-family:Nunito,system-ui,sans-serif;background:hsl(60 48% 94%);color:hsl(100 25% 12%);margin:0;padding:28px}
+  h1{font-family:'Mouse Memoirs',sans-serif;font-size:2rem;margin:0 0 4px}
+  .sub{color:hsl(95 12% 42%);font-size:.85rem;margin:0 0 20px}
+  .grid{display:flex;gap:16px;flex-wrap:wrap}
+  .tile{width:170px;background:hsl(58 52% 97%);border:1px solid hsl(62 28% 82%);border-radius:16px;padding:16px;font-size:.8rem}
+  .tile b{display:block;margin-bottom:6px}
+  .sh-card{box-shadow:var(--shadow-card)}
+  .sh-lift{box-shadow:var(--shadow-lift)}
+  .lift{transition:transform .3s var(--ease-spring),box-shadow .3s var(--ease-out-soft);box-shadow:var(--shadow-card);cursor:pointer}
+  .lift:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);border-color:hsl(97 36% 30%/.25)}
+  .lift:active{transform:translateY(-1px) scale(.995)}
+  .radius{display:flex;gap:12px;align-items:flex-end;margin-top:8px}
+  .r{background:hsl(97 36% 30%);color:#f0f2d2;display:flex;align-items:center;justify-content:center;font-size:.65rem;width:74px;height:54px}
+  .press{display:inline-flex;align-items:center;height:40px;padding:0 18px;border-radius:10px;background:hsl(97 36% 30%);color:hsl(64 55% 90%);font-weight:700;font-size:.85rem;border:0;cursor:pointer;box-shadow:0 1px 2px hsl(97 40% 20%/.15);transition:all .2s ease-out}
+  .press:hover{transform:translateY(-1px);box-shadow:0 4px 10px hsl(97 40% 20%/.2)}
+  .press:active{transform:scale(.97);transition:none}
+  h2{font-family:'Mouse Memoirs',sans-serif;font-size:1.2rem;margin:24px 0 10px}
+</style></head><body>
+<h1>Élévation & Motion</h1>
+<p class="sub">Ombres teintées vert (jamais grises) · springs douces · press tactile. Survole et clique les tuiles.</p>
+
+<h2>Ombres teintées</h2>
+<div class="grid">
+  <div class="tile sh-card"><b>--shadow-card</b>repos — teinte hsl(97 40% 20%)</div>
+  <div class="tile sh-lift"><b>--shadow-lift</b>survol — 12px 28px</div>
+  <div class="tile lift"><b>.card-lift</b>survole-moi : translateY(-3px) spring + ombre</div>
+</div>
+
+<h2>Rayons</h2>
+<div class="radius">
+  <div class="r" style="border-radius:.5rem">sm .5</div>
+  <div class="r" style="border-radius:.75rem">md .75</div>
+  <div class="r" style="border-radius:1rem">lg 1</div>
+  <div class="r" style="border-radius:1.25rem">xl 1.25</div>
+  <div class="r" style="border-radius:1.5rem">2xl 1.5</div>
+</div>
+
+<h2>Press bouton (scale .97)</h2>
+<button class="press">Clique-moi</button>
+
+<h2>Easings</h2>
+<div class="grid">
+  <div class="tile"><b>--ease-spring</b>cubic-bezier(.34, 1.3, .5, 1)<br>cartes, lévitations</div>
+  <div class="tile"><b>--ease-out-soft</b>cubic-bezier(.22, 1, .36, 1)<br>fades, reveals, nav</div>
+</div>
+</body></html>

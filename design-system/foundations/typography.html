@@ -1,0 +1,31 @@
+<!-- @dsCard group="Fondations" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Typographie — Bayen DS</title>
+<link href="https://fonts.googleapis.com/css2?family=Mouse+Memoirs&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:Nunito,system-ui,sans-serif;background:hsl(60 48% 94%);color:hsl(100 25% 12%);margin:0;padding:28px;line-height:1.5}
+  .display{font-family:'Mouse Memoirs',sans-serif;letter-spacing:.015em;text-wrap:balance}
+  .h1{font-size:clamp(2.2rem,1.8rem+2vw,3.2rem);line-height:1.02;margin:0}
+  .h2{font-size:clamp(1.6rem,1.3rem+1.2vw,2rem);line-height:1.15;margin:24px 0 0}
+  .h3{font-size:clamp(1.25rem,1.1rem+.6vw,1.5rem);line-height:1.2;margin:18px 0 0}
+  .meta{color:hsl(95 12% 42%);font-size:.75rem;margin:2px 0 0}
+  p.body{max-width:52ch;text-wrap:pretty}
+  .hero{background:#476a32;border-radius:18px;padding:28px;margin-top:22px;text-align:center}
+  .hero .a{display:block;font-family:'Mouse Memoirs',sans-serif;font-size:3rem;line-height:.9;color:#f0f2d2;font-weight:900}
+  .hero .b{display:block;font-family:'Mouse Memoirs',sans-serif;font-size:3rem;line-height:.9;color:#b1cf3a;font-weight:900}
+  ::selection{background:#b1cf3a;color:#1c3014}
+</style></head><body>
+<h1 class="display h1">Mouse Memoirs — display</h1>
+<p class="meta">Titres h1–h4 · letter-spacing 0.015em · text-wrap: balance · échelle fluide clamp()</p>
+
+<div class="display h2">Titre de section (h2 fluide)</div>
+<p class="meta">clamp(1.6rem → 2rem)</p>
+<div class="display h3">Sous-titre (h3 fluide)</div>
+<p class="meta">clamp(1.25rem → 1.5rem)</p>
+
+<p class="body" style="margin-top:20px"><strong>Nunito — corps de texte.</strong> Regular 400, semibold 600, bold 700-800. text-wrap: pretty évite les veuves. La sélection est lime : <em>sélectionne-moi pour voir</em>.</p>
+
+<div class="hero">
+  <span class="a">Scannez. Comprenez.</span>
+  <span class="b">Choisissez mieux.</span>
+</div>
+</body></html>

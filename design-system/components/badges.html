@@ -1,0 +1,49 @@
+<!-- @dsCard group="Composants" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Badges & Verdicts — Bayen DS</title>
+<link href="https://fonts.googleapis.com/css2?family=Mouse+Memoirs&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:Nunito,system-ui,sans-serif;background:hsl(60 48% 94%);color:hsl(100 25% 12%);margin:0;padding:28px}
+  h1{font-family:'Mouse Memoirs',sans-serif;font-size:2rem;margin:0 0 4px}
+  .sub{color:hsl(95 12% 42%);font-size:.85rem;margin:0 0 20px}
+  h2{font-family:'Mouse Memoirs',sans-serif;font-size:1.15rem;margin:20px 0 10px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .score{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.9rem;box-shadow:0 2px 8px rgb(0 0 0/.2)}
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px;font-size:.75rem;font-weight:700;border:1px solid}
+  .ia{color:#6d28d9;border-color:#c4b5fd;background:#f5f3ff}
+  .verif{color:#15803d;border-color:#86efac;background:#f0fdf4}
+  .incomplet{color:#c2410c;border-color:#fdba74;background:#fff7ed}
+  .verdict{display:inline-flex;flex-direction:column;align-items:center;gap:4px;border-radius:18px;border:2px solid;padding:14px 22px;min-width:130px}
+  .v-sain{border-color:#86efac;background:#f0fdf4;color:#476a32}
+  .v-eq{border-color:#d9f99d;background:#f7fee7;color:#7a9e3a}
+  .v-lim{border-color:#fdba74;background:#fff7ed;color:#f97316}
+  .v-occ{border-color:#fca5a5;background:#fef2f2;color:#ef4444}
+  .verdict b{font-size:.95rem}
+  .verdict span{font-size:1.3rem}
+</style></head><body>
+<h1>Badges & Verdicts</h1>
+<p class="sub">Pastilles de score, badges d'état des données, verdicts qualitatifs des repas.</p>
+
+<h2>Pastilles score (0–100, algorithme déterministe)</h2>
+<div class="row">
+  <div class="score" style="background:#476a32">92</div>
+  <div class="score" style="background:#b1cf3a">64</div>
+  <div class="score" style="background:#f97316">38</div>
+  <div class="score" style="background:#ef4444">18</div>
+  <div class="score" style="background:#9ca3af">?</div>
+</div>
+
+<h2>États des données</h2>
+<div class="row">
+  <span class="pill ia">✦ Estimation IA</span>
+  <span class="pill verif">✓ Vérifié</span>
+  <span class="pill incomplet">Score incomplet</span>
+</div>
+
+<h2>Verdicts repas (analyse photo)</h2>
+<div class="row">
+  <div class="verdict v-sain"><span>🥗</span><b>Repas sain</b></div>
+  <div class="verdict v-eq"><span>👍</span><b>Équilibré</b></div>
+  <div class="verdict v-lim"><span>⚠️</span><b>À limiter</b></div>
+  <div class="verdict v-occ"><span>🍔</span><b>Occasionnel</b></div>
+</div>
+</body></html>

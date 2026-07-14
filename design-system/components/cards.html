@@ -1,0 +1,63 @@
+<!-- @dsCard group="Composants" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Cartes — Bayen DS</title>
+<link href="https://fonts.googleapis.com/css2?family=Mouse+Memoirs&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ease-spring:cubic-bezier(.34,1.3,.5,1);--ease-out-soft:cubic-bezier(.22,1,.36,1);
+    --shadow-card:0 1px 2px hsl(97 40% 20%/.05),0 2px 8px hsl(97 40% 20%/.05);
+    --shadow-lift:0 2px 4px hsl(97 40% 20%/.06),0 12px 28px hsl(97 40% 20%/.12)}
+  body{font-family:Nunito,system-ui,sans-serif;background:hsl(60 48% 94%);color:hsl(100 25% 12%);margin:0;padding:28px}
+  h1{font-family:'Mouse Memoirs',sans-serif;font-size:2rem;margin:0 0 4px}
+  .sub{color:hsl(95 12% 42%);font-size:.85rem;margin:0 0 20px}
+  h2{font-family:'Mouse Memoirs',sans-serif;font-size:1.15rem;margin:20px 0 10px}
+  .lift{transition:transform .3s var(--ease-spring),box-shadow .3s var(--ease-out-soft),border-color .3s;box-shadow:var(--shadow-card)}
+  .lift:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);border-color:hsl(97 36% 30%/.25)}
+  /* Carte produit (liste) */
+  .pcard{display:flex;gap:12px;width:360px;background:hsl(58 52% 97%);border:1px solid hsl(62 28% 82%);border-radius:20px;padding:12px;cursor:pointer;text-decoration:none;color:inherit}
+  .pimg{width:80px;height:80px;border-radius:12px;background:linear-gradient(135deg,#e8ecd0,#d5dcb5);position:relative;flex-shrink:0}
+  .score-badge{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.72rem;box-shadow:0 2px 6px rgb(0 0 0/.25)}
+  .pname{font-weight:700;font-size:.9rem;line-height:1.25;margin:4px 0 2px}
+  .pbrand{color:hsl(95 12% 42%);font-size:.75rem}
+  /* Carte alternative (rail) */
+  .acard{width:160px;background:hsl(58 52% 97%);border:1px solid hsl(62 28% 82%);border-radius:14px;padding:12px;cursor:pointer}
+  .aimg{width:100%;aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#e8ecd0,#cfd8ae);position:relative;margin-bottom:8px}
+  .reason{display:flex;gap:4px;font-size:.66rem;color:#3f7d31;line-height:1.3;margin-top:3px}
+  /* Stat card */
+  .stat{width:150px;background:hsl(58 52% 97%);border:1px solid hsl(62 28% 82%);border-radius:20px;padding:16px;text-align:center;box-shadow:var(--shadow-card)}
+  .stat .n{font-size:1.7rem;font-weight:800;color:hsl(97 36% 30%)}
+  .stat .l{font-size:.72rem;color:hsl(95 12% 42%)}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+</style></head><body>
+<h1>Cartes</h1>
+<p class="sub">.card-lift : lévitation spring au survol, ombres teintées. Survole chaque carte.</p>
+
+<h2>Carte produit (accueil, recherche, catégories)</h2>
+<a class="pcard lift">
+  <div class="pimg"><div class="score-badge" style="background:#ef4444">18</div></div>
+  <div><div class="pname">Nutella — Pâte à tartiner aux noisettes</div><div class="pbrand">Ferrero</div></div>
+</a>
+
+<h2>Carte alternative (rail « pourquoi mieux »)</h2>
+<div class="row">
+  <div class="acard lift">
+    <div class="aimg"><div class="score-badge" style="background:#476a32">100</div></div>
+    <div class="pname" style="font-size:.8rem">Flocons d'avoine complète</div>
+    <div class="pbrand">Bjorg</div>
+    <div class="reason">✓ Sans additif</div>
+    <div class="reason">✓ −56 g de sucre</div>
+    <div class="reason">✓ Moins transformé (NOVA 1)</div>
+  </div>
+  <div class="acard lift">
+    <div class="aimg"><div class="score-badge" style="background:#b1cf3a">80</div></div>
+    <div class="pname" style="font-size:.8rem">Semoule fine</div>
+    <div class="pbrand">Kenz</div>
+    <div class="reason">✓ −10 g de sucre</div>
+  </div>
+</div>
+
+<h2>Stat cards (accueil)</h2>
+<div class="row">
+  <div class="stat"><div class="n">2 089</div><div class="l">Produits</div></div>
+  <div class="stat"><div class="n">204</div><div class="l">Scans</div></div>
+  <div class="stat"><div class="n">+2</div><div class="l">Scans aujourd'hui</div></div>
+</div>
+</body></html>
