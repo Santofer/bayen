@@ -9,6 +9,7 @@ export const translations = {
   'nav.scan':       { fr: 'Scanner',       ary: 'سكان' },
   'nav.search':     { fr: 'Recherche',     ary: 'بحث' },
   'nav.compare':    { fr: 'Comparer',      ary: 'قارن' },
+  'nav.cart':       { fr: 'Ma liste',      ary: 'اللائحة ديالي' },
   'nav.additives':  { fr: 'Additifs',      ary: 'إضافات' },
   'nav.contribute': { fr: 'Contribuer',    ary: 'ساهم' },
   'nav.meal':       { fr: 'Mon repas',     ary: 'الوجبة ديالي' },
@@ -505,6 +506,22 @@ export const translations = {
   'cmp.verdictTitle':       { fr: 'Le verdict Bayen',                                     ary: 'حكم باين' },
   'cmp.thinking':           { fr: 'Analyse en cours…',                                    ary: 'كنحللو…' },
   'cmp.verdictUnavailable': { fr: 'Verdict indisponible pour le moment.',                 ary: 'الحكم ماكاينش دابا.' },
+
+  // Panier / liste de courses
+  'cart.add':          { fr: 'Ajouter à ma liste',                     ary: 'زيد للائحة' },
+  'cart.added':        { fr: 'Dans ma liste',                          ary: 'فاللائحة' },
+  'cart.pageTitle':    { fr: 'Ma liste de courses',                    ary: 'لائحة المشتريات' },
+  'cart.pageSubtitle': { fr: 'Tes produits, leur score, prêts à imprimer ou envoyer sur WhatsApp.', ary: 'المنتوجات ديالك، النقط ديالهم، وجّدين للطباعة ولا الإرسال ف واتساب.' },
+  'cart.empty':        { fr: 'Ta liste est vide. Ajoute des produits depuis leurs fiches.', ary: 'اللائحة خاوية. زيد منتوجات من الصفحات ديالهم.' },
+  'cart.browse':       { fr: 'Parcourir les produits',                 ary: 'تصفّح المنتوجات' },
+  'cart.itemSingular': { fr: 'produit',                                ary: 'منتوج' },
+  'cart.itemsPlural':  { fr: 'produits',                               ary: 'منتوجات' },
+  'cart.avgScore':     { fr: 'Score moyen',                            ary: 'المعدل' },
+  'cart.whatsapp':     { fr: 'Envoyer sur WhatsApp',                   ary: 'صيفط ف واتساب' },
+  'cart.print':        { fr: 'Imprimer',                               ary: 'اطبع' },
+  'cart.clear':        { fr: 'Vider',                                  ary: 'فرّغ' },
+  'cart.clearConfirm': { fr: 'Vider toute la liste ?',                 ary: 'تفرّغ اللائحة كاملة؟' },
+  'cart.remove':       { fr: 'Retirer',                                ary: 'حيّد' },
 } as const
 
 /** Clé de traduction valide */

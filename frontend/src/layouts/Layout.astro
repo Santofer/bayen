@@ -5,6 +5,7 @@ import SeoHead from '@/components/SeoHead.astro'
 import UserMenu from '@/components/UserMenu'
 import LocaleToggle from '@/components/LocaleToggle'
 import ThemeToggle from '@/components/ThemeToggle'
+import CartNavButton from '@/components/CartNavButton'
 import InstallPrompt from '@/components/InstallPrompt'
 import { getLocale, t } from '@/lib/i18n'
 
@@ -153,6 +154,9 @@ const currentPath = Astro.url.pathname
               <line x1="7" y1="12" x2="17" y2="12" />
             </svg>
           </a>
+
+          <!-- Panier / liste de courses -->
+          <CartNavButton label={t('nav.cart', locale)} client:load />
 
           <!-- Toggle dark/light mode -->
           <ThemeToggle client:load />
