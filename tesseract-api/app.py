@@ -370,6 +370,8 @@ COMPARE_SYSTEM = (
     "- conseil : 1 phrase pratique et bienveillante (ex. quand l'un peut convenir "
     "quand même). PAS de conseil médical, aucune mention de maladie.\n"
     "- Si égalité, explique qu'ils se valent et sur quoi départager.\n"
+    "- Désigne TOUJOURS les produits par leur NOM (fourni), JAMAIS par "
+    "\"produit A\" / \"produit B\".\n"
     "- Français simple et bienveillant. N'invente aucun chiffre non fourni."
 )
 
