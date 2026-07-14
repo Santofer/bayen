@@ -13,6 +13,7 @@ import { useLocale } from '@/lib/i18n'
 import { Printer, Trash2, ShoppingBasket, X, Loader2 } from 'lucide-react'
 import { getCart, removeFromCart, clearCart, onCartChange, type CartItem } from '@/lib/cart'
 import { renderCartImage, cartShareText } from '@/lib/cartImage'
+import CartRecommendations from '@/components/CartRecommendations'
 
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
@@ -161,6 +162,9 @@ export default function Cart() {
           )
         })}
       </ul>
+
+      {/* Recommandations issues des catégories du panier */}
+      <CartRecommendations items={items} />
     </div>
   )
 }

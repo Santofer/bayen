@@ -522,6 +522,7 @@ export const translations = {
   'cart.clear':        { fr: 'Vider',                                  ary: 'فرّغ' },
   'cart.clearConfirm': { fr: 'Vider toute la liste ?',                 ary: 'تفرّغ اللائحة كاملة؟' },
   'cart.remove':       { fr: 'Retirer',                                ary: 'حيّد' },
+  'cart.recoTitle':    { fr: 'À ajouter — mieux notés dans tes rayons', ary: 'زيدهم — أحسن نقطة فرفوفك' },
 } as const
 
 /** Clé de traduction valide */
