@@ -523,6 +523,16 @@ export const translations = {
   'cart.clearConfirm': { fr: 'Vider toute la liste ?',                 ary: 'تفرّغ اللائحة كاملة؟' },
   'cart.remove':       { fr: 'Retirer',                                ary: 'حيّد' },
   'cart.recoTitle':    { fr: 'À ajouter — mieux notés dans tes rayons', ary: 'زيدهم — أحسن نقطة فرفوفك' },
+
+  // Coach hebdo
+  'coach.title':     { fr: 'Ton coach de la semaine',                                   ary: 'الكوتش ديالك ديال السيمانة' },
+  'coach.intro':     { fr: "Ton bilan personnalisé à partir de tes analyses de repas de la semaine.", ary: 'حصيلة مخصصة ليك من تحاليل الوجبات ديال السيمانة.' },
+  'coach.generate':  { fr: 'Générer mon bilan',                                          ary: 'ولّد الحصيلة ديالي' },
+  'coach.refresh':   { fr: 'Régénérer',                                                  ary: 'عاود ولّد' },
+  'coach.thinking':  { fr: 'Ton coach analyse ta semaine…',                             ary: 'الكوتش كيحلل السيمانة ديالك…' },
+  'coach.notEnough': { fr: "Analyse au moins 2 repas cette semaine pour recevoir ton bilan.", ary: 'حلّل على الأقل جوج وجبات هاد السيمانة باش تاخد الحصيلة.' },
+  'coach.error':     { fr: 'Bilan indisponible pour le moment. Réessaie plus tard.',     ary: 'الحصيلة ماكايناش دابا. عاود من بعد.' },
+  'coach.caveat':    { fr: 'Conseils alimentaires généraux — ce n\'est pas un avis médical.', ary: 'نصائح غذائية عامة — ماشي رأي طبي.' },
 } as const
 
 /** Clé de traduction valide */

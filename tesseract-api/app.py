@@ -433,6 +433,62 @@ def compare_verdict():
         return jsonify({'error': str(e)}), 500
 
 
+COACH_SYSTEM = (
+    "Tu es un coach nutrition bienveillant et encourageant. On te donne le RÉSUMÉ "
+    "des repas de la semaine d'une personne (analyses photo). Tu écris un bilan "
+    "court et motivant. Tu retournes UNIQUEMENT du JSON :\n"
+    '{"bilan":"", "conseils":[""]}\n\n'
+    "RÈGLES :\n"
+    "- bilan : 2 à 3 phrases qui résument la semaine de façon POSITIVE et honnête "
+    "(ce qui est bien + ce qui peut s'améliorer), en te basant sur les verdicts et "
+    "caractéristiques fournis (ex : beaucoup de repas 'occasionnel'/gras, ou au "
+    "contraire équilibrés).\n"
+    "- conseils : 2 à 3 conseils CONCRETS, pratiques et bienveillants pour la "
+    "semaine suivante, adaptés à ce qui a été mangé (ex : 'ajoute une portion de "
+    "légumes à tes dîners').\n"
+    "- Ton chaleureux, encourageant, tutoiement. Adapté au Maroc.\n"
+    "- INTERDIT : diagnostic, maladie, régime médical, chiffres de poids, "
+    "vocabulaire clinique. Reste dans le conseil alimentaire général.\n"
+    "- Si peu de données, reste général et invite à analyser plus de repas."
+)
+
+
+@app.route('/weekly-coach', methods=['POST'])
+def weekly_coach():
+    """Bilan hebdo bienveillant à partir du résumé des repas (Qwen).
+
+    Input : JSON {resume:"...", nb_repas:N}
+    Output: {bilan, conseils:[...]}
+    """
+    data = request.get_json(silent=True) or {}
+    resume = str(data.get('resume', '')).strip()
+    nb = data.get('nb_repas', 0)
+    if not resume:
+        return jsonify({'error': 'resume requis'}), 400
+
+    user = f"Repas de la semaine ({nb} repas analysés) :\n{resume}\n\nÉcris le bilan."
+    start = time.time()
+    try:
+        parsed = call_ai_text(COACH_SYSTEM, user, max_tokens=500)
+        dur = int((time.time() - start) * 1000)
+        if parsed is None:
+            return jsonify({'error': 'IA indisponible', 'duration_ms': dur}), 502
+        conseils = parsed.get('conseils') or []
+        if isinstance(conseils, list):
+            conseils = [str(c)[:200] for c in conseils if isinstance(c, (str, int, float))][:4]
+        else:
+            conseils = []
+        return jsonify({
+            'bilan': str(parsed.get('bilan', ''))[:600],
+            'conseils': conseils,
+            'duration_ms': dur,
+            'model': AI_MODEL,
+        })
+    except Exception as e:
+        app.logger.error(f'weekly-coach error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/estimate-nutrition', methods=['POST'])
 def estimate_nutrition():
     """Estime la nutrition/100g d'un aliment GÉNÉRIQUE depuis son nom (Qwen).
