@@ -57,6 +57,10 @@
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
 
+  /* ── Polices — Bricolage Grotesque (display) + Figtree (corps) ─ */
+  --font-sans: 'Figtree', system-ui, -apple-system, sans-serif;
+  --font-display: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+
   /* ── Ombres teintées vert (élévation organique) ────────────── */
   --shadow-card: 0 1px 2px hsl(97 40% 20% / 0.05), 0 2px 8px hsl(97 40% 20% / 0.05);
   --shadow-lift: 0 2px 4px hsl(97 40% 20% / 0.06), 0 12px 28px hsl(97 40% 20% / 0.12);
@@ -217,7 +221,7 @@ html.dark.is-scrolling ::-webkit-scrollbar-thumb {
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Nunito', system-ui, -apple-system, sans-serif !important;
+    font-family: 'Figtree', system-ui, -apple-system, sans-serif !important;
     font-feature-settings: "rlig" 1, "calt" 1;
     text-rendering: optimizeLegibility;
     /* Halo d'ambiance lime en haut à droite — donne de la profondeur au fond */
@@ -244,8 +248,9 @@ html.dark.is-scrolling ::-webkit-scrollbar-thumb {
 
   /* Typographie display — éditoriale et affirmée */
   h1, h2, h3, h4 {
-    font-family: 'Mouse Memoirs', 'Nunito', system-ui, sans-serif !important;
-    letter-spacing: 0.015em;
+    font-family: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif !important;
+    font-weight: 750;
+    letter-spacing: -0.01em;
     text-wrap: balance;
   }
   p { text-wrap: pretty; }

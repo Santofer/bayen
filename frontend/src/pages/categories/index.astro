@@ -63,21 +63,24 @@ try {
   // Page s'affiche même si l'API est down
 }
 
-// Mapping slug → emoji pour les catégories (fallback si icône absente)
-const CATEGORY_EMOJIS: Record<string, string> = {
-  biscuits: '🍪',
-  'cereales-petit-dejeuner': '🥣',
-  'produits-laitiers': '🥛',
-  'charcuterie-viandes': '🥩',
-  'boissons-sucrees': '🥤',
-  'eaux-jus': '💧',
-  conserves: '🥫',
-  'epices-condiments': '🌶️',
-  'huiles-graisses': '🫒',
-  'snacks-chips': '🍿',
-  'pain-viennoiseries': '🥐',
-  'plats-prepares': '🍱',
-}
+// Slugs disposant d'un visuel dédié (générés par IA, palette Bayen).
+// Les autres retombent sur _fallback.jpg. Voir /public/categories/.
+const CATEGORY_IMAGES = new Set<string>([
+  'biscuits',
+  'cereales-petit-dejeuner',
+  'produits-laitiers',
+  'charcuterie-viandes',
+  'boissons-sucrees',
+  'eaux-jus',
+  'conserves',
+  'epices-condiments',
+  'huiles-graisses',
+  'snacks-chips',
+  'pain-viennoiseries',
+  'plats-prepares',
+])
+const categoryImage = (slug: string) =>
+  `/categories/${CATEGORY_IMAGES.has(slug) ? slug : '_fallback'}.jpg`
 
 const pageTitle = locale === 'ary' ? 'الفئات — باين' : 'Catégories — Bayen'
 const pageHeading = locale === 'ary' ? 'الفئات' : 'Catégories'
@@ -99,25 +102,33 @@ const productsSuffix = (count: number) => {
     <p class="text-sm text-muted-foreground mb-6">{pageSubtitle}</p>
 
     {categories.length > 0 ? (
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         {categories.map((cat) => {
-          const emoji = CATEGORY_EMOJIS[cat.slug] ?? '📦'
           const name = locale === 'ary' && cat.name_ar ? cat.name_ar : cat.name_fr
           return (
             <a
               href={`/categories/${cat.slug}`}
-              class={`group rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-primary/20 ${cat.product_count === 0 ? 'opacity-60' : ''}`}
+              class={`cat-card group relative block overflow-hidden rounded-2xl shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lift ${cat.product_count === 0 ? 'opacity-70' : ''}`}
+              style="aspect-ratio: 1 / 1.12"
             >
-              <div class="flex items-center gap-3">
-                <span class="text-2xl leading-none flex-shrink-0" aria-hidden="true">{emoji}</span>
-                <div class="min-w-0 flex-1">
-                  <h2 class="font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                    {name}
-                  </h2>
-                  <p class="text-xs text-muted-foreground mt-0.5">
-                    {productsSuffix(cat.product_count)}
-                  </p>
-                </div>
+              <img
+                src={categoryImage(cat.slug)}
+                alt={name}
+                loading="lazy"
+                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+              />
+              {/* Scrim aux couleurs Bayen : lisibilité + teinte de marque */}
+              <div
+                class="absolute inset-0"
+                style="background: linear-gradient(to top, hsl(100 30% 10% / 0.82) 0%, hsl(100 28% 14% / 0.42) 42%, hsl(100 25% 18% / 0.08) 100%), linear-gradient(120deg, hsl(97 40% 22% / 0.30), transparent 60%)"
+              />
+              <div class="absolute inset-x-0 bottom-0 p-3.5 md:p-4">
+                <h2 class="font-display font-bold text-white leading-tight text-[0.95rem] md:text-base drop-shadow-[0_1px_6px_hsl(100_40%_6%/0.5)]">
+                  {name}
+                </h2>
+                <span class="mt-1.5 inline-block rounded-full border border-white/25 bg-white/[0.18] px-2.5 py-1 text-[0.7rem] font-bold text-white backdrop-blur-sm">
+                  {productsSuffix(cat.product_count)}
+                </span>
               </div>
             </a>
           )

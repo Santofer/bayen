@@ -48,7 +48,7 @@ const currentPath = Astro.url.pathname
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.bayen.ma" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Mouse+Memoirs&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>{title}</title>
     <SeoHead title={title} description={description} path={path} ogImage={ogImage} ogType={ogType} jsonLd={jsonLd} noindex={noindex} />
     <!-- Appliquer locale + thème sauvegardés avant le premier paint -->
@@ -81,15 +81,6 @@ const currentPath = Astro.url.pathname
 
           <!-- Navigation desktop -->
           <nav class="hidden md:flex items-center gap-6 text-sm">
-            <a
-              href="/scan"
-              class:list={[
-                'transition-colors hover:opacity-100',
-                currentPath === '/scan' ? 'font-medium' : 'opacity-60',
-              ]}
-            >
-              {t('nav.scan', locale)}
-            </a>
             <a
               href="/recherche"
               class:list={[
@@ -153,6 +144,21 @@ const currentPath = Astro.url.pathname
               <path d="M7 21H5a2 2 0 01-2-2v-2" />
               <line x1="7" y1="12" x2="17" y2="12" />
             </svg>
+          </a>
+
+          <!-- CTA scanner omniprésent (desktop) -->
+          <a
+            href="/scan"
+            class="hidden md:inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm px-4 py-2 me-1 shadow-[0_4px_14px_hsl(97_40%_20%/0.25)] hover:-translate-y-px transition-transform"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7V5a2 2 0 012-2h2" />
+              <path d="M17 3h2a2 2 0 012 2v2" />
+              <path d="M21 17v2a2 2 0 01-2 2h-2" />
+              <path d="M7 21H5a2 2 0 01-2-2v-2" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+            </svg>
+            {t('nav.scan', locale)}
           </a>
 
           <!-- Panier / liste de courses -->
