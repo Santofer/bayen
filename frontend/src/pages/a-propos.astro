@@ -41,15 +41,44 @@ const jsonLd = [
   path="/a-propos"
   jsonLd={jsonLd}
 >
-  <main class="container mx-auto max-w-screen-md px-4 pt-6 pb-24">
-    <article class="prose-bayen space-y-8">
+  <!-- Bannière hero -->
+  <section class="relative overflow-hidden">
+    <img src="/about-marche.jpg" alt="Marché alimentaire au Maroc" class="absolute inset-0 h-full w-full object-cover" />
+    <div class="absolute inset-0" style="background: linear-gradient(90deg, hsl(100 32% 9% / 0.9) 0%, hsl(100 30% 12% / 0.68) 55%, hsl(100 28% 16% / 0.28) 100%)"></div>
+    <div class="relative container mx-auto max-w-screen-md px-4 py-14 sm:py-20">
+      <span class="inline-flex items-center gap-2 rounded-full bg-[#b1cf3a] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#233317]">
+        Notre mission
+      </span>
+      <h1 class="font-display font-extrabold text-[#f0f2d2] text-3xl sm:text-5xl leading-tight mt-4">
+        Rendre clair ce qu’on mange
+      </h1>
+      <p class="text-[#f0f2d2]/85 mt-4 max-w-xl text-base leading-relaxed">
+        Bayen (بَيَّن — « c’est clair, ça se voit ») est une initiative citoyenne marocaine
+        pour la transparence alimentaire — gratuite, open source, sans publicité.
+      </p>
+    </div>
+  </section>
 
-      <header class="space-y-3 text-center">
-        <h1 class="text-3xl sm:text-4xl font-bold text-foreground">À propos de Bayen</h1>
-        <p class="text-base text-muted-foreground">
-          Une initiative citoyenne marocaine pour rendre la nutrition transparente — gratuite, open source, sans publicité.
-        </p>
-      </header>
+  <!-- Bande de chiffres -->
+  <section class="container mx-auto max-w-screen-md px-4 -mt-8 relative z-10">
+    <div class="grid grid-cols-3 gap-3 sm:gap-4">
+      <div class="rounded-2xl border bg-card p-4 text-center shadow-card">
+        <p class="font-display text-2xl sm:text-3xl font-extrabold text-primary">2 000+</p>
+        <p class="text-xs text-muted-foreground mt-1">Produits notés</p>
+      </div>
+      <div class="rounded-2xl border bg-card p-4 text-center shadow-card">
+        <p class="font-display text-2xl sm:text-3xl font-extrabold text-primary">100%</p>
+        <p class="text-xs text-muted-foreground mt-1">Gratuit &amp; sans pub</p>
+      </div>
+      <div class="rounded-2xl border bg-card p-4 text-center shadow-card">
+        <p class="font-display text-2xl sm:text-3xl font-extrabold text-primary">Open</p>
+        <p class="text-xs text-muted-foreground mt-1">Code source public</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="container mx-auto max-w-screen-md px-4 pt-8 pb-24">
+    <article class="prose-bayen space-y-8">
 
       <section class="rounded-2xl border bg-card p-6 space-y-3">
         <h2 class="text-xl font-bold text-foreground">Pourquoi Bayen ?</h2>
