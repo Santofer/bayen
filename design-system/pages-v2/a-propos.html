@@ -1,0 +1,100 @@
+<!-- @dsCard group="Pages v2" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>À propos v2 — Bayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:hsl(60 40% 90%);--card:hsl(57 70% 98.5%);--fg:hsl(100 25% 12%);--muted:hsl(95 12% 42%);
+    --border:hsl(62 28% 82%);--primary:hsl(97 36% 30%);--lime:#b1cf3a;--cream:#f0f2d2;
+    --sh-card:0 1px 2px hsl(97 40% 20%/.06),0 3px 12px hsl(97 40% 20%/.07);
+    --spring:cubic-bezier(.34,1.3,.5,1)}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Figtree,system-ui,sans-serif;background:var(--bg);color:var(--fg);
+    background-image:radial-gradient(1100px 540px at 88% -140px,hsl(68 62% 50%/.16),transparent 70%);background-repeat:no-repeat;padding-bottom:44px}
+  .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;text-wrap:balance}
+  .nav{position:sticky;top:10px;z-index:50;max-width:min(1040px,calc(100% - 20px));margin:10px auto 0;display:flex;align-items:center;gap:22px;height:56px;padding:0 22px;border-radius:999px;background:hsl(63 55% 93%/.85);border:1px solid hsl(97 36% 30%/.12);backdrop-filter:saturate(1.4) blur(14px);box-shadow:var(--sh-card)}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.3rem;color:var(--primary)}
+  .nav a{color:var(--primary);opacity:.62;text-decoration:none;font-size:.86rem;font-weight:600}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px}
+
+  /* Hero mission avec image */
+  .hero{position:relative;border-radius:28px;overflow:hidden;margin-top:26px;aspect-ratio:21/9;display:flex;align-items:flex-end}
+  .hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(15deg,hsl(100 40% 8%/.78) 10%,transparent 60%)}
+  .hero div{position:relative;z-index:2;padding:36px 40px;color:#fff}
+  .hero .k{color:var(--lime);font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+  .hero h1{font-size:clamp(2rem,4vw,3rem);font-weight:780;line-height:1.03;margin-top:10px;max-width:22ch}
+
+  /* Manifesto : gros paragraphe éditorial */
+  .manifesto{max-width:760px;margin:44px auto;font-size:clamp(1.15rem,1.9vw,1.45rem);line-height:1.55;font-weight:500}
+  .manifesto em{font-style:normal;background:linear-gradient(transparent 62%, hsl(68 60% 55%/.55) 62%);padding:0 2px}
+
+  /* Chiffres */
+  .figures{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .fig{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;text-align:center;box-shadow:var(--sh-card)}
+  .fig b{font-family:'Bricolage Grotesque';font-size:1.9rem;font-weight:800;color:var(--primary);display:block}
+  .fig span{color:var(--muted);font-size:.78rem}
+
+  /* Valeurs */
+  .values{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px}
+  .val{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:var(--sh-card)}
+  .val .ico{width:44px;height:44px;border-radius:12px;background:hsl(64 45% 88%);display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:14px}
+  .val h3{font-size:1.05rem;font-weight:750;margin-bottom:6px}
+  .val p{color:var(--muted);font-size:.85rem;line-height:1.55}
+
+  /* Timeline courte */
+  .story{margin-top:40px;background:var(--primary);color:var(--cream);border-radius:26px;padding:34px 36px}
+  .story h2{font-size:1.6rem;font-weight:750;margin-bottom:20px}
+  .step{display:flex;gap:16px;padding:12px 0;border-top:1px solid hsl(64 55% 90%/.18)}
+  .step b{font-family:'Bricolage Grotesque';color:var(--lime);flex:0 0 90px}
+  .step p{opacity:.85;font-size:.9rem;line-height:1.5}
+  .cta{display:flex;gap:12px;justify-content:center;margin-top:38px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:999px;font-weight:700;font-size:.92rem;text-decoration:none;transition:transform .2s var(--spring)}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.a{background:var(--lime);color:#233317;box-shadow:0 8px 24px hsl(68 60% 35%/.4)}
+  .btn.b{border:2px solid var(--primary);color:var(--primary)}
+</style></head><body>
+
+<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#">Recherche</a><a href="#">Blog</a><a href="#" style="opacity:1;font-weight:700">À propos</a></nav>
+
+<main class="wrap">
+  <header class="hero">
+    <img src="../assets/about-marche.jpg" alt="">
+    <div>
+      <span class="k">Notre mission</span>
+      <h1 class="display">Rendre la qualité alimentaire بيّنة — claire, pour tous les Marocains.</h1>
+    </div>
+  </header>
+
+  <p class="manifesto display">
+    « Bayen » signifie <em>« c'est clair, ça se voit »</em> en darija. Nous croyons que chaque famille
+    marocaine mérite de savoir, en 3 secondes, ce qu'il y a vraiment dans son assiette —
+    <em>sans pub, sans compte obligatoire, sans agenda caché</em>. Une initiative citoyenne,
+    open source, construite à Casablanca.
+  </p>
+
+  <section class="figures">
+    <div class="fig"><b>2 089</b><span>produits marocains notés</span></div>
+    <div class="fig"><b>0 DH</b><span>gratuit, pour toujours</span></div>
+    <div class="fig"><b>100%</b><span>open source & ODbL</span></div>
+    <div class="fig"><b>🇲🇦</b><span>fait au Maroc, pour le Maroc</span></div>
+  </section>
+
+  <section class="values">
+    <div class="val"><div class="ico">🔬</div><h3 class="display">Science, pas opinion</h3><p>Le score 0-100 est calculé par un algorithme public et déterministe : Nutri-Score, transformation NOVA, additifs. Jamais par une boîte noire.</p></div>
+    <div class="val"><div class="ico">✦</div><h3 class="display">IA locale, données locales</h3><p>Notre IA tourne sur nos propres serveurs au Maroc. Vos photos de repas ne partent jamais chez un GAFAM.</p></div>
+    <div class="val"><div class="ico">🤝</div><h3 class="display">Communauté d'abord</h3><p>Chaque scan enrichit la base commune. Les contributeurs vérifient, corrigent et font vivre les données, ensemble.</p></div>
+  </section>
+
+  <section class="story">
+    <h2 class="display">L'histoire</h2>
+    <div class="step"><b>2025</b><p>Le constat : impossible de savoir ce que contiennent vraiment les produits de nos supermarchés. Les apps existantes ignorent le marché marocain.</p></div>
+    <div class="step"><b>2026</b><p>Lancement de Bayen : scan, score santé, analyse de repas par IA, comparateur, listes de courses intelligentes. 2 000+ produits couverts.</p></div>
+    <div class="step"><b>Demain</b><p>La darija partout, plus de partenaires producteurs, et l'ambition de devenir le réflexe alimentaire de tout un pays.</p></div>
+  </section>
+
+  <div class="cta">
+    <a class="btn a" href="#">Scanner mon premier produit</a>
+    <a class="btn b" href="#">Devenir partenaire</a>
+  </div>
+</main>
+</body></html>

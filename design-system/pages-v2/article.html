@@ -1,0 +1,47 @@
+<!-- @dsCard group="Pages v2" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Article v2 — Bayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:hsl(60 40% 90%);--card:hsl(57 70% 98.5%);--fg:hsl(100 25% 12%);--muted:hsl(95 12% 42%);
+    --border:hsl(62 28% 82%);--primary:hsl(97 36% 30%);--lime:#b1cf3a;--cream:#f0f2d2;
+    --sh-card:0 1px 2px hsl(97 40% 20%/.06),0 3px 12px hsl(97 40% 20%/.07)}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Figtree,system-ui,sans-serif;background:var(--bg);color:var(--fg);padding-bottom:44px}
+  .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;text-wrap:balance}
+  .nav{position:sticky;top:10px;z-index:50;max-width:min(1040px,calc(100% - 20px));margin:10px auto 0;display:flex;align-items:center;gap:22px;height:56px;padding:0 22px;border-radius:999px;background:hsl(63 55% 93%/.85);border:1px solid hsl(97 36% 30%/.12);backdrop-filter:saturate(1.4) blur(14px);box-shadow:var(--sh-card)}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.3rem;color:var(--primary)}
+  .nav a{color:var(--primary);opacity:.62;text-decoration:none;font-size:.86rem;font-weight:600}
+
+  .cover{max-width:1000px;margin:24px auto 0;padding:0 16px}
+  .cover img{width:100%;aspect-ratio:21/9;object-fit:cover;border-radius:26px;box-shadow:var(--sh-card)}
+  article{max-width:680px;margin:0 auto;padding:0 16px}
+  .cat{display:inline-block;background:var(--lime);color:#233317;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:999px;margin-top:26px}
+  h1{font-size:clamp(1.9rem,3.6vw,2.7rem);font-weight:780;line-height:1.06;margin:14px 0 10px}
+  .meta{color:var(--muted);font-size:.83rem;display:flex;gap:12px;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+  .lead{font-size:1.15rem;line-height:1.6;font-weight:500;margin-bottom:20px}
+  p{line-height:1.75;margin-bottom:18px;font-size:.98rem}
+  h2{font-size:1.45rem;font-weight:750;margin:30px 0 12px}
+  .pull{border-left:4px solid var(--lime);background:var(--card);border-radius:0 16px 16px 0;padding:18px 22px;margin:24px 0;font-size:1.1rem;font-weight:600;line-height:1.5}
+  .box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px 22px;margin:24px 0;box-shadow:var(--sh-card)}
+  .box b{display:flex;align-items:center;gap:8px;color:var(--primary);margin-bottom:8px}
+  .box p{margin:0;font-size:.9rem;color:var(--muted)}
+</style></head><body>
+
+<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#">Recherche</a><a href="#" style="opacity:1;font-weight:700">Blog</a></nav>
+
+<div class="cover"><img src="../assets/cover-sucre.jpg" alt=""></div>
+<article>
+  <span class="cat">Nutrition</span>
+  <h1 class="display">Sucre caché : les 10 produits marocains qui en contiennent le plus</h1>
+  <div class="meta"><span>Par l'équipe Bayen</span><span>·</span><span>12 min</span><span>·</span><span>14 juillet 2026</span></div>
+  <p class="lead">L'OMS recommande moins de 25 g de sucres libres par jour. Un seul verre de certaines boissons vendues au Maroc en contient déjà 27. Voici ce que nos 2 000 produits scannés révèlent.</p>
+  <p>Quand on pense « sucre », on imagine le sucrier sur la table du thé. Mais l'essentiel du sucre que nous consommons est <strong>invisible</strong> : il se cache dans les sauces, les yaourts « nature », les pains de mie et même les conserves salées.</p>
+  <div class="pull display">« 68 % des produits transformés de notre base contiennent des sucres ajoutés — souvent sous 14 noms différents. »</div>
+  <h2 class="display">Comment le sucre se déguise</h2>
+  <p>Sirop de glucose-fructose, dextrose, maltodextrine, jus de fruits concentré… La réglementation permet de fractionner le sucre en plusieurs ingrédients, ce qui le fait mécaniquement reculer dans la liste — et paraître minoritaire.</p>
+  <div class="box"><b>✦ Le réflexe Bayen</b><p>Scannez le code-barres : le score fait le calcul pour vous, et les alternatives moins sucrées de la même catégorie s'affichent automatiquement.</p></div>
+  <h2 class="display">Le classement</h2>
+  <p>Sans surprise, les boissons gazeuses dominent. Mais les 4ᵉ et 7ᵉ places de notre classement sont des céréales « petit-déjeuner » présentées comme équilibrées…</p>
+</article>
+</body></html>

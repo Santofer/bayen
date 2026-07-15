@@ -1,0 +1,76 @@
+<!-- @dsCard group="Pages v2" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blog v2 — Bayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:hsl(60 40% 90%);--card:hsl(57 70% 98.5%);--fg:hsl(100 25% 12%);--muted:hsl(95 12% 42%);
+    --border:hsl(62 28% 82%);--primary:hsl(97 36% 30%);--lime:#b1cf3a;--cream:#f0f2d2;
+    --sh-card:0 1px 2px hsl(97 40% 20%/.06),0 3px 12px hsl(97 40% 20%/.07);
+    --sh-lift:0 2px 4px hsl(97 40% 20%/.06),0 12px 28px hsl(97 40% 20%/.14);
+    --spring:cubic-bezier(.34,1.3,.5,1)}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Figtree,system-ui,sans-serif;background:var(--bg);color:var(--fg);
+    background-image:radial-gradient(1100px 540px at 88% -140px,hsl(68 62% 50%/.16),transparent 70%);background-repeat:no-repeat;padding-bottom:44px}
+  .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;text-wrap:balance}
+  .nav{position:sticky;top:10px;z-index:50;max-width:min(1040px,calc(100% - 20px));margin:10px auto 0;display:flex;align-items:center;gap:22px;height:56px;padding:0 22px;border-radius:999px;background:hsl(63 55% 93%/.85);border:1px solid hsl(97 36% 30%/.12);backdrop-filter:saturate(1.4) blur(14px);box-shadow:var(--sh-card)}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.3rem;color:var(--primary)}
+  .nav a{color:var(--primary);opacity:.62;text-decoration:none;font-size:.86rem;font-weight:600}
+  .wrap{max-width:1060px;margin:30px auto 0;padding:0 16px}
+  .kicker{color:var(--primary);font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  h1{font-size:clamp(2.2rem,4vw,3.1rem);font-weight:780;line-height:1.02;margin:8px 0 26px}
+  h1 em{font-style:normal;color:var(--primary)}
+
+  /* Article vedette : cover pleine largeur */
+  .feature{position:relative;border-radius:26px;overflow:hidden;display:block;text-decoration:none;color:#fff;
+    box-shadow:var(--sh-card);transition:transform .3s var(--spring),box-shadow .3s;aspect-ratio:21/9}
+  .feature:hover{transform:translateY(-4px);box-shadow:var(--sh-lift)}
+  .feature img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .feature::after{content:'';position:absolute;inset:0;background:linear-gradient(10deg,hsl(100 40% 8%/.8) 8%,transparent 55%)}
+  .fbody{position:absolute;inset:auto 0 0 0;z-index:2;padding:30px 34px}
+  .cat{display:inline-block;background:var(--lime);color:#233317;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:999px}
+  .fbody h2{font-size:clamp(1.5rem,2.6vw,2.2rem);font-weight:750;margin:12px 0 6px;max-width:24ch}
+  .fbody .meta{font-size:.8rem;opacity:.75}
+
+  /* Grille articles */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .post{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;text-decoration:none;color:inherit;box-shadow:var(--sh-card);transition:transform .3s var(--spring),box-shadow .3s;display:block}
+  .post:hover{transform:translateY(-4px);box-shadow:var(--sh-lift)}
+  .post img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+  .pbody{padding:16px 18px 18px}
+  .pbody .cat{background:hsl(64 45% 88%);color:var(--primary)}
+  .pbody h3{font-size:1.05rem;font-weight:700;line-height:1.25;margin:10px 0 6px}
+  .pbody p{color:var(--muted);font-size:.83rem;line-height:1.5}
+  .pbody .meta{color:var(--muted);font-size:.74rem;margin-top:12px;display:flex;gap:10px}
+</style></head><body>
+
+<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#" style="opacity:1;font-weight:700">Blog</a></nav>
+
+<main class="wrap">
+  <span class="kicker">Le mag Bayen</span>
+  <h1 class="display">Comprendre ce qu'on <em>mange vraiment</em></h1>
+
+  <a class="feature" href="#">
+    <img src="../assets/cover-sucre.jpg" alt="">
+    <div class="fbody">
+      <span class="cat">Nutrition</span>
+      <h2 class="display">Sucre caché : les 10 produits marocains qui en contiennent le plus</h2>
+      <div class="meta">12 min de lecture · 14 juillet 2026</div>
+    </div>
+  </a>
+
+  <div class="grid">
+    <a class="post" href="#"><img src="../assets/cover-additifs.jpg" alt="">
+      <div class="pbody"><span class="cat">Additifs</span><h3>E322, E471, E102… le décodeur des additifs les plus fréquents</h3>
+      <p>Ce que dit la science sur les 15 additifs qu'on croise chaque jour dans nos rayons.</p>
+      <div class="meta"><span>8 min</span><span>·</span><span>10 juil. 2026</span></div></div></a>
+    <a class="post" href="#"><img src="../assets/cover-huile.jpg" alt="">
+      <div class="pbody"><span class="cat">Terroir</span><h3>Huile d'olive marocaine : comment reconnaître la vraie qualité</h3>
+      <p>Beldia, Picholine… le guide pour choisir une huile d'olive à la hauteur de nos traditions.</p>
+      <div class="meta"><span>10 min</span><span>·</span><span>6 juil. 2026</span></div></div></a>
+    <a class="post" href="#"><img src="../assets/hero-repas.jpg" alt="">
+      <div class="pbody"><span class="cat">Coach</span><h3>Équilibrer ses ftours : 7 réflexes simples qui changent tout</h3>
+      <p>Des ajustements concrets, sans renoncer au plaisir — validés par notre coach IA.</p>
+      <div class="meta"><span>6 min</span><span>·</span><span>2 juil. 2026</span></div></div></a>
+  </div>
+</main>
+</body></html>

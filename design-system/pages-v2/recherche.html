@@ -1,0 +1,58 @@
+<!-- @dsCard group="Pages v2" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recherche v2 — Bayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:hsl(60 40% 90%);--card:hsl(57 70% 98.5%);--fg:hsl(100 25% 12%);--muted:hsl(95 12% 42%);
+    --border:hsl(62 28% 82%);--primary:hsl(97 36% 30%);--lime:#b1cf3a;--cream:#f0f2d2;
+    --sh-card:0 1px 2px hsl(97 40% 20%/.06),0 3px 12px hsl(97 40% 20%/.07);
+    --sh-lift:0 2px 4px hsl(97 40% 20%/.06),0 12px 28px hsl(97 40% 20%/.14);
+    --spring:cubic-bezier(.34,1.3,.5,1)}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Figtree,system-ui,sans-serif;background:var(--bg);color:var(--fg);
+    background-image:radial-gradient(1100px 540px at 88% -140px,hsl(68 62% 50%/.16),transparent 70%);background-repeat:no-repeat;padding-bottom:44px}
+  .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+  .nav{position:sticky;top:10px;z-index:50;max-width:min(1040px,calc(100% - 20px));margin:10px auto 0;display:flex;align-items:center;gap:22px;height:56px;padding:0 22px;border-radius:999px;background:hsl(63 55% 93%/.85);border:1px solid hsl(97 36% 30%/.12);backdrop-filter:saturate(1.4) blur(14px);box-shadow:var(--sh-card)}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.3rem;color:var(--primary)}
+  .nav a{color:var(--primary);opacity:.62;text-decoration:none;font-size:.86rem;font-weight:600}
+  .wrap{max-width:880px;margin:28px auto 0;padding:0 16px}
+
+  .search{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--primary);border-radius:999px;padding:6px 8px 6px 22px;box-shadow:0 8px 26px hsl(97 40% 20%/.14)}
+  .search input{flex:1;border:0;background:transparent;font-family:inherit;font-size:1rem;color:inherit;outline:none;padding:10px 0}
+  .search button{background:var(--primary);color:var(--cream);border:0;border-radius:999px;padding:12px 24px;font-family:inherit;font-weight:700;cursor:pointer}
+  .filters{display:flex;gap:8px;margin:16px 0 20px;flex-wrap:wrap}
+  .f{border:1px solid var(--border);border-radius:999px;padding:8px 15px;font-size:.78rem;font-weight:600;background:var(--card);cursor:pointer}
+  .f.on{background:var(--primary);color:var(--cream);border-color:var(--primary)}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+  .p{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:13px;box-shadow:var(--sh-card);transition:transform .3s var(--spring),box-shadow .3s;cursor:pointer}
+  .p:hover{transform:translateY(-4px);box-shadow:var(--sh-lift)}
+  .pi{width:100%;aspect-ratio:1.15;border-radius:13px;background:linear-gradient(135deg,#e8ecd0,#d5dcb5);position:relative;margin-bottom:10px}
+  .sc{position:absolute;top:7px;right:7px;width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.76rem;box-shadow:0 2px 8px rgb(0 0 0/.22)}
+  .p b{font-size:.88rem;line-height:1.25;display:block}
+  .p .br{color:var(--muted);font-size:.74rem;margin-top:3px}
+  .ns{display:inline-block;margin-top:8px;font-size:.66rem;font-weight:800;color:#fff;border-radius:6px;padding:3px 8px}
+</style></head><body>
+
+<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#" style="opacity:1;font-weight:700">Recherche</a><a href="#">Comparer</a><a href="#">Blog</a></nav>
+
+<main class="wrap">
+  <div class="search">
+    <span>🔍</span><input placeholder="Cherche un produit, une marque… (« yaourt pas trop sucré » marche aussi)">
+    <button>Rechercher</button>
+  </div>
+  <div class="filters">
+    <span class="f on">Tous</span><span class="f">Score ≥ 75</span><span class="f">Sans additifs</span>
+    <span class="f">Nutri-Score A-B</span><span class="f">Biscuits</span><span class="f">Laitiers</span><span class="f">Boissons</span>
+  </div>
+
+  <div class="grid">
+    <div class="p"><div class="pi"><span class="sc" style="background:#476a32">100</span></div><b>Flocons d'avoine complète</b><div class="br">Bjorg</div><span class="ns" style="background:#038141">NUTRI-SCORE A</span></div>
+    <div class="p"><div class="pi"><span class="sc" style="background:#476a32">92</span></div><b>Couscous complet</b><div class="br">Dari</div><span class="ns" style="background:#038141">NUTRI-SCORE A</span></div>
+    <div class="p"><div class="pi"><span class="sc" style="background:#b1cf3a">80</span></div><b>Semoule fine</b><div class="br">Kenz</div><span class="ns" style="background:#038141">NUTRI-SCORE A</span></div>
+    <div class="p"><div class="pi"><span class="sc" style="background:#b1cf3a">64</span></div><b>Yaourt nature</b><div class="br">Jaouda</div><span class="ns" style="background:#85bb2f">NUTRI-SCORE B</span></div>
+    <div class="p"><div class="pi"><span class="sc" style="background:#f97316">38</span></div><b>Jus d'orange nectar</b><div class="br">Marrakech</div><span class="ns" style="background:#ee8100">NUTRI-SCORE D</span></div>
+    <div class="p"><div class="pi"><span class="sc" style="background:#ef4444">18</span></div><b>Nutella</b><div class="br">Ferrero</div><span class="ns" style="background:#e63e11">NUTRI-SCORE E</span></div>
+  </div>
+</main>
+</body></html>

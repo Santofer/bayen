@@ -1,0 +1,107 @@
+<!-- @dsCard group="Pages v2" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fiche produit v2 — Bayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:hsl(60 40% 90%);--card:hsl(57 70% 98.5%);--fg:hsl(100 25% 12%);--muted:hsl(95 12% 42%);
+    --border:hsl(62 28% 82%);--primary:hsl(97 36% 30%);--lime:#b1cf3a;--cream:#f0f2d2;
+    --sh-card:0 1px 2px hsl(97 40% 20%/.06),0 3px 12px hsl(97 40% 20%/.07);
+    --sh-lift:0 2px 4px hsl(97 40% 20%/.06),0 12px 28px hsl(97 40% 20%/.14);
+    --spring:cubic-bezier(.34,1.3,.5,1)}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Figtree,system-ui,sans-serif;background:var(--bg);color:var(--fg);
+    background-image:radial-gradient(1100px 540px at 88% -140px,hsl(68 62% 50%/.16),transparent 70%);background-repeat:no-repeat;padding-bottom:40px}
+  .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+  .nav{position:sticky;top:10px;z-index:50;max-width:min(1040px,calc(100% - 20px));margin:10px auto 0;display:flex;align-items:center;gap:22px;height:56px;padding:0 22px;border-radius:999px;background:hsl(63 55% 93%/.85);border:1px solid hsl(97 36% 30%/.12);backdrop-filter:saturate(1.4) blur(14px);box-shadow:var(--sh-card)}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.3rem;color:var(--primary)}
+  .nav a{color:var(--primary);opacity:.62;text-decoration:none;font-size:.86rem;font-weight:600}
+  .wrap{max-width:900px;margin:28px auto 0;padding:0 16px;display:grid;gap:16px}
+
+  /* En-tête produit : image + identité + actions */
+  .head{display:flex;gap:20px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;box-shadow:var(--sh-card)}
+  .pimg{width:128px;height:128px;border-radius:18px;background:linear-gradient(135deg,#e8ecd0,#d5dcb5);flex-shrink:0}
+  .head h1{font-size:1.9rem;font-weight:750;line-height:1.05}
+  .brand{color:var(--muted);font-size:.9rem;margin-top:4px}
+  .chips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .chip{font-size:.76rem;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:transform .2s var(--spring)}
+  .chip:hover{transform:translateY(-1px)}
+  .chip.solid{background:var(--primary);color:var(--cream);border-color:var(--primary)}
+  .chip.lime{background:var(--lime);color:#233317;border-color:var(--lime)}
+
+  /* Score panel : anneau + barres détail */
+  .score-panel{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:26px;box-shadow:var(--sh-card)}
+  .ring{position:relative;width:150px;height:150px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .val b{font-family:'Bricolage Grotesque';font-size:2.6rem;font-weight:800;line-height:1;color:#ef4444}
+  .ring .val span{font-size:.72rem;color:var(--muted)}
+  .bars{display:grid;gap:14px}
+  .bar .t{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;margin-bottom:6px}
+  .bar .t span{color:var(--muted);font-weight:500}
+  .track{height:10px;border-radius:999px;background:var(--bg);overflow:hidden}
+  .fill{height:100%;border-radius:999px}
+  .badges{display:flex;gap:10px;margin-top:4px}
+  .nutri{display:flex;border-radius:8px;overflow:hidden;font-weight:800;font-size:.8rem}
+  .nutri i{font-style:normal;padding:6px 9px;color:#fff;opacity:.35}
+  .nutri i.on{opacity:1;transform:scale(1.14)}
+
+  /* Alternatives rail */
+  .alt{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:var(--sh-card)}
+  .alt h3{font-size:1.25rem;font-weight:750;margin-bottom:14px}
+  .rail{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:6px 22px 18px;margin:0 -22px -8px;
+    -webkit-mask-image:linear-gradient(to right,transparent 0,black 20px,black calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 20px,black calc(100% - 20px),transparent 100%)}
+  .rail::-webkit-scrollbar{display:none}
+  .acard{flex:0 0 168px;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:12px;transition:transform .3s var(--spring),box-shadow .3s;cursor:pointer}
+  .acard:hover{transform:translateY(-4px);box-shadow:var(--sh-lift)}
+  .aimg{width:100%;aspect-ratio:1;border-radius:12px;background:linear-gradient(135deg,#e8ecd0,#cfd8ae);position:relative;margin-bottom:8px}
+  .sc{position:absolute;top:6px;right:6px;width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.74rem}
+  .why{font-size:.68rem;color:#3f7d31;margin-top:3px;display:flex;gap:4px}
+</style></head><body>
+
+<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Blog</a></nav>
+
+<main class="wrap">
+  <section class="head">
+    <div class="pimg"></div>
+    <div style="flex:1">
+      <h1 class="display">Nutella — Pâte à tartiner</h1>
+      <div class="brand">Ferrero · Céréales & petit-déjeuner · 400 g</div>
+      <div class="chips">
+        <span class="chip solid">＋ Ajouter à ma liste</span>
+        <span class="chip lime">⇄ Comparer</span>
+        <span class="chip">↗ Partager</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="score-panel">
+    <div class="ring">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <circle cx="75" cy="75" r="64" fill="none" stroke="hsl(62 28% 86%)" stroke-width="13"/>
+        <circle cx="75" cy="75" r="64" fill="none" stroke="#ef4444" stroke-width="13" stroke-linecap="round" stroke-dasharray="72.4 402"/>
+      </svg>
+      <div class="val"><b>18</b><span>/ 100 · Mauvais</span></div>
+    </div>
+    <div class="bars">
+      <div class="bar"><div class="t">Nutri-Score <span>0 / 50 pts</span></div>
+        <div class="track"><div class="fill" style="width:2%;background:#e63e11"></div></div>
+        <div class="badges"><span class="nutri"><i style="background:#038141">A</i><i style="background:#85bb2f">B</i><i style="background:#fecb02">C</i><i style="background:#ee8100">D</i><i class="on" style="background:#e63e11">E</i></span></div>
+      </div>
+      <div class="bar"><div class="t">Transformation NOVA <span>0 / 30 pts · NOVA 4</span></div>
+        <div class="track"><div class="fill" style="width:2%;background:#f97316"></div></div></div>
+      <div class="bar"><div class="t">Additifs <span>18 / 20 pts · E322, E322i</span></div>
+        <div class="track"><div class="fill" style="width:90%;background:#b1cf3a"></div></div></div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <h3 class="display">Alternatives plus saines</h3>
+    <div class="rail">
+      <div class="acard"><div class="aimg"><span class="sc" style="background:#476a32">100</span></div><b style="font-size:.82rem">Flocons d'avoine complète</b><div class="why">✓ Sans additif</div><div class="why">✓ −56 g de sucre</div><div class="why">✓ NOVA 1</div></div>
+      <div class="acard"><div class="aimg"><span class="sc" style="background:#476a32">96</span></div><b style="font-size:.82rem">Amlou artisanal</b><div class="why">✓ −38 g de sucre</div><div class="why">✓ Peu transformé</div></div>
+      <div class="acard"><div class="aimg"><span class="sc" style="background:#b1cf3a">74</span></div><b style="font-size:.82rem">Miel de fleurs</b><div class="why">✓ Sans additif</div></div>
+      <div class="acard"><div class="aimg"><span class="sc" style="background:#b1cf3a">70</span></div><b style="font-size:.82rem">Confiture allégée</b><div class="why">✓ −22 g de sucre</div></div>
+    </div>
+  </section>
+</main>
+</body></html>

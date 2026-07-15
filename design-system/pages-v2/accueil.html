@@ -1,0 +1,165 @@
+<!-- @dsCard group="Pages v2" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Accueil v2 — Bayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:hsl(60 40% 90%);--card:hsl(57 70% 98.5%);--fg:hsl(100 25% 12%);--muted:hsl(95 12% 42%);
+    --border:hsl(62 28% 82%);--primary:hsl(97 36% 30%);--lime:#b1cf3a;--cream:#f0f2d2;
+    --sh-card:0 1px 2px hsl(97 40% 20%/.06),0 3px 12px hsl(97 40% 20%/.07);
+    --sh-lift:0 2px 4px hsl(97 40% 20%/.06),0 12px 28px hsl(97 40% 20%/.14);
+    --spring:cubic-bezier(.34,1.3,.5,1);--soft:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Figtree,system-ui,sans-serif;background:var(--bg);color:var(--fg);
+    background-image:radial-gradient(1100px 540px at 88% -140px,hsl(68 62% 50%/.16),transparent 70%);background-repeat:no-repeat}
+  .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;text-wrap:balance}
+
+  /* Nav capsule */
+  .nav{position:sticky;top:10px;z-index:50;max-width:min(1040px,calc(100% - 20px));margin:10px auto 0;
+    display:flex;align-items:center;gap:22px;height:56px;padding:0 22px;border-radius:999px;
+    background:hsl(63 55% 93%/.85);border:1px solid hsl(97 36% 30%/.12);backdrop-filter:saturate(1.4) blur(14px);
+    box-shadow:var(--sh-card)}
+  .logo{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.3rem;color:var(--primary)}
+  .nav a{color:var(--primary);opacity:.62;text-decoration:none;font-size:.86rem;font-weight:600}
+  .nav a:hover{opacity:1}
+  .nav .cta{margin-left:auto;opacity:1;background:var(--primary);color:var(--cream);padding:9px 18px;border-radius:999px}
+
+  /* HERO CAROUSEL — vitrine des fonctionnalités */
+  .hero{max-width:1120px;margin:26px auto 0;padding:0 16px}
+  .slides{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:16px;border-radius:28px;
+    scrollbar-width:none;-ms-overflow-style:none}
+  .slides::-webkit-scrollbar{display:none}
+  .slide{position:relative;flex:0 0 100%;scroll-snap-align:center;aspect-ratio:21/10;border-radius:28px;overflow:hidden;
+    background:#476a32 center/cover no-repeat;display:flex;align-items:flex-end}
+  .slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .slide::after{content:'';position:absolute;inset:0;background:linear-gradient(75deg,hsl(100 40% 8%/.72) 0%,hsl(100 40% 8%/.25) 52%,transparent 75%)}
+  .scrim{position:relative;z-index:2;padding:44px 48px;max-width:560px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;background:hsl(68 60% 55%/.18);border:1px solid hsl(68 60% 55%/.5);
+    color:var(--lime);font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:6px 12px;border-radius:999px;backdrop-filter:blur(6px)}
+  .scrim h2{font-size:clamp(1.9rem,3.4vw,2.9rem);line-height:1.02;color:#fff;margin:14px 0 10px;font-weight:750}
+  .scrim h2 em{font-style:normal;color:var(--lime)}
+  .scrim p{color:hsl(60 40% 92%/.85);font-size:.98rem;max-width:44ch;line-height:1.5}
+  .scrim .go{display:inline-flex;align-items:center;gap:8px;margin-top:18px;background:var(--lime);color:#233317;
+    font-weight:700;font-size:.9rem;padding:12px 22px;border-radius:999px;text-decoration:none;
+    box-shadow:0 8px 24px hsl(68 60% 35%/.45);transition:transform .2s var(--spring)}
+  .scrim .go:hover{transform:translateY(-2px)}
+  .dots{display:flex;gap:8px;justify-content:center;margin:16px 0 0}
+  .dots button{width:8px;height:8px;border-radius:999px;border:0;background:hsl(97 36% 30%/.25);cursor:pointer;transition:all .3s var(--soft);padding:0}
+  .dots button.on{width:26px;background:var(--primary)}
+
+  /* Stats bandeau */
+  .stats{max-width:1120px;margin:34px auto 0;padding:0 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;text-align:center;box-shadow:var(--sh-card)}
+  .stat .n{font-family:'Bricolage Grotesque';font-weight:800;font-size:2rem;color:var(--primary)}
+  .stat .l{color:var(--muted);font-size:.8rem;margin-top:2px}
+
+  /* Produits populaires */
+  .section{max-width:1120px;margin:44px auto 0;padding:0 16px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
+  .sec-head h3{font-size:1.5rem;font-weight:750}
+  .sec-head a{color:var(--primary);font-size:.85rem;font-weight:600;text-decoration:none}
+  .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .pcard{display:flex;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:14px;
+    box-shadow:var(--sh-card);transition:transform .3s var(--spring),box-shadow .3s var(--soft);cursor:pointer}
+  .pcard:hover{transform:translateY(-4px);box-shadow:var(--sh-lift)}
+  .pimg{width:84px;height:84px;border-radius:14px;background:linear-gradient(135deg,#e8ecd0,#d5dcb5);position:relative;flex-shrink:0}
+  .sc{position:absolute;top:5px;right:5px;width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.72rem}
+  .pcard b{font-size:.92rem}
+  .pcard .br{color:var(--muted);font-size:.78rem;margin-top:2px}
+
+  .footer{margin-top:56px;background:var(--primary);color:var(--cream);padding:40px 16px;text-align:center;font-size:.85rem;opacity:.95}
+</style></head><body>
+
+<nav class="nav">
+  <span class="logo">Bayen</span>
+  <a href="#">Scanner</a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Mon repas</a><a href="#">Blog</a>
+  <a class="cta" href="#">Scanner un produit</a>
+</nav>
+
+<!-- HERO CAROUSEL : chaque slide = une fonctionnalité -->
+<header class="hero">
+  <div class="slides" id="slides">
+    <div class="slide"><img src="../assets/hero-scan.jpg" alt="">
+      <div class="scrim">
+        <span class="kicker">◉ Scan instantané</span>
+        <h2 class="display">Scannez. Comprenez. <em>Choisissez mieux.</em></h2>
+        <p>Un code-barres → le score santé 0-100, les additifs et le Nutri-Score de 2 000+ produits marocains.</p>
+        <a class="go" href="#">Scanner un produit →</a>
+      </div>
+    </div>
+    <div class="slide"><img src="../assets/hero-repas.jpg" alt="">
+      <div class="scrim">
+        <span class="kicker">✦ Coach IA</span>
+        <h2 class="display">Ton assiette, <em>analysée.</em></h2>
+        <p>Photographie ton repas : calories estimées, verdict honnête et bilan hebdo personnalisé par notre IA locale.</p>
+        <a class="go" href="#">Analyser mon repas →</a>
+      </div>
+    </div>
+    <div class="slide"><img src="../assets/hero-panier.jpg" alt="">
+      <div class="scrim">
+        <span class="kicker">🧺 Liste de courses</span>
+        <h2 class="display">Ta liste, <em>en mieux noté.</em></h2>
+        <p>Compose ta liste, reçois des alternatives plus saines, imprime-la ou envoie-la sur WhatsApp en une image.</p>
+        <a class="go" href="#">Créer ma liste →</a>
+      </div>
+    </div>
+    <div class="slide"><img src="../assets/hero-comparer.jpg" alt="">
+      <div class="scrim">
+        <span class="kicker">⚖ Comparateur</span>
+        <h2 class="display">Deux produits. <em>Un verdict.</em></h2>
+        <p>Compare côte à côte : sucre, sel, additifs, transformation — et l'avis clair de l'IA sur lequel choisir.</p>
+        <a class="go" href="#">Comparer →</a>
+      </div>
+    </div>
+    <div class="slide"><img src="../assets/hero-partenaires.jpg" alt="">
+      <div class="scrim">
+        <span class="kicker">🤝 Partenaires</span>
+        <h2 class="display">Producteurs, marques : <em>rejoignez-nous.</em></h2>
+        <p>Valorisez vos produits sains auprès d'une communauté qui scanne chaque jour. Devenez partenaire Bayen.</p>
+        <a class="go" href="#">Devenir partenaire →</a>
+      </div>
+    </div>
+  </div>
+  <div class="dots" id="dots"></div>
+</header>
+
+<section class="stats">
+  <div class="stat"><div class="n">2 089</div><div class="l">Produits notés</div></div>
+  <div class="stat"><div class="n">12 categories</div><div class="l">Rayons organisés par IA</div></div>
+  <div class="stat"><div class="n">100%</div><div class="l">Gratuit, open source</div></div>
+</section>
+
+<section class="section">
+  <div class="sec-head"><h3 class="display">Derniers produits notés</h3><a href="#">Tout voir →</a></div>
+  <div class="pgrid">
+    <div class="pcard"><div class="pimg"><span class="sc" style="background:#ef4444">18</span></div><div><b>Nutella</b><div class="br">Ferrero · Céréales & petit-déj</div></div></div>
+    <div class="pcard"><div class="pimg"><span class="sc" style="background:#476a32">100</span></div><div><b>Flocons d'avoine complète</b><div class="br">Bjorg · Céréales & petit-déj</div></div></div>
+    <div class="pcard"><div class="pimg"><span class="sc" style="background:#b1cf3a">80</span></div><div><b>Semoule fine</b><div class="br">Kenz · Épicerie</div></div></div>
+    <div class="pcard"><div class="pimg"><span class="sc" style="background:#f97316">38</span></div><div><b>Jus d'orange nectar</b><div class="br">Marrakech · Eaux & jus</div></div></div>
+  </div>
+</section>
+
+<footer class="footer">Bayen — Scannez. Comprenez. Choisissez mieux. · Une initiative citoyenne 🇲🇦</footer>
+
+<script>
+  // Carousel : autoplay doux + dots synchronisés + pause au survol
+  const slides = document.getElementById('slides');
+  const dotsEl = document.getElementById('dots');
+  const n = slides.children.length;
+  let i = 0, timer;
+  for (let k = 0; k < n; k++) {
+    const b = document.createElement('button');
+    b.onclick = () => go(k);
+    dotsEl.appendChild(b);
+  }
+  function paint() { [...dotsEl.children].forEach((d, k) => d.classList.toggle('on', k === i)); }
+  function go(k) { i = (k + n) % n; slides.scrollTo({ left: slides.clientWidth * i, behavior: 'smooth' }); paint(); }
+  function auto() { timer = setInterval(() => go(i + 1), 4500); }
+  slides.addEventListener('pointerenter', () => clearInterval(timer));
+  slides.addEventListener('pointerleave', auto);
+  slides.addEventListener('scroll', () => { const k = Math.round(slides.scrollLeft / slides.clientWidth); if (k !== i) { i = k; paint(); } }, { passive: true });
+  paint(); auto();
+</script>
+</body></html>
