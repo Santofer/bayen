@@ -106,6 +106,25 @@ export const translations = {
   'home.free':         { fr: 'Gratuit',                                                                                                                        ary: 'بلا فلوس' },
   'home.scansToday':   { fr: "Scans aujourd'hui",                                                                                                              ary: 'سكانات اليوم' },
 
+  // ── Hero carousel (fonctionnalités) ─────────────────────────
+  'home.slideScanBadge':    { fr: 'Scan instantané',            ary: 'سكان فوري' },
+  'home.slideCoachTitle':   { fr: 'Un coach IA dans ta poche',  ary: 'كوتش ذكاء اصطناعي فجيبك' },
+  'home.slideCoachDesc':    { fr: 'Photographie ton repas : estimation des calories et bilan hebdomadaire personnalisé.', ary: 'صوّر الماكلة ديالك: تقدير السعرات وحصيلة أسبوعية.' },
+  'home.slideCoachBadge':   { fr: 'Coach IA',                   ary: 'كوتش ذكاء' },
+  'home.slideCoachCta':     { fr: 'Analyser un repas',          ary: 'حلّل وجبة' },
+  'home.slideCartTitle':    { fr: 'Ta liste de courses, plus saine', ary: 'لائحة المشتريات، صحّية كثر' },
+  'home.slideCartDesc':     { fr: 'Compose ton panier depuis nos recommandations, imprime-le ou envoie-le sur WhatsApp.', ary: 'كوّن السلة ديالك من التوصيات، طبعها ولا صيفطها فواتساب.' },
+  'home.slideCartBadge':    { fr: 'Liste de courses',           ary: 'لائحة المشتريات' },
+  'home.slideCartCta':      { fr: 'Voir mon panier',            ary: 'شوف السلة' },
+  'home.slideCompareTitle': { fr: 'Compare deux produits en un clin d’œil', ary: 'قارن جوج منتجات فطرفة عين' },
+  'home.slideCompareDesc':  { fr: 'Le duel est tranché par le score déterministe — l’IA explique pourquoi.', ary: 'المقارنة كيحسمها السكور — الذكاء كيشرح علاش.' },
+  'home.slideCompareBadge': { fr: 'Comparateur',                ary: 'المقارن' },
+  'home.slideCompareCta':   { fr: 'Comparer',                   ary: 'قارن' },
+  'home.slidePartnerTitle': { fr: 'Marques & producteurs, rejoignez Bayen', ary: 'العلامات والمنتجين، انضمّوا لباين' },
+  'home.slidePartnerDesc':  { fr: 'Valorisez vos produits, corrigez vos données et touchez une communauté engagée.', ary: 'ثمّنوا منتجاتكم، صحّحوا معطياتكم ووصلوا لمجتمع متفاعل.' },
+  'home.slidePartnerBadge': { fr: 'Partenaires',                ary: 'شركاء' },
+  'home.slidePartnerCta':   { fr: 'Devenir partenaire',         ary: 'ولّي شريك' },
+
   // ── Contribuer ──────────────────────────────────────────────
   'contribute.title':      { fr: 'Ajouter un produit',                                                           ary: 'زيد منتوج' },
   'contribute.subtitle':   { fr: 'Aidez la communauté en ajoutant un produit alimentaire à la base Bayen',       ary: 'عاون المجتمع وزيد منتوج غذائي فقاعدة باين' },

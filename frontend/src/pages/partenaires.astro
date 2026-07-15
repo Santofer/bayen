@@ -1,0 +1,152 @@
+---
+// Page Partenaires — marques, producteurs, distributeurs (SSR léger)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import { getLocale } from '@/lib/i18n'
+
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
+
+// Webhook n8n → ERP (configurable par env, non committé).
+const N8N_WEBHOOK = import.meta.env.PUBLIC_N8N_PARTNERS_WEBHOOK ?? ''
+
+const args = [
+  {
+    title: 'Une audience engagée',
+    desc: 'Des milliers de Marocains scannent chaque semaine pour mieux choisir. Vos produits bien notés gagnent en visibilité.',
+    path: 'M22 7 13.5 15.5 8.5 10.5 2 17 M16 7h6v6',
+  },
+  {
+    title: 'Vos données, correctes',
+    desc: 'Corrigez ou complétez la fiche de vos produits : nutrition, ingrédients, photos officielles.',
+    path: 'M20 6 9 17l-5-5',
+  },
+  {
+    title: 'Valorisez vos efforts',
+    desc: 'Reformulation, réduction du sucre, retrait d’additifs : le score déterministe récompense les vrais progrès.',
+    path: 'M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z',
+  },
+]
+---
+
+<Layout
+  title="Partenaires — Bayen"
+  description="Marques, producteurs et distributeurs : rejoignez Bayen pour valoriser vos produits et améliorer vos données nutritionnelles."
+  path="/partenaires"
+>
+  <main class="pb-24 md:pb-12">
+    <!-- Hero -->
+    <section class="relative overflow-hidden">
+      <img src="/hero/partenaires.jpg" alt="" class="absolute inset-0 h-full w-full object-cover" />
+      <div class="absolute inset-0" style="background: linear-gradient(90deg, hsl(100 32% 9% / 0.9) 0%, hsl(100 30% 12% / 0.72) 50%, hsl(100 28% 16% / 0.35) 100%)"></div>
+      <div class="relative container mx-auto max-w-screen-lg px-4 py-16 sm:py-24">
+        <span class="inline-flex items-center gap-2 rounded-full bg-[#b1cf3a] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#233317]">
+          Partenaires
+        </span>
+        <h1 class="font-display font-extrabold text-[#f0f2d2] text-3xl sm:text-5xl leading-tight mt-4 max-w-2xl">
+          Marques &amp; producteurs, rejoignez Bayen
+        </h1>
+        <p class="text-[#f0f2d2]/85 mt-4 max-w-xl text-base sm:text-lg leading-relaxed">
+          Bayen est une initiative citoyenne de transparence alimentaire au Maroc. Valorisez vos produits,
+          corrigez vos données et touchez une communauté qui veut mieux manger.
+        </p>
+      </div>
+    </section>
+
+    <!-- Arguments -->
+    <section class="container mx-auto max-w-screen-lg px-4 py-12">
+      <div class="grid sm:grid-cols-3 gap-4">
+        {args.map((a) => (
+          <div class="rounded-2xl border bg-card p-6 shadow-card">
+            <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d={a.path} />
+              </svg>
+            </div>
+            <h3 class="font-bold text-foreground">{a.title}</h3>
+            <p class="text-sm text-muted-foreground mt-1.5 leading-relaxed">{a.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Formulaire -->
+    <section class="container mx-auto max-w-2xl px-4 pb-12">
+      <div class="rounded-3xl border bg-card p-6 sm:p-9 shadow-card">
+        <h2 class="font-display font-bold text-foreground text-2xl">Parlons de votre marque</h2>
+        <p class="text-sm text-muted-foreground mt-1.5">Remplissez ce formulaire, notre équipe revient vers vous sous 48 h.</p>
+
+        <form id="partner-form" class="mt-6 space-y-4" data-webhook={N8N_WEBHOOK}>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1.5" for="pf-company">Entreprise / marque</label>
+              <input id="pf-company" name="company" required class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary" placeholder="Ex : Jaouda" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1.5" for="pf-role">Vous êtes</label>
+              <select id="pf-role" name="role" class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary">
+                <option>Marque / fabricant</option>
+                <option>Producteur</option>
+                <option>Distributeur</option>
+                <option>Autre</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1.5" for="pf-name">Nom complet</label>
+              <input id="pf-name" name="name" required class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary" placeholder="Votre nom" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1.5" for="pf-email">Email professionnel</label>
+              <input id="pf-email" name="email" type="email" required class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary" placeholder="vous@marque.ma" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1.5" for="pf-msg">Votre message</label>
+            <textarea id="pf-msg" name="message" rows="4" class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary" placeholder="Parlez-nous de vos produits et de votre besoin…"></textarea>
+          </div>
+          <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground font-bold py-3.5 hover:bg-primary/90 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+            Envoyer
+          </button>
+          <p id="pf-status" class="text-sm text-center hidden"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline>
+    (() => {
+      const form = document.getElementById('partner-form')
+      const status = document.getElementById('pf-status')
+      if (!form) return
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const webhook = form.dataset.webhook
+        const data = Object.fromEntries(new FormData(form).entries())
+        const show = (msg, ok) => {
+          status.textContent = msg
+          status.className = 'text-sm text-center ' + (ok ? 'text-primary' : 'text-destructive')
+        }
+        if (!webhook) {
+          show('Merci ! Écrivez-nous directement à partenaires@bayen.ma en attendant.', true)
+          return
+        }
+        try {
+          const res = await fetch(webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...data, source: 'bayen-partenaires', ts: new Date().toISOString() }),
+          })
+          if (!res.ok) throw new Error('http')
+          form.reset()
+          show('Merci ! Votre demande a bien été envoyée. Nous revenons vers vous sous 48 h.', true)
+        } catch {
+          show('Une erreur est survenue. Réessayez ou écrivez à partenaires@bayen.ma.', false)
+        }
+      })
+    })()
+  </script>
+</Layout>
