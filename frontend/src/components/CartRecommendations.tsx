@@ -66,7 +66,8 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
         <Sparkles className="h-4 w-4 text-primary" />
         {t('cart.recoTitle')}
       </h3>
-      <div className="rail-x flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+      {/* -mx-5/px-5 : le fondu du mask + les ombres vivent dans le padding, rien n'est rogné */}
+      <div className="rail-x flex gap-3 overflow-x-auto -mx-5 px-5 pt-2 pb-6 -mb-3">
         {recos.map((r) => {
           const src = r.image_front
             ? (r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=160&height=160&fit=cover&format=webp`)
@@ -84,7 +85,7 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
                 </div>
                 <p className="text-xs font-medium line-clamp-2 leading-tight mb-1">{r.name_fr}</p>
               </a>
-              <AddToCartButton item={r} />
+              <AddToCartButton item={r} compact />
             </div>
           )
         })}

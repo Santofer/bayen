@@ -510,6 +510,8 @@ export const translations = {
   // Panier / liste de courses
   'cart.add':          { fr: 'Ajouter à ma liste',                     ary: 'زيد للائحة' },
   'cart.added':        { fr: 'Dans ma liste',                          ary: 'فاللائحة' },
+  'cart.addShort':     { fr: 'Ajouter',                                ary: 'زيد' },
+  'cart.addedShort':   { fr: 'Ajouté',                                 ary: 'تزاد' },
   'cart.pageTitle':    { fr: 'Ma liste de courses',                    ary: 'لائحة المشتريات' },
   'cart.pageSubtitle': { fr: 'Tes produits, leur score, prêts à imprimer ou envoyer sur WhatsApp.', ary: 'المنتوجات ديالك، النقط ديالهم، وجّدين للطباعة ولا الإرسال ف واتساب.' },
   'cart.empty':        { fr: 'Ta liste est vide. Ajoute des produits depuis leurs fiches.', ary: 'اللائحة خاوية. زيد منتوجات من الصفحات ديالهم.' },

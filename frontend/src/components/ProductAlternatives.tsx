@@ -81,7 +81,7 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
 
       {/* Cards alternatives */}
       {alternatives.length > 0 && (
-        <div className="rail-x flex gap-3 overflow-x-auto snap-x pb-2 -mx-1 px-1">
+        <div className="rail-x flex gap-3 overflow-x-auto snap-x -mx-5 px-5 pt-2 pb-6 -mb-3">
           {alternatives.map((alt) => (
             <a
               key={alt.barcode}

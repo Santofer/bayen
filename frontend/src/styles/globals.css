@@ -9,10 +9,11 @@
    ════════════════════════════════════════════════════════════════ */
 
 @theme {
-  /* ── Palette light ─────────────────────────────────────────── */
-  --color-background: hsl(60 48% 94%);
+  /* ── Palette light — fond plus profond, cartes presque blanches :
+       la hiérarchie des surfaces se VOIT (avant, card ≈ background) ── */
+  --color-background: hsl(60 40% 90%);
   --color-foreground: hsl(100 25% 12%);
-  --color-card: hsl(58 52% 97%);
+  --color-card: hsl(57 70% 98.5%);
   --color-card-foreground: hsl(100 25% 12%);
   --color-popover: hsl(58 52% 97%);
   --color-popover-foreground: hsl(100 25% 12%);
@@ -68,9 +69,9 @@
 
 /* ── Dark theme — forêt profonde, jamais noir ─────────────────── */
 .dark {
-  --color-background: hsl(105 32% 7%);
+  --color-background: hsl(105 34% 6%);
   --color-foreground: hsl(62 42% 92%);
-  --color-card: hsl(104 26% 11%);
+  --color-card: hsl(104 26% 12%);
   --color-card-foreground: hsl(62 42% 92%);
   --color-popover: hsl(104 28% 10%);
   --color-popover-foreground: hsl(62 42% 92%);
@@ -95,24 +96,38 @@
 
 /* ── Navbar — verre dépoli sur crème / forêt ──────────────────── */
 [data-bayen-nav] {
-  background-color: hsl(63 55% 91% / 0.82) !important;
+  background-color: hsl(63 55% 93% / 0.85) !important;
   color: #476a32 !important;
-  border-color: hsl(97 36% 30% / 0.1) !important;
+  border-color: hsl(97 36% 30% / 0.12) !important;
   -webkit-backdrop-filter: saturate(1.4) blur(14px);
   backdrop-filter: saturate(1.4) blur(14px);
   transition: box-shadow 0.35s var(--ease-out-soft), background-color 0.35s var(--ease-out-soft);
 }
 :where(.dark, .dark *) [data-bayen-nav] {
-  background-color: hsl(104 30% 9% / 0.8) !important;
+  background-color: hsl(104 30% 10% / 0.82) !important;
   color: #b1cf3a !important;
-  border-color: hsl(72 61% 52% / 0.14) !important;
+  border-color: hsl(72 61% 52% / 0.16) !important;
 }
-/* Ombre douce dès qu'on quitte le haut de page (classe posée par Layout) */
+
+/* Capsule flottante (header du haut uniquement — la bottom nav mobile
+   reste pleine largeur). Signature visuelle de la v2. */
+header[data-bayen-nav] {
+  top: 10px;
+  margin: 10px auto 0;
+  max-width: min(1040px, calc(100% - 20px));
+  border-radius: 999px;
+  border-width: 1px;
+  box-shadow: var(--shadow-card);
+}
+/* L'espace libéré au-dessus laisse respirer le contenu */
+header[data-bayen-nav] + * { scroll-margin-top: 84px; }
+
+/* Ombre plus affirmée dès qu'on quitte le haut de page */
 html.nav-scrolled header[data-bayen-nav] {
-  box-shadow: 0 4px 24px hsl(97 40% 15% / 0.1);
+  box-shadow: 0 8px 30px hsl(97 40% 15% / 0.16);
 }
 html.dark.nav-scrolled header[data-bayen-nav] {
-  box-shadow: 0 6px 28px hsl(105 40% 2% / 0.55);
+  box-shadow: 0 10px 34px hsl(105 40% 2% / 0.6);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -173,12 +188,16 @@ html.dark.is-scrolling ::-webkit-scrollbar-thumb {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+/* Le padding interne (posé via les classes -mx/px/pt/pb des composants)
+   donne aux ombres card-lift l'espace vertical ET horizontal nécessaire :
+   sans lui, le conteneur de scroll rogne les ombres au survol. Le fondu du
+   mask vit dans ce padding, jamais sur les cartes elles-mêmes. */
 .rail-x {
   -ms-overflow-style: none;
   scrollbar-width: none;
   scroll-snap-type: x proximity;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 20px, black calc(100% - 20px), transparent 100%);
 }
 .rail-x::-webkit-scrollbar { display: none; }
 .rail-x > * { scroll-snap-align: start; }
@@ -201,6 +220,13 @@ html.dark.is-scrolling ::-webkit-scrollbar-thumb {
     font-family: 'Nunito', system-ui, -apple-system, sans-serif !important;
     font-feature-settings: "rlig" 1, "calt" 1;
     text-rendering: optimizeLegibility;
+    /* Halo d'ambiance lime en haut à droite — donne de la profondeur au fond */
+    background-image: radial-gradient(1100px 540px at 88% -140px, hsl(68 62% 50% / 0.16), transparent 70%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+  .dark body {
+    background-image: radial-gradient(1100px 540px at 88% -140px, hsl(72 61% 52% / 0.09), transparent 70%);
   }
 
   /* Sélection aux couleurs de la marque */
@@ -251,11 +277,11 @@ html.dark.is-scrolling ::-webkit-scrollbar-thumb {
 }
 @media (hover: hover) {
   .card-lift:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
     box-shadow: var(--shadow-lift);
-    border-color: hsl(97 36% 30% / 0.25);
+    border-color: hsl(97 36% 30% / 0.3);
   }
-  .dark .card-lift:hover { border-color: hsl(72 61% 52% / 0.3); }
+  .dark .card-lift:hover { border-color: hsl(72 61% 52% / 0.35); }
 }
 .card-lift:active { transform: translateY(-1px) scale(0.995); }
 
