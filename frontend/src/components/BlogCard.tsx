@@ -35,6 +35,15 @@ const CATEGORY_LABELS_ARY: Record<ArticleCategory, string> = {
   actualites: 'الأخبار',
 }
 
+// Covers de secours (générés IA, palette Bayen) quand un article n'a pas
+// encore d'image dédiée — évite le placeholder gris. Voir /public/blog/.
+const CATEGORY_FALLBACK_COVER: Record<ArticleCategory, string> = {
+  'bien-etre': '/blog/fallback-bien-etre.jpg',
+  habitudes: '/blog/fallback-habitudes.jpg',
+  guides: '/blog/fallback-guides.jpg',
+  actualites: '/blog/fallback-actualites.jpg',
+}
+
 const MONTHS_FR = [
   'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
   'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
@@ -80,7 +89,7 @@ export default function BlogCard({
     ? article.cover_image.startsWith('http')
       ? article.cover_image
       : `${CDN_URL}/${article.cover_image}`
-    : null
+    : (CATEGORY_FALLBACK_COVER[article.category] ?? null)
 
   const dateStr = formatDate(article.date_published ?? article.date_created, locale)
   const readingTime = article.reading_time_min
