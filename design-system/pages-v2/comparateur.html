@@ -38,9 +38,15 @@
   .verdict h3{color:#6d28d9;font-size:1rem;font-weight:750;display:flex;gap:8px;margin-bottom:8px}
   .verdict p{font-size:.92rem;line-height:1.6}
   .verdict .tip{margin-top:10px;color:var(--muted);font-size:.85rem;display:flex;gap:8px}
+
+  .nav .brand{display:flex;align-items:center}
+  .nav .brand img{height:30px;width:auto;display:block}
+  .nav .nspace{flex:1}
+  .nav .login{display:inline-flex!important;align-items:center;gap:7px;opacity:1!important;border:1px solid hsl(97 36% 30%/.3);border-radius:999px;padding:8px 16px;font-weight:700}
+  .nav .scan-cta{display:inline-flex!important;align-items:center;gap:8px;opacity:1!important;background:hsl(97 36% 30%);color:#f0f2d2!important;border-radius:999px;padding:10px 18px;font-weight:700;box-shadow:0 4px 14px hsl(97 40% 20%/.25)}
 </style></head><body>
 
-<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#">Recherche</a><a href="#" style="opacity:1;font-weight:700">Comparer</a><a href="#">Blog</a></nav>
+<nav class="nav"><a class="brand" href="#"><img src="../assets/logo-bayen.svg" alt="Bayen"></a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Mon repas</a><a href="#">Additifs</a><a href="#">Blog</a><span class="nspace"></span><a class="login" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Se connecter</a><a class="scan-cta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scanner</a></nav>
 
 <main class="wrap">
   <h1 class="display">Comparer 2 produits</h1>
@@ -49,7 +55,7 @@
   <div class="duel">
     <div class="fighter"><div class="fimg"></div><b>Nutella</b><div class="br">Ferrero</div><div class="fscore" style="color:#ef4444">18</div></div>
     <div class="vs">VS</div>
-    <div class="fighter win"><span class="crown">🏆 Meilleur choix</span><div class="fimg"></div><b>Flocons d'avoine</b><div class="br">Bjorg</div><div class="fscore" style="color:#476a32">100</div></div>
+    <div class="fighter win"><span class="crown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> Meilleur choix</span><div class="fimg"></div><b>Flocons d'avoine</b><div class="br">Bjorg</div><div class="fscore" style="color:#476a32">100</div></div>
   </div>
 
   <div class="table">
@@ -61,9 +67,9 @@
   </div>
 
   <div class="verdict">
-    <h3 class="display">✦ Le verdict Bayen</h3>
+    <h3 class="display"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg> Le verdict Bayen</h3>
     <p>Les flocons d'avoine s'imposent nettement : non transformés (NOVA 1), 33 fois moins de sucre et zéro additif, là où le Nutella cumule sucre élevé et ultra-transformation.</p>
-    <div class="tip">💡 Garde le Nutella pour les grandes occasions — au quotidien, l'avoine avec du miel fait très bien le travail.</div>
+    <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> Garde le Nutella pour les grandes occasions — au quotidien, l'avoine avec du miel fait très bien le travail.</div>
   </div>
 </main>
 </body></html>

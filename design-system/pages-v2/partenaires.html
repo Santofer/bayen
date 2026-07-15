@@ -47,9 +47,15 @@
   .send{width:100%;margin-top:6px;background:var(--primary);color:var(--cream);border:0;border-radius:14px;padding:14px;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .2s var(--spring),box-shadow .2s;box-shadow:0 6px 18px hsl(97 40% 20%/.25)}
   .send:hover{transform:translateY(-2px)}
   .hint{color:var(--muted);font-size:.72rem;text-align:center;margin-top:10px}
+
+  .nav .brand{display:flex;align-items:center}
+  .nav .brand img{height:30px;width:auto;display:block}
+  .nav .nspace{flex:1}
+  .nav .login{display:inline-flex!important;align-items:center;gap:7px;opacity:1!important;border:1px solid hsl(97 36% 30%/.3);border-radius:999px;padding:8px 16px;font-weight:700}
+  .nav .scan-cta{display:inline-flex!important;align-items:center;gap:8px;opacity:1!important;background:hsl(97 36% 30%);color:#f0f2d2!important;border-radius:999px;padding:10px 18px;font-weight:700;box-shadow:0 4px 14px hsl(97 40% 20%/.25)}
 </style></head><body>
 
-<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#">Recherche</a><a href="#">Blog</a><a href="#" style="opacity:1;font-weight:700">Partenaires</a></nav>
+<nav class="nav"><a class="brand" href="#"><img src="../assets/logo-bayen.svg" alt="Bayen"></a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Mon repas</a><a href="#">Additifs</a><a href="#">Blog</a><span class="nspace"></span><a class="login" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Se connecter</a><a class="scan-cta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scanner</a></nav>
 
 <main class="wrap">
   <header class="hero">
@@ -62,10 +68,10 @@
 
   <div class="two">
     <div class="why">
-      <div class="wcard"><div class="ico">📈</div><div><h3 class="display">Visibilité qualifiée</h3><p>Des consommateurs qui comparent et choisissent en connaissance de cause — vos bons produits gagnent naturellement.</p></div></div>
-      <div class="wcard"><div class="ico">✓</div><div><h3 class="display">Données maîtrisées</h3><p>Revendiquez vos fiches produits, corrigez les données, ajoutez vos photos officielles.</p></div></div>
-      <div class="wcard"><div class="ico">🏷</div><div><h3 class="display">Badge partenaire</h3><p>Un signe de transparence affiché sur vos fiches — pas une pub, un engagement.</p></div></div>
-      <div class="wcard"><div class="ico">🛠</div><div><h3 class="display">Signaler un bug</h3><p>Ce formulaire sert aussi pour les retours techniques — chaque message arrive directement dans notre outil de suivi.</p></div></div>
+      <div class="wcard"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.1em;height:1.1em;vertical-align:-0.125em;flex-shrink:0"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div><h3 class="display">Visibilité qualifiée</h3><p>Des consommateurs qui comparent et choisissent en connaissance de cause — vos bons produits gagnent naturellement.</p></div></div>
+      <div class="wcard"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.1em;height:1.1em;vertical-align:-0.125em;flex-shrink:0"><path d="M20 6 9 17l-5-5"/></svg></div><div><h3 class="display">Données maîtrisées</h3><p>Revendiquez vos fiches produits, corrigez les données, ajoutez vos photos officielles.</p></div></div>
+      <div class="wcard"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.1em;height:1.1em;vertical-align:-0.125em;flex-shrink:0"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></div><div><h3 class="display">Badge partenaire</h3><p>Un signe de transparence affiché sur vos fiches — pas une pub, un engagement.</p></div></div>
+      <div class="wcard"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.1em;height:1.1em;vertical-align:-0.125em;flex-shrink:0"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div><h3 class="display">Signaler un bug</h3><p>Ce formulaire sert aussi pour les retours techniques — chaque message arrive directement dans notre outil de suivi.</p></div></div>
     </div>
 
     <form class="form">

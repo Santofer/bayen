@@ -26,9 +26,15 @@
   .box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px 22px;margin:24px 0;box-shadow:var(--sh-card)}
   .box b{display:flex;align-items:center;gap:8px;color:var(--primary);margin-bottom:8px}
   .box p{margin:0;font-size:.9rem;color:var(--muted)}
+
+  .nav .brand{display:flex;align-items:center}
+  .nav .brand img{height:30px;width:auto;display:block}
+  .nav .nspace{flex:1}
+  .nav .login{display:inline-flex!important;align-items:center;gap:7px;opacity:1!important;border:1px solid hsl(97 36% 30%/.3);border-radius:999px;padding:8px 16px;font-weight:700}
+  .nav .scan-cta{display:inline-flex!important;align-items:center;gap:8px;opacity:1!important;background:hsl(97 36% 30%);color:#f0f2d2!important;border-radius:999px;padding:10px 18px;font-weight:700;box-shadow:0 4px 14px hsl(97 40% 20%/.25)}
 </style></head><body>
 
-<nav class="nav"><span class="logo">Bayen</span><a href="#">Scanner</a><a href="#">Recherche</a><a href="#" style="opacity:1;font-weight:700">Blog</a></nav>
+<nav class="nav"><a class="brand" href="#"><img src="../assets/logo-bayen.svg" alt="Bayen"></a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Mon repas</a><a href="#">Additifs</a><a href="#">Blog</a><span class="nspace"></span><a class="login" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Se connecter</a><a class="scan-cta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scanner</a></nav>
 
 <div class="cover"><img src="../assets/cover-sucre.jpg" alt=""></div>
 <article>
@@ -40,7 +46,7 @@
   <div class="pull display">« 68 % des produits transformés de notre base contiennent des sucres ajoutés — souvent sous 14 noms différents. »</div>
   <h2 class="display">Comment le sucre se déguise</h2>
   <p>Sirop de glucose-fructose, dextrose, maltodextrine, jus de fruits concentré… La réglementation permet de fractionner le sucre en plusieurs ingrédients, ce qui le fait mécaniquement reculer dans la liste — et paraître minoritaire.</p>
-  <div class="box"><b>✦ Le réflexe Bayen</b><p>Scannez le code-barres : le score fait le calcul pour vous, et les alternatives moins sucrées de la même catégorie s'affichent automatiquement.</p></div>
+  <div class="box"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg> Le réflexe Bayen</b><p>Scannez le code-barres : le score fait le calcul pour vous, et les alternatives moins sucrées de la même catégorie s'affichent automatiquement.</p></div>
   <h2 class="display">Le classement</h2>
   <p>Sans surprise, les boissons gazeuses dominent. Mais les 4ᵉ et 7ᵉ places de notre classement sont des céréales « petit-déjeuner » présentées comme équilibrées…</p>
 </article>

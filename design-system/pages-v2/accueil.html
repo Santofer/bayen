@@ -70,20 +70,22 @@
   .pcard .br{color:var(--muted);font-size:.78rem;margin-top:2px}
 
   .footer{margin-top:56px;background:var(--primary);color:var(--cream);padding:40px 16px;text-align:center;font-size:.85rem;opacity:.95}
+
+  .nav .brand{display:flex;align-items:center}
+  .nav .brand img{height:30px;width:auto;display:block}
+  .nav .nspace{flex:1}
+  .nav .login{display:inline-flex!important;align-items:center;gap:7px;opacity:1!important;border:1px solid hsl(97 36% 30%/.3);border-radius:999px;padding:8px 16px;font-weight:700}
+  .nav .scan-cta{display:inline-flex!important;align-items:center;gap:8px;opacity:1!important;background:hsl(97 36% 30%);color:#f0f2d2!important;border-radius:999px;padding:10px 18px;font-weight:700;box-shadow:0 4px 14px hsl(97 40% 20%/.25)}
 </style></head><body>
 
-<nav class="nav">
-  <span class="logo">Bayen</span>
-  <a href="#">Scanner</a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Mon repas</a><a href="#">Blog</a>
-  <a class="cta" href="#">Scanner un produit</a>
-</nav>
+<nav class="nav"><a class="brand" href="#"><img src="../assets/logo-bayen.svg" alt="Bayen"></a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Mon repas</a><a href="#">Additifs</a><a href="#">Blog</a><span class="nspace"></span><a class="login" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Se connecter</a><a class="scan-cta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scanner</a></nav>
 
 <!-- HERO CAROUSEL : chaque slide = une fonctionnalité -->
 <header class="hero">
   <div class="slides" id="slides">
     <div class="slide"><img src="../assets/hero-scan.jpg" alt="">
       <div class="scrim">
-        <span class="kicker">◉ Scan instantané</span>
+        <span class="kicker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan instantané</span>
         <h2 class="display">Scannez. Comprenez. <em>Choisissez mieux.</em></h2>
         <p>Un code-barres → le score santé 0-100, les additifs et le Nutri-Score de 2 000+ produits marocains.</p>
         <a class="go" href="#">Scanner un produit →</a>
@@ -91,7 +93,7 @@
     </div>
     <div class="slide"><img src="../assets/hero-repas.jpg" alt="">
       <div class="scrim">
-        <span class="kicker">✦ Coach IA</span>
+        <span class="kicker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg> Coach IA</span>
         <h2 class="display">Ton assiette, <em>analysée.</em></h2>
         <p>Photographie ton repas : calories estimées, verdict honnête et bilan hebdo personnalisé par notre IA locale.</p>
         <a class="go" href="#">Analyser mon repas →</a>
@@ -99,7 +101,7 @@
     </div>
     <div class="slide"><img src="../assets/hero-panier.jpg" alt="">
       <div class="scrim">
-        <span class="kicker">🧺 Liste de courses</span>
+        <span class="kicker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="m5 11 4-7"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="m9 11 1 9"/><path d="m15 11-1 9"/></svg> Liste de courses</span>
         <h2 class="display">Ta liste, <em>en mieux noté.</em></h2>
         <p>Compose ta liste, reçois des alternatives plus saines, imprime-la ou envoie-la sur WhatsApp en une image.</p>
         <a class="go" href="#">Créer ma liste →</a>
@@ -107,7 +109,7 @@
     </div>
     <div class="slide"><img src="../assets/hero-comparer.jpg" alt="">
       <div class="scrim">
-        <span class="kicker">⚖ Comparateur</span>
+        <span class="kicker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg> Comparateur</span>
         <h2 class="display">Deux produits. <em>Un verdict.</em></h2>
         <p>Compare côte à côte : sucre, sel, additifs, transformation — et l'avis clair de l'IA sur lequel choisir.</p>
         <a class="go" href="#">Comparer →</a>
@@ -115,7 +117,7 @@
     </div>
     <div class="slide"><img src="../assets/hero-partenaires.jpg" alt="">
       <div class="scrim">
-        <span class="kicker">🤝 Partenaires</span>
+        <span class="kicker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Partenaires</span>
         <h2 class="display">Producteurs, marques : <em>rejoignez-nous.</em></h2>
         <p>Valorisez vos produits sains auprès d'une communauté qui scanne chaque jour. Devenez partenaire Bayen.</p>
         <a class="go" href="#">Devenir partenaire →</a>
@@ -141,7 +143,7 @@
   </div>
 </section>
 
-<footer class="footer">Bayen — Scannez. Comprenez. Choisissez mieux. · Une initiative citoyenne 🇲🇦</footer>
+<footer class="footer">Bayen — Scannez. Comprenez. Choisissez mieux. · Une initiative citoyenne marocaine</footer>
 
 <script>
   // Carousel : autoplay doux + dots synchronisés + pause au survol

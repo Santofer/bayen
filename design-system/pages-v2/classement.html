@@ -1,0 +1,73 @@
+<!-- @dsCard group="Pages v2" -->
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Classement v2 — Bayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:hsl(60 40% 90%);--card:hsl(57 70% 98.5%);--fg:hsl(100 25% 12%);--muted:hsl(95 12% 42%);
+    --border:hsl(62 28% 82%);--primary:hsl(97 36% 30%);--lime:#b1cf3a;--cream:#f0f2d2;
+    --gold:#d4af37;--silver:#9ca3af;--bronze:#cd7f32;
+    --sh-card:0 1px 2px hsl(97 40% 20%/.06),0 3px 12px hsl(97 40% 20%/.07)}
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Figtree,system-ui,sans-serif;background:var(--bg);color:var(--fg);
+    background-image:radial-gradient(1100px 540px at 88% -140px,hsl(68 62% 50%/.16),transparent 70%);background-repeat:no-repeat;padding-bottom:44px}
+  .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+  .nav{position:sticky;top:10px;z-index:50;max-width:min(1040px,calc(100% - 20px));margin:10px auto 0;display:flex;align-items:center;gap:22px;height:56px;padding:0 22px;border-radius:999px;background:hsl(63 55% 93%/.85);border:1px solid hsl(97 36% 30%/.12);backdrop-filter:saturate(1.4) blur(14px);box-shadow:var(--sh-card)}
+  .nav a{color:var(--primary);opacity:.62;text-decoration:none;font-size:.86rem;font-weight:600}
+  .nav .brand{display:flex;align-items:center}
+  .nav .brand img{height:30px;width:auto;display:block}
+  .nav .nspace{flex:1}
+  .nav .login{display:inline-flex!important;align-items:center;gap:7px;opacity:1!important;border:1px solid hsl(97 36% 30%/.3);border-radius:999px;padding:8px 16px;font-weight:700}
+  .nav .scan-cta{display:inline-flex!important;align-items:center;gap:8px;opacity:1!important;background:hsl(97 36% 30%);color:#f0f2d2!important;border-radius:999px;padding:10px 18px;font-weight:700;box-shadow:0 4px 14px hsl(97 40% 20%/.25)}
+  .wrap{max-width:680px;margin:28px auto 0;padding:0 16px;text-align:center}
+  h1{font-size:2.1rem;font-weight:780}
+  .sub{color:var(--muted);font-size:.9rem;margin:4px 0 8px}
+  .tabs{display:inline-flex;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:5px;margin:14px 0 26px}
+  .tabs span{padding:8px 18px;border-radius:999px;font-size:.8rem;font-weight:700;cursor:pointer}
+  .tabs .on{background:var(--primary);color:var(--cream)}
+
+  /* Podium */
+  .podium{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end;margin-bottom:22px}
+  .step{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 14px 14px;padding:18px 12px 14px;box-shadow:var(--sh-card);position:relative}
+  .step .avatar{width:58px;height:58px;border-radius:999px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.2rem;font-family:'Bricolage Grotesque'}
+  .medal{position:absolute;top:-13px;left:50%;transform:translateX(-50%);width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 3px 8px rgb(0 0 0/.25)}
+  .step b{display:block;font-size:.92rem}
+  .step .pts{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.35rem;color:var(--primary);margin-top:4px}
+  .step .lbl{color:var(--muted);font-size:.7rem}
+  .step.first{padding-top:26px;transform:translateY(-14px);border-color:var(--gold);box-shadow:0 0 0 3px hsl(46 65% 52%/.25),var(--sh-card)}
+
+  /* Liste */
+  .list{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:var(--sh-card);text-align:left}
+  .row{display:flex;align-items:center;gap:14px;padding:13px 18px;border-top:1px solid var(--border);font-size:.9rem}
+  .row:first-child{border-top:0}
+  .row .rank{font-family:'Bricolage Grotesque';font-weight:800;width:28px;color:var(--muted)}
+  .row .av{width:36px;height:36px;border-radius:999px;background:hsl(64 45% 86%);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--primary);font-size:.8rem}
+  .row .badge{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:hsl(64 45% 88%);color:var(--primary);border-radius:999px;padding:4px 10px}
+  .row .pts{margin-left:auto;font-weight:800;color:var(--primary)}
+  .row.me{background:hsl(68 60% 55%/.14);border-left:4px solid var(--lime)}
+</style></head><body>
+
+<nav class="nav"><a class="brand" href="#"><img src="../assets/logo-bayen.svg" alt="Bayen"></a><a href="#">Recherche</a><a href="#">Comparer</a><a href="#">Mon repas</a><a href="#">Additifs</a><a href="#">Blog</a><span class="nspace"></span><a class="login" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Se connecter</a><a class="scan-cta" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.125em"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scanner</a></nav>
+
+<main class="wrap">
+  <h1 class="display">Classement</h1>
+  <div class="sub">Les contributeurs qui font vivre la base, chaque semaine.</div>
+  <div class="tabs"><span class="on">Points</span><span>Scans</span><span>Contributions</span></div>
+
+  <div class="podium">
+    <div class="step"><span class="medal" style="background:var(--silver)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
+      <div class="avatar" style="background:var(--silver)">K</div><b>Khadija R.</b><div class="pts">1 840</div><div class="lbl">points</div></div>
+    <div class="step first"><span class="medal" style="background:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
+      <div class="avatar" style="background:var(--gold)">A</div><b>Amine B.</b><div class="pts">2 430</div><div class="lbl">points · Vérifié</div></div>
+    <div class="step"><span class="medal" style="background:var(--bronze)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
+      <div class="avatar" style="background:var(--bronze)">Y</div><b>Youssef M.</b><div class="pts">1 260</div><div class="lbl">points</div></div>
+  </div>
+
+  <div class="list">
+    <div class="row"><span class="rank">4</span><span class="av">S</span> Salma T. <span class="badge">Expert</span><span class="pts">980</span></div>
+    <div class="row"><span class="rank">5</span><span class="av">O</span> Omar L. <span class="badge">Contributeur</span><span class="pts">720</span></div>
+    <div class="row me"><span class="rank">6</span><span class="av">T</span> Toi <span class="badge">Contributeur</span><span class="pts">640</span></div>
+    <div class="row"><span class="rank">7</span><span class="av">N</span> Nadia E. <span class="badge">Contributeur</span><span class="pts">590</span></div>
+    <div class="row"><span class="rank">8</span><span class="av">H</span> Hamza K. <span class="badge">Nouveau</span><span class="pts">210</span></div>
+  </div>
+</main>
+</body></html>
