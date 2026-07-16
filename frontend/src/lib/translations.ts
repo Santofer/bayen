@@ -420,6 +420,9 @@ export const translations = {
   // ── Blog ──────────────────────────────────────────────────
   'blog.title':              { fr: 'Le blog Bayen',                                                       ary: 'مدونة باين' },
   'blog.description':        { fr: 'Bien-être, habitudes de consommation et réflexe Bayen.',              ary: 'العافية، عادات الشراء ورفلكس باين.' },
+  'blog.kicker':             { fr: 'Le mag Bayen',                                                        ary: 'مجلة باين' },
+  'blog.heroTitle1':         { fr: 'Comprendre ce qu’on',                                                 ary: 'نفهمو شنو' },
+  'blog.heroTitle2':         { fr: 'mange vraiment',                                                      ary: 'كناكلو بصح' },
   'blog.recentTitle':        { fr: 'Articles récents',                                                     ary: 'مقالات جديدة' },
   'blog.seeAll':             { fr: 'Voir tous les articles',                                               ary: 'شوف كل المقالات' },
   'blog.readMore':           { fr: "Lire l'article",                                                       ary: 'قرا المقال' },

@@ -35,6 +35,24 @@ try {
   // Page s'affiche quand même
 }
 
+// Article vedette (maquette v2) : le plus récent, en cover pleine largeur.
+// Uniquement sur la vue non filtrée pour garder les listes par catégorie denses.
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
+const FALLBACK_COVER: Record<ArticleCategory, string> = {
+  'bien-etre': '/blog/fallback-bien-etre.jpg',
+  habitudes: '/blog/fallback-habitudes.jpg',
+  guides: '/blog/fallback-guides.jpg',
+  actualites: '/blog/fallback-actualites.jpg',
+}
+const featured = !selectedCategory && articles.length > 0 ? articles[0] : null
+const gridArticles = featured ? articles.slice(1) : articles
+const featuredCover = featured
+  ? (featured.cover_image
+      ? (featured.cover_image.startsWith('http') ? featured.cover_image : `${CDN_URL}/${featured.cover_image}`)
+      : FALLBACK_COVER[featured.category])
+  : null
+const featuredTitle = featured ? ((locale === 'ary' && featured.title_ar) || featured.title_fr) : null
+
 const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: string; color: string }> = [
   { value: null,          labelKey: 'blog.allCategories',       color: '#94a3b8' },
   { value: 'bien-etre',   labelKey: 'blog.category.bien-etre',  color: '#476a32' },
@@ -79,13 +97,14 @@ const blogJsonLd = [
   path="/blog"
   jsonLd={blogJsonLd}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-12">
-    {/* En-tête */}
-    <header class="mb-8">
-      <h1 class="text-3xl sm:text-4xl font-bold text-foreground">
-        {t('blog.title', locale)}
+  <main class="section-v2 py-6 pb-24 md:pb-12">
+    {/* En-tête éditorial (maquette blog v2) */}
+    <header class="mb-7">
+      <p class="text-xs font-extrabold uppercase tracking-[0.08em] text-primary mb-1.5">{t('blog.kicker', locale)}</p>
+      <h1 class="blog-hero-title">
+        {t('blog.heroTitle1', locale)} <em>{t('blog.heroTitle2', locale)}</em>
       </h1>
-      <p class="text-sm sm:text-base text-muted-foreground mt-2 max-w-xl">
+      <p class="text-sm sm:text-base text-muted-foreground mt-2.5 max-w-xl">
         {t('blog.description', locale)}
       </p>
     </header>
@@ -112,17 +131,102 @@ const blogJsonLd = [
       })}
     </nav>
 
+    {/* Article vedette pleine largeur (maquette v2) */}
+    {featured && featuredCover && (
+      <a href={`/blog/${featured.slug}`} class="blog-feature">
+        <img src={featuredCover} alt={featuredTitle} loading="eager" />
+        <div class="scrim">
+          <span class="cat" style={`background-color: ${CATEGORIES.find(c => c.value === featured.category)?.color ?? '#b1cf3a'}`}>
+            {t(`blog.category.${featured.category}` as any, locale)}
+          </span>
+          <h2>{featuredTitle}</h2>
+          <p>
+            {featured.reading_time_min ? `${featured.reading_time_min} min de lecture` : ''}
+          </p>
+        </div>
+      </a>
+    )}
+
     {/* Grille des articles */}
-    {articles.length > 0 ? (
+    {gridArticles.length > 0 ? (
       <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {articles.map((article) => (
+        {gridArticles.map((article) => (
           <BlogCard article={article} locale={locale} />
         ))}
       </div>
-    ) : (
+    ) : !featured ? (
       <div class="rounded-xl border bg-card p-12 text-center text-muted-foreground">
         <p>{t('blog.empty', locale)}</p>
       </div>
-    )}
+    ) : null}
   </main>
 </Layout>
+
+<style>
+  /* Titre éditorial (maquette blog v2) */
+  .blog-hero-title {
+    font-size: clamp(2rem, 4.5vw, 3.2rem) !important;
+    font-weight: 780;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .blog-hero-title em {
+    font-style: normal;
+    color: hsl(97 40% 42%);
+  }
+  :global(.dark) .blog-hero-title em { color: #b1cf3a; }
+
+  /* Article vedette pleine largeur */
+  .blog-feature {
+    position: relative;
+    display: block;
+    border-radius: 26px;
+    overflow: hidden;
+    margin-bottom: 28px;
+    aspect-ratio: 21 / 10;
+    min-height: 300px;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out-soft);
+  }
+  .blog-feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+  .blog-feature > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .blog-feature .scrim {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 26px 28px;
+    background: linear-gradient(to top, hsl(100 35% 8% / 0.78) 0%, hsl(100 32% 12% / 0.28) 55%, transparent 100%);
+  }
+  .blog-feature .cat {
+    align-self: flex-start;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  .blog-feature h2 {
+    color: #fff;
+    font-size: clamp(1.4rem, 3vw, 2.2rem) !important;
+    font-weight: 750;
+    line-height: 1.1;
+    max-width: 24ch;
+    text-shadow: 0 1px 8px hsl(100 40% 6% / 0.45);
+  }
+  .blog-feature p {
+    color: hsl(60 40% 92% / 0.8);
+    font-size: 0.82rem;
+    margin-top: 8px;
+  }
+</style>
