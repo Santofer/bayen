@@ -530,6 +530,7 @@ export const translations = {
   'cmp.pickA':              { fr: 'Chercher un 1ᵉʳ produit…',                             ary: 'قلّب على المنتوج الأول…' },
   'cmp.pickB':              { fr: 'Chercher un 2ᵉ produit…',                              ary: 'قلّب على المنتوج الثاني…' },
   'cmp.betterChoice':       { fr: 'Meilleur choix :',                                     ary: 'الاختيار الأحسن:' },
+  'cmp.crownLabel':         { fr: 'Meilleur choix',                                       ary: 'الاختيار الأحسن' },
   'cmp.score':              { fr: 'Score',                                                ary: 'النقطة' },
   'cmp.sugar':              { fr: 'Sucre',                                                ary: 'السكر' },
   'cmp.satfat':             { fr: 'Graisses sat.',                                        ary: 'الدهون المشبعة' },

@@ -229,12 +229,14 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
           {/* Overlay scan */}
           {cameraActive && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div className="relative w-64 h-32 border-2 border-white/70 rounded-lg">
-                <div className="absolute -top-0.5 -left-0.5 w-6 h-6 border-t-3 border-l-3 border-primary rounded-tl-lg" />
-                <div className="absolute -top-0.5 -right-0.5 w-6 h-6 border-t-3 border-r-3 border-primary rounded-tr-lg" />
-                <div className="absolute -bottom-0.5 -left-0.5 w-6 h-6 border-b-3 border-l-3 border-primary rounded-bl-lg" />
-                <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 border-b-3 border-r-3 border-primary rounded-br-lg" />
-                <div className="absolute left-2 right-2 h-0.5 bg-primary shadow-[0_0_8px_rgba(71,106,50,0.6)] animate-scan" />
+              {/* Cadre de visée : équerres lime à 90° (maquette v2) */}
+              <div className="relative w-64 h-32">
+                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#b1cf3a]" />
+                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#b1cf3a]" />
+                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#b1cf3a]" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#b1cf3a]" />
+                {/* Faisceau de balayage lime (maquette v2) */}
+                <div className="absolute left-2 right-2 h-[3px] rounded-full animate-scan" style={{ background: 'linear-gradient(90deg, transparent, #b1cf3a, transparent)', boxShadow: '0 0 18px #b1cf3a' }} />
               </div>
             </div>
           )}

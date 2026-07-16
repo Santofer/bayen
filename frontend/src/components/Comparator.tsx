@@ -42,11 +42,14 @@ function scoreColor(s: number | null): string {
 const addCount = (p: Product) => (Array.isArray(p.additives) ? p.additives.length : 0)
 
 /** Slot de sélection d'un produit (recherche + résultat). */
-function ProductSlot({ product, onPick, onClear, placeholder }: {
+function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, crownLabel = '' }: {
   product: Product | null
   onPick: (p: Product) => void
   onClear: () => void
   placeholder: string
+  /** Duel maquette v2 : le gagnant reçoit bordure lime + couronne */
+  isWinner?: boolean
+  crownLabel?: string
 }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Product[]>([])
@@ -72,26 +75,41 @@ function ProductSlot({ product, onPick, onClear, placeholder }: {
   }, [q, product])
 
   if (product) {
+    // Card « fighter » (duel maquette v2) : le gagnant a bordure lime + glow + couronne
     return (
-      <div className="rounded-xl border bg-card p-3 relative">
+      <div
+        className={`relative h-full rounded-3xl border-2 bg-card p-4 sm:p-5 shadow-card ${
+          isWinner ? 'border-[#b1cf3a] shadow-[0_0_0_4px_hsl(68_60%_55%/0.22)]' : 'border-border'
+        }`}
+      >
+        {isWinner && crownLabel && (
+          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#b1cf3a] px-3 py-1 text-[0.66rem] font-extrabold uppercase tracking-[0.06em] text-[#233317]">
+            <Trophy className="h-3 w-3" /> {crownLabel}
+          </span>
+        )}
         <button onClick={onClear} className="absolute top-2 right-2 p-1 rounded-md hover:bg-muted text-muted-foreground" aria-label="Retirer">
           <X className="h-4 w-4" />
         </button>
         <div className="flex flex-col items-center text-center gap-2">
-          <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-muted flex-shrink-0 mt-1.5">
             {product.image_front ? (
-              <img src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}?width=160&height=160&fit=cover&format=webp`} alt={product.name_fr} className="w-full h-full object-cover" />
+              <img src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}?width=200&height=200&fit=cover&format=webp`} alt={product.name_fr} className="w-full h-full object-cover" />
             ) : <div className="w-full h-full" />}
           </div>
           <p className="text-sm font-semibold line-clamp-2 leading-tight">{product.name_fr}</p>
           <p className="text-xs text-muted-foreground">{product.brand}</p>
+          {product.scan_score != null && (
+            <div className="font-display text-4xl font-extrabold leading-none mt-1" style={{ color: scoreColor(product.scan_score) }}>
+              {product.scan_score}
+            </div>
+          )}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-dashed bg-card/50 p-3 relative">
+    <div className="h-full rounded-3xl border-2 border-dashed bg-card/50 p-3 relative">
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
@@ -181,26 +199,23 @@ export default function Comparator() {
 
   return (
     <div className="space-y-5">
-      {/* Slots */}
-      <div className="grid grid-cols-2 gap-3">
-        <ProductSlot product={a} onPick={setA} onClear={() => { setA(null); setVerdict(null) }} placeholder={t('cmp.pickA')} />
-        <ProductSlot product={b} onPick={setB} onClear={() => { setB(null); setVerdict(null) }} placeholder={t('cmp.pickB')} />
+      {/* Duel (maquette v2) : deux fighters + VS central, couronne sur le gagnant */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 pt-4">
+        <ProductSlot
+          product={a} onPick={setA} onClear={() => { setA(null); setVerdict(null) }} placeholder={t('cmp.pickA')}
+          isWinner={winner === 'A'} crownLabel={t('cmp.crownLabel')}
+        />
+        <div className="self-center font-display font-extrabold text-muted-foreground text-lg sm:text-2xl px-0.5" aria-hidden="true">VS</div>
+        <ProductSlot
+          product={b} onPick={setB} onClear={() => { setB(null); setVerdict(null) }} placeholder={t('cmp.pickB')}
+          isWinner={winner === 'B'} crownLabel={t('cmp.crownLabel')}
+        />
       </div>
 
       {a && b && (
         <>
-          {/* Bandeau gagnant */}
-          {winner !== 'EGALITE' && (
-            <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
-              <Trophy className="h-6 w-6 text-primary flex-shrink-0" />
-              <p className="text-sm">
-                {t('cmp.betterChoice')} <span className="font-bold">{(winner === 'A' ? a : b).name_fr}</span>
-              </p>
-            </div>
-          )}
-
           {/* Tableau comparatif */}
-          <div className="rounded-xl border bg-card overflow-hidden">
+          <div className="rounded-3xl border bg-card overflow-hidden shadow-card">
             <table className="w-full text-sm">
               <tbody>
                 {rows.map((r, i) => (
@@ -215,7 +230,7 @@ export default function Comparator() {
           </div>
 
           {/* Verdict IA */}
-          <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-4">
+          <div className="rounded-3xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-5">
             <h3 className="text-sm font-semibold flex items-center gap-2 text-violet-700 dark:text-violet-300 mb-2">
               <Sparkles className="h-4 w-4" />
               {t('cmp.verdictTitle')}

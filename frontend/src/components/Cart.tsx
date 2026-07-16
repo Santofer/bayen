@@ -117,15 +117,23 @@ export default function Cart() {
         <h1 className="text-2xl font-bold">Bayen — {t('cart.pageTitle')}</h1>
       </div>
 
-      {/* Récap */}
-      <div className="flex items-center justify-between rounded-xl border bg-card p-4">
+      {/* Récap — bandeau score moyen dégradé (maquette v2) */}
+      <div
+        className="flex items-center justify-between rounded-2xl border p-4 sm:p-5 shadow-card"
+        style={
+          avg != null
+            ? { background: `linear-gradient(120deg, ${scoreColor(avg)}1f, transparent 65%)`, borderColor: `${scoreColor(avg)}55` }
+            : undefined
+        }
+      >
         <span className="text-sm text-muted-foreground">
           {items.length} {items.length > 1 ? t('cart.itemsPlural') : t('cart.itemSingular')}
         </span>
         {avg != null && (
-          <span className="text-sm">
-            {t('cart.avgScore')}{' '}
-            <span className="font-bold" style={{ color: scoreColor(avg) }}>{avg}/100</span>
+          <span className="text-sm flex items-baseline gap-2">
+            {t('cart.avgScore')}
+            <span className="font-display text-2xl font-extrabold leading-none" style={{ color: scoreColor(avg) }}>{avg}</span>
+            <span className="text-xs text-muted-foreground">/100</span>
           </span>
         )}
       </div>
