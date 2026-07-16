@@ -4,12 +4,10 @@
  */
 
 import { useState, useMemo } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import type { Additive, RiskLevel } from '@/lib/types'
-import { RISK_VARIANTS, RISK_ICONS, RISK_LABEL_KEYS } from '@/components/AdditiveTag'
+import { RISK_LABEL_KEYS } from '@/components/AdditiveTag'
 
 interface AdditivesListProps {
   additives: Additive[]
@@ -22,6 +20,14 @@ const RISK_COLORS: Record<RiskLevel, string> = {
   limited: 'bg-orange-500',
   avoid: 'bg-red-500',
   banned_ma: 'bg-red-900',
+}
+
+// Couleurs hexadécimales des risques (bordure latérale + badge plein — maquette v2)
+const RISK_HEX: Record<RiskLevel, string> = {
+  safe: '#3f7d31',
+  limited: '#e59a1a',
+  avoid: '#ef4444',
+  banned_ma: '#7f1d1d',
 }
 
 export default function AdditivesList({ additives }: AdditivesListProps) {
@@ -66,12 +72,9 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Barre de recherche */}
-      <div className="relative">
-        <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rtl:left-auto rtl:right-3"
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
-        >
+      {/* Barre de recherche — héroïque (maquette v2) */}
+      <div className="search-hero">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -80,38 +83,32 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
           placeholder={t('additives.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-10 rounded-lg border border-input bg-background ps-10 pe-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
 
-      {/* Filtres par risque */}
+      {/* Filtres par risque — pills maquette */}
       <div className="flex flex-wrap gap-2">
         {(['all', ...RISK_ORDER] as const).map((risk) => {
           const label = risk === 'all' ? t('additives.all') : t(RISK_LABEL_KEYS[risk])
           const count = counts[risk] ?? 0
           const isActive = filterRisk === risk
           return (
-            <Button
+            <button
               key={risk}
-              variant={isActive ? 'default' : 'outline'}
-              size="sm"
+              type="button"
               onClick={() => setFilterRisk(risk)}
-              className={cn(
-                'gap-1.5',
-                isActive && risk !== 'all' && risk === 'safe' && 'bg-[#476a32] hover:bg-[#476a32]/90',
-                isActive && risk === 'limited' && 'bg-orange-500 hover:bg-orange-600',
-                isActive && risk === 'avoid' && 'bg-red-500 hover:bg-red-600',
-                isActive && risk === 'banned_ma' && 'bg-red-900 hover:bg-red-950',
-              )}
+              className={cn('filter-pill inline-flex items-center gap-1.5', isActive && 'on')}
+              style={
+                isActive && risk !== 'all'
+                  ? { backgroundColor: RISK_HEX[risk], borderColor: RISK_HEX[risk], color: '#fff' }
+                  : undefined
+              }
             >
               {label}
-              <span className={cn(
-                'text-xs rounded-full px-1.5 py-0.5',
-                isActive ? 'bg-white/20' : 'bg-muted'
-              )}>
+              <span className={cn('text-xs rounded-full px-1.5 py-0.5', isActive ? 'bg-white/20' : 'bg-muted')}>
                 {count}
               </span>
-            </Button>
+            </button>
           )
         })}
       </div>
@@ -121,39 +118,23 @@ export default function AdditivesList({ additives }: AdditivesListProps) {
         {sorted.length} {t('additives.found')}
       </p>
 
-      {/* Liste */}
-      <div className="space-y-2">
+      {/* Grille de cards à bordure latérale colorée (maquette v2) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {sorted.map((additive) => (
           <a
             key={additive.id}
             href={`/additifs/${additive.id}`}
-            className="flex items-start gap-3 rounded-lg border bg-card p-3 hover:shadow-md hover:border-primary/20 transition-all group"
+            className="add-card"
+            style={{ borderInlineStartColor: RISK_HEX[additive.risk_level] }}
           >
-            {/* Indicateur risque */}
-            <div className={cn(
-              'w-2 h-2 rounded-full mt-1.5 flex-shrink-0',
-              RISK_COLORS[additive.risk_level]
-            )} />
-
-            {/* Code + infos */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-sm text-foreground">{additive.id}</span>
-                <Badge variant={RISK_VARIANTS[additive.risk_level]} className="text-[10px]">
-                  {t(RISK_LABEL_KEYS[additive.risk_level])}
-                </Badge>
-              </div>
-              <p className="text-sm text-foreground mt-0.5">{(locale === 'ary' && (additive as any).name_ar) || additive.name_fr}</p>
-              <p className="text-xs text-muted-foreground capitalize">{(locale === 'ary' && (additive as any).function_ar) || additive.function}</p>
+            <div className="top">
+              <span className="code">{additive.id}</span>
+              <span className="risk" style={{ backgroundColor: RISK_HEX[additive.risk_level] }}>
+                {t(RISK_LABEL_KEYS[additive.risk_level])}
+              </span>
             </div>
-
-            {/* Flèche */}
-            <svg
-              className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors mt-1 flex-shrink-0"
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            <h3>{(locale === 'ary' && (additive as any).name_ar) || additive.name_fr}</h3>
+            <p className="capitalize">{(locale === 'ary' && (additive as any).function_ar) || additive.function}</p>
           </a>
         ))}
       </div>
