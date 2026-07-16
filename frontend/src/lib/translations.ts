@@ -151,6 +151,7 @@ export const translations = {
   // ── Recherche ───────────────────────────────────────────────
   'search.title':         { fr: 'Recherche',                                           ary: 'بحث' },
   'search.placeholder':   { fr: 'Rechercher un produit, une marque ou un code-barres...', ary: 'قلّب على منتوج، ماركة ولا كود...' },
+  'search.searchBtn':     { fr: 'Rechercher',                                              ary: 'قلّب' },
   'search.filters':       { fr: 'Filtres',                                             ary: 'فيلتر' },
   'search.sort':          { fr: 'Trier par',                                           ary: 'رتّب حسب' },
   'search.sortMostScanned': { fr: 'Plus scannés',                                     ary: 'الأكثر سكان' },

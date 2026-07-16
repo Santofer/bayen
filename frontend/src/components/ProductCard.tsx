@@ -19,6 +19,8 @@ import type { Product, ScoreLabel } from '@/lib/types'
 interface ProductCardProps {
   product: Product
   className?: string
+  /** 'row' = carte horizontale (accueil) · 'grid' = carte verticale maquette v2 (recherche, catégories) */
+  variant?: 'row' | 'grid'
 }
 
 const SCORE_COLORS: Record<ScoreLabel, string> = {
@@ -28,9 +30,18 @@ const SCORE_COLORS: Record<ScoreLabel, string> = {
   mauvais: '#ef4444',
 }
 
+// Couleurs officielles Nutri-Score pour le badge plein (maquette v2)
+const NUTRISCORE_COLORS: Record<string, string> = {
+  a: '#038141',
+  b: '#85bb2f',
+  c: '#fecb02',
+  d: '#ee8100',
+  e: '#e63e11',
+}
+
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
-export default function ProductCard({ product, className }: ProductCardProps) {
+export default function ProductCard({ product, className, variant = 'row' }: ProductCardProps) {
   const scoreColor = product.score_label
     ? SCORE_COLORS[product.score_label]
     : '#a1a1aa'
@@ -38,11 +49,38 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   // image_front peut être une URL externe (héritage OFF) ou un UUID Directus.
   // Pour les UUID : thumbnail transformé côté Directus (160×160 WebP ≈ 7 Ko
   // au lieu du fichier original parfois > 500 Ko).
+  const thumbSize = variant === 'grid' ? 320 : 160
   const imgSrc = product.image_front
     ? (product.image_front.startsWith('http')
         ? product.image_front
-        : `${CDN_URL}/${product.image_front}?width=160&height=160&fit=cover&quality=80&format=webp`)
+        : `${CDN_URL}/${product.image_front}?width=${thumbSize}&height=${thumbSize}&fit=cover&quality=80&format=webp`)
     : null
+
+  // Variante grille — carte verticale de la maquette v2 (recherche)
+  if (variant === 'grid') {
+    const grade = product.nutriscore_grade?.toLowerCase()
+    return (
+      <a href={`/produit/${product.barcode}`} className={cn('pcard-v2', className)}>
+        <div className="pi">
+          {imgSrc && (
+            <img src={imgSrc} alt={product.name_fr} loading="lazy" />
+          )}
+          {product.scan_score != null && (
+            <span className="sc" style={{ backgroundColor: scoreColor }}>
+              {product.scan_score}
+            </span>
+          )}
+        </div>
+        <b>{product.name_fr}</b>
+        {product.brand && <span className="br">{product.brand}</span>}
+        {grade && NUTRISCORE_COLORS[grade] && (
+          <span className="ns" style={{ backgroundColor: NUTRISCORE_COLORS[grade] }}>
+            NUTRI-SCORE {grade.toUpperCase()}
+          </span>
+        )}
+      </a>
+    )
+  }
 
   return (
     <a

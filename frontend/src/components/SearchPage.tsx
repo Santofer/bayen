@@ -299,12 +299,9 @@ export default function SearchPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
-      {/* Barre de recherche */}
-      <div className="relative">
+      {/* Barre de recherche — héroïque (maquette v2) */}
+      <div className="search-hero">
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          width="20"
-          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -320,8 +317,14 @@ export default function SearchPage() {
           placeholder={t('search.placeholder')}
           value={filters.query}
           onChange={(e) => updateFilter('query', e.target.value)}
-          className="w-full rounded-xl border bg-background py-3 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
         />
+        <button
+          type="button"
+          className="go hidden sm:block"
+          onClick={(e) => (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur()}
+        >
+          {t('search.searchBtn')}
+        </button>
       </div>
 
       {/* Barre tri + bouton filtres */}
@@ -492,9 +495,9 @@ export default function SearchPage() {
 
       {/* Grille de résultats */}
       {!loading && products.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[13px]">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} variant="grid" />
           ))}
         </div>
       )}
@@ -512,9 +515,9 @@ export default function SearchPage() {
               {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {t('search.offResults')}
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[13px]">
             {offResults.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} variant="grid" />
             ))}
           </div>
         </div>
@@ -652,7 +655,7 @@ function ToggleChip({
 /** Squelette de chargement avec animation pulse */
 function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[13px]">
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}

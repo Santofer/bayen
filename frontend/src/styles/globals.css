@@ -308,6 +308,109 @@ a.stat-v2:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
   .stat-v2 .n { font-size: 1.25rem; }
 }
 
+/* — Recherche : barre héroïque + pills filtres (maquette) — */
+.search-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-card);
+  border: 2px solid var(--color-primary);
+  border-radius: 999px;
+  padding: 6px 8px 6px 22px;
+  box-shadow: 0 8px 26px hsl(97 40% 20% / 0.14);
+}
+.dark .search-hero { box-shadow: 0 8px 26px hsl(105 40% 3% / 0.5); }
+.search-hero > svg { width: 1.1em; height: 1.1em; flex-shrink: 0; color: var(--color-muted-foreground); }
+.search-hero input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 1rem;
+  color: inherit;
+  outline: none;
+  padding: 10px 0;
+}
+.search-hero .go {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.filter-pill {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--color-card);
+  cursor: pointer;
+  color: inherit;
+  transition: all 0.2s;
+}
+.filter-pill.on {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border-color: var(--color-primary);
+}
+
+/* — Card produit grille (maquette recherche) — */
+.pcard-v2 {
+  display: block;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 13px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out-soft);
+  color: inherit;
+  text-decoration: none;
+}
+.pcard-v2:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+.pcard-v2 .pi {
+  width: 100%;
+  aspect-ratio: 1.15;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #e8ecd0, #d5dcb5);
+  position: relative;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.dark .pcard-v2 .pi { background: linear-gradient(135deg, hsl(100 18% 20%), hsl(100 22% 14%)); }
+.pcard-v2 .pi img { width: 100%; height: 100%; object-fit: contain; }
+.pcard-v2 .sc {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.76rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.22);
+}
+.pcard-v2 b { font-size: 0.88rem; line-height: 1.25; display: block; }
+.pcard-v2 .br { display: block; color: var(--color-muted-foreground); font-size: 0.74rem; margin-top: 3px; }
+.pcard-v2 .ns {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: #fff;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
 /* — Sections (largeur + tête maquette) — */
 .section-v2 { max-width: 1120px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
 .sec-head-v2 { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }

@@ -297,39 +297,29 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
   ]
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3.5">
       <h3 className="text-sm font-medium text-foreground">{t('product.scoreDetail')}</h3>
-      <div className="space-y-1.5">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-2">
-            {/* Indicateur +/- */}
-            <span
-              className={cn(
-                'w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold text-white',
-                item.positive ? 'bg-[#476a32]' : 'bg-red-500'
-              )}
-            >
-              {item.positive ? '+' : '−'}
-            </span>
-            {/* Label */}
-            <span className="flex-1 text-sm text-foreground">{item.label}</span>
-            {/* Barre de progression */}
-            <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
+      {items.map((item) => {
+        const ratio = item.points / item.max
+        // Couleur graduée façon maquette : vert forêt → lime → orange → rouge
+        const barColor =
+          ratio >= 0.7 ? '#476a32' : ratio >= 0.45 ? '#b1cf3a' : ratio >= 0.2 ? '#f97316' : '#ef4444'
+        return (
+          <div key={item.label}>
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="text-[0.8rem] font-semibold text-foreground">{item.label}</span>
+              <span className="text-xs text-muted-foreground">{item.points} / {item.max} pts</span>
+            </div>
+            {/* Track pleine largeur (maquette produit) */}
+            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${(item.points / item.max) * 100}%`,
-                  backgroundColor: item.positive ? '#476a32' : '#ef4444',
-                }}
+                style={{ width: `${Math.max(ratio * 100, 2)}%`, backgroundColor: barColor }}
               />
             </div>
-            {/* Score */}
-            <span className="text-xs font-mono text-muted-foreground w-10 text-right">
-              {item.points}/{item.max}
-            </span>
           </div>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
 }
@@ -424,21 +414,21 @@ export default function ScoreDisplay({
         )}
       </div>
 
-      {/* Cercle de score */}
-      <ScoreCircle
-        score={score.total}
-        label={translatedLabel}
-        color={color}
-      />
+      {/* Panneau score façon maquette : anneau à gauche, barres détaillées à droite */}
+      <div className="flex flex-col md:grid md:grid-cols-[auto_1fr] md:items-center gap-6 md:gap-8">
+        <ScoreCircle
+          score={score.total}
+          label={translatedLabel}
+          color={color}
+        />
+        <ScoreBreakdown score={score} />
+      </div>
 
-      {/* Nutri-Score */}
-      <NutriScoreBar grade={score.nutriscore_grade} />
-
-      {/* NOVA */}
-      <NovaDisplay group={score.nova_group} />
-
-      {/* Détail du score */}
-      <ScoreBreakdown score={score} />
+      {/* Nutri-Score + NOVA côte à côte */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t pt-5">
+        <NutriScoreBar grade={score.nutriscore_grade} />
+        <NovaDisplay group={score.nova_group} />
+      </div>
 
       {/* Additifs */}
       <AdditivesList additives={score.additives_detail ?? []} />
