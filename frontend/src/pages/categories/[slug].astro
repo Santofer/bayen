@@ -117,9 +117,9 @@ const pageDescription = category
         </div>
 
         {products.length > 0 ? (
-          <div class="grid gap-3">
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[13px]">
             {products.map((product) => (
-              <ProductCard product={product as any} />
+              <ProductCard product={product as any} variant="grid" />
             ))}
           </div>
         ) : (
