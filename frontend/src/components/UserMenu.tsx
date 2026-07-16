@@ -88,12 +88,26 @@ export default function UserMenu() {
     )
   }
 
-  // Non connecté — lien vers connexion
+  // Non connecté — pilule outline « Se connecter » (maquette v2)
   if (!user) {
     return (
-      <Button variant="ghost" size="sm" asChild className="ml-3">
-        <a href="/connexion">{t('nav.login')}</a>
-      </Button>
+      <a href="/connexion" className="nav-login">
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="flex-shrink-0"
+        >
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span className="hidden lg:inline">{t('nav.login')}</span>
+      </a>
     )
   }
 

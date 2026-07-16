@@ -10,7 +10,7 @@
  * Référence : SPEC.md §9
  */
 
-const CACHE_VERSION = 'v2'
+const CACHE_VERSION = 'v3' // v3 : purge générale post-redesign v2 (typo + hero + navbar)
 const CACHE_SHELL = `bayen-shell-${CACHE_VERSION}`
 const CACHE_API = `bayen-api-${CACHE_VERSION}`
 const CACHE_IMAGES = `bayen-images-${CACHE_VERSION}`

@@ -72,106 +72,46 @@ const currentPath = Astro.url.pathname
   </head>
   <body class="min-h-screen bg-background font-sans antialiased overflow-x-hidden">
     {!hideNav && (
-      <header class="sticky top-0 z-50 w-full border-b" data-bayen-nav>
-        <div class="container flex h-14 items-center px-4 mx-auto max-w-screen-lg">
+      <header class="sticky z-50 border" data-bayen-nav>
+        <div class="flex h-14 items-center gap-4 lg:gap-[22px] px-4 sm:px-[22px]">
           <!-- Logo -->
-          <a href="/" class="flex items-center me-6 text-primary">
-            <img src="/logo-bayn.svg" alt="Bayen" class="h-8 w-auto" data-bayen-logo style="filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
+          <a href="/" class="flex items-center flex-shrink-0" aria-label="Bayen — accueil">
+            <img src="/logo-bayn.svg" alt="Bayen" data-bayen-logo style="height: 30px; width: auto; display: block; filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
           </a>
 
-          <!-- Navigation desktop -->
-          <nav class="hidden md:flex items-center gap-6 text-sm">
-            <a
-              href="/recherche"
-              class:list={[
-                'transition-colors hover:opacity-100',
-                currentPath === '/recherche' ? 'font-medium' : 'opacity-60',
-              ]}
-            >
-              {t('nav.search', locale)}
-            </a>
-            <a
-              href="/comparer"
-              class:list={[
-                'transition-colors hover:opacity-100',
-                currentPath.startsWith('/comparer') ? 'font-medium' : 'opacity-60',
-              ]}
-            >
-              {t('nav.compare', locale)}
-            </a>
-            <a
-              href="/analyser-repas"
-              class:list={[
-                'transition-colors hover:opacity-100',
-                currentPath.startsWith('/analyser-repas') ? 'font-medium' : 'opacity-60',
-              ]}
-            >
-              {t('nav.meal', locale)}
-            </a>
-            <a
-              href="/additifs"
-              class:list={[
-                'transition-colors hover:opacity-100',
-                currentPath.startsWith('/additifs') ? 'font-medium' : 'opacity-60',
-              ]}
-            >
-              {t('nav.additives', locale)}
-            </a>
-            <a
-              href="/contribuer"
-              class:list={[
-                'transition-colors hover:opacity-100',
-                currentPath.startsWith('/contribuer') ? 'font-medium' : 'opacity-60',
-              ]}
-            >
-              {t('nav.contribute', locale)}
-            </a>
+          <!-- Navigation desktop — liens maquette v2 -->
+          <nav class="hidden md:flex items-center gap-4 lg:gap-6">
+            <a href="/recherche" class:list={['nav-link', { on: currentPath === '/recherche' }]}>{t('nav.search', locale)}</a>
+            <a href="/comparer" class:list={['nav-link', { on: currentPath.startsWith('/comparer') }]}>{t('nav.compare', locale)}</a>
+            <a href="/analyser-repas" class:list={['nav-link', { on: currentPath.startsWith('/analyser-repas') }]}>{t('nav.meal', locale)}</a>
+            <a href="/additifs" class:list={['nav-link', { on: currentPath.startsWith('/additifs') }]}>{t('nav.additives', locale)}</a>
+            <a href="/blog" class:list={['nav-link', { on: currentPath.startsWith('/blog') }]}>{t('nav.blog', locale)}</a>
           </nav>
 
           <!-- Spacer -->
           <div class="flex-1" />
 
-          <!-- Bouton scanner (mobile) -->
-          <a
-            href="/scan"
-            class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground"
-            aria-label="Scanner un produit"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 7V5a2 2 0 012-2h2" />
-              <path d="M17 3h2a2 2 0 012 2v2" />
-              <path d="M21 17v2a2 2 0 01-2 2h-2" />
-              <path d="M7 21H5a2 2 0 01-2-2v-2" />
-              <line x1="7" y1="12" x2="17" y2="12" />
-            </svg>
-          </a>
+          <!-- Utilitaires compacts : panier, thème, langue -->
+          <div class="flex items-center gap-0.5">
+            <CartNavButton label={t('nav.cart', locale)} client:load />
+            <ThemeToggle client:load />
+            <LocaleToggle client:load />
+          </div>
 
-          <!-- CTA scanner omniprésent (desktop) -->
-          <a
-            href="/scan"
-            class="hidden md:inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm px-4 py-2 me-1 shadow-[0_4px_14px_hsl(97_40%_20%/0.25)] hover:-translate-y-px transition-transform"
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 7V5a2 2 0 012-2h2" />
-              <path d="M17 3h2a2 2 0 012 2v2" />
-              <path d="M21 17v2a2 2 0 01-2 2h-2" />
-              <path d="M7 21H5a2 2 0 01-2-2v-2" />
-              <line x1="7" y1="12" x2="17" y2="12" />
-            </svg>
-            {t('nav.scan', locale)}
-          </a>
-
-          <!-- Panier / liste de courses -->
-          <CartNavButton label={t('nav.cart', locale)} client:load />
-
-          <!-- Toggle dark/light mode -->
-          <ThemeToggle client:load />
-
-          <!-- Toggle langue FR / darija -->
-          <LocaleToggle client:load />
-
-          <!-- Menu utilisateur (connexion / profil) -->
+          <!-- Se connecter (pilule outline) / avatar si connecté -->
           <UserMenu client:load />
+
+          <!-- CTA Scanner — omniprésent, pilule pleine (maquette) -->
+          <a href="/scan" class="nav-scan-cta">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+              <path d="M3 7V5a2 2 0 012-2h2" />
+              <path d="M17 3h2a2 2 0 012 2v2" />
+              <path d="M21 17v2a2 2 0 01-2 2h-2" />
+              <path d="M7 21H5a2 2 0 01-2-2v-2" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+            </svg>
+            <span class="hidden sm:inline">{t('nav.scan', locale)}</span>
+          </a>
         </div>
       </header>
     )}
@@ -347,11 +287,18 @@ const currentPath = Astro.url.pathname
       })();
     </script>
 
-    <!-- PWA : install prompt + service worker -->
+    <!-- PWA : install prompt + service worker (jamais en dev — il servirait
+         du stale pendant les compilations lentes et masquerait les changements) -->
     <InstallPrompt client:idle />
     <script is:inline>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(() => {})
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (r) { r.unregister() })
+          })
+        } else {
+          navigator.serviceWorker.register('/sw.js').catch(() => {})
+        }
       }
     </script>
 

@@ -20,13 +20,14 @@ let recentArticles: Article[] = []
 let totalProducts = 0
 let totalScans = 0
 let scansToday = 0
+let totalCategories = 12
 
 try {
   // Date du jour ISO pour filtrer les scans d'aujourd'hui
   const todayIso = new Date().toISOString().slice(0, 10)
 
   // Appels en parallèle pour réduire le TTFB
-  const [productsRes, countRes, scansRes, scansTodayRes, articlesRes] = await Promise.all([
+  const [productsRes, countRes, scansRes, scansTodayRes, articlesRes, catCountRes] = await Promise.all([
     fetch(
       // Uniquement les produits AVEC image : les images sont désormais
       // rapatriées dans Directus (backfill OFF), plus de prefetch fragile.
@@ -48,6 +49,10 @@ try {
     fetch(
       `${DIRECTUS_URL}/items/articles?filter[status][_eq]=published&sort=-date_published&limit=8&fields=id,slug,title_fr,title_ar,excerpt_fr,excerpt_ar,cover_image,category,reading_time_min,date_published,date_created`,
       { signal: AbortSignal.timeout(4000) }
+    ),
+    fetch(
+      `${DIRECTUS_URL}/items/categories?aggregate[count]=id`,
+      { signal: AbortSignal.timeout(3000) }
     ),
   ])
 
@@ -71,6 +76,10 @@ try {
     const articlesData = await articlesRes.json()
     recentArticles = (articlesData.data ?? []) as Article[]
   }
+  if (catCountRes.ok) {
+    const catData = await catCountRes.json()
+    totalCategories = Number(catData.data?.[0]?.count?.id ?? 12)
+  }
 } catch {
   // Pas de données — la page s'affiche quand même
 }
@@ -83,6 +92,48 @@ try {
 
 // Plus de fake minimum : on affiche les vrais chiffres.
 // Si la base est vide (ex: environnement staging), on affiche 0.
+
+// ── Slides du hero carousel (une par fonctionnalité — maquette v2) ──
+const ICONS: Record<string, string> = {
+  scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/>',
+  spark: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  basket: '<path d="m5 11 4-7"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="m9 11 1 9"/><path d="m15 11-1 9"/>',
+  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+}
+
+const slides = [
+  {
+    img: '/hero/scan.jpg', href: '/scan', icon: ICONS.scan, isH1: true,
+    badge: t('home.slideScanBadge', locale),
+    title: t('home.hero1', locale), em: t('home.hero2', locale),
+    desc: t('home.slideScanDesc', locale), cta: t('home.scanBtn', locale),
+  },
+  {
+    img: '/hero/repas.jpg', href: '/analyser-repas', icon: ICONS.spark, isH1: false,
+    badge: t('home.slideCoachBadge', locale),
+    title: t('home.slideCoachTitle', locale), em: t('home.slideCoachEm', locale),
+    desc: t('home.slideCoachDesc', locale), cta: t('home.slideCoachCta', locale),
+  },
+  {
+    img: '/hero/panier.jpg', href: '/panier', icon: ICONS.basket, isH1: false,
+    badge: t('home.slideCartBadge', locale),
+    title: t('home.slideCartTitle', locale), em: t('home.slideCartEm', locale),
+    desc: t('home.slideCartDesc', locale), cta: t('home.slideCartCta', locale),
+  },
+  {
+    img: '/hero/comparer.jpg', href: '/comparer', icon: ICONS.scale, isH1: false,
+    badge: t('home.slideCompareBadge', locale),
+    title: t('home.slideCompareTitle', locale), em: t('home.slideCompareEm', locale),
+    desc: t('home.slideCompareDesc', locale), cta: t('home.slideCompareCta', locale),
+  },
+  {
+    img: '/hero/partenaires.jpg', href: '/partenaires', icon: ICONS.users, isH1: false,
+    badge: t('home.slidePartnerBadge', locale),
+    title: t('home.slidePartnerTitle', locale), em: t('home.slidePartnerEm', locale),
+    desc: t('home.slidePartnerDesc', locale), cta: t('home.slidePartnerCta', locale),
+  },
+]
 ---
 
 <Layout
@@ -92,143 +143,84 @@ try {
 >
   <main class="pb-24 md:pb-8">
 
-    <!-- Héro carousel — vitrine des fonctionnalités -->
-    <section class="container mx-auto max-w-screen-lg px-4 pt-4 sm:pt-6">
-      <div
-        id="hero-carousel"
-        class="relative overflow-hidden rounded-[1.75rem] shadow-lift"
-        data-count="5"
-        style="aspect-ratio: 16 / 10"
-      >
-        <div id="hero-track" class="flex h-full transition-transform duration-700 ease-out" style="width: 500%">
-          {[
-            {
-              img: '/hero/scan.jpg', href: '/scan', badge: t('home.slideScanBadge', locale),
-              title1: t('home.hero1', locale), title2: t('home.hero2', locale),
-              desc: t('home.subtitle', locale), cta: t('home.scanBtn', locale), h1: true,
-            },
-            {
-              img: '/hero/repas.jpg', href: '/analyser-repas', badge: t('home.slideCoachBadge', locale),
-              title1: t('home.slideCoachTitle', locale), desc: t('home.slideCoachDesc', locale), cta: t('home.slideCoachCta', locale),
-            },
-            {
-              img: '/hero/panier.jpg', href: '/panier', badge: t('home.slideCartBadge', locale),
-              title1: t('home.slideCartTitle', locale), desc: t('home.slideCartDesc', locale), cta: t('home.slideCartCta', locale),
-            },
-            {
-              img: '/hero/comparer.jpg', href: '/comparer', badge: t('home.slideCompareBadge', locale),
-              title1: t('home.slideCompareTitle', locale), desc: t('home.slideCompareDesc', locale), cta: t('home.slideCompareCta', locale),
-            },
-            {
-              img: '/hero/partenaires.jpg', href: '/partenaires', badge: t('home.slidePartnerBadge', locale),
-              title1: t('home.slidePartnerTitle', locale), desc: t('home.slidePartnerDesc', locale), cta: t('home.slidePartnerCta', locale),
-            },
-          ].map((s) => (
-            <div class="relative h-full" style="width: 20%">
-              <img src={s.img} alt="" loading="eager" class="absolute inset-0 h-full w-full object-cover" />
-              <div class="absolute inset-0" style="background: linear-gradient(90deg, hsl(100 32% 9% / 0.86) 0%, hsl(100 30% 12% / 0.62) 42%, hsl(100 28% 16% / 0.12) 78%, transparent 100%)"></div>
-              <div class="absolute inset-0 flex flex-col justify-center gap-3 sm:gap-4 p-6 sm:p-10 lg:p-14 max-w-[88%] sm:max-w-[72%]">
-                <span class="inline-flex w-fit items-center gap-2 rounded-full bg-[#b1cf3a] px-3 py-1.5 text-[0.7rem] sm:text-xs font-bold uppercase tracking-wide text-[#233317]">
-                  {s.badge}
-                </span>
-                {s.h1 ? (
-                  <h1 class="font-display font-extrabold leading-[0.95] text-[#f0f2d2] text-[2rem] sm:text-5xl lg:text-6xl">
-                    <span class="block">{s.title1}</span>
-                    <span class="block text-[#b1cf3a]">{s.title2}</span>
-                  </h1>
-                ) : (
-                  <h2 class="font-display font-extrabold leading-[1.02] text-[#f0f2d2] text-[1.7rem] sm:text-4xl lg:text-5xl">
-                    {s.title1}
-                  </h2>
-                )}
-                <p class="text-[#f0f2d2]/85 text-sm sm:text-base max-w-md leading-relaxed line-clamp-3">
-                  {s.desc}
-                </p>
-                <a
-                  href={s.href}
-                  class="mt-1 inline-flex w-fit items-center gap-2 rounded-full bg-[#b1cf3a] px-6 py-3 text-sm sm:text-base font-bold text-[#233317] hover:bg-[#c4de5a] shadow-lg transition-colors"
-                >
-                  {s.cta}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                  </svg>
-                </a>
-              </div>
+    <!-- HERO CAROUSEL — vitrine des fonctionnalités (maquette v2, CSS .hero-* dans globals.css) -->
+    <header class="hero-v2">
+      <div id="hero-slides" class="hero-slides">
+        {slides.map((s) => (
+          <div class="hero-slide">
+            <img src={s.img} alt="" loading="eager" />
+            <div class="hero-scrim">
+              <span class="hero-kicker">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={s.icon} />
+                {s.badge}
+              </span>
+              {s.isH1 ? (
+                <h1 class="hero-title">{s.title} <em>{s.em}</em></h1>
+              ) : (
+                <h2 class="hero-title">{s.title} <em>{s.em}</em></h2>
+              )}
+              <p class="hero-desc">{s.desc}</p>
+              <a class="hero-go" href={s.href}>{s.cta} <span aria-hidden="true">→</span></a>
             </div>
-          ))}
-        </div>
-
-        <!-- Dots -->
-        <div id="hero-dots" class="absolute bottom-3.5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <button
-              type="button"
-              data-idx={i}
-              aria-label={`Fonctionnalité ${i + 1}`}
-              class="h-2 rounded-full bg-white/50 transition-all duration-300"
-              style={i === 0 ? 'width: 22px; background: #b1cf3a' : 'width: 8px'}
-            ></button>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </section>
+
+      <!-- Dots — sous le carousel (maquette) -->
+      <div id="hero-dots" class="hero-dots">
+        {slides.map((_, i) => (
+          <button type="button" class:list={[{ on: i === 0 }]} aria-label={`Fonctionnalité ${i + 1}`}></button>
+        ))}
+      </div>
+    </header>
 
     <script is:inline>
+      // Carousel : autoplay doux + dots synchronisés + pause au survol (maquette v2)
       (() => {
-        const car = document.getElementById('hero-carousel')
-        const track = document.getElementById('hero-track')
-        const dots = [...document.querySelectorAll('#hero-dots button')]
-        if (!car || !track) return
-        const n = parseInt(car.dataset.count || '5', 10)
-        const rtl = document.documentElement.dir === 'rtl'
+        const slides = document.getElementById('hero-slides')
+        const dotsEl = document.getElementById('hero-dots')
+        if (!slides || !dotsEl) return
+        const dots = [...dotsEl.children]
+        const n = slides.children.length
         let i = 0
         let timer = null
-        const render = () => {
-          track.style.transform = `translateX(${(rtl ? 1 : -1) * i * (100 / n)}%)`
-          dots.forEach((d, k) => {
-            const on = k === i
-            d.style.width = on ? '22px' : '8px'
-            d.style.background = on ? '#b1cf3a' : 'rgba(255,255,255,0.5)'
-          })
+        const paint = () => dots.forEach((d, k) => d.classList.toggle('on', k === i))
+        const go = (k) => {
+          i = (k + n) % n
+          slides.scrollTo({ left: slides.clientWidth * i * (document.documentElement.dir === 'rtl' ? -1 : 1), behavior: 'smooth' })
+          paint()
         }
-        const go = (k) => { i = (k + n) % n; render() }
-        const start = () => { stop(); timer = setInterval(() => go(i + 1), 5000) }
+        const auto = () => { stop(); timer = setInterval(() => go(i + 1), 4500) }
         const stop = () => { if (timer) clearInterval(timer) }
-        dots.forEach((d) => d.addEventListener('click', () => { go(parseInt(d.dataset.idx, 10)); start() }))
-        car.addEventListener('mouseenter', stop)
-        car.addEventListener('mouseleave', start)
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) start()
+        dots.forEach((d, k) => d.addEventListener('click', () => { go(k); auto() }))
+        slides.addEventListener('pointerenter', stop)
+        slides.addEventListener('pointerleave', auto)
+        slides.addEventListener('scroll', () => {
+          const k = Math.round(Math.abs(slides.scrollLeft) / slides.clientWidth)
+          if (k !== i && k < n) { i = k; paint() }
+        }, { passive: true })
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) auto()
       })()
     </script>
 
-    <!-- Stats -->
-    <section class="container mx-auto max-w-screen-lg px-4 py-2">
-      <div class="grid grid-cols-3 gap-3 sm:gap-6">
-        <div class="rounded-2xl border bg-card p-4 text-center shadow-[var(--shadow-card)]">
-          <p class="text-2xl sm:text-3xl font-bold text-primary">
-            {totalProducts.toLocaleString('fr-FR')}
-          </p>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-1">{t('home.products', locale)}</p>
-        </div>
-        <div class="rounded-2xl border bg-card p-4 text-center shadow-[var(--shadow-card)]">
-          <p class="text-2xl sm:text-3xl font-bold text-primary">
-            {totalScans.toLocaleString('fr-FR')}
-          </p>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-1">{t('home.scans', locale)}</p>
-        </div>
-        <div class="rounded-2xl border bg-card p-4 text-center shadow-[var(--shadow-card)]">
-          <p class="text-2xl sm:text-3xl font-bold text-primary">
-            {scansToday > 0 ? `+${scansToday.toLocaleString('fr-FR')}` : '100%'}
-          </p>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-1">
-            {scansToday > 0 ? t('home.scansToday', locale) : t('home.free', locale)}
-          </p>
-        </div>
+    <!-- Stats bandeau (maquette v2) -->
+    <section class="stats-v2">
+      <div class="stat-v2">
+        <div class="n">{totalProducts.toLocaleString('fr-FR')}</div>
+        <div class="l">{t('home.statProducts', locale)}</div>
+      </div>
+      <a href="/categories" class="stat-v2">
+        <div class="n">{totalCategories}</div>
+        <div class="l">{t('home.statCategories', locale)}</div>
+      </a>
+      <div class="stat-v2">
+        <div class="n">100%</div>
+        <div class="l">{t('home.statFree', locale)}</div>
       </div>
     </section>
 
     <!-- CTA : Analyser un repas (feature VLM) -->
-    <section class="container mx-auto max-w-screen-lg px-4 pt-6 pb-2">
+    <section class="section-v2 pt-6 pb-2">
       <a href="/analyser-repas" class="group flex items-center gap-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent hover:border-primary/40 hover:shadow-md transition-all p-4 sm:p-6">
         <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary sm:w-7 sm:h-7">
@@ -249,7 +241,7 @@ try {
     </section>
 
     <!-- Comment ça marche -->
-    <section class="reveal container mx-auto max-w-screen-lg px-4 py-12">
+    <section class="reveal section-v2 py-12">
       <h2 class="font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
       <div class="grid sm:grid-cols-3 gap-6">
         <div class="text-center">
@@ -295,10 +287,10 @@ try {
 
     <!-- Articles récents (blog) -->
     {recentArticles.length > 0 && (
-      <section class="reveal container mx-auto max-w-screen-lg px-4 pb-12">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="font-bold text-foreground">{t('blog.recentTitle', locale)}</h2>
-          <a href="/blog" class="text-sm text-primary hover:underline">{t('blog.seeAll', locale)}</a>
+      <section class="reveal section-v2 pb-12">
+        <div class="sec-head-v2">
+          <h2>{t('blog.recentTitle', locale)}</h2>
+          <a href="/blog">{t('blog.seeAll', locale)} →</a>
         </div>
         <BlogCarousel articles={recentArticles} locale={locale} client:idle />
       </section>
@@ -306,10 +298,10 @@ try {
 
     <!-- Produits populaires -->
     {recentProducts.length > 0 && (
-      <section class="reveal container mx-auto max-w-screen-lg px-4 pb-12">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="font-bold text-foreground">{t('home.popular', locale)}</h2>
-          <a href="/recherche" class="text-sm text-primary hover:underline">{t('home.seeAll', locale)}</a>
+      <section class="reveal section-v2 pb-12">
+        <div class="sec-head-v2">
+          <h2>{t('home.latestProducts', locale)}</h2>
+          <a href="/recherche">{t('home.seeAll', locale)} →</a>
         </div>
         <div class="grid sm:grid-cols-2 gap-3">
           {recentProducts.map((product) => (
@@ -320,7 +312,7 @@ try {
     )}
 
     <!-- CTA Contribution -->
-    <section class="reveal container mx-auto max-w-screen-lg px-4 pb-8">
+    <section class="reveal section-v2 pb-8">
       <div class="rounded-xl bg-card border border-border p-6 sm:p-8 text-center">
         <h2 class="font-bold text-foreground">{t('home.missingTitle', locale)}</h2>
         <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
@@ -340,7 +332,7 @@ try {
     </section>
 
     <!-- Liens rapides -->
-    <section class="reveal container mx-auto max-w-screen-lg px-4 pb-12">
+    <section class="reveal section-v2 pb-12">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <a href="/importer" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">

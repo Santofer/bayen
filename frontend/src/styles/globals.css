@@ -135,6 +135,187 @@ html.dark.nav-scrolled header[data-bayen-nav] {
 }
 
 /* ════════════════════════════════════════════════════════════════
+   V2 — composants portés depuis les maquettes design-system/pages-v2
+   (CSS de la maquette repris tel quel : fidélité garantie, pas de
+   dépendance aux classes arbitraires Tailwind)
+   ════════════════════════════════════════════════════════════════ */
+
+/* — Navbar capsule : liens + Se connecter + CTA Scanner — */
+.nav-link {
+  font-size: 0.86rem;
+  font-weight: 600;
+  opacity: 0.62;
+  transition: opacity 0.2s;
+}
+.nav-link:hover, .nav-link.on { opacity: 1; }
+.nav-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  border: 1px solid hsl(97 36% 30% / 0.3);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  transition: background-color 0.2s;
+}
+.nav-login:hover { background-color: hsl(97 36% 30% / 0.06); }
+.dark .nav-login { border-color: hsl(72 61% 52% / 0.35); }
+.dark .nav-login:hover { background-color: hsl(72 61% 52% / 0.08); }
+.nav-scan-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  box-shadow: 0 4px 14px hsl(97 40% 20% / 0.25);
+  transition: transform 0.2s var(--ease-spring);
+}
+.nav-scan-cta:hover { transform: translateY(-1px); }
+
+/* — Hero carousel (accueil) — */
+.hero-v2 { max-width: 1120px; margin: 26px auto 0; padding: 0 16px; }
+.hero-slides {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 16px;
+  border-radius: 28px;
+  scrollbar-width: none;
+}
+.hero-slides::-webkit-scrollbar { display: none; }
+.hero-slide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  aspect-ratio: 21 / 10;
+  min-height: 340px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #476a32;
+  display: flex;
+  align-items: flex-end;
+}
+.hero-slide > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero-slide::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(75deg, hsl(100 40% 8% / 0.72) 0%, hsl(100 40% 8% / 0.25) 52%, transparent 75%);
+}
+[dir='rtl'] .hero-slide::after {
+  background: linear-gradient(-75deg, hsl(100 40% 8% / 0.72) 0%, hsl(100 40% 8% / 0.25) 52%, transparent 75%);
+}
+.hero-scrim { position: relative; z-index: 2; padding: 44px 48px; max-width: 560px; }
+@media (max-width: 640px) { .hero-scrim { padding: 22px 20px; } }
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: hsl(68 60% 55% / 0.18);
+  border: 1px solid hsl(68 60% 55% / 0.5);
+  color: #b1cf3a;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.hero-kicker svg { width: 1em; height: 1em; flex-shrink: 0; }
+.hero-title {
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem) !important;
+  line-height: 1.02;
+  color: #fff;
+  margin: 14px 0 10px;
+  font-weight: 750;
+}
+.hero-title em { font-style: normal; color: #b1cf3a; }
+.hero-desc { color: hsl(60 40% 92% / 0.85); font-size: 0.98rem; max-width: 44ch; line-height: 1.5; }
+@media (max-width: 640px) { .hero-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; } }
+.hero-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  background: #b1cf3a;
+  color: #233317;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 12px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 8px 24px hsl(68 60% 35% / 0.45);
+  transition: transform 0.2s var(--ease-spring);
+}
+.hero-go:hover { transform: translateY(-2px); }
+.hero-dots { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+.hero-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 0;
+  background: hsl(97 36% 30% / 0.25);
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out-soft);
+  padding: 0;
+}
+.hero-dots button.on { width: 26px; background: var(--color-primary); }
+.dark .hero-dots button { background: hsl(72 61% 52% / 0.3); }
+.dark .hero-dots button.on { background: #b1cf3a; }
+
+/* — Bandeau stats (accueil) — */
+.stats-v2 {
+  max-width: 1120px;
+  margin: 34px auto 0;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.stat-v2 {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+a.stat-v2 { transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out-soft); }
+a.stat-v2:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+.stat-v2 .n {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--color-primary);
+  line-height: 1.15;
+}
+.stat-v2 .l { color: var(--color-muted-foreground); font-size: 0.8rem; margin-top: 2px; }
+@media (max-width: 640px) {
+  .stats-v2 { gap: 10px; }
+  .stat-v2 { padding: 14px 8px; }
+  .stat-v2 .n { font-size: 1.25rem; }
+}
+
+/* — Sections (largeur + tête maquette) — */
+.section-v2 { max-width: 1120px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+.sec-head-v2 { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+.sec-head-v2 :is(h2, h3) { font-size: 1.5rem !important; font-weight: 750; }
+.sec-head-v2 a { color: var(--color-primary); font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+.sec-head-v2 a:hover { text-decoration: underline; }
+
+/* ════════════════════════════════════════════════════════════════
    SCROLLBARS — custom, fines, auto-masquées à l'arrêt
    Le JS du Layout pose .is-scrolling sur <html> pendant le défilement
    (retirée ~900 ms après l'arrêt). Sans elle, le pouce est transparent.
