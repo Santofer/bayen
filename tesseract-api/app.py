@@ -88,7 +88,7 @@ def call_ai_text(system_prompt, user_prompt, retries=2, **kw):
     return None
 
 
-def call_ai_vision(system_prompt, user_text, image_b64, timeout=60):
+def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=700):
     """Analyse vision : 1 image (data URL base64) + consigne texte."""
     messages = [
         {'role': 'system', 'content': system_prompt},
@@ -99,7 +99,7 @@ def call_ai_vision(system_prompt, user_text, image_b64, timeout=60):
             }},
         ]},
     ]
-    return _ai_chat(messages, max_tokens=700, timeout=timeout)
+    return _ai_chat(messages, max_tokens=max_tokens, timeout=timeout)
 
 
 def resize_for_ai(image, max_side=AI_IMAGE_MAX_SIDE):
@@ -124,6 +124,40 @@ NUTRITION_SYSTEM = (
     "européenne. Tu analyses des données nutritionnelles extraites par OCR "
     "d'étiquettes de produits. Tu retournes UNIQUEMENT du JSON valide."
 )
+
+# Lecture VISION directe de l'étiquette (C8d) — remplace Tesseract en voie
+# principale : bien plus fiable sur l'arabe photographié, ingrédients bilingues.
+NUTRITION_VISION_SYSTEM = (
+    "Tu es un expert en étiquetage alimentaire marocain (français + arabe). Tu LIS directement "
+    "la photo d'une étiquette (tableau nutritionnel et/ou liste d'ingrédients) et tu retournes "
+    "UNIQUEMENT du JSON valide. Ne JAMAIS inventer une valeur illisible : mets null."
+)
+
+NUTRITION_VISION_PROMPT = """Lis cette étiquette (texte français et/ou arabe) et retourne ce JSON exact :
+{
+  "product_name": null,
+  "brand": null,
+  "energy_kcal_100g": null,
+  "fat_total_100g": null,
+  "fat_saturated_100g": null,
+  "carbs_total_100g": null,
+  "sugars_100g": null,
+  "fiber_100g": null,
+  "proteins_100g": null,
+  "salt_100g": null,
+  "ingredients": [{"name_fr": "", "name_ar": "", "category": "autre", "is_allergen": false, "percent": null}],
+  "traces_fr": [],
+  "ingredients_text": "",
+  "additives_found": ["E322"],
+  "nova_group": null,
+  "lisibilite": "bonne",
+  "parsing_confidence": 0.0
+}
+Valeurs nutritionnelles pour 100 g uniquement. Ingrédients BILINGUES (traduis le sens manquant FR<->AR),
+sans le poids net ni les mentions légales ; les mentions "peut contenir" vont dans traces_fr.
+category parmi cereale|sucre|graisse|laitier|proteine|fruit_legume|sel|eau|arome|additif|autre.
+is_allergen true pour gluten/blé, lait, œufs, arachide, fruits à coque, soja, poisson, crustacés, sésame, moutarde, céleri, lupin, sulfites.
+ingredients_text : la liste française en une phrase. lisibilite : bonne|moyenne|faible."""
 
 NUTRITION_PROMPT = """Voici le texte brut extrait par OCR d'un tableau nutritionnel marocain (peut contenir des erreurs OCR) :
 
@@ -356,6 +390,93 @@ def categorize_batch():
     except Exception as e:
         app.logger.error(f'categorize-batch error: {e}')
         return jsonify({'error': str(e), 'resultats': []}), 500
+
+
+# ─── Traduction + nettoyage bilingue des ingrédients (C8a) ─────────────
+TRANSLATE_SYSTEM = (
+    "Tu es un expert en étiquetage alimentaire marocain, parfaitement bilingue arabe/français. "
+    "On te donne les ingrédients de produits alimentaires (en arabe, en français, ou mélangés, "
+    "parfois avec des erreurs d'OCR). Pour CHAQUE produit tu retournes sa liste d'ingrédients "
+    "NETTOYÉE et BILINGUE.\n"
+    "Règles STRICTES :\n"
+    "- name_fr : nom français (traduis si la source est en arabe). name_ar : nom arabe (traduis si la source est en français).\n"
+    "- SUPPRIME tout ce qui n'est PAS un ingrédient : poids net, contenance, mentions légales, adresses, "
+    "codes, 'valeur nutritionnelle', instructions de conservation…\n"
+    "- Les mentions 'peut contenir (des traces de) X' vont dans traces_fr (noms français), PAS dans ingredients.\n"
+    "- percent : conserve la valeur fournie telle quelle (nombre) ou null. N'invente JAMAIS de pourcentage.\n"
+    "- category parmi : cereale, sucre, graisse, laitier, proteine, fruit_legume, sel, eau, arome, additif, autre.\n"
+    "- is_allergen true pour : gluten/blé, lait, œufs, arachide, fruits à coque, soja, poisson, crustacés, "
+    "sésame, moutarde, céleri, lupin, sulfites.\n"
+    "- Additifs E-xxx : name_fr au format 'E322 (lécithines)' si le nom est connu, category='additif'.\n"
+    "Retourne UNIQUEMENT du JSON valide : "
+    '{"results":[{"id":"…","ingredients":[{"name_fr":"","name_ar":"","category":"autre",'
+    '"is_allergen":false,"percent":null}],"traces_fr":[]}]}'
+)
+
+
+@app.route('/translate-ingredients-batch', methods=['POST'])
+def translate_ingredients_batch():
+    """Traduction + nettoyage bilingue FR/AR des ingrédients (lots de 1 à 5 produits)."""
+    data = request.get_json(silent=True) or {}
+    products = data.get('products', [])
+    if not products or len(products) > 5:
+        return jsonify({'error': '1 à 5 produits par lot'}), 400
+
+    lines = []
+    for p in products:
+        ings = p.get('ingredients') or []
+        if ings:
+            parts = []
+            for i in ings:
+                nm = (i.get('name_fr') or i.get('name') or '').strip()
+                if not nm:
+                    continue
+                pc = i.get('percent')
+                parts.append(nm + (f' ({pc}%)' if pc is not None else ''))
+            src = ' | '.join(parts)
+        else:
+            src = (p.get('ingredients_text') or '').strip()[:800]
+        lines.append(f"- id={p.get('id')} :: {src}")
+
+    prompt = 'Produits à traiter :\n' + '\n'.join(lines)
+    parsed = call_ai_text(TRANSLATE_SYSTEM, prompt, max_tokens=2600, timeout=150)
+    if parsed is None or 'results' not in parsed:
+        return jsonify({'error': 'IA indisponible'}), 502
+    return jsonify(parsed)
+
+
+# ─── Traduction 1:1 du référentiel ingredients (C8a) ───────────────────
+TERMS_SYSTEM = (
+    "Tu es un expert en étiquetage alimentaire marocain, parfaitement bilingue arabe/français. "
+    "On te donne une liste de noms d'ingrédients alimentaires (arabe, français, ou mélangés, parfois mal OCRisés). "
+    "Pour CHAQUE entrée tu retournes EXACTEMENT un résultat avec le MÊME id — jamais de fusion ni d'omission.\n"
+    "Règles :\n"
+    "- name_fr : nom français propre et court (traduis depuis l'arabe si besoin, corrige l'OCR).\n"
+    "- name_ar : nom arabe standard (traduis depuis le français si besoin).\n"
+    "- category parmi : cereale, sucre, graisse, laitier, proteine, fruit_legume, sel, eau, arome, additif, autre.\n"
+    "- is_allergen true pour : gluten/blé, lait, œufs, arachide, fruits à coque, soja, poisson, crustacés, "
+    "sésame, moutarde, céleri, lupin, sulfites.\n"
+    "- is_food false si l'entrée n'est PAS un ingrédient (poids net, contenance, mention légale, phrase "
+    "'peut contenir…', valeur nutritionnelle) — traduis quand même name_fr au mieux.\n"
+    "Retourne UNIQUEMENT du JSON valide : "
+    '{"results":[{"id":0,"name_fr":"","name_ar":"","category":"autre","is_allergen":false,"is_food":true}]}'
+)
+
+
+@app.route('/translate-terms-batch', methods=['POST'])
+def translate_terms_batch():
+    """Traduction bilingue 1:1 de termes d'ingrédients (référentiel, lots ≤ 20)."""
+    data = request.get_json(silent=True) or {}
+    terms = data.get('terms', [])
+    if not terms or len(terms) > 20:
+        return jsonify({'error': '1 à 20 termes par lot'}), 400
+
+    lines = [f"- id={t.get('id')} :: {(t.get('name') or '').strip()[:160]}" for t in terms]
+    prompt = 'Termes à traiter (un résultat par id, sans exception) :\n' + '\n'.join(lines)
+    parsed = call_ai_text(TERMS_SYSTEM, prompt, max_tokens=2400, timeout=150)
+    if parsed is None or 'results' not in parsed:
+        return jsonify({'error': 'IA indisponible'}), 502
+    return jsonify(parsed)
 
 
 COMPARE_SYSTEM = (
@@ -612,48 +733,84 @@ def pipeline():
     start_time = time.time()
 
     try:
-        # Étape 1 : OCR Tesseract
         file = request.files['image_nutrition']
-        image = Image.open(io.BytesIO(file.read()))
-        processed = preprocess_image(image)
+        raw = file.read()
+        image = Image.open(io.BytesIO(raw))
 
-        ocr_data = pytesseract.image_to_data(processed, lang='fra+ara', output_type=pytesseract.Output.DICT)
-        confidences = [c for c in ocr_data['conf'] if c > 0]
-        ocr_confidence = sum(confidences) / len(confidences) if confidences else 0
-        ocr_text = pytesseract.image_to_string(processed, lang='fra+ara').strip()
+        # ── Voie principale : lecture VISION Qwen (fiable en arabe, bilingue) ──
+        vis = resize_for_ai(image)
+        buf = io.BytesIO()
+        vis.save(buf, format='JPEG', quality=88)
+        image_b64 = base64.b64encode(buf.getvalue()).decode()
 
-        ocr_duration = int((time.time() - start_time) * 1000)
+        engine = 'qwen_vision'
+        parsed = call_ai_vision(
+            NUTRITION_VISION_SYSTEM, NUTRITION_VISION_PROMPT, image_b64,
+            timeout=120, max_tokens=2200,
+        )
+        vision_duration = int((time.time() - start_time) * 1000)
+        ocr_text = ''
+        ocr_confidence = None
+        ocr_duration = 0
 
-        if ocr_confidence < 50:
-            return jsonify({
-                'job_status': 'low_confidence',
-                'ocr_confidence': round(ocr_confidence, 1),
-                'ocr_text': ocr_text,
-                'message': 'Photo trop floue ou illisible. Essayez avec une meilleure photo.',
-                'duration_ms': ocr_duration,
-            })
+        # ── Fallback : Tesseract → parsing texte (ancienne voie) ──
+        if parsed is None:
+            engine = 'tesseract_fallback'
+            t0 = time.time()
+            processed = preprocess_image(image)
+            ocr_data = pytesseract.image_to_data(processed, lang='fra+ara', output_type=pytesseract.Output.DICT)
+            confidences = [c for c in ocr_data['conf'] if c > 0]
+            ocr_confidence = sum(confidences) / len(confidences) if confidences else 0
+            ocr_text = pytesseract.image_to_string(processed, lang='fra+ara').strip()
+            ocr_duration = int((time.time() - t0) * 1000)
 
-        # Étape 2 : parsing nutritionnel via IA
-        ai_start = time.time()
-        prompt = NUTRITION_PROMPT.format(ocr_text=ocr_text)
-        parsed = call_ai_text(NUTRITION_SYSTEM, prompt)
-        ai_duration = int((time.time() - ai_start) * 1000)
+            if ocr_confidence < 50:
+                return jsonify({
+                    'job_status': 'low_confidence',
+                    'engine': engine,
+                    'ocr_confidence': round(ocr_confidence, 1),
+                    'ocr_text': ocr_text,
+                    'message': 'Photo trop floue ou illisible. Essayez avec une meilleure photo.',
+                    'duration_ms': int((time.time() - start_time) * 1000),
+                })
+
+            prompt = NUTRITION_PROMPT.format(ocr_text=ocr_text)
+            parsed = call_ai_text(NUTRITION_SYSTEM, prompt)
 
         if parsed is None:
             return jsonify({
                 'job_status': 'manual_required',
-                'ocr_confidence': round(ocr_confidence, 1),
+                'engine': engine,
+                'ocr_confidence': round(ocr_confidence, 1) if ocr_confidence is not None else None,
                 'ocr_text': ocr_text,
-                'message': "L'IA n'a pas pu analyser le texte. Saisissez les données manuellement.",
-                'duration_ms': ocr_duration + ai_duration,
+                'message': "L'IA n'a pas pu analyser l'étiquette. Saisissez les données manuellement.",
+                'duration_ms': int((time.time() - start_time) * 1000),
+            })
+
+        # Étiquette illisible selon la vision → même statut que le seuil Tesseract
+        if engine == 'qwen_vision' and parsed.get('lisibilite') == 'faible':
+            return jsonify({
+                'job_status': 'low_confidence',
+                'engine': engine,
+                'parsing_confidence': parsed.get('parsing_confidence', 0.2),
+                'message': 'Photo trop floue ou illisible. Essayez avec une meilleure photo.',
+                'duration_ms': int((time.time() - start_time) * 1000),
             })
 
         total_duration = int((time.time() - start_time) * 1000)
 
+        # Ingrédients structurés bilingues (vision uniquement — fallback texte sinon)
+        ingredients = parsed.get('ingredients') if isinstance(parsed.get('ingredients'), list) else []
+        ingredients = [
+            i for i in ingredients
+            if isinstance(i, dict) and (i.get('name_fr') or i.get('name_ar'))
+        ][:40]
+
         return jsonify({
             'job_status': 'done',
+            'engine': engine,
             'barcode': barcode,
-            'ocr_confidence': round(ocr_confidence, 1),
+            'ocr_confidence': round(ocr_confidence, 1) if ocr_confidence is not None else None,
             'ocr_text': ocr_text,
             'parsed_data': {
                 'product_name': parsed.get('product_name'),
@@ -667,12 +824,14 @@ def pipeline():
                 'proteins': parsed.get('proteins_100g'),
                 'salt': parsed.get('salt_100g'),
                 'ingredients_text': parsed.get('ingredients_text', ''),
+                'ingredients': ingredients,
+                'traces_fr': parsed.get('traces_fr', []) if isinstance(parsed.get('traces_fr'), list) else [],
                 'additives': parsed.get('additives_found', []),
                 'nova_group': parsed.get('nova_group'),
             },
             'parsing_confidence': parsed.get('parsing_confidence', 0.7),
             'duration_ms': total_duration,
-            'timing': {'ocr_ms': ocr_duration, 'ai_ms': ai_duration},
+            'timing': {'vision_ms': vision_duration, 'ocr_ms': ocr_duration},
         })
 
     except Exception as e:

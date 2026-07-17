@@ -35,7 +35,7 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 - Appels : `POST {AI_BASE_URL}/chat/completions` (header `Authorization: Bearer {AI_API_KEY}`), `response_format:{type:json_object}`, `chat_template_kwargs:{enable_thinking:false}`.
 - **Vision** : 1 image par requête en `image_url` data-URL base64, redimensionnée **≤ 768 px** sur le grand côté avant envoi (le serveur cappe à ~768×768).
 - `/meal-analyze` (photo de plat) : sortie = ESTIMATION calories en **fourchette** (min/max) + macros + `confiance` (faible|moyenne|elevee). Jamais de chiffre précis inventé, jamais de conseil médical. Si pas un plat → `{"plat":null,...}`.
-- `/pipeline` (étiquette produit) : Tesseract OCR → texte → IA parse → JSON nutritionnel par 100g (inchangé côté schéma produit).
+- `/pipeline` (étiquette produit) : **vision-first** — Qwen lit directement la photo (FR+AR, ingrédients bilingues structurés) → JSON nutritionnel par 100g ; fallback Tesseract→parse si la vision échoue. Champ `engine` dans la réponse.
 - Tesseract tourne sur **CPU** (réseau Docker interne, non exposé via Tunnel).
 
 ---
@@ -112,6 +112,9 @@ curl https://api.bayen.ma/bayen-api/nutrition-summary \
 
 # Backfill images produits (auto : cron nightly 04:30 sur le serveur ;
 # script scripts/backfill-images.py exécuté DANS bayen-tesseract)
+
+# Traduction bilingue FR/AR du référentiel ingredients (auto : cron nightly 06:00 ;
+# script scripts/translate-ingredients.py — fusionne aussi les doublons name_fr)
 
 # Snapshot schéma Directus (à faire avant chaque modification de schéma)
 npx directus schema snapshot ./directus/snapshots/$(date +%Y%m%d).yaml
