@@ -495,7 +495,7 @@ export default function SearchPage() {
 
       {/* Grille de résultats */}
       {!loading && products.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[13px]">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} variant="grid" />
           ))}
@@ -515,7 +515,7 @@ export default function SearchPage() {
               {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {t('search.offResults')}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[13px]">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {offResults.map((product) => (
               <ProductCard key={product.id} product={product} variant="grid" />
             ))}
@@ -655,7 +655,7 @@ function ToggleChip({
 /** Squelette de chargement avec animation pulse */
 function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[13px]">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
