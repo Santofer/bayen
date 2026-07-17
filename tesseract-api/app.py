@@ -395,9 +395,11 @@ def categorize_batch():
 # ─── Traduction + nettoyage bilingue des ingrédients (C8a) ─────────────
 TRANSLATE_SYSTEM = (
     "Tu es un expert en étiquetage alimentaire marocain, parfaitement bilingue arabe/français. "
-    "On te donne les ingrédients de produits alimentaires (en arabe, en français, ou mélangés, "
-    "parfois avec des erreurs d'OCR). Pour CHAQUE produit tu retournes sa liste d'ingrédients "
-    "NETTOYÉE et BILINGUE.\n"
+    "On te donne les ingrédients de produits alimentaires : parfois une liste propre, parfois un "
+    "texte OCR brut qui MÉLANGE plusieurs langues (FR/EN/AR/PT/NL/ES…) répétant la même liste, "
+    "avec du bruit (codes-barres, valeurs nutritionnelles collées). Pour CHAQUE produit tu "
+    "retournes UNE SEULE liste d'ingrédients NETTOYÉE, DÉDUPLIQUÉE (chaque ingrédient une seule "
+    "fois, même s'il apparaît dans plusieurs langues) et BILINGUE, dans l'ordre de l'étiquette.\n"
     "Règles STRICTES :\n"
     "- name_fr : nom français (traduis si la source est en arabe). name_ar : nom arabe (traduis si la source est en français).\n"
     "- SUPPRIME tout ce qui n'est PAS un ingrédient : poids net, contenance, mentions légales, adresses, "

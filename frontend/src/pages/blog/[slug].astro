@@ -62,11 +62,14 @@ if (contentRaw) {
   contentHtml = typeof result === 'string' ? result : ''
 }
 
+// Cover : image dédiée, sinon visuel de secours par catégorie (cohérent BlogCard)
 const coverUrl = article?.cover_image
   ? article.cover_image.startsWith('http')
     ? article.cover_image
     : `${CDN_URL}/${article.cover_image}`
-  : null
+  : article
+    ? `/blog/fallback-${article.category}.jpg`
+    : null
 
 const CATEGORY_LABELS_FR: Record<ArticleCategory, string> = {
   'bien-etre': 'Bien-être',
@@ -123,7 +126,9 @@ const jsonLd = article
         author: {
           '@type': 'Person',
           name: 'Amine Benboubker',
-          url: 'https://www.n0.ma',
+          url: 'https://aminebenboubker.com',
+          image: `${SITE_URL}/avatar-amine.webp`,
+          sameAs: ['https://aminebenboubker.com', 'https://www.n0.ma'],
           affiliation: { '@type': 'Organization', name: 'Bayen' },
         },
         publisher: {
@@ -162,9 +167,6 @@ const jsonLd = article
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-12">
     {/* Retour */}
     <a href="/blog" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
       {t('blog.back', locale)}
     </a>
 
@@ -178,42 +180,42 @@ const jsonLd = article
         </p>
       </div>
     ) : (
-      <article class="max-w-3xl mx-auto">
-        {/* Cover hero */}
+      <article>
+        {/* Cover hero — maquette v2 : 21/9 pleine largeur, coins 26px */}
         {coverUrl && (
-          <div class="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-muted mb-6">
-            <img src={coverUrl} alt={title as string} class="w-full h-full object-cover" loading="eager" />
+          <div class="mx-auto mb-2" style="max-width: 1000px">
+            <div class="w-full overflow-hidden rounded-3xl bg-muted shadow-card" style="aspect-ratio: 21/10">
+              <img src={coverUrl} alt={title as string} class="w-full h-full object-cover" loading="eager" />
+            </div>
           </div>
         )}
 
-        {/* Catégorie + méta */}
-        <div class="flex flex-wrap items-center gap-3 mb-4">
-          <span
-            class="px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
-            style={`background-color: ${CATEGORY_COLORS[article.category]}`}
-          >
-            {t(`blog.category.${article.category}` as any, locale)}
-          </span>
-          {dateStr && (
-            <span class="text-xs text-muted-foreground">
-              {t('blog.publishedOn', locale)} {dateStr}
-            </span>
-          )}
-          {article.reading_time_min && (
-            <span class="text-xs text-muted-foreground">
-              · {article.reading_time_min} {t('blog.readingTimeMin', locale)}
-            </span>
-          )}
-        </div>
+        <div class="mx-auto" style="max-width: 680px">
+        {/* Catégorie */}
+        <span
+          class="inline-block mt-6 rounded-full px-3 py-1.5 font-extrabold uppercase text-white"
+          style={`background-color: ${CATEGORY_COLORS[article.category]}; font-size: 0.7rem; letter-spacing: 0.06em`}
+        >
+          {t(`blog.category.${article.category}` as any, locale)}
+        </span>
 
-        {/* Titre */}
-        <h1 class="text-3xl sm:text-4xl font-bold text-foreground leading-tight mb-4">
+        {/* Titre display (maquette) */}
+        <h1 class="font-display text-foreground mt-3.5 mb-2.5" style="font-size: clamp(1.9rem, 3.6vw, 2.7rem); line-height: 1.06; font-weight: 780;">
           {title}
         </h1>
 
+        {/* Méta bordée (maquette) */}
+        <div class="flex flex-wrap items-center gap-3 text-muted-foreground pb-4 border-b mb-6" style="font-size: 0.83rem">
+          <span>Par Amine Benboubker</span>
+          {article.reading_time_min && (
+            <span>· {article.reading_time_min} {t('blog.readingTimeMin', locale)}</span>
+          )}
+          {dateStr && <span>· {dateStr}</span>}
+        </div>
+
         {/* Excerpt en chapeau */}
         {excerpt && (
-          <p class="text-lg text-muted-foreground leading-relaxed mb-8">
+          <p class="font-medium text-foreground leading-relaxed mb-6" style="font-size: 1.15rem">
             {excerpt}
           </p>
         )}
@@ -228,16 +230,23 @@ const jsonLd = article
           </p>
         )}
 
-        {/* Bloc auteur — signal E-E-A-T (Authoritativeness) pour Google
-             sur les sujets YMYL (santé/nutrition) */}
-        <div class="mt-10 pt-6 border-t rounded-2xl bg-card border p-5 flex gap-4 items-start">
-          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-lg">
-            A
-          </div>
+        {/* Bloc auteur — photo + liens (signal E-E-A-T pour Google sur les
+             sujets YMYL santé/nutrition) */}
+        <div class="mt-10 rounded-3xl bg-card border p-5 sm:p-6 flex gap-4 sm:gap-5 items-start shadow-card">
+          <img
+            src="/avatar-amine.webp"
+            alt="Amine Benboubker"
+            width="64"
+            height="64"
+            class="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-primary/20"
+            loading="eager"
+          />
           <div class="flex-1 min-w-0">
-            <p class="font-semibold text-foreground">Amine Benboubker</p>
+            <p class="font-display font-bold text-foreground text-lg">Amine Benboubker</p>
             <p class="text-xs text-muted-foreground mt-0.5">
-              Fondateur de Bayen · Casablanca · Studio <a href="https://www.n0.ma" target="_blank" rel="noopener" class="text-primary hover:underline">N0.ma</a>
+              Fondateur de Bayen · Casablanca ·{' '}
+              <a href="https://aminebenboubker.com" target="_blank" rel="noopener" class="text-primary font-semibold hover:underline">aminebenboubker.com</a>
+              {' '}· Studio <a href="https://www.n0.ma" target="_blank" rel="noopener" class="text-primary hover:underline">N0.ma</a>
             </p>
             <p class="text-sm text-muted-foreground mt-2 leading-relaxed">
               Articles écrits avec rigueur, en citant systématiquement les sources scientifiques (OMS, EFSA, CIRC, ANSES). Algorithme de scoring public et open source.{' '}
@@ -251,6 +260,8 @@ const jsonLd = article
           <a href="/blog" class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
             {t('blog.back', locale)}
           </a>
+        </div>
+
         </div>
 
         {/* Articles similaires */}
@@ -274,17 +285,17 @@ const jsonLd = article
 <style is:global>
   /* Styles typographiques pour le contenu markdown rendu */
   .bayen-prose {
-    color: hsl(var(--foreground));
+    color: var(--color-foreground);
     line-height: 1.7;
     font-size: 1rem;
   }
   .bayen-prose > * + * { margin-top: 1em; }
   .bayen-prose h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.45rem;
+    font-weight: 750;
     margin-top: 2em;
     margin-bottom: 0.5em;
-    color: hsl(var(--foreground));
+    color: var(--color-foreground);
     line-height: 1.3;
   }
   .bayen-prose h3 {
@@ -292,7 +303,7 @@ const jsonLd = article
     font-weight: 600;
     margin-top: 1.75em;
     margin-bottom: 0.5em;
-    color: hsl(var(--foreground));
+    color: var(--color-foreground);
     line-height: 1.3;
   }
   .bayen-prose h4 {
@@ -301,15 +312,15 @@ const jsonLd = article
     margin-top: 1.5em;
     margin-bottom: 0.5em;
   }
-  .bayen-prose p { color: hsl(var(--foreground)); }
+  .bayen-prose p { color: var(--color-foreground); }
   .bayen-prose a {
-    color: hsl(var(--primary));
+    color: var(--color-primary);
     text-decoration: underline;
     text-underline-offset: 3px;
     font-weight: 500;
   }
   .bayen-prose a:hover { text-decoration-thickness: 2px; }
-  .bayen-prose strong { font-weight: 700; color: hsl(var(--foreground)); }
+  .bayen-prose strong { font-weight: 700; color: var(--color-foreground); }
   .bayen-prose em { font-style: italic; }
   .bayen-prose ul, .bayen-prose ol {
     padding-inline-start: 1.5rem;
@@ -318,20 +329,27 @@ const jsonLd = article
   .bayen-prose ol { list-style-type: decimal; }
   .bayen-prose li { margin-top: 0.25em; }
   .bayen-prose blockquote {
-    border-inline-start: 4px solid hsl(var(--primary));
-    padding-inline-start: 1rem;
-    color: hsl(var(--muted-foreground));
-    font-style: italic;
+    border-inline-start: 4px solid #b1cf3a;
+    background: var(--color-card);
+    border-radius: 0 16px 16px 0;
+    padding: 18px 22px;
+    margin: 24px 0;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--color-foreground);
+    font-style: normal;
   }
   .bayen-prose code {
-    background-color: hsl(var(--muted));
+    background-color: var(--color-muted);
     padding: 0.15em 0.35em;
     border-radius: 0.25rem;
     font-size: 0.9em;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   .bayen-prose pre {
-    background-color: hsl(var(--muted));
+    background-color: var(--color-muted);
     padding: 1rem;
     border-radius: 0.5rem;
     overflow-x: auto;
@@ -348,7 +366,7 @@ const jsonLd = article
   }
   .bayen-prose hr {
     border: none;
-    border-top: 1px solid hsl(var(--border));
+    border-top: 1px solid var(--color-border);
     margin: 2em 0;
   }
 </style>
