@@ -48,6 +48,8 @@ interface Filters {
   noAdditives: boolean
   halal: boolean
   bio: boolean
+  /** Codes E à exclure (produits qui NE contiennent PAS ces additifs) */
+  excludeAdditives: string[]
   sort: SortValue
 }
 
@@ -59,7 +61,15 @@ const defaultFilters: Filters = {
   noAdditives: false,
   halal: false,
   bio: false,
+  excludeAdditives: [],
   sort: '-scan_count',
+}
+
+/** Additif risqué proposé en exclusion (collection additives) */
+interface RiskyAdditive {
+  id: string
+  name_fr: string
+  risk_level: string
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -126,6 +136,27 @@ function buildQueryParams(filters: Filters, offset: number): string {
   return params.toString()
 }
 
+/**
+ * Params pour l'endpoint custom /bayen-api/search-products — requis dès
+ * qu'une exclusion d'additifs est active (le champ JSON `additives` ne
+ * supporte pas _ncontains via l'API items standard).
+ */
+function buildCustomParams(filters: Filters, offset: number): string {
+  const p = new URLSearchParams()
+  if (filters.query.trim()) p.set('q', filters.query.trim())
+  if (filters.categoryId !== null) p.set('category_id', String(filters.categoryId))
+  if (filters.scoreMin > 0) p.set('score_min', String(filters.scoreMin))
+  if (filters.nutriscoreGrades.length > 0) p.set('nutriscore', filters.nutriscoreGrades.join(','))
+  if (filters.noAdditives) p.set('no_additives', 'true')
+  if (filters.halal) p.set('halal', 'true')
+  if (filters.bio) p.set('bio', 'true')
+  p.set('exclude_additives', filters.excludeAdditives.join(','))
+  p.set('sort', filters.sort)
+  p.set('limit', String(PAGE_SIZE))
+  p.set('offset', String(offset))
+  return p.toString()
+}
+
 // ────────────────────────────────────────────────────────────────
 // Composant principal
 // ────────────────────────────────────────────────────────────────
@@ -143,6 +174,7 @@ export default function SearchPage() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [offResults, setOffResults] = useState<Product[]>([])
   const [searchingOff, setSearchingOff] = useState(false)
+  const [riskyAdditives, setRiskyAdditives] = useState<RiskyAdditive[]>([])
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -154,6 +186,14 @@ export default function SearchPage() {
       .catch(() => {
         /* Silencieux si l'API est indisponible */
       })
+    // Additifs à risque proposés en exclusion (les pires d'abord)
+    fetch(`${DIRECTUS_URL}/items/additives?filter[risk_level][_in]=banned_ma,avoid,limited&fields=id,name_fr,risk_level&sort=risk_level,id&limit=-1`)
+      .then((res) => res.json())
+      .then((json: { data: RiskyAdditive[] }) => {
+        const order: Record<string, number> = { banned_ma: 0, avoid: 1, limited: 2 }
+        setRiskyAdditives((json.data ?? []).sort((a, b) => (order[a.risk_level] ?? 9) - (order[b.risk_level] ?? 9)))
+      })
+      .catch(() => { /* silencieux */ })
   }, [])
 
   // Debounce sur la saisie texte (300ms)
@@ -171,7 +211,10 @@ export default function SearchPage() {
   const fetchProducts = useCallback(
     async (currentOffset: number, append: boolean) => {
       const filtersWithDebouncedQuery = { ...filters, query: debouncedQuery }
-      const url = `${DIRECTUS_URL}/items/products?${buildQueryParams(filtersWithDebouncedQuery, currentOffset)}`
+      // Exclusion d'additifs active → endpoint custom SQL (voir buildCustomParams)
+      const url = filtersWithDebouncedQuery.excludeAdditives.length > 0
+        ? `${DIRECTUS_URL}/bayen-api/search-products?${buildCustomParams(filtersWithDebouncedQuery, currentOffset)}`
+        : `${DIRECTUS_URL}/items/products?${buildQueryParams(filtersWithDebouncedQuery, currentOffset)}`
 
       if (append) {
         setLoadingMore(true)
@@ -187,10 +230,11 @@ export default function SearchPage() {
         if (res.ok) {
           const json = (await res.json()) as {
             data: Product[]
+            count?: number
             meta?: { filter_count?: number }
           }
           localProducts = json.data ?? []
-          localCount = json.meta?.filter_count ?? localProducts.length
+          localCount = json.count ?? json.meta?.filter_count ?? localProducts.length
         }
         // Si Directus retourne 403 ou erreur, localProducts reste []
 
@@ -259,6 +303,7 @@ export default function SearchPage() {
     filters.noAdditives,
     filters.halal,
     filters.bio,
+    filters.excludeAdditives,
     filters.sort,
   ])
 
@@ -289,7 +334,8 @@ export default function SearchPage() {
     filters.nutriscoreGrades.length > 0 ||
     filters.noAdditives ||
     filters.halal ||
-    filters.bio
+    filters.bio ||
+    filters.excludeAdditives.length > 0
 
   const hasMore = products.length < totalCount
 
@@ -359,6 +405,7 @@ export default function SearchPage() {
                     filters.noAdditives,
                     filters.halal,
                     filters.bio,
+                    filters.excludeAdditives.length > 0,
                   ].filter(Boolean).length
                 }
               </span>
@@ -478,6 +525,55 @@ export default function SearchPage() {
               onClick={() => updateFilter('bio', !filters.bio)}
             />
           </div>
+
+          {/* Exclure des additifs précis (C8c) */}
+          {riskyAdditives.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">
+                {t('search.excludeAdditives')}
+                {filters.excludeAdditives.length > 0 && (
+                  <span className="ml-2 text-xs font-bold text-destructive">
+                    {filters.excludeAdditives.length}
+                  </span>
+                )}
+              </label>
+              <p className="text-xs text-muted-foreground">{t('search.excludeAdditivesHint')}</p>
+              <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pt-1">
+                {riskyAdditives.map((a) => {
+                  const active = filters.excludeAdditives.includes(a.id)
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() =>
+                        updateFilter(
+                          'excludeAdditives',
+                          active
+                            ? filters.excludeAdditives.filter((c) => c !== a.id)
+                            : [...filters.excludeAdditives, a.id]
+                        )
+                      }
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors',
+                        active
+                          ? 'bg-destructive text-destructive-foreground border-destructive'
+                          : a.risk_level === 'limited'
+                            ? 'bg-background border-orange-300 dark:border-orange-800 text-foreground hover:bg-orange-50 dark:hover:bg-orange-950/30'
+                            : 'bg-background border-red-300 dark:border-red-800 text-foreground hover:bg-red-50 dark:hover:bg-red-950/30'
+                      )}
+                      title={a.name_fr}
+                    >
+                      {active && <span aria-hidden="true">✕</span>}
+                      {a.id}
+                      <span className="font-normal text-muted-foreground max-w-28 truncate">
+                        {a.name_fr}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

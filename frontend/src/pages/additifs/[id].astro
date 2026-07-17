@@ -3,6 +3,7 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import ProductCard from '@/components/ProductCard.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { getLocale, t } from '@/lib/i18n'
 
@@ -11,19 +12,30 @@ const { id } = Astro.params
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 let additive: Record<string, unknown> | null = null
+let products: Record<string, unknown>[] = []
+let productsCount = 0
 let fetchError: string | null = null
 
 try {
-  const res = await fetch(
-    `${DIRECTUS_URL}/items/additives/${id}`,
-    { signal: AbortSignal.timeout(5000) }
-  )
+  const [res, prodRes] = await Promise.all([
+    fetch(`${DIRECTUS_URL}/items/additives/${id}`, { signal: AbortSignal.timeout(5000) }),
+    // Produits contenant cet additif — endpoint SQL custom (le champ JSON
+    // additives ne supporte pas _contains via l'API items)
+    fetch(`${DIRECTUS_URL}/bayen-api/search-products?has_additive=${id}&limit=24&sort=-scan_count`, {
+      signal: AbortSignal.timeout(5000),
+    }),
+  ])
   if (res.ok) {
     const data = await res.json()
     additive = data.data ?? null
   } else if (res.status === 403) {
     // Essayer sans auth (public)
     additive = null
+  }
+  if (prodRes.ok) {
+    const pd = await prodRes.json()
+    products = pd.data ?? []
+    productsCount = pd.count ?? products.length
   }
 } catch {
   fetchError = 'Impossible de contacter le serveur'
@@ -163,6 +175,21 @@ const pageDescription = additive
             {t(RISK_IMPACT_KEYS[riskLevel] as any, locale)}
           </p>
         </div>
+
+        <!-- Produits contenant cet additif (C8c) -->
+        {products.length > 0 && (
+          <div>
+            <div class="sec-head-v2">
+              <h3>{t('additive.productsWith', locale)} {id}</h3>
+              <span class="text-sm text-muted-foreground">{productsCount} {t('search.results', locale)}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {products.map((product) => (
+                <ProductCard product={product as any} variant="grid" />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )}
   </main>

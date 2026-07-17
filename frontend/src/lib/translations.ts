@@ -152,6 +152,8 @@ export const translations = {
   'search.title':         { fr: 'Recherche',                                           ary: 'بحث' },
   'search.placeholder':   { fr: 'Rechercher un produit, une marque ou un code-barres...', ary: 'قلّب على منتوج، ماركة ولا كود...' },
   'search.searchBtn':     { fr: 'Rechercher',                                              ary: 'قلّب' },
+  'search.excludeAdditives':     { fr: 'Exclure des additifs',                             ary: 'حيّد الإضافات' },
+  'search.excludeAdditivesHint': { fr: 'Les produits contenant ces additifs seront masqués.', ary: 'المنتجات اللي فيها هاد الإضافات ماغاتبانش.' },
   'search.filters':       { fr: 'Filtres',                                             ary: 'فيلتر' },
   'search.sort':          { fr: 'Trier par',                                           ary: 'رتّب حسب' },
   'search.sortMostScanned': { fr: 'Plus scannés',                                     ary: 'الأكثر سكان' },
@@ -396,6 +398,7 @@ export const translations = {
 
   // ── Additif (fiche) ───────────────────────────────────────
   'additive.back':             { fr: 'Tous les additifs',                             ary: 'كل الإضافات' },
+  'additive.productsWith':     { fr: 'Produits contenant',                            ary: 'منتجات فيها' },
   'additive.notFound':         { fr: 'Additif non trouvé',                            ary: 'الإضافة ما لقيناهاش' },
   'additive.notFoundDesc':     { fr: "Cet additif n'existe pas dans notre base.",     ary: 'هاد الإضافة ما كايناش عندنا.' },
   'additive.description':      { fr: 'Description',                                   ary: 'الوصف' },
