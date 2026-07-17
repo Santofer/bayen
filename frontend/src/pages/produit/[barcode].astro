@@ -689,8 +689,9 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           />
         )}
 
-        {/* Enrichir depuis OFF (produits Directus incomplets) */}
+        {/* Enrichir depuis OFF (produits Directus incomplets) — détaché de la card ingrédients */}
         {scanResult.source === 'directus' && product && product.id && (
+          <div class="!mt-9">
           <EnrichFromOff
             productId={product.id as string}
             barcode={barcode as string}
@@ -703,6 +704,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
             }}
             client:load
           />
+          </div>
         )}
 
         {/* Info source Open Food Facts */}
