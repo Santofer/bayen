@@ -34,6 +34,58 @@ interface Props {
 
 const { title, description = 'Bayen — Scannez. Comprenez. Choisissez mieux.', hideNav = false, path, ogImage, ogType, jsonLd, noindex } = Astro.props
 const currentPath = Astro.url.pathname
+
+// ── Mega menus (desktop) — pages regroupées par section ─────────
+const NAV_ICONS: Record<string, string> = {
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+  flask: '<path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/>',
+  camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="4"/>',
+  basket: '<path d="m5 11 4-7"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="m9 11 1 9"/><path d="m15 11-1 9"/>',
+  spark: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  ruler: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+}
+
+const megaMenus = [
+  {
+    label: t('nav.explore', locale),
+    items: [
+      { href: '/recherche', label: t('nav.search', locale), desc: t('nav.d.search', locale), icon: NAV_ICONS.search },
+      { href: '/categories', label: t('search.categories', locale), desc: t('nav.d.categories', locale), icon: NAV_ICONS.grid },
+      { href: '/additifs', label: t('nav.additives', locale), desc: t('nav.d.additives', locale), icon: NAV_ICONS.flask },
+      { href: '/ingredients', label: t('nav.ingredients', locale), desc: t('nav.d.ingredients', locale), icon: NAV_ICONS.leaf },
+      { href: '/comparer', label: t('nav.compare', locale), desc: t('nav.d.compare', locale), icon: NAV_ICONS.scale },
+    ],
+  },
+  {
+    label: t('nav.tools', locale),
+    items: [
+      { href: '/scan', label: t('nav.scan', locale), desc: t('nav.d.scan', locale), icon: NAV_ICONS.scan },
+      { href: '/analyser-repas', label: t('nav.meal', locale), desc: t('nav.d.meal', locale), icon: NAV_ICONS.camera },
+      { href: '/panier', label: t('nav.cart', locale), desc: t('nav.d.cart', locale), icon: NAV_ICONS.basket },
+      { href: '/compte/journal', label: t('nav.journal', locale), desc: t('nav.d.journal', locale), icon: NAV_ICONS.spark },
+    ],
+  },
+  {
+    label: t('nav.community', locale),
+    items: [
+      { href: '/blog', label: t('nav.blog', locale), desc: t('nav.d.blog', locale), icon: NAV_ICONS.book },
+      { href: '/contribuer', label: t('nav.contribute', locale), desc: t('nav.d.contribute', locale), icon: NAV_ICONS.plus },
+      { href: '/classement', label: t('account.rank', locale), desc: t('nav.d.rank', locale), icon: NAV_ICONS.trophy },
+      { href: '/partenaires', label: t('nav.partners', locale), desc: t('nav.d.partners', locale), icon: NAV_ICONS.users },
+      { href: '/a-propos', label: t('footer.about', locale), desc: t('nav.d.about', locale), icon: NAV_ICONS.info },
+      { href: '/methodologie', label: t('footer.methodology', locale), desc: t('nav.d.methodology', locale), icon: NAV_ICONS.ruler },
+    ],
+  },
+]
 ---
 
 <!doctype html>
@@ -79,13 +131,32 @@ const currentPath = Astro.url.pathname
             <img src="/logo-bayn.svg" alt="Bayen" data-bayen-logo style="height: 30px; width: auto; display: block; filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
           </a>
 
-          <!-- Navigation desktop — liens maquette v2 -->
-          <nav class="hidden md:flex items-center gap-4 lg:gap-6">
-            <a href="/recherche" class:list={['nav-link', { on: currentPath === '/recherche' }]}>{t('nav.search', locale)}</a>
-            <a href="/comparer" class:list={['nav-link', { on: currentPath.startsWith('/comparer') }]}>{t('nav.compare', locale)}</a>
-            <a href="/analyser-repas" class:list={['nav-link', { on: currentPath.startsWith('/analyser-repas') }]}>{t('nav.meal', locale)}</a>
-            <a href="/additifs" class:list={['nav-link', { on: currentPath.startsWith('/additifs') }]}>{t('nav.additives', locale)}</a>
-            <a href="/blog" class:list={['nav-link', { on: currentPath.startsWith('/blog') }]}>{t('nav.blog', locale)}</a>
+          <!-- Navigation desktop — mega menus par section -->
+          <nav class="hidden md:flex items-center gap-1 lg:gap-2" aria-label="Navigation principale">
+            {megaMenus.map((menu) => {
+              const groupActive = menu.items.some((it) => it.href !== '/' && currentPath.startsWith(it.href))
+              return (
+                <div class="nav-group" data-nav-group>
+                  <button type="button" class:list={['nav-link nav-group-btn', { on: groupActive }]} aria-expanded="false" aria-haspopup="true">
+                    {menu.label}
+                    <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                  </button>
+                  <div class="nav-panel" role="menu">
+                    {menu.items.map((item) => (
+                      <a href={item.href} class:list={['nav-panel-item', { on: item.href !== '/' && currentPath.startsWith(item.href) }]} role="menuitem">
+                        <span class="nav-panel-ico">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
+                        </span>
+                        <span class="min-w-0">
+                          <b>{item.label}</b>
+                          <small>{item.desc}</small>
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </nav>
 
           <!-- Spacer -->
@@ -151,6 +222,7 @@ const currentPath = Astro.url.pathname
                 <li><a href="/contribuer" class="hover:opacity-100 transition-opacity">{t('nav.contribute', locale)}</a></li>
                 <li><a href="/importer" class="hover:opacity-100 transition-opacity">{t('home.import', locale)}</a></li>
                 <li><a href="/classement" class="hover:opacity-100 transition-opacity">{t('account.rank', locale)}</a></li>
+                <li><a href="/partenaires" class="hover:opacity-100 transition-opacity">{t('nav.partners', locale)}</a></li>
                 <li><a href="/compte" class="hover:opacity-100 transition-opacity">{t('account.title', locale)}</a></li>
               </ul>
             </div>
@@ -340,6 +412,45 @@ const currentPath = Astro.url.pathname
         }
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
+
+        // ── Mega menus : clic + survol (desktop), Escape / clic extérieur ──
+        var groups = [].slice.call(document.querySelectorAll('[data-nav-group]'));
+        function closeAll(except) {
+          groups.forEach(function (g) {
+            if (g !== except) {
+              g.classList.remove('open');
+              var b = g.querySelector('.nav-group-btn');
+              if (b) b.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+        groups.forEach(function (g) {
+          var btn = g.querySelector('.nav-group-btn');
+          if (!btn) return;
+          var timer = null;
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            closeAll(g);
+            var open = g.classList.toggle('open');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+          });
+          if (window.matchMedia('(hover: hover)').matches) {
+            g.addEventListener('mouseenter', function () {
+              if (timer) clearTimeout(timer);
+              closeAll(g);
+              g.classList.add('open');
+              btn.setAttribute('aria-expanded', 'true');
+            });
+            g.addEventListener('mouseleave', function () {
+              timer = setTimeout(function () {
+                g.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+              }, 180);
+            });
+          }
+        });
+        document.addEventListener('click', function () { closeAll(null); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(null); });
 
         // Révélation douce au scroll — progressive enhancement strict :
         // on ne masque QUE ce qui est sous le fold, et un filet de sécurité

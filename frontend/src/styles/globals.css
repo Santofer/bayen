@@ -179,6 +179,71 @@ html.dark.nav-scrolled header[data-bayen-nav] {
 }
 .nav-scan-cta:hover { transform: translateY(-1px); }
 
+/* — Mega menus navbar (desktop) — */
+.nav-group { position: relative; }
+.nav-group-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.nav-group-btn .chev { flex-shrink: 0; transition: transform 0.25s var(--ease-out-soft); }
+.nav-group.open .nav-group-btn { opacity: 1; background: hsl(97 36% 30% / 0.08); }
+.dark .nav-group.open .nav-group-btn { background: hsl(72 61% 52% / 0.1); }
+.nav-group.open .nav-group-btn .chev { transform: rotate(180deg); }
+.nav-panel {
+  position: absolute;
+  top: calc(100% + 14px);
+  inset-inline-start: 0;
+  min-width: 280px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lift);
+  padding: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.22s var(--ease-out-soft), transform 0.22s var(--ease-out-soft), visibility 0.22s;
+  z-index: 60;
+}
+/* Pont invisible : maintient le survol entre le bouton et le panneau */
+.nav-panel::before { content: ''; position: absolute; top: -16px; left: 0; right: 0; height: 16px; }
+.nav-group.open .nav-panel { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-panel-item {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 9px 11px;
+  border-radius: 13px;
+  text-decoration: none;
+  color: inherit;
+  opacity: 1;
+}
+.nav-panel-item:hover, .nav-panel-item.on { background: hsl(97 36% 30% / 0.07); }
+.dark .nav-panel-item:hover, .dark .nav-panel-item.on { background: hsl(72 61% 52% / 0.09); }
+.nav-panel-ico {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: hsl(97 36% 30% / 0.09);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.dark .nav-panel-ico { background: hsl(72 61% 52% / 0.12); color: #b1cf3a; }
+.nav-panel-ico svg { width: 16px; height: 16px; }
+.nav-panel-item b { display: block; font-size: 0.85rem; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.nav-panel-item small { display: block; font-size: 0.72rem; color: var(--color-muted-foreground); margin-top: 1px; white-space: nowrap; }
+
 /* — Hero carousel (accueil) — */
 .hero-v2 { max-width: 1120px; margin: 26px auto 0; padding: 0 16px; }
 .hero-slides {
