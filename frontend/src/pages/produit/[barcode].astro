@@ -258,6 +258,10 @@ if (scanResult.found && scanResult.source === 'open_food_facts') {
       body: JSON.stringify({
         barcode,
         session_id: `auto-${Date.now()}`,
+        // Appel SYSTÈME : importe le produit sans écrire de ligne `scans`.
+        // Le scan réel est enregistré côté client (voir <script> en bas de page)
+        // avec la session persistante — et sans les bots.
+        track: false,
       }),
       signal: AbortSignal.timeout(5000),
     })
@@ -753,4 +757,30 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
     )}
 
   </main>
+
+  {/* Enregistrement du scan côté client (C12) : session persistante + device.
+      Exécuté seulement si le produit existe → les bots, qui n'exécutent pas de
+      JS, ne sont jamais comptés. Fire-and-forget, n'impacte pas l'affichage. */}
+  {scanResult.found && (
+    <script is:inline define:vars={{ trackBarcode: barcode }}>
+      (function () {
+        try {
+          if (!/^\d{8}$|^\d{13}$/.test(String(trackBarcode))) return;
+          var sid = localStorage.getItem('bayen_session_id');
+          if (!sid) return; // le Layout le pose au premier paint
+          var dev = window.matchMedia('(max-width: 768px)').matches ? 'mobile' : 'desktop';
+          // Une seule fois par produit et par session (évite les rechargements)
+          var seenKey = 'bayen_scanned_' + trackBarcode;
+          if (sessionStorage.getItem(seenKey)) return;
+          sessionStorage.setItem(seenKey, '1');
+          fetch('/api/directus/bayen-api/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcode: String(trackBarcode), session_id: sid, device_type: dev }),
+            keepalive: true,
+          }).catch(function () {});
+        } catch (e) {}
+      })();
+    </script>
+  )}
 </Layout>

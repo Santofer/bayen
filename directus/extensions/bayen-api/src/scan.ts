@@ -28,6 +28,15 @@ interface ScanRequest {
   barcode: string
   session_id: string
   user_id?: string
+  /** 'mobile' | 'desktop' — mesure d'usage, transmis par le client */
+  device_type?: string
+  /**
+   * false = appel système (auto-import SSR) : le produit est importé mais AUCUNE
+   * ligne `scans` n'est écrite. Le vrai scan est enregistré côté client, ce qui
+   * exclut naturellement les bots (ils n'exécutent pas de JS) et garantit une
+   * session_id stable. Défaut : true (rétrocompatible).
+   */
+  track?: boolean
 }
 
 interface ProductRecord {
@@ -262,7 +271,9 @@ export function registerScanEndpoint(router: Router, context: {
 }): void {
   router.post('/scan', async (req, res) => {
     try {
-      const { barcode, session_id, user_id } = req.body as ScanRequest
+      const { barcode, session_id, user_id, device_type, track } = req.body as ScanRequest
+      const shouldTrack = track !== false
+      const deviceType = device_type === 'mobile' || device_type === 'desktop' ? device_type : null
 
       // Validation
       if (!barcode || !session_id) {
@@ -314,12 +325,15 @@ export function registerScanEndpoint(router: Router, context: {
           nutriscore_grade: score.nutriscore_grade,
         })
 
-        // Log le scan
-        await scansService.createOne({
-          product_id: product.id,
-          user_id: user_id ?? null,
-          session_id,
-        })
+        // Log le scan (sauf appel système : track=false)
+        if (shouldTrack) {
+          await scansService.createOne({
+            product_id: product.id,
+            user_id: user_id ?? null,
+            session_id,
+            device_type: deviceType,
+          })
+        }
 
         res.json({
           found: true,
@@ -405,11 +419,14 @@ export function registerScanEndpoint(router: Router, context: {
         })
 
         // Log le scan via ItemsService (déclenche les hooks bayen-hooks pour points utilisateur)
-        await scansService.createOne({
-          product_id: newId,
-          user_id: user_id ?? null,
-          session_id,
-        })
+        if (shouldTrack) {
+          await scansService.createOne({
+            product_id: newId,
+            user_id: user_id ?? null,
+            session_id,
+            device_type: deviceType,
+          })
+        }
 
         // Notification admin (in-app + webhook optionnel)
         await notifyNewProduct(context.database as Record<string, (...args: unknown[]) => unknown>, {

@@ -400,6 +400,21 @@ const megaMenus = [
         var html = document.documentElement;
         var scrollTimer = null;
 
+        // ── Session anonyme persistante (mesure d'usage, zéro donnée perso) ──
+        // Le SSR de la fiche produit lit ces cookies pour attribuer le scan à
+        // une session stable au lieu d'en créer une nouvelle à chaque vue.
+        try {
+          var sid = localStorage.getItem('bayen_session_id');
+          if (!sid) {
+            sid = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+              : 'sid-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+            localStorage.setItem('bayen_session_id', sid);
+          }
+          var dev = window.matchMedia('(max-width: 768px)').matches ? 'mobile' : 'desktop';
+          document.cookie = 'bayen_sid=' + sid + ';path=/;max-age=31536000;SameSite=Lax';
+          document.cookie = 'bayen_device=' + dev + ';path=/;max-age=31536000;SameSite=Lax';
+        } catch (e) {}
+
         function onScroll() {
           // Scrollbar visible uniquement pendant le défilement
           if (!html.classList.contains('is-scrolling')) html.classList.add('is-scrolling');
