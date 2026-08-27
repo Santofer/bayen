@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import ProductCard from '@/components/ProductCard'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
+import { getProfile } from '@/lib/health-profile'
 import type { Product, Category, NutriScoreGrade } from '@/lib/types'
 
 // ────────────────────────────────────────────────────────────────
@@ -175,6 +176,7 @@ export default function SearchPage() {
   const [offResults, setOffResults] = useState<Product[]>([])
   const [searchingOff, setSearchingOff] = useState(false)
   const [riskyAdditives, setRiskyAdditives] = useState<RiskyAdditive[]>([])
+  const [profileAdditives, setProfileAdditives] = useState<string[]>([])
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -186,6 +188,8 @@ export default function SearchPage() {
       .catch(() => {
         /* Silencieux si l'API est indisponible */
       })
+    // Profil santé local : permet le filtre « selon mon profil »
+    setProfileAdditives(getProfile().avoidAdditives)
     // Additifs à risque proposés en exclusion (les pires d'abord)
     fetch(`${DIRECTUS_URL}/items/additives?filter[risk_level][_in]=banned_ma,avoid,limited&fields=id,name_fr,risk_level&sort=risk_level,id&limit=-1`)
       .then((res) => res.json())
@@ -524,6 +528,21 @@ export default function SearchPage() {
               active={filters.bio}
               onClick={() => updateFilter('bio', !filters.bio)}
             />
+            {profileAdditives.length > 0 && (
+              <ToggleChip
+                label={t('profile.filterBy')}
+                active={profileAdditives.every((c) => filters.excludeAdditives.includes(c))}
+                onClick={() => {
+                  const allOn = profileAdditives.every((c) => filters.excludeAdditives.includes(c))
+                  updateFilter(
+                    'excludeAdditives',
+                    allOn
+                      ? filters.excludeAdditives.filter((c) => !profileAdditives.includes(c))
+                      : [...new Set([...filters.excludeAdditives, ...profileAdditives])]
+                  )
+                }}
+              />
+            )}
           </div>
 
           {/* Exclure des additifs précis (C8c) */}

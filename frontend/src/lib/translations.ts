@@ -154,6 +154,28 @@ export const translations = {
   'search.searchBtn':     { fr: 'Rechercher',                                              ary: 'قلّب' },
   'search.excludeAdditives':     { fr: 'Exclure des additifs',                             ary: 'حيّد الإضافات' },
 
+  // ── Profil santé (C13) ──────────────────────────────────────
+  'profile.badge':          { fr: 'Sans compte',                        ary: 'بلا حساب' },
+  'profile.title':          { fr: 'Mon profil santé',                   ary: 'البروفيل الصحي ديالي' },
+  'profile.subtitle':       { fr: 'Dis-nous ce que tu évites : on t’alerte automatiquement quand un produit scanné en contient.', ary: 'قول لينا شنو كتجنّب: غانعيّطو ليك ملي شي منتوج فيه.' },
+  'profile.allergensTitle': { fr: 'Allergènes à éviter',                ary: 'المواد المسببة للحساسية' },
+  'profile.allergensHint':  { fr: 'Les 14 allergènes à déclaration obligatoire (UE / ONSSA).', ary: '14 مادة إجبارية التصريح (الاتحاد الأوروبي / ONSSA).' },
+  'profile.otherTitle':     { fr: 'Autres préférences',                 ary: 'تفضيلات أخرى' },
+  'profile.palmOil':        { fr: 'Huile de palme',                     ary: 'زيت النخيل' },
+  'profile.additivesTitle': { fr: 'Additifs à éviter',                  ary: 'الإضافات لي كتجنّب' },
+  'profile.additivesHint':  { fr: 'Les additifs classés à risque (bannis, à éviter, à limiter).', ary: 'الإضافات المصنفة خطيرة (ممنوعة، تجنّبها، حدّد منها).' },
+  'profile.empty':          { fr: 'Aucune préférence pour le moment.',  ary: 'ما كاين حتى تفضيل دابا.' },
+  'profile.activeCount':    { fr: 'préférence(s) active(s)',            ary: 'تفضيل(ات) مفعّلة' },
+  'profile.saved':          { fr: 'Enregistré',                         ary: 'تسجل' },
+  'profile.reset':          { fr: 'Tout effacer',                       ary: 'مسح الكل' },
+  'profile.privacy':        { fr: 'Ces préférences restent sur ton appareil. Rien n’est envoyé à nos serveurs.', ary: 'هاد التفضيلات كيبقاو فالجهاز ديالك. ما كنصيفطو والو للسيرفر.' },
+  'profile.alertContains':  { fr: 'Attention — ce produit contient ce que tu évites :', ary: 'انتبه — هاد المنتوج فيه لي كتجنّب:' },
+  'profile.alertTraces':    { fr: 'Peut contenir des traces de :',      ary: 'يمكن يكون فيه آثار من:' },
+  'profile.edit':           { fr: 'Modifier mon profil',                ary: 'بدّل البروفيل ديالي' },
+  'profile.filterBy':       { fr: 'Selon mon profil',                   ary: 'حسب البروفيل ديالي' },
+  'nav.profile':            { fr: 'Mon profil santé',                   ary: 'البروفيل الصحي' },
+  'nav.d.profile':          { fr: 'Alertes allergènes et additifs',     ary: 'تنبيهات الحساسية والإضافات' },
+
   // ── Mega menus navbar ───────────────────────────────────────
   'nav.explore':          { fr: 'Explorer',                                  ary: 'استكشف' },
   'nav.tools':            { fr: 'Outils',                                    ary: 'أدوات' },

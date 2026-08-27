@@ -8,6 +8,7 @@ import EstimateWithAI from '@/components/EstimateWithAI.tsx'
 import ProductCard from '@/components/ProductCard.tsx'
 import ProductActions from '@/components/ProductActions.tsx'
 import EnrichFromOff from '@/components/EnrichFromOff.tsx'
+import ProfileAlert from '@/components/ProfileAlert.tsx'
 import HealthAnalysis from '@/components/HealthAnalysis.tsx'
 import IngredientsList from '@/components/IngredientsList.tsx'
 import ProductAlternatives from '@/components/ProductAlternatives.tsx'
@@ -551,6 +552,15 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
             />
           </div>
         </div>
+        {/* Alerte profil santé (C13) — rien si profil vide ou produit compatible */}
+        <ProfileAlert
+          additives={Array.isArray(product.additives) ? product.additives as string[] : []}
+          structured_ingredients={product.structured_ingredients as any[] ?? []}
+          traces={Array.isArray(product.traces) ? product.traces as string[] : []}
+          ingredients_text={product.ingredients_text as string ?? ''}
+          client:load
+        />
+
         {/* Code-barres mobile */}
         <div class="sm:hidden flex justify-center">
           <div class="flex items-center justify-center h-16 px-3 rounded-lg bg-white border">
