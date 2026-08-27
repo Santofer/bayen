@@ -176,6 +176,20 @@ export const translations = {
   'nav.profile':            { fr: 'Mon profil santé',                   ary: 'البروفيل الصحي' },
   'nav.d.profile':          { fr: 'Alertes allergènes et additifs',     ary: 'تنبيهات الحساسية والإضافات' },
 
+  // ── Historique de scans (C14) ───────────────────────────────
+  'history.badge':        { fr: 'Sur cet appareil',                ary: 'ف هاد الجهاز' },
+  'history.title':        { fr: 'Mes scans',                       ary: 'السكانات ديالي' },
+  'history.subtitle':     { fr: 'Tous les produits que tu as consultés, gardés sur ton appareil.', ary: 'كل المنتجات لي شفتي، محفوظين ف الجهاز ديالك.' },
+  'history.empty':        { fr: 'Aucun produit scanné pour le moment.', ary: 'ما كاين حتى منتوج مسكاني دابا.' },
+  'history.clear':        { fr: 'Tout effacer',                    ary: 'مسح الكل' },
+  'history.clearConfirm': { fr: 'Effacer tout l\'historique de scans ?', ary: 'تمسح كل السكانات؟' },
+  'history.recent':       { fr: 'Scans récents',                   ary: 'آخر السكانات' },
+  'history.seeAll':       { fr: 'Tout voir',                       ary: 'شوف كلشي' },
+  'history.itemSingular': { fr: 'produit',                         ary: 'منتوج' },
+  'history.itemsPlural':  { fr: 'produits',                        ary: 'منتجات' },
+  'nav.history':          { fr: 'Mes scans',                       ary: 'السكانات ديالي' },
+  'nav.d.history':        { fr: 'Ton historique sur cet appareil', ary: 'التاريخ ديالك ف هاد الجهاز' },
+
   // ── Mega menus navbar ───────────────────────────────────────
   'nav.explore':          { fr: 'Explorer',                                  ary: 'استكشف' },
   'nav.tools':            { fr: 'Outils',                                    ary: 'أدوات' },

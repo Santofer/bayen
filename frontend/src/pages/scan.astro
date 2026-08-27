@@ -4,6 +4,10 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import ScanPage from '@/components/ScanPage.tsx'
+import ScanHistory from '@/components/ScanHistory.tsx'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 ---
 
 <Layout
@@ -11,7 +15,18 @@ import ScanPage from '@/components/ScanPage.tsx'
   description="Scanne un produit alimentaire au Maroc et obtiens son score nutritionnel 0-100, son Nutri-Score, ses additifs et son groupe NOVA en 3 secondes. 100% gratuit."
   path="/scan"
 >
-  <main class="container mx-auto max-w-screen-lg">
+  <main class="container mx-auto max-w-screen-lg pb-24 md:pb-10">
     <ScanPage client:load />
+
+    {/* Scans récents (C14) — le composant masque tout si l'historique est vide */}
+    <section class="px-4 mt-8">
+      <ScanHistory
+        limit={5}
+        compact
+        heading={t('history.recent', locale)}
+        seeAllLabel={t('history.seeAll', locale)}
+        client:load
+      />
+    </section>
   </main>
 </Layout>

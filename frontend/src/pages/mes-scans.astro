@@ -1,0 +1,36 @@
+---
+// Page « Mes scans » — historique local (localStorage), sans compte.
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import ScanHistory from '@/components/ScanHistory.tsx'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+---
+
+<Layout
+  title="Mes scans — Bayen"
+  description="Retrouve tous les produits que tu as scannés. Gratuit, sans compte, stocké uniquement sur ton appareil."
+  path="/mes-scans"
+  noindex={true}
+>
+  <main class="section-v2 py-6 pb-24 md:pb-12">
+    <header class="mb-6">
+      <span
+        class="inline-block rounded-full bg-primary px-3 py-1.5 font-extrabold uppercase text-primary-foreground"
+        style="font-size: 0.7rem; letter-spacing: 0.06em"
+      >
+        {t('history.badge', locale)}
+      </span>
+      <h1 class="font-display text-foreground mt-3" style="font-size: clamp(1.8rem, 3.4vw, 2.4rem); line-height: 1.08; font-weight: 780;">
+        {t('history.title', locale)}
+      </h1>
+      <p class="text-muted-foreground mt-2 leading-relaxed">
+        {t('history.subtitle', locale)}
+      </p>
+    </header>
+
+    <ScanHistory client:load />
+  </main>
+</Layout>
