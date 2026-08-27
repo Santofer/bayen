@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
+import { addMealToHistory } from '@/lib/meal-history'
 import { Camera, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus, Flame, Lightbulb, Leaf } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
@@ -164,6 +165,21 @@ export default function MealPhotoAnalyzer() {
     setErrorMsg(null)
     setSaved(false)
     setScreen('idle')
+  }
+
+  /** Sauvegarde locale (sans compte) — le journal vit dans le navigateur. */
+  const handleSaveLocal = () => {
+    if (!analysis) return
+    addMealToHistory({
+      plat: analysis.plat ?? 'Repas',
+      kcal_min: analysis.calories_kcal?.min ?? null,
+      kcal_max: analysis.calories_kcal?.max ?? null,
+      proteines_g: analysis.macros_g?.proteines ?? null,
+      lipides_g: analysis.macros_g?.lipides ?? null,
+      glucides_g: analysis.macros_g?.glucides ?? null,
+      confiance: analysis.confiance ?? null,
+    })
+    setSaved(true)
   }
 
   const handleSave = async () => {
@@ -401,14 +417,11 @@ export default function MealPhotoAnalyzer() {
               <a href="/compte/journal" className="ml-auto underline text-sm font-medium">{t('meal.seeJournal')}</a>
             </div>
           )}
-          {!loggedIn && (
-            <a
-              href="/connexion"
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent"
-            >
-              <BookmarkPlus className="h-4 w-4" />
-              {t('meal.loginToSave')}
-            </a>
+          {!loggedIn && !saved && (
+            <Button onClick={handleSaveLocal} variant="outline" size="lg" className="flex-1">
+              <BookmarkPlus className="mr-2 h-4 w-4" />
+              {t('meal.saveLocal')}
+            </Button>
           )}
           <Button onClick={handleReset} variant="outline" size="lg">
             <RotateCcw className="mr-2 h-4 w-4" />

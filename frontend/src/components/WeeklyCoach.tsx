@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLocale } from '@/lib/i18n'
-import { getAccessToken } from '@/lib/auth'
+import { getAccessToken, isAuthenticated } from '@/lib/auth'
 import { Sparkles, Loader2, Lightbulb, RefreshCw } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
@@ -33,6 +33,9 @@ export default function WeeklyCoach() {
   const [result, setResult] = useState<CoachResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+  // Le coach exige un compte : inutile de proposer un bouton qui échouera.
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null)
+  useEffect(() => { setLoggedIn(isAuthenticated()) }, [])
 
   // Charger le cache de la semaine
   useEffect(() => {
@@ -64,6 +67,8 @@ export default function WeeklyCoach() {
       setLoading(false)
     }
   }, [])
+
+  if (loggedIn !== true) return null
 
   return (
     <section className="rounded-2xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-5">

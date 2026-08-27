@@ -6,7 +6,11 @@
 import { useState, useEffect } from 'react'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken } from '@/lib/auth'
-import { Loader2, Camera } from 'lucide-react'
+import { Loader2, Camera, Trash2 } from 'lucide-react'
+import {
+  getMealHistory, onMealHistoryChange, removeMealFromHistory, todayStats,
+  type LocalMealEntry,
+} from '@/lib/meal-history'
 
 const DIRECTUS_URL = '/api/directus'
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
@@ -51,6 +55,8 @@ export default function MealJournal() {
   const [loading, setLoading] = useState(true)
   const [scans, setScans] = useState<MealScanRow[]>([])
   const [error, setError] = useState<string | null>(null)
+  /** Journal local (sans compte) : rempli quand l'utilisateur n'est pas connecté */
+  const [localEntries, setLocalEntries] = useState<LocalMealEntry[] | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -58,7 +64,11 @@ export default function MealJournal() {
       try {
         const token = await getAccessToken()
         if (!token) {
-          window.location.href = '/connexion?next=/compte/journal'
+          // Pas de compte : on affiche le journal LOCAL au lieu de rediriger.
+          if (!cancelled) {
+            setLocalEntries(getMealHistory())
+            setLoading(false)
+          }
           return
         }
         const res = await fetch(
@@ -75,8 +85,10 @@ export default function MealJournal() {
       }
     }
     load()
+    const unsub = onMealHistoryChange(() => setLocalEntries(getMealHistory()))
     return () => {
       cancelled = true
+      unsub()
     }
   }, [])
 
@@ -102,6 +114,86 @@ export default function MealJournal() {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-800">
         {error}
+      </div>
+    )
+  }
+
+  // ── Journal local (utilisateur non connecté) ──
+  if (localEntries !== null) {
+    const stats = todayStats(localEntries)
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-card">
+          <div>
+            <p className="font-display font-bold text-foreground">{t('meal.localTitle')}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('meal.localHint')}</p>
+          </div>
+          {stats.count > 0 && (
+            <p className="text-sm">
+              {t('meal.localToday')} :{' '}
+              <b className="font-display text-xl font-extrabold text-primary">
+                {stats.kcalMin === stats.kcalMax ? stats.kcalMax : `${stats.kcalMin}–${stats.kcalMax}`}
+              </b>{' '}
+              <span className="text-xs text-muted-foreground">{t('journal.kcal')}</span>
+            </p>
+          )}
+        </div>
+
+        {localEntries.length === 0 ? (
+          <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Camera className="h-8 w-8 text-primary" />
+            </div>
+            <p className="text-muted-foreground">{t('meal.localEmpty')}</p>
+            <a
+              href="/analyser-repas"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90"
+            >
+              {t('meal.analyzeCta')}
+            </a>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {localEntries.map((e) => {
+              const kcal = e.kcal_min != null && e.kcal_max != null && e.kcal_min !== e.kcal_max
+                ? `${e.kcal_min}–${e.kcal_max}`
+                : String(e.kcal_max ?? e.kcal_min ?? '—')
+              return (
+                <article key={e.id} className="rounded-2xl border bg-card p-4 shadow-card">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold text-foreground line-clamp-2">{e.plat}</h3>
+                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary whitespace-nowrap">
+                      {kcal} {t('journal.kcal')}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {[
+                      e.proteines_g != null ? `P ${e.proteines_g} g` : null,
+                      e.lipides_g != null ? `L ${e.lipides_g} g` : null,
+                      e.glucides_g != null ? `G ${e.glucides_g} g` : null,
+                    ].filter(Boolean).join(' · ')}
+                  </p>
+                  <div className="flex items-center justify-between mt-3">
+                    <p className="text-[11px] text-muted-foreground">{formatDate(new Date(e.at).toISOString())}</p>
+                    <button
+                      type="button"
+                      onClick={() => removeMealFromHistory(e.id)}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 size={12} /> {t('meal.localDelete')}
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        )}
+
+        <div className="rounded-2xl border border-dashed bg-card/50 p-4 text-center">
+          <a href="/connexion?next=/compte/journal" className="text-sm font-semibold text-primary hover:underline">
+            {t('meal.loginToSave')} →
+          </a>
+        </div>
       </div>
     )
   }

@@ -23,6 +23,7 @@ import { registerNutritionEndpoint } from './nutrition.js'
 import { registerEstimateEndpoint } from './estimate.js'
 import { registerCoachEndpoint } from './coach.js'
 import { registerSearchEndpoint } from './search.js'
+import { registerLogAiEndpoint } from './log-ai.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -36,4 +37,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerEstimateEndpoint(router, context as unknown as Parameters<typeof registerEstimateEndpoint>[1])
   registerCoachEndpoint(router, context as unknown as Parameters<typeof registerCoachEndpoint>[1])
   registerSearchEndpoint(router, context as unknown as Parameters<typeof registerSearchEndpoint>[1])
+  registerLogAiEndpoint(router, context as unknown as Parameters<typeof registerLogAiEndpoint>[1])
 }

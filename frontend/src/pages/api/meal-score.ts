@@ -34,6 +34,7 @@ export async function POST(context: APIContext): Promise<Response> {
     const forward = new FormData()
     forward.append('image', image)
 
+    const started = Date.now()
     const res = await fetch(`${OCR_URL}/meal-analyze`, {
       method: 'POST',
       body: forward,
@@ -42,6 +43,20 @@ export async function POST(context: APIContext): Promise<Response> {
     })
 
     const data = await res.text()
+
+    // Mesure d'usage anonyme (C15) — fire-and-forget, ne bloque jamais la réponse
+    const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+    void fetch(`${DIRECTUS_URL}/bayen-api/log-ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'meal_analyze',
+        success: res.ok,
+        duration_ms: Date.now() - started,
+      }),
+      signal: AbortSignal.timeout(3000),
+    }).catch(() => { /* la mesure ne doit jamais casser l'analyse */ })
+
     return new Response(data, {
       status: res.status,
       headers: { 'Content-Type': 'application/json' },
