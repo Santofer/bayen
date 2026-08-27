@@ -72,7 +72,15 @@ export default function ProductCard({ product, className, variant = 'row' }: Pro
           )}
         </div>
         <b>{product.name_fr}</b>
-        {product.brand && <span className="br">{product.brand}</span>}
+        {/* Marque · contenance — la contenance distingue les variantes d'un
+            même produit (5 « Nutella / Ferrero » = 5 formats différents) */}
+        {(product.brand || (product as { quantity?: string }).quantity) && (
+          <span className="br">
+            {[product.brand, (product as { quantity?: string }).quantity]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        )}
         {grade && NUTRISCORE_COLORS[grade] && (
           <span className="ns" style={{ backgroundColor: NUTRISCORE_COLORS[grade] }}>
             NUTRI-SCORE {grade.toUpperCase()}

@@ -96,7 +96,7 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
 
       const whereSql = where.join(' AND ')
       const fields =
-        'id, barcode, name_fr, brand, image_front, scan_score, score_label, ' +
+        'id, barcode, name_fr, brand, quantity, image_front, scan_score, score_label, ' +
         'nutriscore_grade, nova_group, additives, scan_count'
 
       const [rowsRes, countRes] = await Promise.all([

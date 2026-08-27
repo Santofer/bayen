@@ -35,7 +35,7 @@ try {
   // Récupérer les produits via la table de jonction
   if (ingredient) {
     const piRes = await fetch(
-      `${DIRECTUS_URL}/items/products_ingredients?filter[ingredients_id][_eq]=${id}&fields=products_id.id,products_id.barcode,products_id.name_fr,products_id.brand,products_id.image_front,products_id.scan_score,products_id.score_label,products_id.nutriscore_grade,products_id.nova_group,products_id.additives,products_id.scan_count,products_id.status,percent,rank&limit=100&sort=rank`,
+      `${DIRECTUS_URL}/items/products_ingredients?filter[ingredients_id][_eq]=${id}&fields=products_id.id,products_id.barcode,products_id.name_fr,products_id.brand,products_id.quantity,products_id.image_front,products_id.scan_score,products_id.score_label,products_id.nutriscore_grade,products_id.nova_group,products_id.additives,products_id.scan_count,products_id.status,percent,rank&limit=100&sort=rank`,
       { signal: AbortSignal.timeout(5000) }
     )
     if (piRes.ok) {

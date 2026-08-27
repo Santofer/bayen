@@ -31,6 +31,9 @@ DIRECTUS = os.environ.get("DIRECTUS_URL", "http://bayen-directus:8055")
 TESSERACT = os.environ.get("TESSERACT_URL", "http://localhost:5000")
 APPLY = os.environ.get("APPLY", "1") == "1"
 MAX_PRODUCTS = int(os.environ.get("MAX_PRODUCTS", "60"))
+# Sous-quota : produits d'un groupe (même nom+marque) sans contenance — les
+# variantes EAN légitimes (5 « Nutella / Ferrero ») sont indistinguables sans elle.
+MAX_AMBIGUOUS = int(os.environ.get("MAX_AMBIGUOUS", "20"))
 ONLY_BARCODE = os.environ.get("ONLY_BARCODE", "").strip()
 
 # Nom invalide : « produit sans nom », code-barres nu, vide, trop court
@@ -97,9 +100,28 @@ def main():
         url += "&filter[barcode][_eq]=" + ONLY_BARCODE
     prods = req(url, token=token)["data"]
 
-    # Un produit est candidat s'il lui manque le nom OU la marque
+    # 1. Candidats principaux : nom ou marque manquants
     todo = [p for p in prods
             if bad_name(p.get("name_fr")) or bad_brand(p.get("brand"))][:MAX_PRODUCTS]
+
+    # 2. Variantes ambiguës : même (nom, marque) en plusieurs exemplaires et
+    #    contenance vide → la contenance est ce qui les distingue à l'écran.
+    if not ONLY_BARCODE:
+        already = {p["id"] for p in todo}
+        groups = {}
+        for p in prods:
+            if bad_name(p.get("name_fr")) or bad_brand(p.get("brand")):
+                continue
+            key = ((p.get("name_fr") or "").strip().lower(),
+                   (p.get("brand") or "").strip().lower())
+            groups.setdefault(key, []).append(p)
+        ambiguous = [p for members in groups.values() if len(members) > 1
+                     for p in members
+                     if not (p.get("quantity") or "").strip() and p["id"] not in already]
+        if ambiguous:
+            print("  (+" + str(min(len(ambiguous), MAX_AMBIGUOUS))
+                  + " variantes ambigues sans contenance)", flush=True)
+        todo += ambiguous[:MAX_AMBIGUOUS]
 
     ts = time.strftime("%Y-%m-%dT%H:%M:%S")
     print("[" + ts + "] " + str(len(todo)) + " produits a identifier (apply="
@@ -107,7 +129,7 @@ def main():
     if not todo:
         return 0
 
-    named = branded = skipped = fail = 0
+    named = branded = sized = skipped = fail = 0
     for p in todo:
         old_name = (p.get("name_fr") or "").strip()
         old_brand = (p.get("brand") or "").strip()
@@ -134,9 +156,10 @@ def main():
                 skipped += 1
                 continue
 
-            label = ("  [dry] " if not APPLY else "  [ok]  ") + (old_name or "?")[:28] \
-                + " -> " + (patch.get("name_fr") or old_name or "?")[:34] \
-                + " | " + (patch.get("brand") or old_brand or "?")[:22]
+            label = ("  [dry] " if not APPLY else "  [ok]  ") + (old_name or "?")[:26] \
+                + " -> " + (patch.get("name_fr") or old_name or "?")[:30] \
+                + " | " + (patch.get("brand") or old_brand or "?")[:18] \
+                + (" | " + patch["quantity"][:14] if "quantity" in patch else "")
             if APPLY:
                 req(DIRECTUS + "/items/products/" + str(p["id"]), "PATCH",
                     patch, token=token, timeout=30)
@@ -145,6 +168,8 @@ def main():
                 named += 1
             if "brand" in patch:
                 branded += 1
+            if "quantity" in patch:
+                sized += 1
         except Exception as e:  # noqa: BLE001
             fail += 1
             print("  [err] " + (old_name or p.get("barcode") or "?")[:38]
@@ -152,6 +177,7 @@ def main():
         time.sleep(0.4)
 
     print("[done] noms=" + str(named) + " marques=" + str(branded)
+          + " contenances=" + str(sized)
           + " ignores=" + str(skipped) + " echecs=" + str(fail), flush=True)
     return 0
 
