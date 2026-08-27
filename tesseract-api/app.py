@@ -978,5 +978,71 @@ def meal_analyze():
         }), 500
 
 
+# ─── Identification produit depuis la photo de face (C11) ──────────────
+IDENTIFY_SYSTEM = (
+    "Tu es un expert des produits alimentaires vendus au Maroc. Tu regardes la photo de "
+    "la FACE AVANT d'un emballage et tu identifies le produit. Tu retournes UNIQUEMENT du "
+    "JSON valide :\n"
+    '{"name_fr":"","brand":"","quantity":null,"confiance":"faible|moyenne|elevee"}\n'
+    "Règles STRICTES :\n"
+    "- name_fr : le nom COMMERCIAL court, en français (ex. « Raïbi Jamila », « Biscuits "
+    "fourrés chocolat »). Si l'emballage est en arabe, translittère ou traduis le nom "
+    "commercial. N'inclus JAMAIS la marque seule comme nom, ni le poids.\n"
+    "- brand : la marque exacte imprimée sur l'emballage (ex. « Jaouda », « Bimo »).\n"
+    "- quantity : contenance visible telle quelle (« 430 g », « 1 L ») ou null.\n"
+    "- Si la photo est illisible, floue, ou que ce n'est pas un emballage alimentaire : "
+    'renvoie {"name_fr":null,"brand":null,"quantity":null,"confiance":"faible"}.\n'
+    "- N'INVENTE JAMAIS un nom ou une marque qui ne sont pas lisibles sur la photo."
+)
+
+
+@app.route('/identify-product', methods=['POST'])
+def identify_product():
+    """Lit la photo de face d'un produit → nom commercial + marque + contenance."""
+    if 'image' not in request.files:
+        return jsonify({'error': "'image' requise"}), 400
+
+    start_time = time.time()
+    try:
+        raw_bytes = request.files['image'].read()
+        if len(raw_bytes) > 8 * 1024 * 1024:
+            return jsonify({'error': 'Image trop grande (>8 MB)'}), 400
+
+        image = resize_for_ai(Image.open(io.BytesIO(raw_bytes)))
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG', quality=88)
+        image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+
+        parsed = call_ai_vision(
+            IDENTIFY_SYSTEM, 'Identifie ce produit alimentaire.', image_b64,
+            timeout=90, max_tokens=300,
+        )
+        if parsed is None:
+            return jsonify({'error': 'IA indisponible'}), 502
+
+        def _clean(v, maxlen):
+            if not isinstance(v, str):
+                return None
+            v = v.strip()
+            if not v or v.lower() in ('null', 'none', 'inconnu', 'unknown', '?'):
+                return None
+            return v[:maxlen]
+
+        confiance = parsed.get('confiance')
+        if confiance not in ('faible', 'moyenne', 'elevee'):
+            confiance = 'faible'
+
+        return jsonify({
+            'name_fr': _clean(parsed.get('name_fr'), 120),
+            'brand': _clean(parsed.get('brand'), 80),
+            'quantity': _clean(parsed.get('quantity'), 40),
+            'confiance': confiance,
+            'duration_ms': int((time.time() - start_time) * 1000),
+        })
+    except Exception as e:  # noqa: BLE001
+        app.logger.error(f'identify-product error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

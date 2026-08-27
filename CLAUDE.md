@@ -116,6 +116,11 @@ curl https://api.bayen.ma/bayen-api/nutrition-summary \
 # Traduction bilingue FR/AR du référentiel ingredients (auto : cron nightly 06:00 ;
 # script scripts/translate-ingredients.py — fusionne aussi les doublons name_fr)
 
+# Chaîne IA nightly complète (crons Unraid, persistés dans /boot/config/go) :
+# 04:30 backfill-images · 05:00 estimate-scores · 05:30 categorize-products
+# 06:00 translate-ingredients · 06:30 link-ingredients · 07:00 ocr-ingredients-images
+# 07:30 clean-nonfood-ingredients · 08:00 name-products (identification vision)
+
 # Snapshot schéma Directus (à faire avant chaque modification de schéma)
 npx directus schema snapshot ./directus/snapshots/$(date +%Y%m%d).yaml
 
