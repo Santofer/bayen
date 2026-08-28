@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import {
-  ArrowLeft, ArrowRight, Camera, Check, Loader2, Plus,
+  ArrowLeft, ArrowRight, Camera, Check, Loader2,
   RotateCcw, Sparkles, Star, HelpCircle, Tag,
 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
