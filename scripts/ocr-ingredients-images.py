@@ -3,10 +3,15 @@
 Lecture VISION des photos d'ingrédients rapatriées (cron nightly + one-shot).
 Tourne DANS bayen-tesseract.
 
-Cible : produits published avec une photo `image_ingredients` (souvent
-rapatriée depuis Open Food Facts par le bouton « Enrichir ») pas encore lue
-(`ingredients_ocr_at` null). La photo est la source la plus riche : OFF n'a
-souvent qu'un texte pauvre (« PEACH JAM ») alors que l'étiquette liste tout.
+Cible : produits published pas encore lus (`ingredients_ocr_at` null) qui ont
+une photo `image_ingredients` locale OU, à défaut d'ingrédients en base, dont
+OFF possède une photo d'étiquette (image_ingredients_url / image_nutrition_url,
+lues à la volée sans être stockées). La photo est la source la plus riche :
+OFF n'a souvent qu'un texte pauvre (« PEACH JAM », nutriments erronés) alors
+que l'étiquette liste tout.
+
+En plus des ingrédients/traces/additifs, la lecture vision COMPLÈTE les champs
+nutritionnels encore null (jamais d'écrasement d'une valeur existante).
 
 Pour chaque produit : télécharge l'image depuis Directus → /pipeline local
 (vision Qwen) → si la lecture donne au moins autant d'ingrédients que
@@ -99,14 +104,31 @@ def main():
         print("[err] DTOKEN manquant", flush=True)
         return 1
 
+    NUTRI_FIELDS = ["energy_kcal", "fat_total", "fat_saturated", "carbs_total",
+                    "sugars", "fiber", "proteins", "salt"]
+    base_fields = ("id,barcode,name_fr,image_ingredients,ingredients_text,"
+                   "additives,traces," + ",".join(NUTRI_FIELDS))
+    ocr_filter = "" if FORCE else "&filter[ingredients_ocr_at][_null]=true"
+
+    # 1. Photos locales pas encore lues
     url = (DIRECTUS + "/items/products?filter[status][_eq]=published"
-           "&filter[image_ingredients][_nnull]=true"
-           + ("" if FORCE else "&filter[ingredients_ocr_at][_null]=true")
-           + "&fields=id,barcode,name_fr,image_ingredients,additives,traces"
-           "&limit=" + str(MAX_PRODUCTS) + "&sort=-date_updated")
+           "&filter[image_ingredients][_nnull]=true" + ocr_filter
+           + "&fields=" + base_fields
+           + "&limit=" + str(MAX_PRODUCTS) + "&sort=-date_updated")
     if ONLY_BARCODE:
         url += "&filter[barcode][_eq]=" + ONLY_BARCODE
     prods = req(url, token=token)["data"]
+
+    # 2. Complément : produits SANS ingrédients en base → OFF a peut-être la photo
+    if len(prods) < MAX_PRODUCTS:
+        url2 = (DIRECTUS + "/items/products?filter[status][_eq]=published"
+                "&filter[image_ingredients][_null]=true"
+                "&filter[ingredients_text][_null]=true" + ocr_filter
+                + "&fields=" + base_fields
+                + "&limit=" + str(MAX_PRODUCTS - len(prods)) + "&sort=-scan_count")
+        if ONLY_BARCODE:
+            url2 += "&filter[barcode][_eq]=" + ONLY_BARCODE
+        prods += req(url2, token=token)["data"]
 
     ts = time.strftime("%Y-%m-%dT%H:%M:%S")
     print("[" + ts + "] " + str(len(prods)) + " photos d'ingredients a lire (apply="
@@ -120,11 +142,44 @@ def main():
 
     done = skipped = fail = 0
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
+
+    # Le pipeline renvoie les mêmes clés que la base (energy_kcal, proteins…),
+    # avec une borne haute par champ : les g/100g ne peuvent pas dépasser 100.
+    VISION_MAX = {"energy_kcal": 950, "fat_total": 100, "fat_saturated": 100,
+                  "carbs_total": 100, "sugars": 100, "fiber": 100,
+                  "proteins": 100, "salt": 40}
+
+    def nutrition_fill(prod, parsed_data):
+        """Champs nutrition null du produit complétés par la vision (jamais d'écrasement)."""
+        out = {}
+        for key, vmax in VISION_MAX.items():
+            if prod.get(key) is None:
+                v = parsed_data.get(key)
+                if isinstance(v, (int, float)) and 0 <= v <= vmax:
+                    out[key] = v
+        return out
     for p in prods:
         try:
-            # 1. Télécharger la photo depuis Directus (redimensionnée serveur)
-            img_url = (DIRECTUS + "/assets/" + str(p["image_ingredients"])
-                       + "?width=768&quality=85&access_token=" + urllib.parse.quote(token))
+            # 1. Photo : locale (asset Directus) ou, à défaut, directement OFF
+            if p.get("image_ingredients"):
+                img_url = (DIRECTUS + "/assets/" + str(p["image_ingredients"])
+                           + "?width=768&quality=85&access_token=" + urllib.parse.quote(token))
+            else:
+                off = req("https://world.openfoodfacts.org/api/v2/product/"
+                          + str(p["barcode"]) + ".json?fields=image_ingredients_url,image_nutrition_url",
+                          timeout=30)
+                offp = off.get("product") or {}
+                img_url = offp.get("image_ingredients_url") or offp.get("image_nutrition_url")
+                # OFF renvoie la miniature 400 px, illisible pour la vision —
+                # demander l'originale (le serveur vision redimensionne à 768 px)
+                if img_url:
+                    img_url = img_url.replace(".400.jpg", ".full.jpg")
+                if not img_url:
+                    if APPLY:
+                        req(DIRECTUS + "/items/products/" + str(p["id"]), "PATCH",
+                            {"ingredients_ocr_at": now}, token=token, timeout=30)
+                    skipped += 1
+                    continue
             with urllib.request.urlopen(img_url, timeout=60) as resp:
                 blob = resp.read()
 
@@ -141,12 +196,16 @@ def main():
             )["data"]
 
             if r.get("job_status") != "done" or len(items) < max(2, len(links)):
+                # Pas mieux côté ingrédients — mais la photo (souvent un tableau
+                # nutritionnel) peut quand même combler la nutrition manquante.
+                nutri = nutrition_fill(p, parsed) if r.get("job_status") == "done" else {}
                 skipped += 1
                 if APPLY:
                     req(DIRECTUS + "/items/products/" + str(p["id"]), "PATCH",
-                        {"ingredients_ocr_at": now}, token=token, timeout=30)
+                        {"ingredients_ocr_at": now, **nutri}, token=token, timeout=30)
                 print("  [skip] " + (p.get("name_fr") or "?")[:35] + " (vision="
-                      + str(len(items)) + ", existant=" + str(len(links)) + ")", flush=True)
+                      + str(len(items)) + ", existant=" + str(len(links))
+                      + (", +" + str(len(nutri)) + " nutrition" if nutri else "") + ")", flush=True)
                 continue
 
             if not APPLY:
@@ -173,11 +232,16 @@ def main():
                 }, token=token, timeout=30)
                 fr_names.append((ing.get("name_fr") or "").strip())
 
-            # 5. Champs produit : texte FR, traces, additifs (fusion), marquage
+            # 5. Champs produit : texte FR, traces, additifs (fusion), nutrition
+            #    manquante (jamais d'écrasement), marquage
             patch = {
                 "ingredients_text": ", ".join(n for n in fr_names if n)[:1000],
                 "ingredients_ocr_at": now,
             }
+            nutri = nutrition_fill(p, parsed)
+            if nutri:
+                patch.update(nutri)
+                print("    (+" + str(len(nutri)) + " champs nutrition completes)", flush=True)
             traces = [t.strip() for t in (parsed.get("traces_fr") or [])
                       if isinstance(t, str) and t.strip()]
             if traces:

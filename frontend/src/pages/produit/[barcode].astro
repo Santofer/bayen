@@ -304,15 +304,39 @@ if (scanResult.source === 'directus' && product?.category_id && score?.total != 
       ? (product.category_id as Record<string, unknown>).id
       : product.category_id
     const altRes = await fetch(
-      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score&limit=3&fields=barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,sugars,salt,fat_saturated,nova_group,additives`,
+      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score&limit=16&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,sugars,salt,fat_saturated,nova_group,additives`,
       { signal: AbortSignal.timeout(3000) }
     )
     if (altRes.ok) {
       const altData = await altRes.json()
-      alternatives = altData.data ?? []
+      const candidates: Array<Record<string, unknown>> = altData.data ?? []
+
+      // Les catégories sont larges (« Épices & condiments » contient confitures
+      // ET concentré de tomates) : sans garde-fou, on proposait du riz complet
+      // comme alternative à une confiture. On exige donc un mot significatif
+      // commun entre les noms — et s'il n'y en a aucun, on ne propose RIEN
+      // plutôt que du hors-sujet.
+      const STOP = new Set(['avec', 'sans', 'pour', 'les', 'des', 'aux', 'extra', 'nature', 'the'])
+      const tokens = (n: unknown): Set<string> =>
+        new Set(
+          String(n ?? '')
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .split(/[^a-z]+/)
+            .filter((w) => w.length >= 4 && !STOP.has(w))
+        )
+      const own = tokens(product.name_fr)
+      const similar = candidates.filter((c) => {
+        const ct = tokens(c.name_fr)
+        for (const w of own) if (ct.has(w)) return true
+        return false
+      })
+      alternatives = similar.slice(0, 3)
+      // « Meilleur de sa catégorie » : uniquement si la catégorie entière n'a
+      // rien au-dessus — pas quand le filtre lexical a tout écarté.
+      if (candidates.length === 0) isBestInCategory = true
     }
   } catch { /* non critique */ }
-  if (alternatives.length === 0) isBestInCategory = true
 }
 
 // Raisons FACTUELLES (déterministes) pour lesquelles une alternative est

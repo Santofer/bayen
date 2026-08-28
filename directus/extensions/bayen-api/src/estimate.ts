@@ -92,6 +92,15 @@ export function registerEstimateEndpoint(
         return
       }
 
+      // Nom de catégorie (indice d'archétype pour l'estimation)
+      let categoryName = ''
+      if (product.category_id != null) {
+        try {
+          const cat = await knex('categories').where({ id: product.category_id }).first()
+          categoryName = String(cat?.name_fr ?? '')
+        } catch { /* facultatif */ }
+      }
+
       // ── Estimation IA (interne au réseau Docker) ─────────────────
       const aiRes = await fetch(`${OCR_URL}/estimate-nutrition`, {
         method: 'POST',
@@ -99,6 +108,8 @@ export function registerEstimateEndpoint(
         body: JSON.stringify({
           name: product.name_fr ?? '',
           brand: product.brand ?? '',
+          // Indice supplémentaire pour l'archétype (ex. « Produits laitiers »)
+          category: categoryName,
         }),
         signal: AbortSignal.timeout(45_000),
       })
