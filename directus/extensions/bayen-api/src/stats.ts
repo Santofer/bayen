@@ -154,8 +154,39 @@ export function registerStatsEndpoint(
       )
       const position = Number((posRes.rows[0] as { ahead: number })?.ahead ?? 0) + 1
 
+      // ── Activité récente : contributions, prix et corrections repas ──
+      // Trois sources fusionnées pour que la page « Mes contributions »
+      // montre tout ce qui rapporte des points, pas seulement les produits.
+      const activityRes = await knex.raw(
+        `SELECT type, date_created, label FROM (
+           SELECT c.type AS type, c.date_created AS date_created,
+                  COALESCE(p.name_fr, '') AS label
+           FROM contributions c
+           LEFT JOIN products p ON p.id = c.product_id
+           WHERE c.user_id = ? AND c.status = 'approved'
+           UNION ALL
+           SELECT 'add_price', pr.date_created, COALESCE(p2.name_fr, '')
+           FROM prices pr
+           LEFT JOIN products p2 ON p2.id = pr.product_id
+           WHERE pr.user_id = ?
+           UNION ALL
+           SELECT 'fix_meal', mf.date_created, COALESCE(mf.plat_detecte, '')
+           FROM meal_feedback mf
+           WHERE mf.user_id = ? AND mf.correction IS NOT NULL
+         ) AS activity
+         ORDER BY date_created DESC
+         LIMIT 10`,
+        [userId, userId, userId]
+      )
+      const activity = (activityRes.rows as Array<Record<string, unknown>>).map((r) => ({
+        type: String(r.type),
+        label: String(r.label ?? ''),
+        date: r.date_created,
+      }))
+
       res.json({
         ok: true,
+        activity,
         streak: {
           current: streaks.current,
           longest: streaks.longest,

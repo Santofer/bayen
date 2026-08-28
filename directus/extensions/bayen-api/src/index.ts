@@ -10,6 +10,11 @@
  *   GET  /bayen-api/my-stats           → Stats perso : streaks + position classement
  *   GET  /bayen-api/nutrition-summary  → Résumé nutritionnel jour + 7 jours (journal)
  *   POST /bayen-api/estimate-and-score → Estimation IA (Qwen) d'un produit sans données
+ *   POST /bayen-api/confirm-halal      → Confirmation communautaire du logo halal
+ *   POST /bayen-api/price              → Partage d'un prix observé en magasin
+ *   GET  /bayen-api/prices/:barcode    → Agrégat des prix (médiane par enseigne)
+ *   POST /bayen-api/meal-feedback      → Retour sur une estimation repas (+ correction)
+ *   POST /bayen-api/upload-photo       → Upload d'une photo produit sans compte
  */
 
 import type { Router } from 'express'
@@ -24,6 +29,10 @@ import { registerEstimateEndpoint } from './estimate.js'
 import { registerCoachEndpoint } from './coach.js'
 import { registerSearchEndpoint } from './search.js'
 import { registerLogAiEndpoint } from './log-ai.js'
+import { registerHalalEndpoint } from './halal.js'
+import { registerPricesEndpoints } from './prices.js'
+import { registerMealFeedbackEndpoint } from './meal-feedback.js'
+import { registerUploadPhotoEndpoint } from './upload-photo.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -38,4 +47,8 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerCoachEndpoint(router, context as unknown as Parameters<typeof registerCoachEndpoint>[1])
   registerSearchEndpoint(router, context as unknown as Parameters<typeof registerSearchEndpoint>[1])
   registerLogAiEndpoint(router, context as unknown as Parameters<typeof registerLogAiEndpoint>[1])
+  registerHalalEndpoint(router, context as unknown as Parameters<typeof registerHalalEndpoint>[1])
+  registerPricesEndpoints(router, context as unknown as Parameters<typeof registerPricesEndpoints>[1])
+  registerMealFeedbackEndpoint(router, context as unknown as Parameters<typeof registerMealFeedbackEndpoint>[1])
+  registerUploadPhotoEndpoint(router, context as unknown as Parameters<typeof registerUploadPhotoEndpoint>[1])
 }

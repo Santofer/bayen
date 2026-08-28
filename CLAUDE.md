@@ -69,6 +69,15 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 - Le **score produit final est TOUJOURS calculé par l'algorithme déterministe** dans `scoring.ts`
 - L'IA (Qwen3.5-9B) extrait/structure les données brutes — elle ne calcule jamais le score produit chiffré
 - L'analyse photo de plat (`/meal-analyze`) est une **estimation** (fourchettes + confiance), pas un score santé ni un avis médical
+- Le statut **halal** n'est jamais retiré automatiquement : Open Food Facts et la
+  communauté font autorité, la vision ne peut que l'ajouter (jamais l'infirmer)
+- Les **prix** sont agrégés par MÉDIANE par enseigne (robuste aux saisies fantaisistes),
+  jamais par moyenne
+- Les corrections d'estimations repas affinent le **référentiel** `moroccan_dishes` via
+  un script hebdomadaire — elles ne réentraînent jamais le modèle
+- Les endpoints custom écrivent via Knex, ce qui **ne déclenche aucun hook Directus** :
+  le crédit de points passe alors par `bayen-api/src/points.ts` (barème dupliqué avec
+  `bayen-hooks`, à modifier des deux côtés)
 - Tous les textes UI en français en phase 1 — structure i18n Astro en place pour l'arabe (phase 2)
 - Tesseract n'est jamais exposé via Cloudflare Tunnel — réseau Docker interne uniquement
 - Tester les endpoints Directus custom avec `curl` avant toute intégration frontend
@@ -101,6 +110,15 @@ curl -X POST http://localhost:5055/meal-analyze -F "image=@plat.jpg"
 # Tester le pipeline étiquette (Tesseract + IA)
 curl -X POST http://localhost:5055/pipeline -F "image_nutrition=@label.jpg"
 
+# Tester les endpoints contribution / halal / prix / feedback repas
+curl -X POST https://api.bayen.ma/bayen-api/confirm-halal \
+  -H "Content-Type: application/json" \
+  -d '{"barcode":"6111080016394","present":true}'
+curl https://api.bayen.ma/bayen-api/prices/6111080016394
+curl -X POST https://api.bayen.ma/bayen-api/meal-feedback \
+  -H "Content-Type: application/json" \
+  -d '{"rating":"up","plat_detecte":"Harira"}'
+
 # Tester l'endpoint scan principal
 curl -X POST https://api.bayen.ma/bayen-api/scan \
   -H "Content-Type: application/json" \
@@ -119,7 +137,10 @@ curl https://api.bayen.ma/bayen-api/nutrition-summary \
 # Chaîne IA nightly complète (crons Unraid, persistés dans /boot/config/go) :
 # 04:30 backfill-images · 05:00 estimate-scores · 05:30 categorize-products
 # 06:00 translate-ingredients · 06:30 link-ingredients · 07:00 ocr-ingredients-images
-# 07:30 clean-nonfood-ingredients · 08:00 name-products (identification vision)
+# 07:30 clean-nonfood-ingredients · 08:00 name-products (identification vision
+#   + détection du logo halal sur les produits jamais examinés)
+# Hebdomadaire : dimanche 09:00 refine-dishes (revue des corrections repas,
+#   en mode rapport seul — l'ajustement des fourchettes reste manuel)
 
 # Snapshot schéma Directus (à faire avant chaque modification de schéma)
 npx directus schema snapshot ./directus/snapshots/$(date +%Y%m%d).yaml

@@ -1,6 +1,6 @@
 # Bayen — Docker Compose
-# Services : Directus, PostgreSQL, Ollama (GPU M4000), Tesseract (CPU)
-# Tesseract et Ollama ne sont jamais exposés publiquement — réseau Docker interne uniquement.
+# Services : Directus, PostgreSQL, Tesseract (CPU) + vLLM Qwen3.5-9B (externe)
+# Tesseract n'est jamais exposé publiquement — réseau Docker interne uniquement.
 
 services:
   bayen-postgres:
@@ -64,25 +64,8 @@ services:
       bayen-postgres:
         condition: service_healthy
 
-  bayen-ollama:
-    image: ollama/ollama:latest
-    container_name: bayen-ollama
-    restart: unless-stopped
-    environment:
-      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-5m}
-      - OLLAMA_MAX_LOADED_MODELS=1
-      - OLLAMA_NUM_GPU=1
-    volumes:
-      - /mnt/cache/appdata/bayen/data/ollama:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    networks:
-      - bayen-internal
+  # Plus de container Ollama : l'IA passe par le serveur vLLM partagé
+  # (Qwen3.5-9B multimodal), hors de cette stack — voir bayen-tesseract.
 
   bayen-tesseract:
     build:

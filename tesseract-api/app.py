@@ -185,6 +185,128 @@ Si une valeur est illisible ou absente, mets null. Ne jamais inventer de valeurs
 
 
 # Analyse photo de plat (via /meal-analyze)
+# ─── Référentiel des plats marocains (C21) ─────────────────────────────
+# Sans lui, l'estimation d'un tajine ou d'une harira repose sur ce que le
+# modèle sait des plats « en général » : les portions et modes de préparation
+# marocains passaient à la trappe. Chargé depuis Directus (lecture publique),
+# mis en cache 1 h. Une indisponibilité de Directus ne casse jamais l'analyse.
+
+DIRECTUS_URL = os.environ.get('DIRECTUS_URL', 'http://bayen-directus:8055')
+DISHES_TTL = int(os.environ.get('DISHES_TTL', '3600'))
+_dishes_cache = {'at': 0.0, 'data': []}
+
+
+def get_dishes():
+    """Liste des plats de référence (cache TTL). Renvoie [] en cas d'échec."""
+    now = time.time()
+    if _dishes_cache['data'] and now - _dishes_cache['at'] < DISHES_TTL:
+        return _dishes_cache['data']
+    try:
+        r = requests.get(
+            DIRECTUS_URL + '/items/moroccan_dishes',
+            params={
+                'fields': 'id,name_fr,aliases,portion_typique_g,kcal_min,kcal_max,'
+                          'proteines_g,glucides_g,lipides_g',
+                'filter[status][_eq]': 'published',
+                'limit': -1,
+            },
+            timeout=8,
+        )
+        r.raise_for_status()
+        data = r.json().get('data') or []
+        _dishes_cache['at'] = now
+        _dishes_cache['data'] = data
+        return data
+    except Exception as e:  # noqa: BLE001
+        app.logger.warning(f'referentiel plats indisponible: {e}')
+        return _dishes_cache['data']
+
+
+def _norm(text):
+    """Minuscules, sans accents ni ponctuation — pour comparer des noms de plats."""
+    import unicodedata
+    t = unicodedata.normalize('NFD', str(text or '').lower())
+    t = ''.join(c for c in t if unicodedata.category(c) != 'Mn')
+    return ' '.join(''.join(c if c.isalnum() else ' ' for c in t).split())
+
+
+def match_dish(plat, dishes):
+    """Retrouve le plat de référence correspondant, ou None.
+
+    On retient la correspondance la PLUS LONGUE : « tajine de poulet aux olives »
+    doit gagner contre « tajine », sinon tous les tajines seraient calés sur la
+    même fiche.
+    """
+    p = _norm(plat)
+    if not p:
+        return None
+    best, best_len = None, 0
+    for d in dishes:
+        candidates = [d.get('name_fr') or '']
+        aliases = d.get('aliases')
+        if isinstance(aliases, list):
+            candidates += [a for a in aliases if isinstance(a, str)]
+        for cand in candidates:
+            c = _norm(cand)
+            if not c or len(c) <= best_len:
+                continue
+            # `c in p` : le nom de référence est contenu dans la réponse du
+            # modèle (« un bon tajine de poulet aux olives » → la fiche).
+            # `p in c` : seulement si les deux noms sont de longueur comparable,
+            # sinon un « Tajine » isolé se calerait sur un tajine précis pris
+            # au hasard.
+            if c in p or (p in c and len(p) >= 0.6 * len(c)):
+                best, best_len = d, len(c)
+    return best
+
+
+def apply_dish_reference(analysis, dish):
+    """Recale l'estimation sur la fiche de référence, au prorata de la portion.
+
+    L'IA a vu la photo : si son estimation recoupe la fourchette de référence,
+    on la garde (elle connaît la taille réelle de l'assiette). On ne remplace
+    que lorsqu'il n'y a AUCUN recouvrement — le cas où l'estimation est
+    manifestement hors sol.
+    """
+    ref_portion = dish.get('portion_typique_g') or 0
+    kcal_min, kcal_max = dish.get('kcal_min'), dish.get('kcal_max')
+    if not ref_portion or kcal_min is None or kcal_max is None:
+        return analysis, False
+
+    portion = analysis.get('portion_estimee_g') or ref_portion
+    ratio = portion / ref_portion
+    ratio = max(0.4, min(ratio, 1.6))  # une portion reste une portion
+
+    ref_lo, ref_hi = int(kcal_min * ratio), int(kcal_max * ratio)
+    cal = analysis.get('calories_kcal') or {}
+    lo, hi = cal.get('min'), cal.get('max')
+
+    overlap = lo is not None and hi is not None and lo <= ref_hi and hi >= ref_lo
+    if overlap:
+        return analysis, False
+
+    analysis['calories_kcal'] = {'min': ref_lo, 'max': ref_hi}
+    macros = analysis.get('macros_g') or {}
+    for key, field in (('proteines', 'proteines_g'), ('glucides', 'glucides_g'), ('lipides', 'lipides_g')):
+        val = dish.get(field)
+        if val is not None:
+            macros[key] = int(float(val) * ratio)
+    analysis['macros_g'] = macros
+    return analysis, True
+
+
+def meal_system_prompt():
+    """MEAL_SYSTEM enrichi de la liste des plats marocains connus."""
+    names = [d.get('name_fr') for d in get_dishes() if d.get('name_fr')]
+    if not names:
+        return MEAL_SYSTEM
+    return MEAL_SYSTEM + (
+        "\n\nPLATS MAROCAINS DE RÉFÉRENCE — si le repas photographié correspond "
+        "à l'un d'eux, emploie EXACTEMENT ce nom dans le champ \"plat\" :\n"
+        + ', '.join(names) + '.'
+    )
+
+
 MEAL_SYSTEM = (
     "Tu es un coach nutrition bienveillant. Tu analyses UNE photo de repas et tu "
     "retournes UNIQUEMENT du JSON valide respectant exactement ce schéma :\n"
@@ -898,7 +1020,7 @@ def meal_analyze():
         image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
 
         ai_start = time.time()
-        parsed = call_ai_vision(MEAL_SYSTEM, 'Analyse ce plat.', image_b64, timeout=60)
+        parsed = call_ai_vision(meal_system_prompt(), 'Analyse ce plat.', image_b64, timeout=60)
         ai_duration = int((time.time() - ai_start) * 1000)
 
         if parsed is None:
@@ -955,28 +1077,40 @@ def meal_analyze():
 
         total_duration = int((time.time() - start_time) * 1000)
 
+        analysis = {
+            'plat': str(parsed.get('plat'))[:200],
+            'ingredients': ingredients,
+            'portion_estimee_g': _int(parsed.get('portion_estimee_g'), 0, 5000),
+            'calories_kcal': {'min': cal_min, 'max': cal_max},
+            'macros_g': {
+                'proteines': _int(macros.get('proteines'), 0, 500),
+                'glucides': _int(macros.get('glucides'), 0, 500),
+                'lipides': _int(macros.get('lipides'), 0, 500),
+            },
+            'verdict': verdict,
+            'caracteristiques': caracteristiques,
+            'conseil': str(parsed.get('conseil', ''))[:400],
+            'alternatives': alternatives,
+            'confiance': confiance,
+            'remarques': str(parsed.get('remarques', ''))[:500],
+        }
+
+        # Calage sur le référentiel marocain quand le plat y figure.
+        dish = match_dish(analysis['plat'], get_dishes())
+        if dish:
+            analysis, recalibrated = apply_dish_reference(analysis, dish)
+            analysis['reference'] = {
+                'dish_id': dish.get('id'),
+                'name_fr': dish.get('name_fr'),
+                'recalibrated': recalibrated,
+            }
+
         return jsonify({
             'job_status': 'done',
             'duration_ms': total_duration,
             'timing': {'ai_ms': ai_duration},
             'model': AI_MODEL,
-            'analysis': {
-                'plat': str(parsed.get('plat'))[:200],
-                'ingredients': ingredients,
-                'portion_estimee_g': _int(parsed.get('portion_estimee_g'), 0, 5000),
-                'calories_kcal': {'min': cal_min, 'max': cal_max},
-                'macros_g': {
-                    'proteines': _int(macros.get('proteines'), 0, 500),
-                    'glucides': _int(macros.get('glucides'), 0, 500),
-                    'lipides': _int(macros.get('lipides'), 0, 500),
-                },
-                'verdict': verdict,
-                'caracteristiques': caracteristiques,
-                'conseil': str(parsed.get('conseil', ''))[:400],
-                'alternatives': alternatives,
-                'confiance': confiance,
-                'remarques': str(parsed.get('remarques', ''))[:500],
-            },
+            'analysis': analysis,
         })
 
     except Exception as e:
@@ -993,13 +1127,18 @@ IDENTIFY_SYSTEM = (
     "Tu es un expert des produits alimentaires vendus au Maroc. Tu regardes la photo de "
     "la FACE AVANT d'un emballage et tu identifies le produit. Tu retournes UNIQUEMENT du "
     "JSON valide :\n"
-    '{"name_fr":"","brand":"","quantity":null,"confiance":"faible|moyenne|elevee"}\n'
+    '{"name_fr":"","brand":"","quantity":null,"halal_logo":null,'
+    '"confiance":"faible|moyenne|elevee"}\n'
     "Règles STRICTES :\n"
     "- name_fr : le nom COMMERCIAL court, en français (ex. « Raïbi Jamila », « Biscuits "
     "fourrés chocolat »). Si l'emballage est en arabe, translittère ou traduis le nom "
     "commercial. N'inclus JAMAIS la marque seule comme nom, ni le poids.\n"
     "- brand : la marque exacte imprimée sur l'emballage (ex. « Jaouda », « Bimo »).\n"
     "- quantity : contenance visible telle quelle (« 430 g », « 1 L ») ou null.\n"
+    "- halal_logo : true UNIQUEMENT si un logo ou une mention halal (حلال, « HALAL », "
+    "certification d'un organisme) est RÉELLEMENT visible sur l'emballage. "
+    "null si tu n'en vois pas ou si l'image ne permet pas d'en juger — ne mets "
+    "jamais false par défaut, et ne déduis JAMAIS le halal du type de produit.\n"
     "- Si la photo est illisible, floue, ou que ce n'est pas un emballage alimentaire : "
     'renvoie {"name_fr":null,"brand":null,"quantity":null,"confiance":"faible"}.\n'
     "- N'INVENTE JAMAIS un nom ou une marque qui ne sont pas lisibles sur la photo."
@@ -1042,10 +1181,16 @@ def identify_product():
         if confiance not in ('faible', 'moyenne', 'elevee'):
             confiance = 'faible'
 
+        # halal_logo : on ne propage QUE le true franc. « false » et « null »
+        # sont indistinguables en pratique (logo absent ou photo insuffisante),
+        # et un faux négatif ne doit jamais retirer un statut halal existant.
+        halal_logo = True if parsed.get('halal_logo') is True else None
+
         return jsonify({
             'name_fr': _clean(parsed.get('name_fr'), 120),
             'brand': _clean(parsed.get('brand'), 80),
             'quantity': _clean(parsed.get('quantity'), 40),
+            'halal_logo': halal_logo,
             'confiance': confiance,
             'duration_ms': int((time.time() - start_time) * 1000),
         })

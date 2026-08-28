@@ -2,12 +2,13 @@
  * Endpoint POST /bayen-api/contribute
  *
  * Création anonyme d'un produit (sans login). Pour réduire le spam :
- * - JSON uniquement (pas d'upload d'images)
- * - Validation stricte du payload
+ * - JSON uniquement, validation stricte du payload
  * - Rate-limiting basique par IP (mémoire process)
+ * - Honeypot + heuristiques anti-spam sur le nom et la marque
  *
- * Si l'utilisateur veut uploader des photos ou bénéficier de l'OCR
- * Tesseract+Mistral, il doit se connecter et utiliser ContributeForm.
+ * Les photos sont envoyées séparément à /bayen-api/upload-photo, qui renvoie
+ * un identifiant de fichier repris ici : le parcours de contribution mobile
+ * fonctionne donc sans compte, photos comprises.
  *
  * INSERT direct via Knex pour éviter le bug ItemsService (cache schéma
  * obsolète qui rejette des valeurs valides — voir scan.ts).
@@ -16,11 +17,20 @@
 import type { Router, Request } from 'express'
 import { randomUUID } from 'node:crypto'
 import { notifyNewProduct } from './notify.js'
+import { scoreProduct } from './scan.js'
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface ContributeRequest {
   barcode?: string
   name_fr?: string
   brand?: string
+  quantity?: string
+  category_id?: number
+  is_halal?: boolean
+  image_front?: string
+  image_ingredients?: string
+  image_nutrition?: string
   ingredients_text?: string
   energy_kcal?: number
   fat_total?: number
@@ -168,7 +178,10 @@ export function registerContributeEndpoint(router: Router, context: {
 
       const knex = context.database as unknown as {
         (table: string): {
-          where(col: string, val: string): { first(): Promise<{ id: string } | undefined> }
+          where(col: string, val: string): {
+            first(): Promise<Record<string, unknown> | undefined>
+            update(data: Record<string, unknown>): Promise<unknown>
+          }
           insert(data: Record<string, unknown>): Promise<unknown>
         }
       }
@@ -179,7 +192,7 @@ export function registerContributeEndpoint(router: Router, context: {
         res.status(200).json({
           ok: true,
           existed: true,
-          product_id: existing.id,
+          product_id: existing.id as string,
           message: 'Ce produit existe déjà.',
           redirect_url: `/produit/${barcode}`,
         })
@@ -228,8 +241,53 @@ export function registerContributeEndpoint(router: Router, context: {
       const salt = sanitizeNumber(body.salt, 100)
       if (salt !== undefined) payload.salt = salt
 
+      // Contenance : ce qui distingue deux variantes d'un même produit.
+      const quantity = sanitizeString(body.quantity, 40)
+      if (quantity) payload.quantity = quantity
+
+      if (typeof body.category_id === 'number' && Number.isInteger(body.category_id)) {
+        payload.category_id = body.category_id
+      }
+
+      // Halal déclaré depuis l'emballage par la personne qui l'a en main.
+      if (body.is_halal === true) {
+        payload.is_halal = true
+        payload.halal_source = 'packaging_user'
+        payload.halal_confirmations = 1
+      }
+
+      // Photos déjà déposées via /upload-photo (identifiants de fichiers).
+      for (const [field, value] of [
+        ['image_front', body.image_front],
+        ['image_ingredients', body.image_ingredients],
+        ['image_nutrition', body.image_nutrition],
+      ] as const) {
+        if (typeof value === 'string' && UUID_RE.test(value)) payload[field] = value
+      }
+
       // INSERT via Knex (bypass ItemsService cache obsolète)
       await knex('products').insert(payload)
+
+      // Score calculé immédiatement : une fiche fraîchement créée doit
+      // s'afficher avec sa note, pas attendre le prochain scan.
+      try {
+        const created = await knex('products').where('id', newId).first()
+        if (created) {
+          const score = await scoreProduct(
+            created as unknown as Parameters<typeof scoreProduct>[0],
+            context.database,
+          )
+          await knex('products').where('id', newId).update({
+            scan_score: score.total,
+            score_label: score.label,
+            nutriscore_grade: score.nutriscore_grade,
+          })
+        }
+      } catch (scoreErr) {
+        // Un scoring raté ne doit pas perdre la contribution : le prochain
+        // scan du produit le recalculera.
+        console.warn('[bayen-api] scoring contribution échoué:', (scoreErr as Error).message)
+      }
 
       // Notification admin (in-app + webhook optionnel)
       await notifyNewProduct(context.database, {

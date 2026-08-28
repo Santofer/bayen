@@ -91,10 +91,11 @@ Bayen est une PWA qui permet de :
 
 | Outil | Rôle |
 |-------|------|
-| Ollama + mistral:7b | Parsing ingrédients, détection additifs — GPU M4000 |
-| Tesseract 5 (container Flask) | OCR — CPU uniquement, self-hosted, zéro VRAM |
+| vLLM + Qwen3.5-9B (multimodal) | Vision-first : lecture d'étiquettes, identification produit, analyse de plat — serveur vLLM partagé, GPU Blackwell |
+| Tesseract 5 (container Flask) | OCR de repli — CPU uniquement, self-hosted, zéro VRAM |
 
-> Pas de modèle multimodal (llava) en prod — voir §4.
+> Serveur OpenAI-compatible sur `http://192.168.1.123:8000/v1` (env `AI_BASE_URL`,
+> `AI_MODEL=qwen3.5-9b`, `AI_API_KEY`). Ollama et mistral:7b ont été retirés.
 
 ### Infrastructure
 
@@ -115,8 +116,8 @@ Bayen est une PWA qui permet de :
 ```
 bayen-directus      → Directus 11 (port 8055 interne)
 bayen-postgres      → PostgreSQL 16 (port 5432 interne)
-bayen-ollama        → Ollama + mistral:7b (port 11434 interne, GPU M4000)
-bayen-tesseract     → API Tesseract Flask (port 5001 interne, CPU only)
+bayen-tesseract     → API Flask : pipeline vision Qwen + OCR Tesseract (port 5000 interne, CPU)
+serveur vLLM        → Qwen3.5-9B multimodal, partagé (192.168.1.123:8000, hors stack Bayen)
 n8n                 → partagé, déjà existant
 ```
 
@@ -128,7 +129,7 @@ cdn.bayen.ma   →  Cloudflare R2 public bucket
 bayen.ma       →  Cloudflare Pages (build Astro statique)
 ```
 
-Tesseract et Ollama ne sont jamais exposés publiquement — réseau Docker interne uniquement.
+Tesseract et le serveur vLLM ne sont jamais exposés publiquement — réseau interne uniquement.
 
 ### Flux de données
 
@@ -139,7 +140,7 @@ Cloudflare Pages (bayen.ma)
     ↓ fetch()
 api.bayen.ma (Directus via Cloudflare Tunnel)
     ↓ réseau Docker interne
-PostgreSQL + R2 (images) + Tesseract (OCR) + Ollama (parsing)
+PostgreSQL + R2 (images) + Tesseract (OCR) + vLLM Qwen3.5-9B (vision)
 ```
 
 ### Stockage images

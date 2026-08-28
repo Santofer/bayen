@@ -18,7 +18,8 @@ import { Badge } from '@/components/ui/badge'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 import { addMealToHistory } from '@/lib/meal-history'
-import { Camera, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus, Flame, Lightbulb, Leaf } from 'lucide-react'
+import MealFeedback from '@/components/MealFeedback.tsx'
+import { Camera, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus, Flame, Lightbulb, Leaf, BookOpen } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -37,6 +38,8 @@ interface MealAnalysis {
   alternatives: string[]
   confiance: Confiance
   remarques: string
+  /** Fiche du référentiel marocain sur laquelle l'estimation a été calée. */
+  reference?: { dish_id: number; name_fr: string; recalibrated: boolean }
 }
 
 /** Style + libellé du verdict (4 niveaux qualitatifs). */
@@ -395,6 +398,28 @@ export default function MealPhotoAnalyzer() {
             <p className="text-sm text-muted-foreground leading-relaxed">{analysis.remarques}</p>
           </div>
         )}
+
+        {/* Référentiel marocain : dire sur quoi l'estimation s'appuie */}
+        {analysis.reference && (
+          <p className="flex items-start gap-2 px-2 text-xs text-muted-foreground">
+            <BookOpen size={14} className="mt-0.5 flex-shrink-0" />
+            <span>
+              {t('mealfb.reference')} « {analysis.reference.name_fr} » {t('mealfb.referenceEnd')}
+            </span>
+          </p>
+        )}
+
+        {/* Retour sur la fiabilité de l'estimation (C21) */}
+        <MealFeedback
+          plat={analysis.plat}
+          confiance={analysis.confiance}
+          portionEstimee={analysis.portion_estimee_g}
+          caloriesEstimees={
+            analysis.calories_kcal.min != null && analysis.calories_kcal.max != null
+              ? Math.round((analysis.calories_kcal.min + analysis.calories_kcal.max) / 2)
+              : null
+          }
+        />
 
         {/* Caveat estimation */}
         <p className="text-xs text-muted-foreground text-center italic px-2">{t('meal.estimateCaveat')}</p>

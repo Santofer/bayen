@@ -6,8 +6,12 @@
  *
  * Actions :
  * - scans.items.create → +1 pt au user
- * - contributions.items.update (status → approved) → +50/+20/+15 pts selon type
+ * - contributions.items.create (déjà approuvée) → points selon le type
+ * - contributions.items.update (status → approved) → points selon le type
  * - products.items.create → notification admin in-app + webhook optionnel
+ *
+ * Le crédit est idempotent : `contributions.points_awarded` est posé au premier
+ * crédit et empêche tout doublon si la contribution est ré-enregistrée.
  */
 
 // ID du rôle "Utilisateur" — override via env var BAYEN_DEFAULT_USER_ROLE
@@ -22,11 +26,15 @@ const ADMIN_NOTIFY_USER_ID =
 // Format attendu : POST JSON { text: "...", product: {...} }
 const NOTIFY_WEBHOOK_URL = process.env.BAYEN_NOTIFY_WEBHOOK_URL || ''
 
+// Barème partagé avec `bayen-api/src/points.ts` (les endpoints custom écrivent
+// en Knex, ce qui ne déclenche aucun hook) — modifier les deux ensemble.
 const POINTS_MAP: Record<string, number> = {
   new_product: 50,
   add_image: 20,
   fix_data: 15,
   confirm: 10,
+  add_price: 5,
+  fix_meal: 10,
 }
 
 const RANK_THRESHOLDS = [
@@ -74,7 +82,41 @@ export default ({ filter, action }: any) => {
     }
   })
 
-  // ── Points quand contribution approuvée ─────────────────────────
+  // ── Points sur contribution créée DÉJÀ approuvée ────────────────
+  // Le formulaire de contribution poste directement en `approved` : sans ce
+  // hook, aucun point n'était jamais crédité par ce chemin (seul l'update
+  // était écouté). Vérifié en base : 0 contribution, 0 point attribué.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  action('contributions.items.create', async (meta: any, context: any) => {
+    if (meta?.payload?.status !== 'approved') return
+    const { database } = context
+    const userId: string | undefined = meta?.payload?.user_id
+    const type: string | undefined = meta?.payload?.type
+    if (!userId || !type) return
+    const points = POINTS_MAP[type] ?? 0
+    if (points === 0) return
+
+    try {
+      await database('directus_users')
+        .where('id', userId)
+        .increment('points', points)
+        .increment('contributions_count', 1)
+      await database('contributions').where('id', meta?.key).update({ points_awarded: true })
+
+      const user = await database('directus_users').where('id', userId).select('points', 'rank').first()
+      if (user) {
+        const newRank = computeRank(user.points, user.rank)
+        if (newRank !== user.rank) {
+          await database('directus_users').where('id', userId).update({ rank: newRank })
+        }
+      }
+      console.log(`[bayen-hooks] +${points} pts → user ${userId} (${type}, création approuvée)`)
+    } catch (err) {
+      console.error('[bayen-hooks] Erreur attribution points création contribution:', err)
+    }
+  })
+
+  // ── Points quand contribution approuvée après coup ──────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   action('contributions.items.update', async (meta: any, context: any) => {
     if (meta?.payload?.status !== 'approved') return
@@ -82,9 +124,11 @@ export default ({ filter, action }: any) => {
     try {
       const contribution = await database('contributions')
         .where('id', meta?.keys?.[0])
-        .select('user_id', 'type')
+        .select('user_id', 'type', 'points_awarded')
         .first()
       if (!contribution?.user_id) return
+      // Déjà crédité (créée approuvée, ou ré-enregistrement) → ne rien refaire.
+      if (contribution.points_awarded) return
       const points = POINTS_MAP[contribution.type] ?? 0
       if (points === 0) return
 
@@ -92,6 +136,7 @@ export default ({ filter, action }: any) => {
         .where('id', contribution.user_id)
         .increment('points', points)
         .increment('contributions_count', 1)
+      await database('contributions').where('id', meta?.keys?.[0]).update({ points_awarded: true })
 
       const user = await database('directus_users')
         .where('id', contribution.user_id)

@@ -149,6 +149,13 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
     ? novaRaw
     : undefined
 
+  // Halal : OFF le déclare via labels_tags ("en:halal") ou le champ libre
+  // labels. Rarement renseigné sur les produits marocains — la confirmation
+  // communautaire et la vision prennent le relais (voir /confirm-halal).
+  const labelTags = (product.labels_tags as string[] | undefined) ?? []
+  const isHalal = labelTags.some((tag) => /halal/i.test(tag))
+    || (typeof product.labels === 'string' && /halal/i.test(product.labels))
+
   // Nutriments (pour 100g)
   const nutriments = (product.nutriments as Record<string, unknown>) ?? {}
   const num = (key: string): number | undefined => {
@@ -182,6 +189,8 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
     is_organic: typeof product.labels === 'string'
       ? product.labels.toLowerCase().includes('bio')
       : false,
+    is_halal: isHalal,
+    halal_source: isHalal ? 'off' : undefined,
     // OFF renvoie souvent une liste très longue ; on garde le 1er pays
     // pour ne pas dépasser varchar(100).
     origin_country: typeof product.countries === 'string'
@@ -239,7 +248,7 @@ async function resolveAdditiveRisks(
 // Score un produit et retourne le ScoreResult
 // ────────────────────────────────────────────────────────────────
 
-async function scoreProduct(
+export async function scoreProduct(
   product: ProductRecord,
   database: Record<string, (...args: unknown[]) => unknown>
 ): Promise<ScoreResult> {
