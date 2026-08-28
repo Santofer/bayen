@@ -166,12 +166,17 @@ html.dark.nav-scrolled header[data-bayen-nav] {
 .nav-scan-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex-shrink: 0;
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   border-radius: 999px;
-  padding: 10px 18px;
+  /* Hauteur bornée en px : le zoom de texte iOS gonflait le contenu au-delà
+     de la rangée du header et la pilule débordait de la capsule. */
+  height: 38px;
+  max-height: 38px;
+  padding: 0 18px;
   font-size: 0.86rem;
   font-weight: 700;
   box-shadow: 0 4px 14px hsl(97 40% 20% / 0.25);
@@ -599,6 +604,22 @@ html.dark.is-scrolling ::-webkit-scrollbar-thumb {
 }
 .rail-x::-webkit-scrollbar { display: none; }
 .rail-x > * { scroll-snap-align: start; }
+
+/* ── Îlots Astro dans un space-y-* ────────────────────────────────
+   <astro-island> est en display:contents : il ne génère pas de boîte, donc la
+   marge que space-y lui pose est IGNORÉE et la carte suivante colle à la
+   précédente (vu sur la fiche produit : Analyse santé / Alternatives / Prix).
+   On répercute l'espacement sur le contenu réellement rendu ; un îlot qui
+   rend null n'a pas d'enfant, donc aucune marge fantôme. */
+:where(.space-y-6) > astro-island > :not(:empty) {
+  margin-bottom: calc(var(--spacing) * 6);
+}
+:where(.space-y-4) > astro-island > :not(:empty) {
+  margin-bottom: calc(var(--spacing) * 4);
+}
+:where(.space-y-6, .space-y-4) > astro-island:last-child > :not(:empty) {
+  margin-bottom: 0;
+}
 
 /* ════════════════════════════════════════════════════════════════
    BASE

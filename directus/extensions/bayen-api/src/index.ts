@@ -15,6 +15,7 @@
  *   GET  /bayen-api/prices/:barcode    → Agrégat des prix (médiane par enseigne)
  *   POST /bayen-api/meal-feedback      → Retour sur une estimation repas (+ correction)
  *   POST /bayen-api/upload-photo       → Upload d'une photo produit sans compte
+ *   POST /bayen-api/partner-request    → Demande de partenariat (stockage + email)
  */
 
 import type { Router } from 'express'
@@ -33,6 +34,7 @@ import { registerHalalEndpoint } from './halal.js'
 import { registerPricesEndpoints } from './prices.js'
 import { registerMealFeedbackEndpoint } from './meal-feedback.js'
 import { registerUploadPhotoEndpoint } from './upload-photo.js'
+import { registerPartnerEndpoint } from './partner.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -51,4 +53,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerPricesEndpoints(router, context as unknown as Parameters<typeof registerPricesEndpoints>[1])
   registerMealFeedbackEndpoint(router, context as unknown as Parameters<typeof registerMealFeedbackEndpoint>[1])
   registerUploadPhotoEndpoint(router, context as unknown as Parameters<typeof registerUploadPhotoEndpoint>[1])
+  registerPartnerEndpoint(router, context as unknown as Parameters<typeof registerPartnerEndpoint>[1])
 }
