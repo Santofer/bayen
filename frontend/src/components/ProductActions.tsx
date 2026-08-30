@@ -42,7 +42,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       if (!isAuthenticated()) return
       setLoggedIn(true)
 
-      const token = getAccessToken()
+      const token = await getAccessToken()
       if (!token) return
 
       try {
@@ -101,49 +101,37 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
     if (!canAct || hasConfirmed) return
     setSubmitting(true)
     try {
-      const token = getAccessToken()
-      const res = await fetch(`${DIRECTUS_URL}/items/contributions`, {
+      const token = await getAccessToken()
+      // Toute la logique (anti-doublon, seuil de 3, passage en « Vérifié »,
+      // points) vit côté serveur : le client ne modifie jamais le produit.
+      const res = await fetch(`${DIRECTUS_URL}/bayen-api/confirm-product`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          product_id: productId,
-          type: 'confirm',
-          status: 'approved', // Les confirmations sont auto-approuvées
-          data_after: { confirmed: true },
-        }),
+        body: JSON.stringify({ barcode }),
       })
       if (res.ok) {
+        const data = (await res.json()) as { confirmations?: number; verified?: boolean }
         setHasConfirmed(true)
-        setConfirmCount((c) => c + 1)
-        setFeedback('Confirmation enregistrée !')
-
-        // Si 3 confirmations atteintes, incrémenter confidence_score
-        if (confirmCount + 1 >= 3 && confidenceScore < 1) {
-          const newScore = Math.min(1, confidenceScore + 0.1)
-          await fetch(`${DIRECTUS_URL}/items/products/${productId}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ confidence_score: newScore }),
-          })
-        }
-
+        setConfirmCount(data.confirmations ?? confirmCount + 1)
+        setFeedback(data.verified ? 'Fiche vérifiée, merci !' : 'Confirmation enregistrée !')
+        setTimeout(() => setFeedback(null), 3000)
+      } else if (res.status === 409) {
+        setHasConfirmed(true)
+        setFeedback('Tu as déjà confirmé cette fiche.')
         setTimeout(() => setFeedback(null), 3000)
       }
     } catch { /* erreur silencieuse */ }
     setSubmitting(false)
-  }, [canAct, hasConfirmed, productId, confirmCount, confidenceScore])
+  }, [canAct, hasConfirmed, barcode, confirmCount])
 
   const handleReport = useCallback(async () => {
     if (!canAct || !reportText.trim()) return
     setSubmitting(true)
     try {
-      const token = getAccessToken()
+      const token = await getAccessToken()
       const res = await fetch(`${DIRECTUS_URL}/items/contributions`, {
         method: 'POST',
         headers: {
@@ -172,7 +160,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
   const handleDelete = useCallback(async () => {
     setDeleting(true)
     try {
-      const token = getAccessToken()
+      const token = await getAccessToken()
       if (!token) return
       const success = await deleteProduct(productId, token)
       if (success) {
