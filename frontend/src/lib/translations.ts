@@ -251,6 +251,9 @@ export const translations = {
   'product.saving':        { fr: 'Sauvegarde...',         ary: 'كيتحفظ...' },
   'product.saved':         { fr: 'Produit sauvegardé !',  ary: 'المنتوج تحفظ!' },
   'product.confirmations': { fr: 'confirmations',         ary: 'تأكيدات' },
+  'product.actionsTitle':  { fr: 'Ces infos sont-elles exactes ?', ary: 'واش هاد المعلومات صحيحة؟' },
+  'product.confirmHint':   { fr: 'confirmations pour le badge « Vérifié »', ary: 'تأكيدات باش تاخد علامة « مأكد »' },
+  'product.confirmed':     { fr: 'Confirmé',              ary: 'تأكد' },
   'product.confirm':       { fr: 'Confirmer',             ary: 'أكّد' },
   'product.report':        { fr: 'Signaler une erreur',   ary: 'بلّغ على غلط' },
 

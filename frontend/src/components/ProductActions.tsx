@@ -182,51 +182,63 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
   if (!canAct && !isAdmin) return null
 
   return (
-    <div className="rounded-xl border bg-card p-4 space-y-3">
-      {/* Compteur de confirmations */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>{confirmCount} {t('product.confirmations')}</span>
+    <div className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]">
+      {/* En-tête de carte — même anatomie que les autres sections de la fiche */}
+      <div className="mb-4 flex items-center gap-2.5">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Check size={16} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-display text-lg font-bold leading-tight">{t('product.actionsTitle')}</h2>
+          <p className="text-xs text-muted-foreground">
+            {confirmCount}/3 {t('product.confirmHint')}
+          </p>
+        </div>
         {confidenceScore >= 0.8 && (
-          <Badge variant="safe" className="text-xs">Vérifié</Badge>
+          <Badge variant="safe" className="flex-shrink-0 text-xs">Vérifié</Badge>
         )}
       </div>
 
-      {/* Boutons */}
-      <div className="flex gap-2">
-        <Button
-          variant={hasConfirmed ? 'secondary' : 'outline'}
-          size="sm"
+      {/* Une seule rangée alignée : actions communauté à gauche, admin à droite */}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <button
+          type="button"
           onClick={handleConfirm}
           disabled={hasConfirmed || submitting}
-          className={cn(hasConfirmed && 'text-green-600')}
+          className={cn(
+            'inline-flex min-h-[46px] items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors',
+            hasConfirmed
+              ? 'bg-primary/10 text-primary'
+              : 'border border-primary/30 bg-card text-primary hover:bg-primary/[0.06] disabled:opacity-60',
+          )}
         >
-          <Check size={14} className="text-current" /> {t('product.confirm')}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
+          <Check size={16} />
+          {hasConfirmed ? t('product.confirmed') : t('product.confirm')}
+        </button>
+        <button
+          type="button"
           onClick={() => setShowReport(!showReport)}
           disabled={submitting}
+          className="inline-flex min-h-[46px] items-center gap-2 rounded-full border bg-card px-5 text-sm font-semibold transition-colors hover:bg-accent disabled:opacity-60"
         >
-          <AlertTriangle size={14} className="text-current" /> {t('product.report')}
-        </Button>
+          <AlertTriangle size={16} />
+          {t('product.report')}
+        </button>
+        {isAdmin && !showDeleteConfirm && (
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="sm:ms-auto inline-flex min-h-[46px] items-center gap-2 rounded-full border border-destructive/40 bg-card px-5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+          >
+            <Trash2 size={16} />
+            Supprimer ce produit
+          </button>
+        )}
       </div>
-
-      {/* Bouton supprimer (admin uniquement) */}
-      {isAdmin && !showDeleteConfirm && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowDeleteConfirm(true)}
-          className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950/40"
-        >
-          <Trash2 size={14} /> Supprimer ce produit
-        </Button>
-      )}
 
       {/* Confirmation suppression */}
       {showDeleteConfirm && (
-        <div className="rounded-xl border-2 border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-3">
+        <div className="mt-3 rounded-xl border-2 border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-3">
           <p className="text-sm font-medium text-red-800 dark:text-red-200">Supprimer définitivement ce produit ?</p>
           <p className="text-xs text-red-600 dark:text-red-400">Cette action est irréversible.</p>
           <div className="flex gap-2">
@@ -247,7 +259,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       {/* Modale signalement */}
       {showReport && (
-        <div className="rounded-xl border bg-card p-4 space-y-3">
+        <div className="mt-3 rounded-xl border bg-popover p-4 space-y-3">
           <p className="text-sm font-medium">Qu'est-ce qui est incorrect ?</p>
           <textarea
             value={reportText}
@@ -269,7 +281,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       {/* Feedback */}
       {feedback && (
-        <div className="rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 px-3 py-2 text-sm text-green-800 dark:text-green-200">
+        <div className="mt-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 px-3 py-2 text-sm text-green-800 dark:text-green-200">
           {feedback}
         </div>
       )}
