@@ -195,7 +195,11 @@ def main():
                 + "&fields=id&limit=-1", token=token,
             )["data"]
 
-            if r.get("job_status") != "done" or len(items) < max(2, len(links)):
+            # Seuil : mieux que l'existant, et au moins 2 ingrédients — sauf
+            # pour une fiche totalement vide, où un produit MONO-ingrédient
+            # (riz, huile, miel…) est légitime avec une seule lecture.
+            min_items = max(2, len(links)) if (links or (p.get("ingredients_text") or "").strip()) else 1
+            if r.get("job_status") != "done" or len(items) < min_items:
                 # Pas mieux côté ingrédients — mais la photo (souvent un tableau
                 # nutritionnel) peut quand même combler la nutrition manquante.
                 nutri = nutrition_fill(p, parsed) if r.get("job_status") == "done" else {}

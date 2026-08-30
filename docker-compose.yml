@@ -42,6 +42,16 @@ services:
       ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD:?DIRECTUS_ADMIN_PASSWORD requis}
       PUBLIC_URL: ${DIRECTUS_URL:-https://api.bayen.ma}
 
+      # CORS — le front appelle l'API en direct depuis le navigateur.
+      # ⚠️ bayen.ma DOIT figurer ici : son absence a rendu illisibles toutes
+      # les réponses API côté client en prod (formulaires en échec apparent
+      # alors que le serveur traitait les requêtes).
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "https://bayen.ma,https://www.bayen.ma,https://bayen.n0.ma,https://bayen.pages.dev,http://localhost:4321"
+      CORS_METHODS: "GET,POST,PATCH,DELETE"
+      CORS_ALLOWED_HEADERS: "Content-Type,Authorization"
+      CORS_CREDENTIALS: "true"
+
       # Stockage R2 (S3-compatible)
       STORAGE_LOCATIONS: r2
       STORAGE_R2_DRIVER: s3

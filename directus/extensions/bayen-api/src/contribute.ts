@@ -186,12 +186,37 @@ export function registerContributeEndpoint(router: Router, context: {
         }
       }
 
-      // Anti-doublon — si le produit existe déjà, retourner son ID
+      // Anti-doublon — si le produit existe déjà, COMPLÉTER ses trous plutôt
+      // qu'ignorer l'envoi : quand une soumission échoue à moitié (cas vécu :
+      // réponses illisibles côté client pour cause de CORS, fiche créée sans
+      // photos), la re-soumission de la même personne répare la fiche.
       const existing = await knex('products').where('barcode', barcode).first()
       if (existing) {
+        const fill: Record<string, unknown> = {}
+        for (const [field, value] of [
+          ['image_front', body.image_front],
+          ['image_ingredients', body.image_ingredients],
+          ['image_nutrition', body.image_nutrition],
+        ] as const) {
+          if (!existing[field] && typeof value === 'string' && UUID_RE.test(value)) fill[field] = value
+        }
+        const quantityFill = sanitizeString(body.quantity, 40)
+        if (!existing.quantity && quantityFill) fill.quantity = quantityFill
+        if (!existing.category_id && typeof body.category_id === 'number' && Number.isInteger(body.category_id)) {
+          fill.category_id = body.category_id
+        }
+        if (!existing.is_halal && body.is_halal === true) {
+          fill.is_halal = true
+          fill.halal_source = 'packaging_user'
+          fill.halal_confirmations = 1
+        }
+        if (Object.keys(fill).length > 0) {
+          await knex('products').where('barcode', barcode).update(fill)
+        }
         res.status(200).json({
           ok: true,
           existed: true,
+          completed_fields: Object.keys(fill),
           product_id: existing.id as string,
           message: 'Ce produit existe déjà.',
           redirect_url: `/produit/${barcode}`,
