@@ -7,42 +7,29 @@ import { getLocale, t } from '@/lib/i18n'
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
-// Récupérer les top contributeurs
+// Top contributeurs RÉELS via l'endpoint public dédié.
+// (L'ancienne version lisait /users — 403 en public — et affichait des données
+// de démo codées en dur : un classement fictif présenté comme vrai.)
 interface Contributor {
   id: string
-  first_name: string | null
-  display_name: string | null
+  name: string
   points: number
-  contributions_count: number
+  contributions: number
   rank: string
 }
 
 let contributors: Contributor[] = []
 
 try {
-  const res = await fetch(
-    `${DIRECTUS_URL}/users?fields=id,first_name,display_name,points,contributions_count,rank&filter[points][_gt]=0&sort=-points&limit=50`,
-    { signal: AbortSignal.timeout(5000) }
-  )
+  const res = await fetch(`${DIRECTUS_URL}/bayen-api/leaderboard`, {
+    signal: AbortSignal.timeout(5000),
+  })
   if (res.ok) {
     const data = await res.json()
-    contributors = data.data ?? []
+    contributors = data.entries ?? []
   }
 } catch {
-  // pas de données
-}
-
-// Données de démo si aucun contributeur réel
-if (contributors.length === 0) {
-  contributors = [
-    { id: 'demo-1', first_name: 'Amine', display_name: 'Amine B.', points: 340, contributions_count: 34, rank: 'expert' },
-    { id: 'demo-2', first_name: 'Youssef', display_name: 'Youssef M.', points: 210, contributions_count: 18, rank: 'contributeur' },
-    { id: 'demo-3', first_name: 'Fatima', display_name: 'Fatima Z.', points: 185, contributions_count: 15, rank: 'contributeur' },
-    { id: 'demo-4', first_name: 'Karim', display_name: 'Karim E.', points: 120, contributions_count: 11, rank: 'contributeur' },
-    { id: 'demo-5', first_name: 'Sara', display_name: 'Sara A.', points: 75, contributions_count: 7, rank: 'nouveau' },
-    { id: 'demo-6', first_name: 'Omar', display_name: 'Omar H.', points: 45, contributions_count: 4, rank: 'nouveau' },
-    { id: 'demo-7', first_name: 'Hajar', display_name: 'Hajar L.', points: 30, contributions_count: 3, rank: 'nouveau' },
-  ]
+  // pas de données — la page affiche l'état vide
 }
 
 // Mapping pour le composant Leaderboard (île React)
@@ -55,10 +42,10 @@ const tierLabels: Record<string, string> = {
 
 const leaderboardEntries = contributors.map((u) => ({
   userId: u.id,
-  userName: u.display_name ?? u.first_name ?? t('rank.anonymous', locale),
+  userName: u.name || t('rank.anonymous', locale),
   points: u.points,
   rankTier: u.rank,
-  contributions: u.contributions_count,
+  contributions: u.contributions,
 }))
 ---
 
@@ -101,6 +88,8 @@ const leaderboardEntries = contributors.map((u) => ({
           { action: t('rank.correctData', locale), points: 15 },
           { action: t('rank.scanProduct', locale), points: 1 },
           { action: t('rank.confirmedX3', locale), points: 10 },
+          { action: t('points.actionPrice', locale), points: 5 },
+          { action: t('points.actionMeal', locale), points: 10 },
         ].map(({ action, points }) => (
           <div class="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-2.5">
             <span class="text-sm">{action}</span>

@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
+import { authHeader } from '@/lib/auth'
 import halalLogo from '@/assets/halal-logo.svg?raw'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
@@ -55,7 +56,7 @@ export default function HalalBadge({ barcode, isHalal, source, confirmations }: 
     try {
       const res = await fetch(`${API}/bayen-api/confirm-halal`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
         body: JSON.stringify({ barcode, present: true }),
       })
       if (res.ok) {

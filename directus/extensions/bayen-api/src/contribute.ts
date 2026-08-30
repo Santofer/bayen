@@ -18,6 +18,7 @@ import type { Router, Request } from 'express'
 import { randomUUID } from 'node:crypto'
 import { notifyNewProduct } from './notify.js'
 import { scoreProduct } from './scan.js'
+import { creditPoints } from './points.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -126,6 +127,10 @@ export function registerContributeEndpoint(router: Router, context: {
 }): void {
   router.post('/contribute', async (req, res) => {
     const ip = clientIp(req)
+    // Contribution attribuée quand un Bearer token accompagne la requête :
+    // sans lui, l'envoi reste anonyme et aucun point n'est crédité.
+    const accountability = (req as unknown as { accountability?: { user?: string | null } }).accountability
+    const userId = accountability?.user ?? null
     try {
       // Rate limit (inclut la blacklist anti-flood)
       if (!checkRateLimit(ip)) {
@@ -213,9 +218,19 @@ export function registerContributeEndpoint(router: Router, context: {
         if (Object.keys(fill).length > 0) {
           await knex('products').where('barcode', barcode).update(fill)
         }
+        // Les photos comblées sont créditées comme des ajouts d'images.
+        let repairEarned = 0
+        if (userId) {
+          const photosFilled = ['image_front', 'image_ingredients', 'image_nutrition']
+            .filter((field) => field in fill).length
+          for (let i = 0; i < photosFilled; i++) {
+            repairEarned += await creditPoints(context.database, userId, 'add_image', { countAsContribution: false })
+          }
+        }
         res.status(200).json({
           ok: true,
           existed: true,
+          points_earned: repairEarned,
           completed_fields: Object.keys(fill),
           product_id: existing.id as string,
           message: 'Ce produit existe déjà.',
@@ -233,6 +248,7 @@ export function registerContributeEndpoint(router: Router, context: {
         brand: sanitizeString(body.brand, 100) ?? 'Marque inconnue',
         status: 'published',
         data_source: 'community',
+        created_by: userId,
         date_created: new Date(),
         scan_count: 0,
         confidence_score: 0.5, // Données saisies sans modération
@@ -323,9 +339,32 @@ export function registerContributeEndpoint(router: Router, context: {
         data_source: 'community',
       })
 
+      // Gamification : nouveau produit + une prime par photo jointe.
+      // L'écriture passe par Knex (aucun hook déclenché) → crédit explicite.
+      let earned = 0
+      if (userId) {
+        await knex('contributions').insert({
+          id: randomUUID(),
+          product_id: newId,
+          user_id: userId,
+          type: 'new_product',
+          data_after: JSON.stringify({ barcode, name_fr }),
+          status: 'approved',
+          points_awarded: true,
+          date_created: new Date(),
+        })
+        earned += await creditPoints(context.database, userId, 'new_product')
+        const photoCount = ['image_front', 'image_ingredients', 'image_nutrition']
+          .filter((field) => field in payload).length
+        for (let i = 0; i < photoCount; i++) {
+          earned += await creditPoints(context.database, userId, 'add_image', { countAsContribution: false })
+        }
+      }
+
       res.json({
         ok: true,
         existed: false,
+        points_earned: earned,
         product_id: newId,
         barcode,
         redirect_url: `/produit/${barcode}`,

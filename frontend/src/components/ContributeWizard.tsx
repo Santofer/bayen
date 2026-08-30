@@ -16,7 +16,7 @@ import {
   RotateCcw, Sparkles, Star, HelpCircle, Tag,
 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
-import { isAuthenticated } from '@/lib/auth'
+import { authHeader, isAuthenticated } from '@/lib/auth'
 import halalLogo from '@/assets/halal-logo.svg?raw'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
@@ -265,10 +265,16 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
 
       const res = await fetch(`${API}/bayen-api/contribute`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        // Le token attribue la contribution : c'est lui qui crédite les points.
+        headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
         body: JSON.stringify(body),
       })
-      const data = (await res.json()) as { ok?: boolean; error?: string; existed?: boolean }
+      const data = (await res.json()) as {
+        ok?: boolean
+        error?: string
+        existed?: boolean
+        points_earned?: number
+      }
       if (!res.ok || !data.ok) {
         setError(data.error ?? t('contrib.errorGeneric'))
         setSubmitting(false)
@@ -291,7 +297,7 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
         if (Number.isFinite(value) && value >= 0.5 && store.trim().length >= 2) {
           const ok = await fetch(`${API}/bayen-api/price`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
             body: JSON.stringify({
               barcode,
               price_mad: value,

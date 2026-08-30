@@ -240,6 +240,20 @@ export async function getAccessToken(): Promise<string | null> {
 }
 
 /** Vérifie si l'utilisateur est authentifié (a un refresh_token stocké) */
+/**
+ * En-tête Authorization pour les endpoints custom appelés en direct
+ * (api.bayen.ma). Vide si personne n'est connecté : l'appel reste anonyme,
+ * simplement sans crédit de points.
+ */
+export async function authHeader(): Promise<Record<string, string>> {
+  try {
+    const token = await getAccessToken()
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  } catch {
+    return {}
+  }
+}
+
 export function isAuthenticated(): boolean {
   if (typeof window === 'undefined') return false
   return getStoredRefreshToken() !== null

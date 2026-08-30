@@ -16,6 +16,7 @@
  *   POST /bayen-api/meal-feedback      → Retour sur une estimation repas (+ correction)
  *   POST /bayen-api/upload-photo       → Upload d'une photo produit sans compte
  *   POST /bayen-api/partner-request    → Demande de partenariat (stockage + email)
+ *   GET  /bayen-api/leaderboard        → Top contributeurs réels (public, cache 5 min)
  */
 
 import type { Router } from 'express'
@@ -35,6 +36,7 @@ import { registerPricesEndpoints } from './prices.js'
 import { registerMealFeedbackEndpoint } from './meal-feedback.js'
 import { registerUploadPhotoEndpoint } from './upload-photo.js'
 import { registerPartnerEndpoint } from './partner.js'
+import { registerLeaderboardEndpoint } from './leaderboard.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -54,4 +56,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerMealFeedbackEndpoint(router, context as unknown as Parameters<typeof registerMealFeedbackEndpoint>[1])
   registerUploadPhotoEndpoint(router, context as unknown as Parameters<typeof registerUploadPhotoEndpoint>[1])
   registerPartnerEndpoint(router, context as unknown as Parameters<typeof registerPartnerEndpoint>[1])
+  registerLeaderboardEndpoint(router, context as unknown as Parameters<typeof registerLeaderboardEndpoint>[1])
 }

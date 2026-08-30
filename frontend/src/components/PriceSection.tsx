@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react'
 import { Tag, Plus, Check } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
+import { authHeader } from '@/lib/auth'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -91,7 +92,7 @@ export default function PriceSection({ barcode }: Props) {
     try {
       const res = await fetch(`${API}/bayen-api/price`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
         body: JSON.stringify({
           barcode,
           price_mad: value,
