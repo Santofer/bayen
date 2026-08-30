@@ -230,8 +230,8 @@ export default function Comparator() {
           </div>
 
           {/* Verdict IA */}
-          <div className="rounded-3xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-5">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-violet-700 dark:text-violet-300 mb-2">
+          <div className="rounded-3xl border border-ai/30 bg-ai/10 p-5">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-ai mb-2">
               <Sparkles className="h-4 w-4" />
               {t('cmp.verdictTitle')}
             </h3>

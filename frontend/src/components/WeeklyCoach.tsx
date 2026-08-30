@@ -71,14 +71,14 @@ export default function WeeklyCoach() {
   if (loggedIn !== true) return null
 
   return (
-    <section className="rounded-2xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-5">
+    <section className="rounded-2xl border border-ai/30 bg-ai/10 p-5">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-semibold flex items-center gap-2 text-violet-700 dark:text-violet-300">
+        <h2 className="text-sm font-semibold flex items-center gap-2 text-ai">
           <Sparkles className="h-4 w-4" />
           {t('coach.title')}
         </h2>
         {result?.enough && !loading && (
-          <button onClick={generate} className="text-xs text-muted-foreground hover:text-violet-600 inline-flex items-center gap-1">
+          <button onClick={generate} className="text-xs text-muted-foreground hover:text-ai inline-flex items-center gap-1">
             <RefreshCw className="h-3 w-3" />{t('coach.refresh')}
           </button>
         )}
@@ -89,7 +89,7 @@ export default function WeeklyCoach() {
       ) : result == null ? (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">{t('coach.intro')}</p>
-          <Button onClick={generate} size="sm" className="bg-violet-600 text-white hover:bg-violet-700">
+          <Button onClick={generate} size="sm" className="bg-ai text-ai-foreground hover:bg-ai/90">
             <Sparkles className="mr-1.5 h-4 w-4" />{t('coach.generate')}
           </Button>
         </div>
@@ -104,7 +104,7 @@ export default function WeeklyCoach() {
             <ul className="space-y-1.5">
               {result.conseils.map((c, i) => (
                 <li key={i} className="flex gap-2 text-sm text-foreground/80">
-                  <Lightbulb className="h-4 w-4 text-violet-500 flex-shrink-0 mt-0.5" />
+                  <Lightbulb className="h-4 w-4 text-ai flex-shrink-0 mt-0.5" />
                   <span>{c}</span>
                 </li>
               ))}

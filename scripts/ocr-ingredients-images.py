@@ -106,8 +106,8 @@ def main():
 
     NUTRI_FIELDS = ["energy_kcal", "fat_total", "fat_saturated", "carbs_total",
                     "sugars", "fiber", "proteins", "salt"]
-    base_fields = ("id,barcode,name_fr,image_ingredients,ingredients_text,"
-                   "additives,traces," + ",".join(NUTRI_FIELDS))
+    base_fields = ("id,barcode,name_fr,image_ingredients,image_nutrition,"
+                   "ingredients_text,nova_group,additives,traces," + ",".join(NUTRI_FIELDS))
     ocr_filter = "" if FORCE else "&filter[ingredients_ocr_at][_null]=true"
 
     # 1. Photos locales pas encore lues
@@ -157,7 +157,37 @@ def main():
                 v = parsed_data.get(key)
                 if isinstance(v, (int, float)) and 0 <= v <= vmax:
                     out[key] = v
+        nova = parsed_data.get("nova_group")
+        if prod.get("nova_group") is None and isinstance(nova, int) and 1 <= nova <= 4:
+            out["nova_group"] = nova
         return out
+
+    def read_nutrition_photo(prod, current_fill):
+        """Lecture COMPLÉMENTAIRE de la photo du tableau nutritionnel.
+
+        Le script ne lisait que la photo d'ingrédients : quand une fiche a
+        aussi une photo `image_nutrition` et qu'il reste des champs null
+        (dont sel et NOVA — ceux qui allument « Score incomplet »), une
+        deuxième lecture les comble.
+        """
+        remaining = [k for k in [*VISION_MAX, "nova_group"]
+                     if prod.get(k) is None and k not in current_fill]
+        if not remaining or not prod.get("image_nutrition"):
+            return {}
+        try:
+            url = (DIRECTUS + "/assets/" + str(prod["image_nutrition"])
+                   + "?width=768&quality=85&access_token=" + urllib.parse.quote(token))
+            with urllib.request.urlopen(url, timeout=60) as resp:
+                blob = resp.read()
+            r2 = post_multipart(TESSERACT + "/pipeline", "image_nutrition",
+                                str(prod.get("barcode") or "nut") + "-nut.jpg", blob)
+            if r2.get("job_status") != "done":
+                return {}
+            merged = dict(prod)
+            merged.update(current_fill)
+            return nutrition_fill(merged, r2.get("parsed_data") or {})
+        except Exception:  # noqa: BLE001
+            return {}
     for p in prods:
         try:
             # 1. Photo : locale (asset Directus) ou, à défaut, directement OFF
@@ -203,6 +233,7 @@ def main():
                 # Pas mieux côté ingrédients — mais la photo (souvent un tableau
                 # nutritionnel) peut quand même combler la nutrition manquante.
                 nutri = nutrition_fill(p, parsed) if r.get("job_status") == "done" else {}
+                nutri.update(read_nutrition_photo(p, nutri))
                 skipped += 1
                 if APPLY:
                     req(DIRECTUS + "/items/products/" + str(p["id"]), "PATCH",
@@ -243,6 +274,7 @@ def main():
                 "ingredients_ocr_at": now,
             }
             nutri = nutrition_fill(p, parsed)
+            nutri.update(read_nutrition_photo(p, nutri))
             if nutri:
                 patch.update(nutri)
                 print("    (+" + str(len(nutri)) + " champs nutrition completes)", flush=True)
