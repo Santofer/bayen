@@ -18,6 +18,8 @@
  *   POST /bayen-api/partner-request    → Demande de partenariat (stockage + email)
  *   GET  /bayen-api/leaderboard        → Top contributeurs réels (public, cache 5 min)
  *   POST /bayen-api/confirm-product    → « Infos exactes » : 3 confirmations = fiche vérifiée
+ *   GET  /bayen-api/partner-requests   → Demandes de partenariat (admin du site)
+ *   POST /bayen-api/partner-request-status → Marquer une demande traitée / écartée
  */
 
 import type { Router } from 'express'
@@ -39,6 +41,7 @@ import { registerUploadPhotoEndpoint } from './upload-photo.js'
 import { registerPartnerEndpoint } from './partner.js'
 import { registerLeaderboardEndpoint } from './leaderboard.js'
 import { registerConfirmProductEndpoint } from './confirm-product.js'
+import { registerPartnerAdminEndpoints } from './partner-admin.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -60,4 +63,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerPartnerEndpoint(router, context as unknown as Parameters<typeof registerPartnerEndpoint>[1])
   registerLeaderboardEndpoint(router, context as unknown as Parameters<typeof registerLeaderboardEndpoint>[1])
   registerConfirmProductEndpoint(router, context as unknown as Parameters<typeof registerConfirmProductEndpoint>[1])
+  registerPartnerAdminEndpoints(router, context as unknown as Parameters<typeof registerPartnerAdminEndpoints>[1])
 }

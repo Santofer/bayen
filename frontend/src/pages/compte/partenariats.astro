@@ -1,0 +1,30 @@
+---
+// Demandes de partenariat — réception dans le compte admin du site.
+// Le serveur refuse les comptes non administrateurs : la page peut donc
+// être servie telle quelle, elle n'expose rien.
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import PartnerRequestsAdmin from '@/components/PartnerRequestsAdmin.tsx'
+---
+
+<Layout
+  title="Demandes de partenariat — Bayen"
+  description="Réception des demandes de partenariat envoyées via bayen.ma/partenaires."
+  path="/compte/partenariats"
+  noindex={true}
+>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <div class="mx-auto max-w-2xl">
+      <div class="mb-5">
+        <h1 class="font-display text-2xl font-bold">Demandes de partenariat</h1>
+        <p class="mt-1 text-sm text-muted-foreground">
+          Envoyées depuis la page Partenaires. Également notifiées par email
+          et visibles dans l'admin Directus.
+        </p>
+      </div>
+
+      <PartnerRequestsAdmin client:load />
+    </div>
+  </main>
+</Layout>
