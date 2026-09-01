@@ -157,6 +157,20 @@ def main():
                 v = parsed_data.get(key)
                 if isinstance(v, (int, float)) and 0 <= v <= vmax:
                     out[key] = v
+
+        # Cohérence calorique : les kcal doivent approcher 9×lipides +
+        # 4×(glucides + protéines). La vision confond parfois un pourcentage
+        # des ingrédients avec une valeur du tableau (« Beurre 82% » lu comme
+        # 82 g de lipides) : en cas d'écart franc, on jette les macros lues
+        # plutôt que d'écrire du faux.
+        merged = {k: (out.get(k) if out.get(k) is not None else prod.get(k))
+                  for k in ("energy_kcal", "fat_total", "carbs_total", "proteins")}
+        if all(isinstance(v, (int, float)) for v in merged.values()) and merged["energy_kcal"] >= 30:
+            theo = 9 * merged["fat_total"] + 4 * (merged["carbs_total"] + merged["proteins"])
+            if abs(theo - merged["energy_kcal"]) > 0.45 * merged["energy_kcal"]:
+                for key in ("fat_total", "fat_saturated", "carbs_total", "sugars", "proteins"):
+                    out.pop(key, None)
+
         nova = parsed_data.get("nova_group")
         if prod.get("nova_group") is None and isinstance(nova, int) and 1 <= nova <= 4:
             out["nova_group"] = nova

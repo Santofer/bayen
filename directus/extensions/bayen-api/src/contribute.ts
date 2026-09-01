@@ -215,8 +215,50 @@ export function registerContributeEndpoint(router: Router, context: {
           fill.halal_source = 'packaging_user'
           fill.halal_confirmations = 1
         }
+
+        // Fiche FANTÔME : le scan d'un code inconnu d'OFF crée parfois une
+        // coquille « Produit sans nom » sans aucune donnée. La personne qui la
+        // documente ensuite via le wizard tombe ici : sans ce bloc, son nom,
+        // sa marque, sa nutrition et ses ingrédients étaient JETÉS en silence
+        // (cas vécu : « Le Fondu » resté sans nom ni score malgré une
+        // contribution complète).
+        const badName = /^\s*$|^produit sans nom|^[0-9]{8,14}$|^inconnu/i
+        const badBrand = /^\s*$|^inconnu|^marque inconnue|^unknown/i
+        if (badName.test(String(existing.name_fr ?? '')) && name_fr) fill.name_fr = name_fr
+        const brandFill = sanitizeString(body.brand, 100)
+        if (badBrand.test(String(existing.brand ?? '')) && brandFill) fill.brand = brandFill
+        const ingredientsFill = sanitizeString(body.ingredients_text, 5000)
+        if (!existing.ingredients_text && ingredientsFill) fill.ingredients_text = ingredientsFill
+        for (const key of ['energy_kcal', 'fat_total', 'fat_saturated', 'carbs_total',
+          'sugars', 'fiber', 'proteins', 'salt'] as const) {
+          if (existing[key] == null) {
+            const v = sanitizeNumber((body as Record<string, unknown>)[key], key === 'energy_kcal' ? 1000 : 100)
+            if (v !== undefined) fill[key] = v
+          }
+        }
+
         if (Object.keys(fill).length > 0) {
           await knex('products').where('barcode', barcode).update(fill)
+        }
+
+        // Des données sont arrivées sur une fiche sans score → le calculer.
+        if (existing.scan_score == null && Object.keys(fill).length > 0) {
+          try {
+            const refreshed = await knex('products').where('barcode', barcode).first()
+            if (refreshed) {
+              const score = await scoreProduct(
+                refreshed as unknown as Parameters<typeof scoreProduct>[0],
+                context.database,
+              )
+              await knex('products').where('barcode', barcode).update({
+                scan_score: score.total,
+                score_label: score.label,
+                nutriscore_grade: score.nutriscore_grade,
+              })
+            }
+          } catch (scoreErr) {
+            console.warn('[bayen-api] scoring complétion échoué:', (scoreErr as Error).message)
+          }
         }
         // Les photos comblées sont créditées comme des ajouts d'images.
         let repairEarned = 0
