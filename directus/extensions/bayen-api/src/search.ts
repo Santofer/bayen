@@ -83,6 +83,15 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
       if (halal) where.push('is_halal = true')
       if (bio) where.push('is_organic = true')
 
+      // Filtre sucres (diabète) : uniquement les produits dont le taux est
+      // CONNU et sous le seuil — une donnée manquante n'est pas une absence
+      // de sucre, et ce filtre sert à des choix de santé.
+      const sugarMax = parseFloat(String(req.query.sugar_max ?? ''))
+      if (Number.isFinite(sugarMax) && sugarMax >= 0 && sugarMax <= 100) {
+        where.push('sugars IS NOT NULL AND sugars <= ?')
+        bind.push(sugarMax)
+      }
+
       // Exclusion : le produit ne doit contenir AUCUN des codes listés
       for (const code of exclude) {
         where.push(`COALESCE(additives::text, '') NOT LIKE ?`)

@@ -731,6 +731,10 @@ export const translations = {
   'points.actionPrice':   { fr: 'Partager un prix',                        ary: 'شارك ثمن' },
   'points.actionMeal':    { fr: 'Corriger une estimation repas',           ary: 'صحح تقدير وجبة' },
   'points.loginToEarn':   { fr: 'Connecte-toi pour cumuler des points.',   ary: 'دخل لحسابك باش تجمع النقط.' },
+
+  // Filtre sucres (diabète)
+  'search.sugarFree': { fr: 'Sans sucres (≤0,5 g)',    ary: 'بلا سكر (≤0,5 غ)' },
+  'search.lowSugar':  { fr: 'Faible en sucres (≤5 g)', ary: 'سكر قليل (≤5 غ)' },
   'points.actionScan':    { fr: 'Scanner un produit',                      ary: 'سكاني منتوج' },
   'points.earned':        { fr: 'Points gagnés',                           ary: 'النقط المربوحة' },
   'points.pricePill':     { fr: '+5 points pour un prix partagé',           ary: '+5 نقط على ثمن مشارك' },

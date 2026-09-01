@@ -51,6 +51,8 @@ interface Filters {
   bio: boolean
   /** Codes E à exclure (produits qui NE contiennent PAS ces additifs) */
   excludeAdditives: string[]
+  /** Seuil max de sucres g/100g (0.5 = sans sucres, 5 = faible) — null = off */
+  sugarMax: number | null
   sort: SortValue
 }
 
@@ -63,6 +65,7 @@ const defaultFilters: Filters = {
   halal: false,
   bio: false,
   excludeAdditives: [],
+  sugarMax: null,
   sort: '-scan_count',
 }
 
@@ -124,6 +127,12 @@ function buildQueryParams(filters: Filters, offset: number): string {
     params.set('filter[is_organic][_eq]', 'true')
   }
 
+  // Sucres (diabète) : taux connu ET sous le seuil — jamais les fiches sans donnée
+  if (filters.sugarMax !== null) {
+    params.set('filter[sugars][_lte]', String(filters.sugarMax))
+    params.set('filter[sugars][_nnull]', 'true')
+  }
+
   // Tri
   params.set('sort', filters.sort)
 
@@ -151,6 +160,7 @@ function buildCustomParams(filters: Filters, offset: number): string {
   if (filters.noAdditives) p.set('no_additives', 'true')
   if (filters.halal) p.set('halal', 'true')
   if (filters.bio) p.set('bio', 'true')
+  if (filters.sugarMax !== null) p.set('sugar_max', String(filters.sugarMax))
   p.set('exclude_additives', filters.excludeAdditives.join(','))
   p.set('sort', filters.sort)
   p.set('limit', String(PAGE_SIZE))
@@ -307,6 +317,7 @@ export default function SearchPage() {
     filters.noAdditives,
     filters.halal,
     filters.bio,
+    filters.sugarMax,
     filters.excludeAdditives,
     filters.sort,
   ])
@@ -339,6 +350,7 @@ export default function SearchPage() {
     filters.noAdditives ||
     filters.halal ||
     filters.bio ||
+    filters.sugarMax !== null ||
     filters.excludeAdditives.length > 0
 
   const hasMore = products.length < totalCount
@@ -409,6 +421,7 @@ export default function SearchPage() {
                     filters.noAdditives,
                     filters.halal,
                     filters.bio,
+                    filters.sugarMax !== null,
                     filters.excludeAdditives.length > 0,
                   ].filter(Boolean).length
                 }
@@ -527,6 +540,16 @@ export default function SearchPage() {
               label={t('search.bio')}
               active={filters.bio}
               onClick={() => updateFilter('bio', !filters.bio)}
+            />
+            <ToggleChip
+              label={t('search.sugarFree')}
+              active={filters.sugarMax === 0.5}
+              onClick={() => updateFilter('sugarMax', filters.sugarMax === 0.5 ? null : 0.5)}
+            />
+            <ToggleChip
+              label={t('search.lowSugar')}
+              active={filters.sugarMax === 5}
+              onClick={() => updateFilter('sugarMax', filters.sugarMax === 5 ? null : 5)}
             />
             {profileAdditives.length > 0 && (
               <ToggleChip
