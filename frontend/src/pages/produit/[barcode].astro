@@ -18,6 +18,7 @@ import PriceSection from '@/components/PriceSection.tsx'
 import AddToCartButton from '@/components/AddToCartButton.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
+import { barcodeSvg } from '@/lib/barcode'
 import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -27,6 +28,8 @@ const { barcode } = Astro.params
 
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
+// Code-barres généré localement (EAN-13/EAN-8), plus de service tiers ni de chargement différé
+const barcodeMarkup = barcodeSvg(String(barcode ?? '')) ?? `<span class="text-xs font-mono text-muted-foreground">${barcode}</span>`
 
 let scanResult: {
   found: boolean
@@ -597,13 +600,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
 
           {/* Code-barres à droite — même hauteur que la photo */}
           <div class="hidden sm:flex flex-col items-center justify-center flex-shrink-0 w-32 h-32 rounded-xl bg-white border p-2">
-            <img
-              src={`https://barcodeapi.org/api/auto/${barcode}`}
-              alt={barcode as string}
-              class="w-full h-full object-contain"
-              loading="lazy"
-              onerror="this.parentElement.innerHTML='<span class=\'text-xs font-mono text-muted-foreground\'>' + this.alt + '</span>'"
-            />
+            <Fragment set:html={barcodeMarkup} />
           </div>
         </div>
         {/* Alerte profil santé (C13) — rien si profil vide ou produit compatible */}
@@ -618,13 +615,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         {/* Code-barres mobile */}
         <div class="sm:hidden flex justify-center">
           <div class="flex items-center justify-center h-16 px-3 rounded-lg bg-white border">
-            <img
-              src={`https://barcodeapi.org/api/auto/${barcode}`}
-              alt={barcode as string}
-              class="h-full w-auto object-contain"
-              loading="lazy"
-              onerror="this.parentElement.innerHTML='<span class=\'text-xs font-mono text-muted-foreground\'>' + this.alt + '</span>'"
-            />
+            <Fragment set:html={barcodeMarkup} />
           </div>
         </div>
 
