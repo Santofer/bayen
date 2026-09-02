@@ -662,6 +662,7 @@ export const translations = {
   'price.none':           { fr: 'Aucun prix partagé pour ce produit.',     ary: 'حتى ثمن ماتشارك ف هاد المنتوج.' },
   'price.beFirst':        { fr: 'Sois la première personne à en partager un',   ary: 'كون أول واحد يشارك واحد' },
   'price.addOther':       { fr: 'J\'ai payé un autre prix',                ary: 'أنا خلصت ثمن آخر' },
+  'price.share':          { fr: 'Partager un prix',                        ary: 'شارك ثمن' },
   'price.howMuch':        { fr: 'Combien l\'as-tu payé ?',                 ary: 'بشحال شريتيه؟' },
   'price.where':          { fr: 'Où ça ?',                                 ary: 'فين؟' },
   'price.city':           { fr: 'Ville',                                   ary: 'المدينة' },

@@ -24,7 +24,7 @@ export default function LocaleToggle() {
       variant="ghost"
       size="sm"
       onClick={handleToggle}
-      className="text-sm font-semibold px-3"
+      className="text-sm font-semibold px-2 md:px-3"
       aria-label={locale === 'fr' ? 'Passer en darija' : 'Passer en français'}
     >
       {label}

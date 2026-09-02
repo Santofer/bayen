@@ -84,7 +84,7 @@ export default function UserMenu() {
   // État de chargement
   if (loading) {
     return (
-      <div className="ml-3 w-10 h-10 rounded-full bg-muted animate-pulse" />
+      <div className="md:ml-3 w-9 h-9 md:w-10 md:h-10 rounded-full bg-muted animate-pulse" />
     )
   }
 
@@ -113,13 +113,13 @@ export default function UserMenu() {
 
   // Connecté — avatar + dropdown
   return (
-    <div className="relative ml-3" ref={menuRef}>
+    <div className="relative md:ml-3" ref={menuRef}>
       {/* Bouton avatar */}
       <button
         type="button"
         onClick={() => setMenuOpen(!menuOpen)}
         className={cn(
-          'flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold transition-colors',
+          'flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full text-sm font-semibold transition-colors',
           'bg-primary text-primary-foreground hover:bg-primary/90'
         )}
         aria-label="Menu utilisateur"

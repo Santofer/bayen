@@ -184,9 +184,7 @@ export default function PriceSection({ barcode }: Props) {
           <div className="skeleton h-2.5 w-3/4" />
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          {t('price.none')} {t('price.beFirst')} <span className="font-bold text-primary">(+5 pts)</span>
-        </p>
+        <p className="text-sm text-muted-foreground">{t('price.none')}</p>
       )}
 
       {state === 'sent' && (
@@ -201,9 +199,9 @@ export default function PriceSection({ barcode }: Props) {
           onClick={() => { setOpen(true); setState('idle') }}
           className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-full border border-primary/30 bg-card text-sm font-bold text-primary"
         >
-          <Plus size={17} />
-          {hasPrices ? t('price.addOther') : t('price.beFirst')}
-          <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-extrabold text-accent-foreground">
+          <Plus size={17} className="flex-shrink-0" />
+          <span className="min-w-0">{hasPrices ? t('price.addOther') : t('price.share')}</span>
+          <span className="flex-shrink-0 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-[11px] font-extrabold text-accent-foreground">
             +5 pts
           </span>
         </button>

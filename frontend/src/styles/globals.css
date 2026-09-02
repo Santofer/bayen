@@ -192,6 +192,12 @@ html.dark.nav-scrolled header[data-bayen-nav] {
   transition: transform 0.2s var(--ease-spring);
 }
 .nav-scan-cta:hover { transform: translateY(-1px); }
+/* Mobile : le libellé est masqué, la pilule devient un rond compact — avec
+   l'avatar du compte, la version large débordait de la capsule. */
+@media (max-width: 767px) {
+  .nav-scan-cta { width: 38px; padding: 0; gap: 0; }
+  .nav-login { padding: 8px 12px; }
+}
 
 /* — Mega menus navbar (desktop) — */
 .nav-group { position: relative; }
