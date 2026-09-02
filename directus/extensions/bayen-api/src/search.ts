@@ -15,6 +15,10 @@
  *   halal, bio        'true'
  *   exclude_additives CSV de codes E à EXCLURE (E621,E102…) — max 30
  *   has_additive      code E que le produit doit CONTENIR (page additif)
+ *   type              food (défaut) | cosmetic — les deux univers ne se mélangent jamais
+ *   cosmetic_category visage|corps|cheveux|hygiene|dents|maquillage|parfum|solaire|bebe|homme|eclaircissant|ongles
+ *   risk_free         'true' → aucun ingrédient à risque modéré/élevé/interdit (beauté)
+ *   no_endocrine      'true' → aucun perturbateur endocrinien suspecté/avéré (beauté)
  *   sort              -scan_count | -scan_score | -date_created
  *   limit ≤ 50, offset
  *
@@ -61,6 +65,23 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
       const where: string[] = [`status = 'published'`]
       const bind: unknown[] = []
 
+      // Univers : alimentation par défaut, beauté sur demande — jamais mélangés
+      const type = req.query.type === 'cosmetic' ? 'cosmetic' : 'food'
+      where.push('product_type = ?')
+      bind.push(type)
+      if (type === 'cosmetic') {
+        const cat = String(req.query.cosmetic_category ?? '').trim()
+        if (/^[a-z]{3,20}$/.test(cat)) { where.push('cosmetic_category = ?'); bind.push(cat) }
+        if (req.query.risk_free === 'true') {
+          where.push(`cosmetic_risk IS NOT NULL AND (cosmetic_risk->'cap_reason') = 'null'::jsonb`)
+        }
+        if (req.query.no_endocrine === 'true') {
+          where.push(`cosmetic_risk IS NOT NULL AND NOT EXISTS (
+            SELECT 1 FROM jsonb_array_elements(cosmetic_risk->'worst') w
+            WHERE jsonb_exists(w->'risk_types', 'endocrine'))`)
+        }
+      }
+
       if (q) {
         where.push('(name_fr ILIKE ? OR brand ILIKE ? OR barcode = ?)')
         bind.push(`%${q}%`, `%${q}%`, q)
@@ -106,7 +127,7 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
       const whereSql = where.join(' AND ')
       const fields =
         'id, barcode, name_fr, brand, quantity, image_front, scan_score, score_label, ' +
-        'nutriscore_grade, nova_group, additives, scan_count'
+        'nutriscore_grade, nova_group, additives, scan_count, product_type, cosmetic_category, cosmetic_risk'
 
       const [rowsRes, countRes] = await Promise.all([
         knex.raw(

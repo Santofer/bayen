@@ -6,6 +6,8 @@
  * 2. Trouvé → scorer → incrémenter scan_count → log scan → retourner
  * 3. Non trouvé → fetch Open Food Facts
  * 4. Trouvé OFF → importer (data_source=off, status=published) → scorer → retourner
+ * 4b. Non trouvé OFF → Open Beauty Facts (univers beauté : product_type=cosmetic,
+ *     liste INCI, score cosmétique déterministe)
  * 5. Non trouvé nulle part → retourner { found: false }
  *
  * Référence : SPEC.md §8
@@ -15,10 +17,12 @@ import type { Router } from 'express'
 import { randomUUID } from 'node:crypto'
 import { computeScore, type RiskLevel, type ScoreResult } from './scoring.js'
 import { notifyNewProduct } from './notify.js'
+import { scoreCosmeticProduct, mapObfCategory, type KnexRaw } from './cosmetic.js'
 
 // User-Agent requis par l'API Open Food Facts
 const OFF_USER_AGENT = process.env.OFF_USER_AGENT ?? 'Bayen/1.0 (contact@n0.ma)'
 const OFF_API_URL = process.env.OFF_API_URL ?? 'https://world.openfoodfacts.org/api/v2'
+const OBF_API_URL = process.env.OBF_API_URL ?? 'https://world.openbeautyfacts.org/api/v2'
 
 // ────────────────────────────────────────────────────────────────
 // Interfaces internes
@@ -69,6 +73,9 @@ interface ProductRecord {
   status: string
   confidence_score?: number
   scan_count: number
+  product_type?: string
+  inci_text?: string | null
+  cosmetic_category?: string | null
   [key: string]: unknown
 }
 
@@ -205,6 +212,42 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
   }
 }
 
+/**
+ * Mapping Open Beauty Facts → fiche beauté. Même API qu'OFF, mais le
+ * parsing d'ingrédients d'OBF est inutilisable (texte marketing découpé) :
+ * on ne garde que le texte INCI brut, normalisé ensuite par inci.ts.
+ */
+function mapObfProduct(obfData: Record<string, unknown>, barcode: string): Record<string, unknown> | null {
+  const product = obfData.product as Record<string, unknown> | undefined
+  if (!product) return null
+  const name = (product.product_name_fr as string) || (product.product_name as string) || ''
+  if (!name.trim()) return null
+  const tags = (product.categories_tags as string[] | undefined) ?? []
+  const inci = (product.ingredients_text_fr as string) || (product.ingredients_text as string) || null
+  const pao = typeof product.period_after_opening === 'string' ? product.period_after_opening.replace(/^[a-z]{2}:/, '').slice(0, 20) : null
+  const labelTags = (product.labels_tags as string[] | undefined) ?? []
+  const isHalal = labelTags.some((t) => /halal/i.test(t))
+  return {
+    barcode,
+    name_fr: name.slice(0, 200),
+    brand: ((product.brands as string) || 'Marque inconnue').slice(0, 100),
+    product_type: 'cosmetic',
+    inci_text: inci ? inci.slice(0, 5000) : null,
+    period_after_opening: pao,
+    cosmetic_category: mapObfCategory(tags, name) ?? null,
+    quantity: typeof product.quantity === 'string' ? product.quantity.slice(0, 40) : null,
+    is_halal: isHalal,
+    halal_source: isHalal ? 'off' : undefined,
+    origin_country: typeof product.countries === 'string' ? product.countries.split(',')[0]?.trim().slice(0, 100) : undefined,
+    off_id: barcode,
+    data_source: 'obf',
+    status: 'published',
+    confidence_score: 0.6,
+    scan_count: 1,
+    _image_url: (product.image_front_url as string) || null,
+  }
+}
+
 // ────────────────────────────────────────────────────────────────
 // Score helper — résoudre les risk_levels des additifs via la DB
 // ────────────────────────────────────────────────────────────────
@@ -324,6 +367,18 @@ export function registerScanEndpoint(router: Router, context: {
 
       if (existing.length > 0) {
         const product = existing[0]
+
+        // Univers beauté : score INCI déterministe, pas de Nutri-Score
+        if (product.product_type === 'cosmetic') {
+          const risk = await scoreCosmeticProduct(database as unknown as KnexRaw, product)
+          await productsService.updateOne(product.id, { scan_count: (product.scan_count ?? 0) + 1 })
+          if (shouldTrack) {
+            await scansService.createOne({ product_id: product.id, user_id: user_id ?? null, session_id, device_type: deviceType })
+          }
+          res.json({ found: true, source: 'database', product: { ...product, scan_score: risk.total, score_label: risk.label, cosmetic_risk: risk }, score: risk })
+          return
+        }
+
         const score = await scoreProduct(product, database as Record<string, (...args: unknown[]) => unknown>)
 
         // Incrémenter scan_count
@@ -451,6 +506,74 @@ export function registerScanEndpoint(router: Router, context: {
           source: 'open_food_facts',
           product: { ...imported, scan_score: score.total, score_label: score.label },
           score,
+        })
+        return
+      }
+
+      // ──────────────────────────────────────────
+      // 4b. Open Beauty Facts — univers beauté
+      // ──────────────────────────────────────────
+      let obfProduct: Record<string, unknown> | null = null
+      try {
+        const obfResponse = await fetch(`${OBF_API_URL}/product/${barcode}.json`, {
+          headers: { 'User-Agent': OFF_USER_AGENT },
+          signal: AbortSignal.timeout(5000),
+        })
+        if (obfResponse.ok) {
+          const obfData = await obfResponse.json() as Record<string, unknown>
+          if (obfData.status === 1) obfProduct = mapObfProduct(obfData, barcode)
+        }
+      } catch {
+        // OBF injoignable — on continue vers « non trouvé »
+      }
+
+      if (obfProduct) {
+        const knex = database as unknown as {
+          (table: string): {
+            insert(data: Record<string, unknown>): Promise<unknown>
+            where(col: string, val: string): {
+              update(data: Record<string, unknown>): Promise<unknown>
+              first(): Promise<Record<string, unknown> | undefined>
+            }
+          }
+        }
+        const imageUrl = obfProduct._image_url as string | null
+        delete obfProduct._image_url
+        const newId = randomUUID()
+        obfProduct.id = newId
+        obfProduct.date_created = new Date()
+
+        // Photo OBF → fichier Directus (R2) ; un échec ne bloque pas la fiche
+        if (imageUrl) {
+          try {
+            const { FilesService } = context.services as {
+              FilesService: new (opts: { schema: unknown; accountability: { admin: boolean } }) => {
+                importOne(url: string, data: Record<string, unknown>): Promise<string>
+              }
+            }
+            const files = new FilesService({ schema, accountability: { admin: true } })
+            obfProduct.image_front = await files.importOne(imageUrl, { title: `${obfProduct.name_fr} — ${barcode}` })
+          } catch (imgErr) {
+            console.warn('[bayen-api] import image OBF échoué:', (imgErr as Error).message)
+          }
+        }
+
+        await knex('products').insert(obfProduct)
+        const imported = (await knex('products').where('id', newId).first()) as ProductRecord | undefined
+        if (!imported) throw new Error('Failed to read imported cosmetic')
+        const risk = await scoreCosmeticProduct(database as unknown as KnexRaw, imported)
+
+        if (shouldTrack) {
+          await scansService.createOne({ product_id: newId, user_id: user_id ?? null, session_id, device_type: deviceType })
+        }
+        await notifyNewProduct(context.database as Record<string, (...args: unknown[]) => unknown>, {
+          id: newId, barcode, name_fr: imported.name_fr, brand: imported.brand, data_source: 'obf',
+        })
+        res.json({
+          found: true,
+          source: 'open_beauty_facts',
+          product: { ...imported, scan_score: risk.total, score_label: risk.label, cosmetic_risk: risk },
+          score: risk,
         })
         return
       }

@@ -1,0 +1,1755 @@
+[
+ {
+  "inci_name": "BENZOPHENONE-3",
+  "name_fr": "Benzophénone-3 (oxybenzone)",
+  "synonyms": [
+   "OXYBENZONE"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Filtre UV, max 6 % (Annexe VI) ; SCCS 2021 : 2,2 % en crèmes visage/mains",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Filtre UV suspecté de perturber le système hormonal ; retrouvé dans les eaux de baignade."
+ },
+ {
+  "inci_name": "KOJIC ACID",
+  "name_fr": "Acide kojique",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "SCCS 2022 : max 1 % en produits visage et mains",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Agent éclaircissant très utilisé au Maroc, suspecté perturbateur endocrinien."
+ },
+ {
+  "inci_name": "4-METHYLBENZYLIDENE CAMPHOR",
+  "name_fr": "4-Méthylbenzylidène camphre",
+  "synonyms": [
+   "ENZACAMENE",
+   "4-MBC"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit dans l'UE depuis 2025 (Règl. 2024/996)",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Filtre UV reconnu perturbateur endocrinien, retiré des cosmétiques européens."
+ },
+ {
+  "inci_name": "PROPYLPARABEN",
+  "name_fr": "Propylparabène",
+  "synonyms": [
+   "PROPYL PARABEN",
+   "PROPYL 4-HYDROXYBENZOATE"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 0,14 % (Annexe V) ; interdit dans les produits sans rinçage pour la zone du siège < 3 ans",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Conservateur de la famille des parabènes à chaîne longue, activité œstrogénique suspectée."
+ },
+ {
+  "inci_name": "TRICLOSAN",
+  "name_fr": "Triclosan",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine",
+   "environment"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 0,3 % dentifrices, savons, déodorants (Annexe V) ; interdit ailleurs",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Antibactérien suspecté perturbateur endocrinien et facteur de résistance bactérienne."
+ },
+ {
+  "inci_name": "RESORCINOL",
+  "name_fr": "Résorcinol",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine",
+   "allergen"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 0,5 % dans les colorations capillaires (Annexe III)",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Utilisé dans les teintures capillaires ; perturbateur thyroïdien suspecté."
+ },
+ {
+  "inci_name": "OCTOCRYLENE",
+  "name_fr": "Octocrylène",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine",
+   "allergen"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 10 % (Annexe VI) ; SCCS 2021 : sûr à 10 % mais préoccupation persistante",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Filtre UV ; peut se dégrader en benzophénone. Allergène de contact photo-induit."
+ },
+ {
+  "inci_name": "TRICLOCARBAN",
+  "name_fr": "Triclocarban",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 0,2 % (Annexe V)",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Antibactérien des savons, suspecté perturbateur endocrinien."
+ },
+ {
+  "inci_name": "BHT",
+  "name_fr": "BHT (butylhydroxytoluène)",
+  "synonyms": [
+   "BUTYLATED HYDROXYTOLUENE"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "SCCS 2021 : sûr jusqu'à 0,001 % bains de bouche, 0,1 % dentifrices, 0,8 % autres",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Antioxydant synthétique, perturbateur endocrinien suspecté."
+ },
+ {
+  "inci_name": "BENZOPHENONE",
+  "name_fr": "Benzophénone",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine",
+   "cmr"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Classée cancérogène possible (CIRC 2B)",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Utilisée pour protéger les parfums et les emballages ; PE suspecté, cancérogène possible."
+ },
+ {
+  "inci_name": "HOMOSALATE",
+  "name_fr": "Homosalate",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "SCCS 2021 : max 0,5 % ; limite UE abaissée à 7,34 % (Règl. 2022/2195)",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Filtre UV très courant, perturbateur endocrinien suspecté."
+ },
+ {
+  "inci_name": "BENZYL SALICYLATE",
+  "name_fr": "Salicylate de benzyle",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine",
+   "allergen"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Allergène parfumant à déclaration obligatoire",
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Composant de parfum, allergène de contact et PE suspecté."
+ },
+ {
+  "inci_name": "GENISTEIN",
+  "name_fr": "Génistéine",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": null,
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Isoflavone de soja à activité œstrogénique."
+ },
+ {
+  "inci_name": "DAIDZEIN",
+  "name_fr": "Daidzéine",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": null,
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Isoflavone de soja à activité œstrogénique."
+ },
+ {
+  "inci_name": "BUTYLPARABEN",
+  "name_fr": "Butylparabène",
+  "synonyms": [
+   "BUTYL PARABEN"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 0,14 % (Annexe V, Règl. 1004/2014) ; interdit pour la zone du siège < 3 ans",
+  "source_label": "SCCS / Annexe V",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Parabène à chaîne longue, activité œstrogénique documentée par le SCCS."
+ },
+ {
+  "inci_name": "ISOBUTYLPARABEN",
+  "name_fr": "Isobutylparabène",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II, Règl. 358/2014)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Parabène interdit dans l'UE depuis 2014, données de sécurité insuffisantes."
+ },
+ {
+  "inci_name": "ISOPROPYLPARABEN",
+  "name_fr": "Isopropylparabène",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II, Règl. 358/2014)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Parabène interdit dans l'UE depuis 2014, données de sécurité insuffisantes."
+ },
+ {
+  "inci_name": "PHENYLPARABEN",
+  "name_fr": "Phénylparabène",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II, Règl. 358/2014)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Parabène interdit dans l'UE depuis 2014, données de sécurité insuffisantes."
+ },
+ {
+  "inci_name": "BENZYLPARABEN",
+  "name_fr": "Benzylparabène",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II, Règl. 358/2014)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Parabène interdit dans l'UE depuis 2014, données de sécurité insuffisantes."
+ },
+ {
+  "inci_name": "PENTYLPARABEN",
+  "name_fr": "Pentylparabène",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II, Règl. 358/2014)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Parabène interdit dans l'UE depuis 2014, données de sécurité insuffisantes."
+ },
+ {
+  "inci_name": "METHYLPARABEN",
+  "name_fr": "Méthylparabène",
+  "synonyms": [
+   "METHYL PARABEN"
+  ],
+  "risk_level": "low",
+  "risk_types": [],
+  "risk_status": null,
+  "restriction_fr": "Max 0,4 % seul, 0,8 % en mélange (Annexe V)",
+  "source_label": "CosIng Annexe V",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Parabène à chaîne courte, considéré sûr aux doses autorisées par le SCCS."
+ },
+ {
+  "inci_name": "ETHYLPARABEN",
+  "name_fr": "Éthylparabène",
+  "synonyms": [
+   "ETHYL PARABEN"
+  ],
+  "risk_level": "low",
+  "risk_types": [],
+  "risk_status": null,
+  "restriction_fr": "Max 0,4 % seul, 0,8 % en mélange (Annexe V)",
+  "source_label": "CosIng Annexe V",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Parabène à chaîne courte, considéré sûr aux doses autorisées par le SCCS."
+ },
+ {
+  "inci_name": "DMDM HYDANTOIN",
+  "name_fr": "DMDM hydantoïne",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mention « libère du formaldéhyde » obligatoire dès 0,001 % (Règl. 2022/1181)",
+  "source_label": "Annexe V (libérateurs de formaldéhyde) — formaldéhyde CMR 1B",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur libérant du formaldéhyde, cancérogène avéré et allergène de contact majeur."
+ },
+ {
+  "inci_name": "IMIDAZOLIDINYL UREA",
+  "name_fr": "Imidazolidinyl urée",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mention « libère du formaldéhyde » obligatoire dès 0,001 % (Règl. 2022/1181)",
+  "source_label": "Annexe V (libérateurs de formaldéhyde) — formaldéhyde CMR 1B",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur libérant du formaldéhyde, cancérogène avéré et allergène de contact majeur."
+ },
+ {
+  "inci_name": "DIAZOLIDINYL UREA",
+  "name_fr": "Diazolidinyl urée",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mention « libère du formaldéhyde » obligatoire dès 0,001 % (Règl. 2022/1181)",
+  "source_label": "Annexe V (libérateurs de formaldéhyde) — formaldéhyde CMR 1B",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur libérant du formaldéhyde, cancérogène avéré et allergène de contact majeur."
+ },
+ {
+  "inci_name": "QUATERNIUM-15",
+  "name_fr": "Quaternium-15",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mention « libère du formaldéhyde » obligatoire dès 0,001 % (Règl. 2022/1181)",
+  "source_label": "Annexe V (libérateurs de formaldéhyde) — formaldéhyde CMR 1B",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur libérant du formaldéhyde, cancérogène avéré et allergène de contact majeur."
+ },
+ {
+  "inci_name": "2-BROMO-2-NITROPROPANE-1,3-DIOL",
+  "name_fr": "Bronopol",
+  "synonyms": [
+   "BRONOPOL"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mention « libère du formaldéhyde » obligatoire dès 0,001 % (Règl. 2022/1181)",
+  "source_label": "Annexe V (libérateurs de formaldéhyde) — formaldéhyde CMR 1B",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur libérant du formaldéhyde, cancérogène avéré et allergène de contact majeur."
+ },
+ {
+  "inci_name": "SODIUM HYDROXYMETHYLGLYCINATE",
+  "name_fr": "Hydroxyméthylglycinate de sodium",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mention « libère du formaldéhyde » obligatoire dès 0,001 % (Règl. 2022/1181)",
+  "source_label": "Annexe V (libérateurs de formaldéhyde) — formaldéhyde CMR 1B",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur libérant du formaldéhyde, cancérogène avéré et allergène de contact majeur."
+ },
+ {
+  "inci_name": "METHENAMINE",
+  "name_fr": "Méthénamine",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mention « libère du formaldéhyde » obligatoire dès 0,001 % (Règl. 2022/1181)",
+  "source_label": "Annexe V (libérateurs de formaldéhyde) — formaldéhyde CMR 1B",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur libérant du formaldéhyde, cancérogène avéré et allergène de contact majeur."
+ },
+ {
+  "inci_name": "FORMALDEHYDE",
+  "name_fr": "Formaldéhyde",
+  "synonyms": [
+   "FORMALIN",
+   "FORMOL"
+  ],
+  "risk_level": "banned",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Cancérogène avéré (CMR 1B), interdit dans les cosmétiques européens depuis 2019."
+ },
+ {
+  "inci_name": "METHYLISOTHIAZOLINONE",
+  "name_fr": "Méthylisothiazolinone",
+  "synonyms": [
+   "MIT",
+   "MI"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit sans rinçage ; max 0,0015 % rincés (Règl. 2017/1224)",
+  "source_label": "CosIng Annexe V",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur responsable d'une épidémie d'allergies de contact en Europe (2010-2015)."
+ },
+ {
+  "inci_name": "METHYLCHLOROISOTHIAZOLINONE",
+  "name_fr": "Méthylchloroisothiazolinone",
+  "synonyms": [
+   "MCI",
+   "KATHON CG"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Uniquement rincés, max 0,0015 % en mélange 3:1 avec MIT",
+  "source_label": "CosIng Annexe V",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact puissant, réservé aux produits rincés."
+ },
+ {
+  "inci_name": "BENZISOTHIAZOLINONE",
+  "name_fr": "Benzisothiazolinone",
+  "synonyms": [
+   "BIT"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Non autorisé comme conservateur cosmétique (Annexe V)",
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Allergène de contact, présent par migration depuis certains emballages/matières premières."
+ },
+ {
+  "inci_name": "CYCLOTETRASILOXANE",
+  "name_fr": "Cyclotétrasiloxane (D4)",
+  "synonyms": [
+   "D4"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine",
+   "environment",
+   "cmr"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Max 0,1 % en tant qu'impureté ; classé reprotoxique 1B",
+  "source_label": "ECHA — liste candidate SVHC (D4 reprotoxique 1B, D4/D5/D6 PBT-vPvB)",
+  "source_url": "https://echa.europa.eu/candidate-list-table",
+  "note_fr": "Silicone cyclique reprotoxique et persistant dans l'environnement."
+ },
+ {
+  "inci_name": "CYCLOPENTASILOXANE",
+  "name_fr": "Cyclopentasiloxane (D5)",
+  "synonyms": [
+   "D5"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Restreint à 0,1 % dans les produits rincés depuis 2020 (Règl. REACH 2018/35)",
+  "source_label": "ECHA — liste candidate SVHC (D4 reprotoxique 1B, D4/D5/D6 PBT-vPvB)",
+  "source_url": "https://echa.europa.eu/candidate-list-table",
+  "note_fr": "Silicone volatil persistant et bioaccumulable (PBT/vPvB) ; sans danger cutané établi mais polluant."
+ },
+ {
+  "inci_name": "CYCLOHEXASILOXANE",
+  "name_fr": "Cyclohexasiloxane (D6)",
+  "synonyms": [
+   "D6"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Substance extrêmement préoccupante (SVHC) pour l'environnement",
+  "source_label": "ECHA — liste candidate SVHC (D4 reprotoxique 1B, D4/D5/D6 PBT-vPvB)",
+  "source_url": "https://echa.europa.eu/candidate-list-table",
+  "note_fr": "Silicone volatil persistant et bioaccumulable."
+ },
+ {
+  "inci_name": "CYCLOMETHICONE",
+  "name_fr": "Cyclométhicone",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Mélange de D4/D5/D6",
+  "source_label": "ECHA — liste candidate SVHC (D4 reprotoxique 1B, D4/D5/D6 PBT-vPvB)",
+  "source_url": "https://echa.europa.eu/candidate-list-table",
+  "note_fr": "Mélange de silicones cycliques incluant le D4 reprotoxique."
+ },
+ {
+  "inci_name": "ETHYLHEXYL METHOXYCINNAMATE",
+  "name_fr": "Octinoxate",
+  "synonyms": [
+   "OCTINOXATE",
+   "OCTYL METHOXYCINNAMATE"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 10 % (Annexe VI) ; en cours de réévaluation SCCS",
+  "source_label": "SCCS / Annexe VI",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Filtre UV suspecté d'activité hormonale, toxique pour les coraux."
+ },
+ {
+  "inci_name": "ETHYLHEXYL DIMETHYL PABA",
+  "name_fr": "Padimate O",
+  "synonyms": [
+   "PADIMATE O"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine",
+   "allergen"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 8 % (Annexe VI)",
+  "source_label": "Annexe VI",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Filtre UV ancien, allergisant et suspecté PE."
+ },
+ {
+  "inci_name": "BENZOPHENONE-1",
+  "name_fr": "Benzophénone-1",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": null,
+  "source_label": "Liste PE CE 2019 (groupe B)",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Dérivé de la benzophénone-3, activité œstrogénique in vitro."
+ },
+ {
+  "inci_name": "BENZOPHENONE-2",
+  "name_fr": "Benzophénone-2",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Non autorisé comme filtre UV dans l'UE",
+  "source_label": "Liste PE CE 2019 (groupe B)",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Activité œstrogénique in vitro."
+ },
+ {
+  "inci_name": "PHENOXYETHANOL",
+  "name_fr": "Phénoxyéthanol",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 1 % (Annexe V) ; ANSM 2019 : à éviter sur le siège des enfants < 3 ans",
+  "source_label": "SCCS 2016 / ANSM",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Conservateur très répandu ; toxicité hépatique et sanguine chez l'animal à forte dose, déconseillé dans les lingettes bébé en France."
+ },
+ {
+  "inci_name": "BHA",
+  "name_fr": "BHA (butylhydroxyanisole)",
+  "synonyms": [
+   "BUTYLATED HYDROXYANISOLE"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine",
+   "cmr"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Cancérogène possible (CIRC 2B)",
+  "source_label": "CIRC / SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Antioxydant synthétique, cancérogène possible et PE suspecté."
+ },
+ {
+  "inci_name": "CHLORPHENESIN",
+  "name_fr": "Chlorphénésine",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Max 0,3 % (Annexe V)",
+  "source_label": "Annexe V",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur pouvant irriter les peaux sensibles."
+ },
+ {
+  "inci_name": "SODIUM BENZOATE",
+  "name_fr": "Benzoate de sodium",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Max 2,5 % rincés, 1,7 % bains de bouche, 0,5 % autres (Annexe V)",
+  "source_label": "Annexe V",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur bien toléré, irritant possible à forte concentration."
+ },
+ {
+  "inci_name": "IODOPROPYNYL BUTYLCARBAMATE",
+  "name_fr": "Iodopropynyl butylcarbamate",
+  "synonyms": [
+   "IPBC"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "allergen",
+   "irritant"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Max 0,02 % (0,01 % sans rinçage) ; interdit < 3 ans hors bain/shampooing (Annexe V)",
+  "source_label": "Annexe V",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Conservateur iodé restreint, allergène de contact."
+ },
+ {
+  "inci_name": "HYDROQUINONE",
+  "name_fr": "Hydroquinone",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "cmr",
+   "irritant"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdite (Annexe II, réf. 1339) sauf systèmes d'ongles artificiels professionnels",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Dépigmentant interdit : ochronose (taches bleu-noir irréversibles), cancérogène possible. Très présent dans les crèmes éclaircissantes de contrebande au Maroc."
+ },
+ {
+  "inci_name": "MERCURY",
+  "name_fr": "Mercure et composés",
+  "synonyms": [
+   "MERCURIUS",
+   "MERCURY COMPOUNDS",
+   "AMMONIATED MERCURY",
+   "CALOMEL"
+  ],
+  "risk_level": "banned",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II, réf. 221) et composés du mercure",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Neurotoxique et néphrotoxique, interdit dans tous les cosmétiques. Retrouvé dans des savons et crèmes éclaircissantes illégaux."
+ },
+ {
+  "inci_name": "CLOBETASOL PROPIONATE",
+  "name_fr": "Propionate de clobétasol",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Glucocorticoïdes interdits en cosmétique (Annexe II, réf. 300) — médicaments détournés",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Corticoïde détourné comme éclaircissant : atrophie cutanée, vergetures, infections, dépendance. Médicament, jamais un cosmétique."
+ },
+ {
+  "inci_name": "BETAMETHASONE",
+  "name_fr": "Bétaméthasone",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Glucocorticoïdes interdits en cosmétique (Annexe II, réf. 300) — médicaments détournés",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Corticoïde détourné comme éclaircissant : atrophie cutanée, vergetures, infections, dépendance. Médicament, jamais un cosmétique."
+ },
+ {
+  "inci_name": "BETAMETHASONE DIPROPIONATE",
+  "name_fr": "Dipropionate de bétaméthasone",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Glucocorticoïdes interdits en cosmétique (Annexe II, réf. 300) — médicaments détournés",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Corticoïde détourné comme éclaircissant : atrophie cutanée, vergetures, infections, dépendance. Médicament, jamais un cosmétique."
+ },
+ {
+  "inci_name": "FLUOCINOLONE ACETONIDE",
+  "name_fr": "Acétonide de fluocinolone",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Glucocorticoïdes interdits en cosmétique (Annexe II, réf. 300) — médicaments détournés",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Corticoïde détourné comme éclaircissant : atrophie cutanée, vergetures, infections, dépendance. Médicament, jamais un cosmétique."
+ },
+ {
+  "inci_name": "HYDROCORTISONE",
+  "name_fr": "Hydrocortisone",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Glucocorticoïdes interdits en cosmétique (Annexe II, réf. 300) — médicaments détournés",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Corticoïde détourné comme éclaircissant : atrophie cutanée, vergetures, infections, dépendance. Médicament, jamais un cosmétique."
+ },
+ {
+  "inci_name": "DEXAMETHASONE",
+  "name_fr": "Dexaméthasone",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Glucocorticoïdes interdits en cosmétique (Annexe II, réf. 300) — médicaments détournés",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Corticoïde détourné comme éclaircissant : atrophie cutanée, vergetures, infections, dépendance. Médicament, jamais un cosmétique."
+ },
+ {
+  "inci_name": "MOMETASONE FUROATE",
+  "name_fr": "Furoate de mométasone",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Glucocorticoïdes interdits en cosmétique (Annexe II, réf. 300) — médicaments détournés",
+  "source_label": "CosIng Annexe II (interdit dans l'UE) — également interdit au Maroc dans les produits éclaircissants",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Corticoïde détourné comme éclaircissant : atrophie cutanée, vergetures, infections, dépendance. Médicament, jamais un cosmétique."
+ },
+ {
+  "inci_name": "ARBUTIN",
+  "name_fr": "Arbutine",
+  "synonyms": [
+   "ALPHA-ARBUTIN",
+   "BETA-ARBUTIN"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "SCCS 2023 : max 7 % crèmes visage (alpha-arbutine 2 % visage, 0,5 % corps) ; libère de l'hydroquinone",
+  "source_label": "SCCS 2023",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Éclaircissant qui se dégrade en hydroquinone ; toléré à faible dose."
+ },
+ {
+  "inci_name": "TRETINOIN",
+  "name_fr": "Trétinoïne (acide rétinoïque)",
+  "synonyms": [
+   "RETINOIC ACID"
+  ],
+  "risk_level": "banned",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdite (Annexe II) — médicament sur ordonnance",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Rétinoïde médicamenteux détourné en anti-taches/anti-âge, tératogène."
+ },
+ {
+  "inci_name": "LEAD ACETATE",
+  "name_fr": "Acétate de plomb",
+  "synonyms": [
+   "LEAD",
+   "PLUMBUM"
+  ],
+  "risk_level": "banned",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Plomb : neurotoxique, retrouvé dans certains khôls traditionnels non conformes."
+ },
+ {
+  "inci_name": "LIMONENE",
+  "name_fr": "Limonène",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "LINALOOL",
+  "name_fr": "Linalol",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "CITRONELLOL",
+  "name_fr": "Citronellol",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "GERANIOL",
+  "name_fr": "Géraniol",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "CITRAL",
+  "name_fr": "Citral",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "EUGENOL",
+  "name_fr": "Eugénol",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "ISOEUGENOL",
+  "name_fr": "Isoeugénol",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "COUMARIN",
+  "name_fr": "Coumarine",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "CINNAMAL",
+  "name_fr": "Cinnamal",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "CINNAMYL ALCOHOL",
+  "name_fr": "Alcool cinnamique",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "BENZYL ALCOHOL",
+  "name_fr": "Alcool benzylique",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "BENZYL BENZOATE",
+  "name_fr": "Benzoate de benzyle",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "BENZYL CINNAMATE",
+  "name_fr": "Cinnamate de benzyle",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "FARNESOL",
+  "name_fr": "Farnésol",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "HEXYL CINNAMAL",
+  "name_fr": "Hexyl cinnamal",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "HYDROXYCITRONELLAL",
+  "name_fr": "Hydroxycitronellal",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "AMYL CINNAMAL",
+  "name_fr": "Amyl cinnamal",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "AMYLCINNAMYL ALCOHOL",
+  "name_fr": "Alcool amylcinnamique",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "ANISE ALCOHOL",
+  "name_fr": "Alcool anisique",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "BUTYLPHENYL METHYLPROPIONAL",
+  "name_fr": "Lilial",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "cmr",
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit depuis mars 2022 (reprotoxique 1B)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Le « Lilial » est interdit dans l'UE depuis 2022 : reprotoxique avéré."
+ },
+ {
+  "inci_name": "ALPHA-ISOMETHYL IONONE",
+  "name_fr": "Alpha-isométhyl ionone",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "METHYL 2-OCTYNOATE",
+  "name_fr": "2-Octynoate de méthyle",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "EVERNIA PRUNASTRI EXTRACT",
+  "name_fr": "Mousse de chêne",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "EVERNIA FURFURACEA EXTRACT",
+  "name_fr": "Mousse d'arbre",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Déclaration obligatoire dès 0,001 % (sans rinçage) / 0,01 % (rincés)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Allergène de contact parfumant, à déclarer sur l'étiquette."
+ },
+ {
+  "inci_name": "HYDROXYISOHEXYL 3-CYCLOHEXENE CARBOXALDEHYDE",
+  "name_fr": "Lyral",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit depuis 2021 (Annexe II)",
+  "source_label": "Annexe III (26 allergènes parfumants à déclaration obligatoire)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Le « Lyral » est interdit : allergène de contact trop puissant."
+ },
+ {
+  "inci_name": "PARFUM",
+  "name_fr": "Parfum",
+  "synonyms": [
+   "FRAGRANCE",
+   "AROMA"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Composition non détaillée sur l'étiquette",
+  "source_label": "Règl. 1223/2009",
+  "source_url": "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:02009R1223-20240101",
+  "note_fr": "« Parfum » masque un mélange non détaillé ; les 26 allergènes majeurs doivent toutefois être listés à part."
+ },
+ {
+  "inci_name": "SODIUM LAURYL SULFATE",
+  "name_fr": "Laurylsulfate de sodium",
+  "synonyms": [
+   "SLS"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Tensioactif moussant efficace mais irritant pour les peaux et cuirs chevelus sensibles (produit rincé : exposition brève)."
+ },
+ {
+  "inci_name": "SODIUM LAURETH SULFATE",
+  "name_fr": "Laureth sulfate de sodium",
+  "synonyms": [
+   "SLES"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Tensioactif moussant efficace mais irritant pour les peaux et cuirs chevelus sensibles (produit rincé : exposition brève)."
+ },
+ {
+  "inci_name": "AMMONIUM LAURYL SULFATE",
+  "name_fr": "Laurylsulfate d'ammonium",
+  "synonyms": [
+   "ALS"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Tensioactif moussant efficace mais irritant pour les peaux et cuirs chevelus sensibles (produit rincé : exposition brève)."
+ },
+ {
+  "inci_name": "AMMONIUM LAURETH SULFATE",
+  "name_fr": "Laureth sulfate d'ammonium",
+  "synonyms": [
+   "ALES"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Tensioactif moussant efficace mais irritant pour les peaux et cuirs chevelus sensibles (produit rincé : exposition brève)."
+ },
+ {
+  "inci_name": "COCAMIDOPROPYL BETAINE",
+  "name_fr": "Cocamidopropyl bétaïne",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Tensioactif doux ; allergie possible due à des impuretés de fabrication."
+ },
+ {
+  "inci_name": "PARAFFINUM LIQUIDUM",
+  "name_fr": "Paraffine liquide (huile minérale)",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Doit être de qualité pharmaceutique (Annexe II, hydrocarbures aromatiques)",
+  "source_label": "Annexe II / SCCS",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Dérivé du pétrole, occlusif, sans risque avéré à qualité cosmétique ; impact environnemental."
+ },
+ {
+  "inci_name": "PETROLATUM",
+  "name_fr": "Vaseline",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Doit être de qualité pharmaceutique (Annexe II, hydrocarbures aromatiques)",
+  "source_label": "Annexe II / SCCS",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Dérivé du pétrole, occlusif, sans risque avéré à qualité cosmétique ; impact environnemental."
+ },
+ {
+  "inci_name": "CERA MICROCRISTALLINA",
+  "name_fr": "Cire microcristalline",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Doit être de qualité pharmaceutique (Annexe II, hydrocarbures aromatiques)",
+  "source_label": "Annexe II / SCCS",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Dérivé du pétrole, occlusif, sans risque avéré à qualité cosmétique ; impact environnemental."
+ },
+ {
+  "inci_name": "MINERAL OIL",
+  "name_fr": "Huile minérale",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Doit être de qualité pharmaceutique (Annexe II, hydrocarbures aromatiques)",
+  "source_label": "Annexe II / SCCS",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Dérivé du pétrole, occlusif, sans risque avéré à qualité cosmétique ; impact environnemental."
+ },
+ {
+  "inci_name": "PEG-40 HYDROGENATED CASTOR OIL",
+  "name_fr": null,
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Composé éthoxylé : traces possibles de 1,4-dioxane (cancérogène possible) selon la purification ; polluant persistant."
+ },
+ {
+  "inci_name": "PEG-100 STEARATE",
+  "name_fr": null,
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Composé éthoxylé : traces possibles de 1,4-dioxane (cancérogène possible) selon la purification ; polluant persistant."
+ },
+ {
+  "inci_name": "PEG-7 GLYCERYL COCOATE",
+  "name_fr": null,
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Composé éthoxylé : traces possibles de 1,4-dioxane (cancérogène possible) selon la purification ; polluant persistant."
+ },
+ {
+  "inci_name": "PEG-8",
+  "name_fr": null,
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Composé éthoxylé : traces possibles de 1,4-dioxane (cancérogène possible) selon la purification ; polluant persistant."
+ },
+ {
+  "inci_name": "PEG-12 DIMETHICONE",
+  "name_fr": null,
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Composé éthoxylé : traces possibles de 1,4-dioxane (cancérogène possible) selon la purification ; polluant persistant."
+ },
+ {
+  "inci_name": "POLYETHYLENE GLYCOL",
+  "name_fr": null,
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Composé éthoxylé : traces possibles de 1,4-dioxane (cancérogène possible) selon la purification ; polluant persistant."
+ },
+ {
+  "inci_name": "POLYETHYLENE",
+  "name_fr": "Polyéthylène (microplastique)",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "environment"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Microplastique interdit dans les produits rincés depuis 2023 (Règl. REACH 2023/2055)",
+  "source_label": "REACH 2023/2055",
+  "source_url": "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:02009R1223-20240101",
+  "note_fr": "Microbilles plastiques, polluant marin."
+ },
+ {
+  "inci_name": "TALC",
+  "name_fr": "Talc",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Interdit < 3 ans en poudre pour les voies respiratoires (Annexe III)",
+  "source_label": "Annexe III / CIRC",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Sans danger sur peau saine ; préoccupation historique liée aux contaminations par l'amiante et à l'inhalation."
+ },
+ {
+  "inci_name": "ALUMINUM CHLOROHYDRATE",
+  "name_fr": "Chlorhydrate d'aluminium",
+  "synonyms": [
+   "ALUMINIUM CHLOROHYDRATE"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "SCCS 2020 : max 6,25 % déodorants non aérosols, 10,6 % aérosols",
+  "source_label": "SCCS 2020",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Sel d'aluminium des antitranspirants ; le SCCS juge l'exposition sûre aux limites fixées."
+ },
+ {
+  "inci_name": "TOLUENE",
+  "name_fr": "Toluène",
+  "synonyms": [
+   "TOLUÈNE"
+  ],
+  "risk_level": "banned",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit sauf vernis à ongles max 25 % (Annexe III)",
+  "source_label": "Annexe III",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Solvant neurotoxique et reprotoxique suspecté."
+ },
+ {
+  "inci_name": "DIBUTYL PHTHALATE",
+  "name_fr": "Phtalate de dibutyle",
+  "synonyms": [
+   "DBP"
+  ],
+  "risk_level": "banned",
+  "risk_types": [
+   "endocrine",
+   "cmr"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit (Annexe II)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Phtalate reprotoxique et perturbateur endocrinien avéré, interdit."
+ },
+ {
+  "inci_name": "DIETHYL PHTHALATE",
+  "name_fr": "Phtalate de diéthyle",
+  "synonyms": [
+   "DEP"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Phtalate encore autorisé (dénaturant de l'alcool, fixateur de parfum), PE suspecté."
+ },
+ {
+  "inci_name": "ETHANOLAMINE",
+  "name_fr": "Éthanolamine",
+  "synonyms": [
+   "MEA"
+  ],
+  "risk_level": "moderate",
+  "risk_types": [
+   "irritant",
+   "cmr"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Max 0,5 % (Annexe III), sans nitrosamines",
+  "source_label": "Annexe III",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Amine pouvant former des nitrosamines cancérogènes en présence d'agents nitrosants."
+ },
+ {
+  "inci_name": "TRIETHANOLAMINE",
+  "name_fr": "Triéthanolamine",
+  "synonyms": [
+   "TEA"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Max 2,5 % (Annexe III), interdit avec agents nitrosants",
+  "source_label": "Annexe III",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Ajusteur de pH ; risque de nitrosamines si formulation inadaptée."
+ },
+ {
+  "inci_name": "P-PHENYLENEDIAMINE",
+  "name_fr": "Paraphénylènediamine",
+  "synonyms": [
+   "PPD"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Max 2 % dans les colorations oxydantes (Annexe III)",
+  "source_label": "Annexe III",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Colorant capillaire, allergène de contact très puissant (eczéma sévère, henné noir)."
+ },
+ {
+  "inci_name": "TOLUENE-2,5-DIAMINE",
+  "name_fr": "Toluène-2,5-diamine",
+  "synonyms": [
+   "PTD"
+  ],
+  "risk_level": "high",
+  "risk_types": [
+   "allergen"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Max 2 % dans les colorations oxydantes (Annexe III)",
+  "source_label": "Annexe III",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Colorant capillaire allergisant."
+ },
+ {
+  "inci_name": "LAWSONE",
+  "name_fr": "Lawsone (henné)",
+  "synonyms": [],
+  "risk_level": "moderate",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Autorisée en tant que henné naturel (Lawsonia inermis) ; interdite pure",
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Colorant du henné : sans problème en poudre de feuilles ; le henné « noir » ajoute de la PPD, très allergisant."
+ },
+ {
+  "inci_name": "ZINC PYRITHIONE",
+  "name_fr": "Pyrithione de zinc",
+  "synonyms": [],
+  "risk_level": "banned",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "confirmed",
+  "restriction_fr": "Interdit depuis mars 2022 (reprotoxique 1B)",
+  "source_label": "CosIng Annexe II",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Antipelliculaire interdit dans l'UE depuis 2022."
+ },
+ {
+  "inci_name": "SALICYLIC ACID",
+  "name_fr": "Acide salicylique",
+  "synonyms": [],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": "Max 2 % sans rinçage, 3 % rincés ; interdit < 3 ans (sauf shampooings)",
+  "source_label": "Annexe III",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Exfoliant efficace ; irritant à forte dose, restreint chez l'enfant."
+ },
+ {
+  "inci_name": "RETINOL",
+  "name_fr": "Rétinol",
+  "synonyms": [
+   "RETINYL PALMITATE",
+   "RETINYL ACETATE"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "restricted"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "SCCS 2022 : max 0,05 % corps, 0,3 % visage/mains (équivalent rétinol)",
+  "source_label": "SCCS 2022",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Vitamine A anti-âge ; exposition cumulée surveillée par le SCCS."
+ },
+ {
+  "inci_name": "ALCOHOL DENAT.",
+  "name_fr": "Alcool dénaturé",
+  "synonyms": [
+   "ALCOHOL",
+   "ETHANOL"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "irritant"
+  ],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "SCCS",
+  "source_url": "https://health.ec.europa.eu/scientific-committees/scientific-committee-consumer-safety-sccs/sccs-opinions_en",
+  "note_fr": "Alcool dénaturé : asséchant pour les peaux sensibles ; pertinent pour l'évaluation halal."
+ },
+ {
+  "inci_name": "TITANIUM DIOXIDE",
+  "name_fr": "Dioxyde de titane",
+  "synonyms": [
+   "CI 77891"
+  ],
+  "risk_level": "low",
+  "risk_types": [
+   "cmr"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": "Interdit en poudre libre inhalable (Annexe III) ; autorisé en crème (Annexe VI, filtre UV)",
+  "source_label": "Annexe III / VI",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/reference/annexes",
+  "note_fr": "Filtre minéral sûr sur la peau ; préoccupation uniquement par inhalation (sprays, poudres)."
+ },
+ {
+  "inci_name": "OXYBENZONE",
+  "name_fr": "Oxybenzone",
+  "synonyms": [],
+  "risk_level": "high",
+  "risk_types": [
+   "endocrine"
+  ],
+  "risk_status": "suspected",
+  "restriction_fr": null,
+  "source_label": "Liste prioritaire PE — Commission européenne (2019), groupe A",
+  "source_url": "https://ec.europa.eu/newsroom/growth/item-detail.cfm?item_id=702447",
+  "note_fr": "Nom commercial de la benzophénone-3."
+ },
+ {
+  "inci_name": "AQUA",
+  "name_fr": "Eau",
+  "synonyms": [
+   "WATER",
+   "EAU",
+   "AQUA/WATER",
+   "WATER/AQUA",
+   "AQUA/EAU",
+   "PURIFIED WATER"
+  ],
+  "risk_level": "none",
+  "risk_types": [],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "CosIng",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/",
+  "note_fr": "Premier ingrédient de la plupart des produits."
+ }
+]

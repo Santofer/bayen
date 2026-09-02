@@ -20,6 +20,8 @@
  *   POST /bayen-api/confirm-product    → « Infos exactes » : 3 confirmations = fiche vérifiée
  *   GET  /bayen-api/partner-requests   → Demandes de partenariat (admin du site)
  *   POST /bayen-api/partner-request-status → Marquer une demande traitée / écartée
+ *   GET  /bayen-api/cosmetic-ingredients → Autocomplétion INCI (univers beauté)
+ *   POST /bayen-api/cosmetic-score       → Recalcul admin du score cosmétique
  */
 
 import type { Router } from 'express'
@@ -42,6 +44,7 @@ import { registerPartnerEndpoint } from './partner.js'
 import { registerLeaderboardEndpoint } from './leaderboard.js'
 import { registerConfirmProductEndpoint } from './confirm-product.js'
 import { registerPartnerAdminEndpoints } from './partner-admin.js'
+import { registerCosmeticEndpoints } from './cosmetic.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -64,4 +67,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerLeaderboardEndpoint(router, context as unknown as Parameters<typeof registerLeaderboardEndpoint>[1])
   registerConfirmProductEndpoint(router, context as unknown as Parameters<typeof registerConfirmProductEndpoint>[1])
   registerPartnerAdminEndpoints(router, context as unknown as Parameters<typeof registerPartnerAdminEndpoints>[1])
+  registerCosmeticEndpoints(router, context as unknown as Parameters<typeof registerCosmeticEndpoints>[1])
 }

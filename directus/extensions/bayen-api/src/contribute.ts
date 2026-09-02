@@ -19,6 +19,7 @@ import { randomUUID } from 'node:crypto'
 import { notifyNewProduct } from './notify.js'
 import { scoreProduct } from './scan.js'
 import { creditPoints } from './points.js'
+import { scoreCosmeticProduct, type KnexRaw } from './cosmetic.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -33,6 +34,11 @@ interface ContributeRequest {
   image_ingredients?: string
   image_nutrition?: string
   ingredients_text?: string
+  /** Univers : 'food' (défaut) ou 'cosmetic' */
+  product_type?: string
+  inci_text?: string
+  cosmetic_category?: string
+  period_after_opening?: string
   energy_kcal?: number
   fat_total?: number
   fat_saturated?: number
@@ -42,6 +48,9 @@ interface ContributeRequest {
   proteins?: number
   salt?: number
 }
+
+const COSMETIC_CATEGORIES = new Set(['visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum', 'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles'])
+const PAO_RE = /^\d{1,2}\s?M$/i
 
 // Rate limiter en mémoire — 5 contributions / 5 min / IP (resserré post-spam)
 const RATE_WINDOW_MS = 5 * 60 * 1000
@@ -229,6 +238,13 @@ export function registerContributeEndpoint(router: Router, context: {
         if (badBrand.test(String(existing.brand ?? '')) && brandFill) fill.brand = brandFill
         const ingredientsFill = sanitizeString(body.ingredients_text, 5000)
         if (!existing.ingredients_text && ingredientsFill) fill.ingredients_text = ingredientsFill
+        // Univers beauté : liste INCI, catégorie, durée après ouverture
+        const inciFill = sanitizeString(body.inci_text, 5000)
+        if (!existing.inci_text && inciFill) fill.inci_text = inciFill
+        const cosmCatFill = sanitizeString(body.cosmetic_category, 20)
+        if (!existing.cosmetic_category && cosmCatFill && COSMETIC_CATEGORIES.has(cosmCatFill)) fill.cosmetic_category = cosmCatFill
+        const paoFill = sanitizeString(body.period_after_opening, 6)
+        if (!existing.period_after_opening && paoFill && PAO_RE.test(paoFill)) fill.period_after_opening = paoFill.toUpperCase().replace(/\s/g, '')
         for (const key of ['energy_kcal', 'fat_total', 'fat_saturated', 'carbs_total',
           'sugars', 'fiber', 'proteins', 'salt'] as const) {
           if (existing[key] == null) {
@@ -242,10 +258,14 @@ export function registerContributeEndpoint(router: Router, context: {
         }
 
         // Des données sont arrivées sur une fiche sans score → le calculer.
-        if (existing.scan_score == null && Object.keys(fill).length > 0) {
+        // (fiche beauté : une liste INCI qui arrive change le score, on recalcule)
+        if ((existing.scan_score == null || 'inci_text' in fill) && Object.keys(fill).length > 0) {
           try {
             const refreshed = await knex('products').where('barcode', barcode).first()
-            if (refreshed) {
+            if (refreshed && refreshed.product_type === 'cosmetic') {
+              await scoreCosmeticProduct(context.database as unknown as KnexRaw,
+                refreshed as unknown as Parameters<typeof scoreCosmeticProduct>[1])
+            } else if (refreshed) {
               const score = await scoreProduct(
                 refreshed as unknown as Parameters<typeof scoreProduct>[0],
                 context.database,
@@ -294,6 +314,18 @@ export function registerContributeEndpoint(router: Router, context: {
         date_created: new Date(),
         scan_count: 0,
         confidence_score: 0.5, // Données saisies sans modération
+      }
+
+      // Univers : une fiche beauté porte sa liste INCI, pas de nutrition
+      const isCosmetic = body.product_type === 'cosmetic'
+      payload.product_type = isCosmetic ? 'cosmetic' : 'food'
+      if (isCosmetic) {
+        const inci = sanitizeString(body.inci_text, 5000)
+        if (inci) payload.inci_text = inci
+        const cosmCat = sanitizeString(body.cosmetic_category, 20)
+        if (cosmCat && COSMETIC_CATEGORIES.has(cosmCat)) payload.cosmetic_category = cosmCat
+        const pao = sanitizeString(body.period_after_opening, 6)
+        if (pao && PAO_RE.test(pao)) payload.period_after_opening = pao.toUpperCase().replace(/\s/g, '')
       }
 
       // Champs optionnels
@@ -355,7 +387,10 @@ export function registerContributeEndpoint(router: Router, context: {
       // s'afficher avec sa note, pas attendre le prochain scan.
       try {
         const created = await knex('products').where('id', newId).first()
-        if (created) {
+        if (created && isCosmetic) {
+          await scoreCosmeticProduct(context.database as unknown as KnexRaw,
+            created as unknown as Parameters<typeof scoreCosmeticProduct>[1])
+        } else if (created) {
           const score = await scoreProduct(
             created as unknown as Parameters<typeof scoreProduct>[0],
             context.database,
