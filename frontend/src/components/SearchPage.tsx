@@ -199,18 +199,27 @@ interface SearchPageProps {
 
 export default function SearchPage({ initialUniverse, initialCosmeticCategory }: SearchPageProps = {}) {
   const { t } = useLocale()
-  const [filters, setFilters] = useState<Filters>(() => {
-    // ?univers=beaute&cat=… (liens depuis la fiche produit et les catégories beauté)
-    let universe: Universe = initialUniverse ?? 'food'
-    let cat = initialCosmeticCategory ?? ''
-    if (typeof window !== 'undefined') {
+  // État initial identique côté serveur et client (sinon l'hydratation garde
+  // l'onglet rendu par le SSR) ; l'URL ?univers=beaute&cat=… est lue après montage.
+  const [filters, setFilters] = useState<Filters>(() => ({
+    ...defaultFilters,
+    universe: initialUniverse ?? 'food',
+    cosmeticCategory: initialUniverse === 'cosmetic' && (COSMETIC_CATEGORIES as readonly string[]).includes(initialCosmeticCategory ?? '')
+      ? (initialCosmeticCategory as string)
+      : '',
+  }))
+  useEffect(() => {
+    try {
       const sp = new URLSearchParams(window.location.search)
-      if (sp.get('univers') === 'beaute') universe = 'cosmetic'
+      const fromUrl: Universe | null = sp.get('univers') === 'beaute' ? 'cosmetic' : null
       const c = sp.get('cat') ?? ''
-      if ((COSMETIC_CATEGORIES as readonly string[]).includes(c)) cat = c
-    }
-    return { ...defaultFilters, universe, cosmeticCategory: universe === 'cosmetic' ? cat : '' }
-  })
+      const cat = (COSMETIC_CATEGORIES as readonly string[]).includes(c) ? c : ''
+      if (fromUrl && (fromUrl !== (initialUniverse ?? 'food') || cat)) {
+        setFilters((prev) => ({ ...prev, universe: fromUrl, cosmeticCategory: cat || prev.cosmeticCategory }))
+      }
+    } catch { /* pas d'URL exploitable */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [totalCount, setTotalCount] = useState(0)

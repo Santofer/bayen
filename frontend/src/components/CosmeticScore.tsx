@@ -143,6 +143,10 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
   const order = ['banned', 'high', 'moderate', 'low']
   flagged.sort((a, b) => order.indexOf(a.risk_level) - order.indexOf(b.risk_level) || a.rank - b.rank)
 
+  // Les « à surveiller » (allergènes parfumants, tensioactifs…) sont nombreux et
+  // peu graves : en pastilles compactes, les cartes détaillées aux niveaux supérieurs.
+  const detailed = flagged.filter((i) => i.risk_level !== 'low')
+  const minor = flagged.filter((i) => i.risk_level === 'low')
   const hasEndocrine = flagged.some((i) => i.risk_types.includes('endocrine'))
   const hasFragranceAllergen = flagged.some((i) => i.risk_types.includes('allergen') && i.risk_level === 'low')
 
@@ -195,7 +199,7 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
         <div className="space-y-2 border-t pt-5">
           <h3 className="text-sm font-medium text-foreground">{t('beauty.worst')} ({flagged.length})</h3>
           <ul className="space-y-2">
-            {flagged.map((i) => (
+            {detailed.map((i) => (
               <li key={`${i.inci_name}-${i.rank}`} className="rounded-xl border bg-background/60 p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <a href={`/ingredients-cosmetiques/${encodeURIComponent(i.inci_name)}`} className="font-semibold text-sm hover:text-primary hover:underline">
@@ -217,6 +221,22 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
               </li>
             ))}
           </ul>
+          {minor.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {minor.map((i) => (
+                <a
+                  key={`${i.inci_name}-${i.rank}`}
+                  href={`/ingredients-cosmetiques/${encodeURIComponent(i.inci_name)}`}
+                  title={[i.name_fr, ...i.risk_types.map((ty) => { const k = typeKey(ty); return k ? t(k) : ty })].filter(Boolean).join(' · ')}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#b1cf3a]/60 bg-[#b1cf3a]/10 px-2.5 py-1 text-xs font-semibold hover:bg-[#b1cf3a]/25"
+                >
+                  <span className="h-2 w-2 rounded-full bg-[#b1cf3a]" />
+                  {i.inci_name}
+                  {i.risk_types[0] && (() => { const k = typeKey(i.risk_types[0]); return k ? <span className="font-normal text-muted-foreground">{t(k)}</span> : null })()}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
