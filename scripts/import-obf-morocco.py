@@ -41,7 +41,37 @@ def usable(p):
             and (len(code) == 13 or len(code) == 8) and code.isdigit())
 
 
+def backfill_inci(token):
+    """MODE=backfill : fiches OBF importées sans liste — la liste existait dans une
+    autre langue (ingredients_text_es/en/…). On la récupère et on rescore."""
+    h = {"Authorization": "Bearer " + token, "Content-Type": "application/json"}
+    r = urllib.request.Request(f"{DIRECTUS}/items/products?filter[product_type][_eq]=cosmetic&filter[inci_text][_null]=true&filter[data_source][_eq]=obf&fields=id,barcode&limit=500", headers=h)
+    with urllib.request.urlopen(r, timeout=60) as resp:
+        rows = json.loads(resp.read().decode())["data"]
+    print(f"[backfill] {len(rows)} fiches sans liste", flush=True)
+    done = 0
+    for p in rows:
+        try:
+            d = get(f"https://world.openbeautyfacts.org/api/v2/product/{p['barcode']}.json")
+            prod = d.get("product") or {}
+            keys = ["ingredients_text_fr", "ingredients_text"] + [k for k in prod if k.startswith("ingredients_text_") and len(k) == 19]
+            inci = next((prod[k] for k in keys if isinstance(prod.get(k), str) and len(prod[k].strip()) > 5), None)
+            if not inci:
+                continue
+            body = json.dumps({"inci_text": inci[:5000]}).encode()
+            urllib.request.urlopen(urllib.request.Request(f"{DIRECTUS}/items/products/{p['id']}", data=body, headers=h, method="PATCH"), timeout=30).read()
+            urllib.request.urlopen(urllib.request.Request(f"{DIRECTUS}/bayen-api/cosmetic-score", data=json.dumps({"barcode": p["barcode"]}).encode(), headers=h, method="POST"), timeout=60).read()
+            done += 1
+        except Exception as e:  # noqa: BLE001
+            print(f"  {p['barcode']} KO : {str(e)[:80]}", flush=True)
+        time.sleep(0.3)
+    print(f"[backfill] listes récupérées : {done}", flush=True)
+    return 0
+
+
 def main():
+    if os.environ.get("MODE") == "backfill":
+        return backfill_inci(os.environ.get("DTOKEN", "").strip())
     # OBF refuse les pages > 10 aux anonymes : on balaie le même filtre sous
     # plusieurs tris pour couvrir des sous-ensembles différents (dédoublonnés).
     seen, candidates = set(), []

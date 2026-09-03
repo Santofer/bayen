@@ -223,7 +223,10 @@ function mapObfProduct(obfData: Record<string, unknown>, barcode: string): Recor
   const name = (product.product_name_fr as string) || (product.product_name as string) || ''
   if (!name.trim()) return null
   const tags = (product.categories_tags as string[] | undefined) ?? []
-  const inci = (product.ingredients_text_fr as string) || (product.ingredients_text as string) || null
+  // La liste INCI est en latin quelle que soit la langue de la fiche : on prend
+  // la première renseignée (fr, générique, puis n'importe quelle langue)
+  const inciKeys = ['ingredients_text_fr', 'ingredients_text', ...Object.keys(product).filter((k) => /^ingredients_text_[a-z]{2}$/.test(k))]
+  const inci = inciKeys.map((k) => product[k]).find((v): v is string => typeof v === 'string' && v.trim().length > 5) ?? null
   const pao = typeof product.period_after_opening === 'string' ? product.period_after_opening.replace(/^[a-z]{2}:/, '').slice(0, 20) : null
   const labelTags = (product.labels_tags as string[] | undefined) ?? []
   const isHalal = labelTags.some((t) => /halal/i.test(t))
