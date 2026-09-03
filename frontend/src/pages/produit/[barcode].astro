@@ -201,7 +201,15 @@ try {
 
     if (offRes.ok) {
       const offData = await offRes.json()
-      if (offData.status === 1 && offData.product) {
+      // Cosmétique ou non-aliment rangé sur OFF : pas de vue alimentaire, l'étape 2b
+      // (endpoint scan) crée la fiche beauté si le produit ressemble à un cosmétique
+      const offTags: string[] = offData.product?.categories_tags ?? []
+      const offNonFood = offData.status === 1 && offData.product && (
+        (offData.product.product_type && offData.product.product_type !== 'food')
+        || offTags.some((t: string) => /non-food|incorrect-product-type|cosmetic|beauty|hygiene|personal-care/i.test(t))
+        || /lingette|wipes?|shampo|savon|soap|d[ée]odorant|dentifrice|toothpaste|cr[èe]me (solaire|hydratante|visage|mains|corps)|sunscreen|gel douche|shower|parfum|perfume|mascara|lipstick|micellaire|d[ée]maquillant/i.test(`${offData.product.product_name_fr ?? ''} ${offData.product.product_name ?? ''}`)
+      )
+      if (offData.status === 1 && offData.product && !offNonFood) {
         const p = offData.product
 
         // Extraire les codes additifs

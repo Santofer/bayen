@@ -39,7 +39,11 @@ try {
 >
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     <div class="max-w-lg mx-auto">
-      {existingProduct ? (
+      {existingProduct && existingProduct.product_type === 'cosmetic' ? (
+        /* Fiche beauté existante : le wizard sait lire la liste INCI, l'ancien
+           formulaire ne connaît que la nutrition */
+        <ContributeWizard initialBarcode={barcode} initialUniverse="cosmetic" client:load />
+      ) : existingProduct ? (
         <>
           <div class="mb-6">
             <h1 class="text-2xl font-bold text-foreground">Corriger / Compléter</h1>

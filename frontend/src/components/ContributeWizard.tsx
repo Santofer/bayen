@@ -27,6 +27,8 @@ type PhotoKind = 'front' | 'ingredients' | 'nutrition'
 
 interface Props {
   initialBarcode?: string
+  /** Fiche beauté existante à compléter : univers imposé */
+  initialUniverse?: Universe
 }
 
 interface PhotoState {
@@ -122,7 +124,7 @@ function suspicious(key: NutrientKey, n: Nutrition): boolean {
   return false
 }
 
-export default function ContributeWizard({ initialBarcode = '' }: Props) {
+export default function ContributeWizard({ initialBarcode = '', initialUniverse }: Props) {
   const { t } = useLocale()
   const [step, setStep] = useState<Step>(initialBarcode ? 'photos' : 'barcode')
   const [barcode, setBarcode] = useState(initialBarcode)
@@ -137,7 +139,7 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
   const [halal, setHalal] = useState<boolean | null>(null)
 
   // Univers (C23) : détecté sur la photo de face, modifiable à la main
-  const [universe, setUniverse] = useState<Universe>('food')
+  const [universe, setUniverse] = useState<Universe>(initialUniverse ?? 'food')
   const [universeDetected, setUniverseDetected] = useState(false)
   const [cosmeticCategory, setCosmeticCategory] = useState<CosmeticCategory | null>(null)
   const [inciText, setInciText] = useState('')

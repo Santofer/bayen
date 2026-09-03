@@ -217,6 +217,21 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
  * parsing d'ingrédients d'OBF est inutilisable (texte marketing découpé) :
  * on ne garde que le texte INCI brut, normalisé ensuite par inci.ts.
  */
+/**
+ * Open Food Facts héberge aussi des cosmétiques mal rangés (tag
+ * « en:non-food-products », nom de shampooing…). Avant C23 ils devenaient des
+ * fiches alimentaires sans score (Pantene, lingettes, crème solaire).
+ */
+const COSMETIC_NAME_RE = /lingette|wipes?|shampo|après-shampo|conditioner|savon|soap|d[ée]odorant|anti-?transpirant|dentifrice|toothpaste|cr[èe]me (solaire|hydratante|visage|mains|corps|de jour|de nuit)|sunscreen|[ée]cran solaire|lotion|gel douche|shower|body wash|parfum|perfume|eau de toilette|cologne|maquillage|mascara|rouge à l[èe]vres|lipstick|vernis|nail|s[ée]rum|masque (visage|capillaire)|baume à l[èe]vres|lip balm|hair|cheveux|rasage|shaving|after-?shave|khol|kohl|henn[ée]|ghassoul|rhassoul|micellaire|d[ée]maquillant|gel intime|couches|diapers/i
+export function offLooksNonFood(product: Record<string, unknown>): { nonFood: boolean; cosmetic: boolean } {
+  const tags = (product.categories_tags as string[] | undefined) ?? []
+  const type = String(product.product_type ?? 'food')
+  const name = `${product.product_name_fr ?? ''} ${product.product_name ?? ''} ${product.generic_name ?? ''}`
+  const taggedNonFood = tags.some((t) => /non-food|incorrect-product-type|cosmetic|beauty|hygiene|personal-care/i.test(t))
+  const cosmetic = type === 'beauty' || COSMETIC_NAME_RE.test(name) || tags.some((t) => /cosmetic|beauty|hygiene|personal-care/i.test(t))
+  return { nonFood: type !== 'food' || taggedNonFood || cosmetic, cosmetic }
+}
+
 function mapObfProduct(obfData: Record<string, unknown>, barcode: string): Record<string, unknown> | null {
   const product = obfData.product as Record<string, unknown> | undefined
   if (!product) return null
@@ -415,6 +430,7 @@ export function registerScanEndpoint(router: Router, context: {
       // 2. Chercher sur Open Food Facts
       // ──────────────────────────────────────────
       let offProduct: Partial<ProductRecord> | null = null
+      let offCosmetic: Record<string, unknown> | null = null
 
       try {
         const offResponse = await fetch(
@@ -428,7 +444,14 @@ export function registerScanEndpoint(router: Router, context: {
         if (offResponse.ok) {
           const offData = await offResponse.json() as Record<string, unknown>
           if (offData.status === 1) {
-            offProduct = mapOffProduct(offData, barcode)
+            const flags = offLooksNonFood((offData.product as Record<string, unknown>) ?? {})
+            if (!flags.nonFood) {
+              offProduct = mapOffProduct(offData, barcode)
+            } else if (flags.cosmetic) {
+              // Cosmétique rangé sur OFF : fiche beauté (INCI éventuel dans ingredients_text)
+              offCosmetic = mapObfProduct(offData, barcode)
+            }
+            // Autre non-aliment (ménager, animalerie) : on n'importe rien
           }
         }
       } catch {
@@ -516,13 +539,13 @@ export function registerScanEndpoint(router: Router, context: {
       // ──────────────────────────────────────────
       // 4b. Open Beauty Facts — univers beauté
       // ──────────────────────────────────────────
-      let obfProduct: Record<string, unknown> | null = null
+      let obfProduct: Record<string, unknown> | null = offCosmetic
       try {
-        const obfResponse = await fetch(`${OBF_API_URL}/product/${barcode}.json`, {
+        const obfResponse = obfProduct ? null : await fetch(`${OBF_API_URL}/product/${barcode}.json`, {
           headers: { 'User-Agent': OFF_USER_AGENT },
           signal: AbortSignal.timeout(5000),
         })
-        if (obfResponse.ok) {
+        if (obfResponse && obfResponse.ok) {
           const obfData = await obfResponse.json() as Record<string, unknown>
           if (obfData.status === 1) obfProduct = mapObfProduct(obfData, barcode)
         }
