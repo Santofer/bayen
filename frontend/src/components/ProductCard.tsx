@@ -41,6 +41,22 @@ const NUTRISCORE_COLORS: Record<string, string> = {
 
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
+/**
+ * Pastille beauté (C23) : remplace le Nutri-Score sur une fiche cosmétique.
+ * Texte en français dur, comme le reste de la carte (rendu SSR sans hook).
+ */
+function cosmeticBadge(product: Product): { text: string; color: string } | null {
+  if (product.product_type !== 'cosmetic') return null
+  const risk = product.cosmetic_risk
+  if (!risk || risk.total == null) return { text: 'LISTE INCI MANQUANTE', color: '#a1a1aa' }
+  const cap = risk.cap_reason?.risk_level
+  if (!cap) return { text: 'SANS RISQUE CONNU', color: '#476a32' }
+  const n = (risk.counts.banned ?? 0) + (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0) + (risk.counts.low ?? 0)
+  const color = cap === 'banned' ? '#ef4444' : cap === 'high' ? '#ef4444' : cap === 'moderate' ? '#f97316' : '#b1cf3a'
+  const word = cap === 'banned' ? 'INTERDIT' : n > 1 ? `${n} À SURVEILLER` : '1 À SURVEILLER'
+  return { text: word, color }
+}
+
 export default function ProductCard({ product, className, variant = 'row' }: ProductCardProps) {
   const scoreColor = product.score_label
     ? SCORE_COLORS[product.score_label]
@@ -57,6 +73,8 @@ export default function ProductCard({ product, className, variant = 'row' }: Pro
     : null
 
   // Variante grille — carte verticale de la maquette v2 (recherche)
+  const beauty = cosmeticBadge(product)
+
   if (variant === 'grid') {
     const grade = product.nutriscore_grade?.toLowerCase()
     return (
@@ -81,7 +99,11 @@ export default function ProductCard({ product, className, variant = 'row' }: Pro
               .join(' · ')}
           </span>
         )}
-        {grade && NUTRISCORE_COLORS[grade] && (
+        {beauty ? (
+          <span className="ns" style={{ backgroundColor: beauty.color }}>
+            {beauty.text}
+          </span>
+        ) : grade && NUTRISCORE_COLORS[grade] && (
           <span className="ns" style={{ backgroundColor: NUTRISCORE_COLORS[grade] }}>
             NUTRI-SCORE {grade.toUpperCase()}
           </span>
@@ -137,7 +159,12 @@ export default function ProductCard({ product, className, variant = 'row' }: Pro
           {product.brand}
         </p>
         <div className="flex items-center gap-1.5 mt-0.5">
-          {product.nutriscore_grade && (
+          {beauty && (
+            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: beauty.color }}>
+              {beauty.text}
+            </span>
+          )}
+          {!beauty && product.nutriscore_grade && (
             <img
               src={`/badges/nutriscore-${product.nutriscore_grade.toLowerCase()}.svg`}
               alt={`Nutri-Score ${product.nutriscore_grade}`}

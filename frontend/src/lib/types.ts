@@ -85,6 +85,28 @@ export interface Product {
   date_created: string
   date_updated?: string | null
   created_by?: string | null
+  /** Univers (C23) : 'food' par défaut, 'cosmetic' pour la beauté */
+  product_type?: 'food' | 'cosmetic' | string
+  inci_text?: string | null
+  period_after_opening?: string | null
+  cosmetic_category?: string | null
+  cosmetic_risk?: CosmeticRiskSummary | null
+}
+
+/** Résumé du score beauté persisté sur la fiche (voir bayen-api/cosmetic.ts) */
+export interface CosmeticRiskSummary {
+  total: number | null
+  label: string | null
+  cap_reason: { inci_name: string; risk_level: string } | null
+  worst: Array<{ inci_name: string; name_fr: string | null; risk_level: string; risk_types: string[]; risk_status: string | null }>
+  counts: Record<string, number>
+  incomplete: boolean
+  unscored: boolean
+  unknown: string[]
+  matched_count: number
+  token_count: number
+  rinse_off: boolean
+  scored_at: string
 }
 
 export interface Category {

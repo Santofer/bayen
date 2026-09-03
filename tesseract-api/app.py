@@ -1122,14 +1122,94 @@ def meal_analyze():
         }), 500
 
 
+# ─── Lecture de la liste INCI d'un cosmétique (C23) ────────────────────
+COSMETIC_CATEGORIES = (
+    'visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum',
+    'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles',
+)
+
+INCI_SYSTEM = (
+    "Tu es un expert en étiquetage cosmétique (nomenclature INCI). Tu LIS directement la "
+    "photo du dos ou du côté d'un emballage cosmétique et tu recopies la liste d'ingrédients "
+    "INCI. Tu retournes UNIQUEMENT du JSON valide :\n"
+    '{"inci_text":null,"period_after_opening":null,"confiance":"faible|moyenne|elevee"}\n'
+    "Règles STRICTES :\n"
+    "- inci_text : la liste INCI telle qu'imprimée, dans l'ORDRE, séparée par des virgules, "
+    "en MAJUSCULES latines (ex. « AQUA, GLYCERIN, CETEARYL ALCOHOL, PARFUM, PHENOXYETHANOL »). "
+    "Les noms INCI sont en latin/anglais : ne les traduis JAMAIS, ne les reformule pas. "
+    "Ignore le texte marketing, le mode d'emploi, les avertissements et les codes de lot.\n"
+    "- Si un mot est illisible, omets-le plutôt que de le deviner. N'INVENTE aucun ingrédient.\n"
+    "- period_after_opening : durée après ouverture si le pictogramme pot ouvert est visible "
+    "(ex. « 12M », « 6M »), sinon null.\n"
+    "- confiance : elevee si la liste est nette et complète, moyenne si partielle, faible si "
+    "presque rien n'est lisible.\n"
+    "- Si la photo ne montre aucune liste d'ingrédients : "
+    'renvoie {"inci_text":null,"period_after_opening":null,"confiance":"faible"}.'
+)
+
+
+@app.route('/inci-read', methods=['POST'])
+def inci_read():
+    """Photo du dos d'un cosmétique → liste INCI brute (le score reste déterministe côté API)."""
+    if 'image' not in request.files:
+        return jsonify({'error': "'image' requise"}), 400
+
+    start_time = time.time()
+    try:
+        raw_bytes = request.files['image'].read()
+        if len(raw_bytes) > 8 * 1024 * 1024:
+            return jsonify({'error': 'Image trop grande (>8 MB)'}), 400
+
+        image = resize_for_ai(Image.open(io.BytesIO(raw_bytes)))
+        buf = io.BytesIO()
+        image.save(buf, format='JPEG', quality=90)
+        image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+
+        parsed = call_ai_vision(
+            INCI_SYSTEM, "Recopie la liste d'ingrédients INCI de cette photo.", image_b64,
+            timeout=150, max_tokens=1400,
+        )
+        if parsed is None:
+            return jsonify({'error': 'IA indisponible'}), 502
+
+        inci = parsed.get('inci_text')
+        if not isinstance(inci, str) or len(inci.strip()) < 5:
+            inci = None
+        else:
+            inci = ' '.join(inci.strip().split())[:5000]
+        pao = parsed.get('period_after_opening')
+        pao = pao.strip().upper().replace(' ', '') if isinstance(pao, str) and re.match(r'^\d{1,2}\s?M$', pao.strip(), re.I) else None
+        confiance = parsed.get('confiance')
+        if confiance not in ('faible', 'moyenne', 'elevee') or inci is None:
+            confiance = 'faible'
+
+        return jsonify({
+            'inci_text': inci,
+            'period_after_opening': pao,
+            'confiance': confiance,
+            'engine': 'vision',
+            'duration_ms': int((time.time() - start_time) * 1000),
+        })
+    except Exception as e:  # noqa: BLE001
+        app.logger.error(f'inci-read error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
 # ─── Identification produit depuis la photo de face (C11) ──────────────
 IDENTIFY_SYSTEM = (
-    "Tu es un expert des produits alimentaires vendus au Maroc. Tu regardes la photo de "
-    "la FACE AVANT d'un emballage et tu identifies le produit. Tu retournes UNIQUEMENT du "
-    "JSON valide :\n"
+    "Tu es un expert des produits alimentaires et cosmétiques vendus au Maroc. Tu regardes "
+    "la photo de la FACE AVANT d'un emballage et tu identifies le produit. Tu retournes "
+    "UNIQUEMENT du JSON valide :\n"
     '{"name_fr":"","brand":"","quantity":null,"halal_logo":null,'
+    '"kind":"food|cosmetic|other","cosmetic_category":null,'
     '"confiance":"faible|moyenne|elevee"}\n'
     "Règles STRICTES :\n"
+    "- kind : « food » pour un aliment ou une boisson, « cosmetic » pour un produit "
+    "d'hygiène ou de beauté (crème, shampooing, savon, dentifrice, maquillage, parfum, "
+    "déodorant…), « other » sinon.\n"
+    "- cosmetic_category : si kind=cosmetic, UNE valeur parmi visage, corps, cheveux, "
+    "hygiene, dents, maquillage, parfum, solaire, bebe, homme, eclaircissant, ongles ; "
+    "sinon null.\n"
     "- name_fr : le nom COMMERCIAL court, en français (ex. « Raïbi Jamila », « Biscuits "
     "fourrés chocolat »). Si l'emballage est en arabe, translittère ou traduis le nom "
     "commercial. N'inclus JAMAIS la marque seule comme nom, ni le poids.\n"
@@ -1139,8 +1219,8 @@ IDENTIFY_SYSTEM = (
     "certification d'un organisme) est RÉELLEMENT visible sur l'emballage. "
     "null si tu n'en vois pas ou si l'image ne permet pas d'en juger — ne mets "
     "jamais false par défaut, et ne déduis JAMAIS le halal du type de produit.\n"
-    "- Si la photo est illisible, floue, ou que ce n'est pas un emballage alimentaire : "
-    'renvoie {"name_fr":null,"brand":null,"quantity":null,"confiance":"faible"}.\n'
+    "- Si la photo est illisible, floue, ou que ce n'est pas un emballage : "
+    'renvoie {"name_fr":null,"brand":null,"quantity":null,"kind":"other","confiance":"faible"}.\n'
     "- N'INVENTE JAMAIS un nom ou une marque qui ne sont pas lisibles sur la photo."
 )
 
@@ -1163,7 +1243,7 @@ def identify_product():
         image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
 
         parsed = call_ai_vision(
-            IDENTIFY_SYSTEM, 'Identifie ce produit alimentaire.', image_b64,
+            IDENTIFY_SYSTEM, 'Identifie ce produit (aliment ou cosmétique).', image_b64,
             timeout=90, max_tokens=300,
         )
         if parsed is None:
@@ -1186,11 +1266,20 @@ def identify_product():
         # et un faux négatif ne doit jamais retirer un statut halal existant.
         halal_logo = True if parsed.get('halal_logo') is True else None
 
+        kind = parsed.get('kind')
+        if kind not in ('food', 'cosmetic', 'other'):
+            kind = 'food'
+        cosmetic_category = parsed.get('cosmetic_category')
+        if kind != 'cosmetic' or cosmetic_category not in COSMETIC_CATEGORIES:
+            cosmetic_category = None
+
         return jsonify({
             'name_fr': _clean(parsed.get('name_fr'), 120),
             'brand': _clean(parsed.get('brand'), 80),
             'quantity': _clean(parsed.get('quantity'), 40),
             'halal_logo': halal_logo,
+            'kind': kind,
+            'cosmetic_category': cosmetic_category,
             'confiance': confiance,
             'duration_ms': int((time.time() - start_time) * 1000),
         })

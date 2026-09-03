@@ -1,0 +1,111 @@
+---
+// Référentiel INCI (C23) — recherche + listes par niveau de risque
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 60)
+
+interface Row { id: number; inci_name: string; name_fr: string | null; risk_level: string; risk_types: string[] | null; risk_status: string | null }
+
+const FIELDS = 'id,inci_name,name_fr,risk_level,risk_types,risk_status'
+let results: Row[] = []
+const lists: Record<'banned' | 'high' | 'moderate', Row[]> = { banned: [], high: [], moderate: [] }
+
+try {
+  if (q) {
+    const res = await fetch(`${DIRECTUS_URL}/items/cosmetic_ingredients?filter[_or][0][inci_name][_icontains]=${encodeURIComponent(q)}&filter[_or][1][name_fr][_icontains]=${encodeURIComponent(q)}&fields=${FIELDS}&sort=inci_name&limit=60`, { signal: AbortSignal.timeout(5000) })
+    if (res.ok) results = (await res.json()).data ?? []
+  } else {
+    // Les entrées éditoriales (note_fr) d'abord : ce sont les plus utiles à lire
+    const [b, h, m] = await Promise.all((['banned', 'high', 'moderate'] as const).map((lvl) =>
+      fetch(`${DIRECTUS_URL}/items/cosmetic_ingredients?filter[risk_level][_eq]=${lvl}&filter[note_fr][_nnull]=true&fields=${FIELDS}&sort=inci_name&limit=60`, { signal: AbortSignal.timeout(5000) })
+        .then((r) => (r.ok ? r.json() : { data: [] })).then((j) => (j.data ?? []) as Row[]).catch(() => [] as Row[])))
+    lists.banned = b; lists.high = h; lists.moderate = m
+  }
+} catch { /* page vide mais servie */ }
+
+const LEVEL_STYLE: Record<string, string> = {
+  banned: 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200',
+  high: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
+  moderate: 'bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300',
+  low: 'bg-lime-50 text-lime-800 dark:bg-lime-950/30 dark:text-lime-200',
+  none: 'bg-muted text-foreground',
+  unknown: 'bg-muted text-muted-foreground',
+}
+const levelKey = (l: string) => (['banned', 'high', 'moderate', 'low', 'none'].includes(l) ? `beauty.risk.${l}` : 'beauty.risk.unknown') as Parameters<typeof t>[0]
+const typeKey = (ty: string) => (['endocrine', 'cmr', 'allergen', 'irritant', 'environment', 'restricted'].includes(ty) ? `beauty.type.${ty}` as Parameters<typeof t>[0] : null)
+---
+
+<Layout
+  title="Ingrédients cosmétiques (INCI) — risques, perturbateurs endocriniens | Bayen"
+  description="Référentiel de plus de 25 000 ingrédients cosmétiques : niveau de risque, perturbateurs endocriniens suspectés, allergènes, substances interdites (CosIng, SCCS)."
+  path="/ingredients-cosmetiques"
+>
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <div class="mb-6">
+      <h1 class="font-display text-2xl font-bold">{t('beauty.ingredientsTitle', locale)}</h1>
+      <p class="mt-1 text-sm text-muted-foreground">{t('beauty.ingredientsDesc', locale)}</p>
+    </div>
+
+    <form method="get" action="/ingredients-cosmetiques" class="search-hero mb-6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+      <input type="search" name="q" value={q} placeholder="PARABEN, PHENOXYETHANOL, résorcinol…" aria-label={t('beauty.ingredientsTitle', locale)} />
+      <button type="submit" class="go hidden sm:block">{t('search.searchBtn', locale)}</button>
+    </form>
+
+    {q ? (
+      <section>
+        <div class="sec-head-v2">
+          <h2>« {q} »</h2>
+          <span class="text-sm text-muted-foreground">{results.length} {t('search.results', locale)}</span>
+        </div>
+        {results.length === 0 ? (
+          <div class="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t('search.noResults', locale)}</div>
+        ) : (
+          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {results.map((r) => (
+              <li>
+                <a href={`/ingredients-cosmetiques/${encodeURIComponent(r.inci_name)}`} class="flex items-center gap-3 rounded-xl border bg-card p-3 hover:border-primary/40">
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-sm font-semibold">{r.inci_name}</span>
+                    {r.name_fr && <span class="block truncate text-xs text-muted-foreground">{r.name_fr}</span>}
+                  </span>
+                  <span class:list={['flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold', LEVEL_STYLE[r.risk_level] ?? LEVEL_STYLE.unknown]}>{t(levelKey(r.risk_level), locale)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    ) : (
+      <div class="space-y-8">
+        {(['banned', 'high', 'moderate'] as const).map((lvl) => (
+          <section>
+            <div class="sec-head-v2">
+              <h2>{t(levelKey(lvl), locale)}</h2>
+              <span class="text-sm text-muted-foreground">{lists[lvl].length}</span>
+            </div>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {lists[lvl].map((r) => (
+                <li>
+                  <a href={`/ingredients-cosmetiques/${encodeURIComponent(r.inci_name)}`} class="flex flex-col gap-1 rounded-xl border bg-card p-3 hover:border-primary/40">
+                    <span class="truncate text-sm font-semibold">{r.inci_name}</span>
+                    <span class="truncate text-xs text-muted-foreground">
+                      {r.name_fr ?? ''}
+                      {Array.isArray(r.risk_types) && r.risk_types.length > 0 && ` · ${r.risk_types.map((ty) => { const k = typeKey(ty); return k ? t(k, locale) : ty }).join(', ')}`}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+        <p class="text-xs text-muted-foreground">{t('beauty.disclaimer', locale)}</p>
+      </div>
+    )}
+  </main>
+</Layout>

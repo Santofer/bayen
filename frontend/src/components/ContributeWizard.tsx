@@ -21,7 +21,8 @@ import halalLogo from '@/assets/halal-logo.svg?raw'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
-type Step = 'barcode' | 'photos' | 'info' | 'nutrition' | 'price' | 'done'
+type Step = 'barcode' | 'photos' | 'info' | 'nutrition' | 'inci' | 'price' | 'done'
+type Universe = 'food' | 'cosmetic'
 type PhotoKind = 'front' | 'ingredients' | 'nutrition'
 
 interface Props {
@@ -49,6 +50,10 @@ const CATEGORIES: Array<{ id: number; label: string }> = [
   { id: 11, label: 'Pain & viennoiseries' },
   { id: 12, label: 'Plats préparés' },
 ]
+
+/** Catégories beauté (C23) — mêmes clés que products.cosmetic_category */
+const COSMETIC_CATEGORIES = ['visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum', 'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles'] as const
+type CosmeticCategory = (typeof COSMETIC_CATEGORIES)[number]
 
 const STORES = ['Marjane', 'Carrefour', 'BIM', 'Aswak Assalam', 'Atacadao', 'Épicerie du coin']
 
@@ -131,6 +136,14 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
   const [categoryId, setCategoryId] = useState<number | null>(null)
   const [halal, setHalal] = useState<boolean | null>(null)
 
+  // Univers (C23) : détecté sur la photo de face, modifiable à la main
+  const [universe, setUniverse] = useState<Universe>('food')
+  const [universeDetected, setUniverseDetected] = useState(false)
+  const [cosmeticCategory, setCosmeticCategory] = useState<CosmeticCategory | null>(null)
+  const [inciText, setInciText] = useState('')
+  const [pao, setPao] = useState('')
+  const [readingInci, setReadingInci] = useState(false)
+
   const [nutrition, setNutrition] = useState<Nutrition>({})
   const [readingLabel, setReadingLabel] = useState(false)
 
@@ -192,6 +205,8 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
               brand?: string | null
               quantity?: string | null
               halal_logo?: boolean | null
+              kind?: 'food' | 'cosmetic' | 'other'
+              cosmetic_category?: string | null
               confiance?: string
             }
             if (d.confiance !== 'faible') {
@@ -200,6 +215,13 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
               if (d.quantity) setQuantity(d.quantity)
               if (d.halal_logo === true) setHalal(true)
               if (d.name_fr || d.brand) setPrefilled(true)
+              if (d.kind === 'cosmetic' || d.kind === 'food') {
+                setUniverse(d.kind)
+                setUniverseDetected(true)
+              }
+              if (d.kind === 'cosmetic' && (COSMETIC_CATEGORIES as readonly string[]).includes(d.cosmetic_category ?? '')) {
+                setCosmeticCategory(d.cosmetic_category as CosmeticCategory)
+              }
             }
           }
         } catch { /* la saisie manuelle reste possible */ } finally {
@@ -207,8 +229,25 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
         }
       }
 
+      // Liste INCI (beauté) → lecture vision, la personne vérifie
+      if (kind === 'ingredients' && universe === 'cosmetic') {
+        setReadingInci(true)
+        const form = new FormData()
+        form.append('image', file)
+        try {
+          const res = await fetch('/api/inci-read', { method: 'POST', body: form })
+          if (res.ok) {
+            const d = (await res.json()) as { inci_text?: string | null; period_after_opening?: string | null; confiance?: string }
+            if (d.inci_text && d.confiance !== 'faible') setInciText((cur) => cur.trim() ? cur : d.inci_text ?? '')
+            if (d.period_after_opening) setPao(d.period_after_opening)
+          }
+        } catch { /* saisie manuelle */ } finally {
+          setReadingInci(false)
+        }
+      }
+
       // Tableau nutritionnel → lecture OCR + vision
-      if (kind === 'nutrition') {
+      if (kind === 'nutrition' && universe === 'food') {
         setReadingLabel(true)
         const form = new FormData()
         form.append('image_nutrition', file)
@@ -240,7 +279,7 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
         return cur ? { ...p, [kind]: { ...cur, uploading: false } } : p
       })
     }
-  }, [barcode, t])
+  }, [barcode, t, universe])
 
   // ── Envoi final ─────────────────────────────────────────────────────
   const submit = async (withPrice: boolean): Promise<void> => {
@@ -252,15 +291,22 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
         name_fr: name.trim(),
         brand: brand.trim() || undefined,
         quantity: quantity.trim() || undefined,
-        category_id: categoryId ?? undefined,
+        category_id: universe === 'food' ? (categoryId ?? undefined) : undefined,
         is_halal: halal === true ? true : undefined,
         image_front: photos.front?.fileId,
         image_ingredients: photos.ingredients?.fileId,
-        image_nutrition: photos.nutrition?.fileId,
+        image_nutrition: universe === 'food' ? photos.nutrition?.fileId : undefined,
+        product_type: universe,
       }
-      for (const { key } of NUTRIENTS) {
-        const v = nutrition[key]
-        if (typeof v === 'number') body[key] = v
+      if (universe === 'cosmetic') {
+        if (inciText.trim()) body.inci_text = inciText.trim()
+        if (cosmeticCategory) body.cosmetic_category = cosmeticCategory
+        if (/^\d{1,2}\s?M$/i.test(pao.trim())) body.period_after_opening = pao.trim().toUpperCase().replace(/\s/g, '')
+      } else {
+        for (const { key } of NUTRIENTS) {
+          const v = nutrition[key]
+          if (typeof v === 'number') body[key] = v
+        }
       }
 
       const res = await fetch(`${API}/bayen-api/contribute`, {
@@ -325,16 +371,18 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
   }
 
   // ── Fragments d'interface ───────────────────────────────────────────
-  const stepIndex = { barcode: 0, photos: 1, info: 2, nutrition: 3, price: 4, done: 5 }[step]
+  const stepIndex = { barcode: 0, photos: 1, info: 2, nutrition: 3, inci: 3, price: 4, done: 5 }[step]
   const stepLabel = {
     photos: t('contrib.stepPhotos'),
     info: t('contrib.stepProduct'),
     nutrition: t('contrib.stepNutrition'),
+    inci: t('contrib.stepInci'),
     price: t('contrib.stepPrice'),
-  }[step as 'photos' | 'info' | 'nutrition' | 'price']
+  }[step as 'photos' | 'info' | 'nutrition' | 'inci' | 'price']
+  const thirdStep: Step = universe === 'cosmetic' ? 'inci' : 'nutrition'
 
   const back = (): void => {
-    const order: Step[] = ['barcode', 'photos', 'info', 'nutrition', 'price']
+    const order: Step[] = ['barcode', 'photos', 'info', thirdStep, 'price']
     const i = order.indexOf(step)
     if (i > 0) setStep(order[i - 1] as Step)
     else history.back()
@@ -359,12 +407,12 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
             </p>
           )}
         </div>
-        {(step === 'photos' || step === 'nutrition' || step === 'price') && (
+        {(step === 'photos' || step === 'nutrition' || step === 'inci' || step === 'price') && (
           <button
             type="button"
             onClick={() => {
               if (step === 'photos') setStep('info')
-              else if (step === 'nutrition') setStep('price')
+              else if (step === 'nutrition' || step === 'inci') setStep('price')
               else void submit(false)
             }}
             className="-me-3 flex min-h-[44px] items-center px-3 text-[13px] font-bold text-primary"
@@ -441,6 +489,36 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
       </label>
     )
   }
+
+  const UniverseSwitch = (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[13.5px] font-bold">{t('contrib.universe')}</span>
+      <div className="grid grid-cols-2 gap-1 rounded-full border bg-card p-1">
+        {(['food', 'cosmetic'] as const).map((u) => (
+          <button
+            key={u}
+            type="button"
+            onClick={() => setUniverse(u)}
+            aria-pressed={universe === u}
+            className={
+              universe === u
+                ? u === 'cosmetic'
+                  ? 'min-h-[42px] rounded-full bg-beauty text-sm font-bold text-beauty-foreground'
+                  : 'min-h-[42px] rounded-full bg-primary text-sm font-bold text-primary-foreground'
+                : 'min-h-[42px] rounded-full text-sm font-semibold text-muted-foreground'
+            }
+          >
+            {u === 'food' ? t('beauty.food') : t('beauty.cosmetic')}
+          </button>
+        ))}
+      </div>
+      {universeDetected && (
+        <p className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+          <Sparkles size={13} /> {t('contrib.universeDetected')}
+        </p>
+      )}
+    </div>
+  )
 
   const Cta = ({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) => (
     <button
@@ -540,8 +618,22 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
           <h1 className="font-display text-xl font-bold">{t('contrib.photosTitle')}</h1>
 
           <PhotoTile kind="front" title={t('contrib.photoFront')} hint={t('contrib.photoFrontHint')} />
-          <PhotoTile kind="ingredients" title={t('contrib.photoIngredients')} hint={t('contrib.photoIngredientsHint')} />
-          <PhotoTile kind="nutrition" title={t('contrib.photoNutrition')} hint={t('contrib.photoNutritionHint')} />
+          {photos.front && UniverseSwitch}
+          <PhotoTile
+            kind="ingredients"
+            title={universe === 'cosmetic' ? t('inci.title') : t('contrib.photoIngredients')}
+            hint={universe === 'cosmetic' ? t('inci.photoHint') : t('contrib.photoIngredientsHint')}
+          />
+          {universe === 'food' && (
+            <PhotoTile kind="nutrition" title={t('contrib.photoNutrition')} hint={t('contrib.photoNutritionHint')} />
+          )}
+
+          {readingInci && (
+            <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Loader2 size={15} className="animate-spin" />
+              {t('inci.reading')}
+            </p>
+          )}
 
           {identifying && (
             <p className="flex items-center gap-2 text-sm font-semibold text-primary">
@@ -612,6 +704,30 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
             />
           </label>
 
+          {UniverseSwitch}
+
+          {universe === 'cosmetic' ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-[13.5px] font-bold">{t('beauty.category')}</span>
+              <div className="flex flex-wrap gap-2">
+                {COSMETIC_CATEGORIES.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCosmeticCategory(cosmeticCategory === c ? null : c)}
+                    className={
+                      cosmeticCategory === c
+                        ? 'flex min-h-[46px] items-center gap-1.5 rounded-full bg-beauty px-4 text-sm font-bold text-beauty-foreground'
+                        : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
+                    }
+                  >
+                    {cosmeticCategory === c && <Check size={14} strokeWidth={3} />}
+                    {t(`beauty.cat.${c}` as `beauty.cat.${CosmeticCategory}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
           <div className="flex flex-col gap-2">
             <span className="text-[13.5px] font-bold">{t('contrib.category')}</span>
             <div className="flex flex-wrap gap-2">
@@ -632,6 +748,7 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
               ))}
             </div>
           </div>
+          )}
 
           <div className="flex items-center gap-3.5 rounded-[20px] border bg-card p-4">
             <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-full bg-primary/[0.09] text-primary">
@@ -668,7 +785,7 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
             <Cta
               label={t('contrib.continue')}
               disabled={name.trim().length < 2}
-              onClick={() => setStep('nutrition')}
+              onClick={() => setStep(thirdStep)}
             />
           </div>
         </div>
@@ -731,6 +848,56 @@ export default function ContributeWizard({ initialBarcode = '' }: Props) {
           >
             <HelpCircle size={17} />
             {t('contrib.noTable')}
+          </button>
+
+          <div className="mt-auto pt-4">
+            <Cta label={t('contrib.continue')} onClick={() => setStep('price')} />
+          </div>
+        </div>
+      )}
+
+      {step === 'inci' && (
+        <div className="flex flex-1 flex-col gap-3.5">
+          <div>
+            <h1 className="font-display text-xl font-bold">{t('contrib.inciTitle')}</h1>
+            {(photos.ingredients || readingInci) && (
+              <p className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-primary">
+                {readingInci ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+                {readingInci ? t('inci.reading') : t('inci.read')}
+              </p>
+            )}
+          </div>
+
+          {!photos.ingredients && (
+            <PhotoTile kind="ingredients" title={t('inci.title')} hint={t('inci.photoHint')} />
+          )}
+
+          <textarea
+            value={inciText}
+            onChange={(e) => setInciText(e.target.value)}
+            placeholder={t('inci.placeholder')}
+            rows={7}
+            className="w-full rounded-2xl border bg-card px-4 py-3 text-sm font-medium uppercase leading-relaxed outline-none focus:border-primary"
+          />
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[13.5px] font-bold">{t('inci.paoLabel')}</span>
+            <input
+              type="text"
+              value={pao}
+              onChange={(e) => setPao(e.target.value)}
+              placeholder="12M"
+              className="min-h-[52px] w-32 rounded-2xl border bg-card px-4 text-base font-semibold uppercase outline-none focus:border-primary"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={() => { setInciText(''); setStep('price') }}
+            className="flex min-h-[50px] items-center justify-center gap-2.5 rounded-full bg-secondary text-sm font-semibold text-muted-foreground"
+          >
+            <HelpCircle size={17} />
+            {t('inci.noList')}
           </button>
 
           <div className="mt-auto pt-4">

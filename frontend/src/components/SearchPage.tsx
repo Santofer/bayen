@@ -41,7 +41,15 @@ const NUTRISCORE_COLORS: Record<NutriScoreGrade, string> = {
 // Types internes
 // ────────────────────────────────────────────────────────────────
 
+type Universe = 'food' | 'cosmetic'
+const COSMETIC_CATEGORIES = ['visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum', 'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles'] as const
+
 interface Filters {
+  /** Univers (C23) : les deux ne se mélangent jamais dans une même liste */
+  universe: Universe
+  cosmeticCategory: string
+  riskFree: boolean
+  noEndocrine: boolean
   query: string
   categoryId: number | null
   scoreMin: number
@@ -57,6 +65,10 @@ interface Filters {
 }
 
 const defaultFilters: Filters = {
+  universe: 'food',
+  cosmeticCategory: '',
+  riskFree: false,
+  noEndocrine: false,
   query: '',
   categoryId: null,
   scoreMin: 0,
@@ -83,8 +95,9 @@ interface RiskyAdditive {
 function buildQueryParams(filters: Filters, offset: number): string {
   const params = new URLSearchParams()
 
-  // Filtre status obligatoire
+  // Filtre status obligatoire + univers alimentaire (la beauté passe par l'endpoint custom)
   params.set('filter[status][_eq]', 'published')
+  params.set('filter[product_type][_eq]', 'food')
 
   // Recherche texte
   if (filters.query.trim()) {
@@ -153,6 +166,12 @@ function buildQueryParams(filters: Filters, offset: number): string {
  */
 function buildCustomParams(filters: Filters, offset: number): string {
   const p = new URLSearchParams()
+  p.set('type', filters.universe)
+  if (filters.universe === 'cosmetic') {
+    if (filters.cosmeticCategory) p.set('cosmetic_category', filters.cosmeticCategory)
+    if (filters.riskFree) p.set('risk_free', 'true')
+    if (filters.noEndocrine) p.set('no_endocrine', 'true')
+  }
   if (filters.query.trim()) p.set('q', filters.query.trim())
   if (filters.categoryId !== null) p.set('category_id', String(filters.categoryId))
   if (filters.scoreMin > 0) p.set('score_min', String(filters.scoreMin))
@@ -172,9 +191,26 @@ function buildCustomParams(filters: Filters, offset: number): string {
 // Composant principal
 // ────────────────────────────────────────────────────────────────
 
-export default function SearchPage() {
+interface SearchPageProps {
+  /** Page /beaute : univers cosmétique d'emblée */
+  initialUniverse?: Universe
+  initialCosmeticCategory?: string
+}
+
+export default function SearchPage({ initialUniverse, initialCosmeticCategory }: SearchPageProps = {}) {
   const { t } = useLocale()
-  const [filters, setFilters] = useState<Filters>(defaultFilters)
+  const [filters, setFilters] = useState<Filters>(() => {
+    // ?univers=beaute&cat=… (liens depuis la fiche produit et les catégories beauté)
+    let universe: Universe = initialUniverse ?? 'food'
+    let cat = initialCosmeticCategory ?? ''
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search)
+      if (sp.get('univers') === 'beaute') universe = 'cosmetic'
+      const c = sp.get('cat') ?? ''
+      if ((COSMETIC_CATEGORIES as readonly string[]).includes(c)) cat = c
+    }
+    return { ...defaultFilters, universe, cosmeticCategory: universe === 'cosmetic' ? cat : '' }
+  })
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [totalCount, setTotalCount] = useState(0)
@@ -225,8 +261,8 @@ export default function SearchPage() {
   const fetchProducts = useCallback(
     async (currentOffset: number, append: boolean) => {
       const filtersWithDebouncedQuery = { ...filters, query: debouncedQuery }
-      // Exclusion d'additifs active → endpoint custom SQL (voir buildCustomParams)
-      const url = filtersWithDebouncedQuery.excludeAdditives.length > 0
+      // Exclusion d'additifs active ou univers beauté → endpoint custom SQL (voir buildCustomParams)
+      const url = filtersWithDebouncedQuery.excludeAdditives.length > 0 || filtersWithDebouncedQuery.universe === 'cosmetic'
         ? `${DIRECTUS_URL}/bayen-api/search-products?${buildCustomParams(filtersWithDebouncedQuery, currentOffset)}`
         : `${DIRECTUS_URL}/items/products?${buildQueryParams(filtersWithDebouncedQuery, currentOffset)}`
 
@@ -264,7 +300,9 @@ export default function SearchPage() {
         if (!append && localProducts.length === 0 && debouncedQuery.trim().length >= 3) {
           setSearchingOff(true)
           try {
-            const offUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(debouncedQuery.trim())}&json=1&page_size=20&lc=fr&cc=ma`
+            const isBeauty = filtersWithDebouncedQuery.universe === 'cosmetic'
+            const offHost = isBeauty ? 'https://world.openbeautyfacts.org' : 'https://world.openfoodfacts.org'
+            const offUrl = `${offHost}/cgi/search.pl?search_terms=${encodeURIComponent(debouncedQuery.trim())}&json=1&page_size=20&lc=fr&cc=ma`
             const offRes = await fetch(offUrl)
             if (offRes.ok) {
               const offJson = await offRes.json()
@@ -283,6 +321,8 @@ export default function SearchPage() {
                   additives: [],
                   scan_count: 0,
                   status: 'published',
+                  product_type: isBeauty ? 'cosmetic' : 'food',
+                  cosmetic_risk: null,
                 }))
               setOffResults(offProducts)
             }
@@ -311,6 +351,10 @@ export default function SearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     debouncedQuery,
+    filters.universe,
+    filters.cosmeticCategory,
+    filters.riskFree,
+    filters.noEndocrine,
     filters.categoryId,
     filters.scoreMin,
     filters.nutriscoreGrades,
@@ -343,7 +387,23 @@ export default function SearchPage() {
     })
   }
 
+  const setUniverse = (u: Universe): void => {
+    setFilters((prev) => ({ ...defaultFilters, universe: u, query: prev.query, sort: prev.sort }))
+    setOffResults([])
+    try {
+      const url = new URL(window.location.href)
+      if (u === 'cosmetic') url.searchParams.set('univers', 'beaute')
+      else url.searchParams.delete('univers')
+      url.searchParams.delete('cat')
+      window.history.replaceState(null, '', url.toString())
+    } catch { /* environnement sans history */ }
+  }
+  const isBeauty = filters.universe === 'cosmetic'
+
   const hasActiveFilters =
+    filters.cosmeticCategory !== '' ||
+    filters.riskFree ||
+    filters.noEndocrine ||
     filters.categoryId !== null ||
     filters.scoreMin > 0 ||
     filters.nutriscoreGrades.length > 0 ||
@@ -361,6 +421,27 @@ export default function SearchPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
+      {/* Univers (C23) : Alimentation | Beauté — deux bases, deux scores, jamais mélangés */}
+      <div className="grid grid-cols-2 gap-1 rounded-full border bg-card p-1 max-w-sm" role="tablist">
+        {(['food', 'cosmetic'] as const).map((u) => (
+          <button
+            key={u}
+            type="button"
+            role="tab"
+            aria-selected={filters.universe === u}
+            onClick={() => setUniverse(u)}
+            className={cn(
+              'min-h-[40px] rounded-full text-sm font-bold transition-colors',
+              filters.universe === u
+                ? u === 'cosmetic' ? 'bg-beauty text-beauty-foreground' : 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted'
+            )}
+          >
+            {u === 'food' ? t('beauty.food') : t('beauty.cosmetic')}
+          </button>
+        ))}
+      </div>
+
       {/* Barre de recherche — héroïque (maquette v2) */}
       <div className="search-hero">
         <svg
@@ -376,7 +457,7 @@ export default function SearchPage() {
         </svg>
         <input
           type="search"
-          placeholder={t('search.placeholder')}
+          placeholder={isBeauty ? t('beauty.searchPlaceholder') : t('search.placeholder')}
           value={filters.query}
           onChange={(e) => updateFilter('query', e.target.value)}
         />
@@ -415,6 +496,9 @@ export default function SearchPage() {
               <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground text-primary text-[10px] font-bold">
                 {
                   [
+                    filters.cosmeticCategory !== '',
+                    filters.riskFree,
+                    filters.noEndocrine,
                     filters.categoryId !== null,
                     filters.scoreMin > 0,
                     filters.nutriscoreGrades.length > 0,
@@ -433,7 +517,7 @@ export default function SearchPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setFilters({ ...defaultFilters, query: filters.query, sort: filters.sort })}
+              onClick={() => setFilters({ ...defaultFilters, universe: filters.universe, query: filters.query, sort: filters.sort })}
               className="text-xs text-muted-foreground"
             >
               {t('search.resetFilters')}
@@ -456,7 +540,37 @@ export default function SearchPage() {
       </div>
 
       {/* Panneau de filtres (dépliable) */}
-      {filtersOpen && (
+      {filtersOpen && isBeauty && (
+        <div className="rounded-xl border bg-card p-4 space-y-5 animate-in slide-in-from-top-2 fade-in duration-200">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">{t('beauty.category')}</label>
+            <select
+              value={filters.cosmeticCategory}
+              onChange={(e) => updateFilter('cosmeticCategory', e.target.value)}
+              className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              <option value="">{t('beauty.allCategories')}</option>
+              {COSMETIC_CATEGORIES.map((c) => (
+                <option key={c} value={c}>{t(`beauty.cat.${c}` as `beauty.cat.${(typeof COSMETIC_CATEGORIES)[number]}`)}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t('search.scoreMin')} : <span className="font-bold text-primary">{filters.scoreMin}</span>
+            </label>
+            <input type="range" min={0} max={100} step={5} value={filters.scoreMin}
+              onChange={(e) => updateFilter('scoreMin', Number(e.target.value))} className="w-full accent-primary" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <ToggleChip label={t('beauty.riskFree')} active={filters.riskFree} onClick={() => updateFilter('riskFree', !filters.riskFree)} />
+            <ToggleChip label={t('beauty.noEndocrine')} active={filters.noEndocrine} onClick={() => updateFilter('noEndocrine', !filters.noEndocrine)} />
+            <ToggleChip label={t('search.halal')} active={filters.halal} onClick={() => updateFilter('halal', !filters.halal)} />
+          </div>
+        </div>
+      )}
+
+      {filtersOpen && !isBeauty && (
         <div className="rounded-xl border bg-card p-4 space-y-5 animate-in slide-in-from-top-2 fade-in duration-200">
           {/* Catégorie */}
           <div className="space-y-1.5">
@@ -650,7 +764,7 @@ export default function SearchPage() {
               <path d="M12 8h.01" />
             </svg>
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {t('search.offResults')}
+              {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {isBeauty ? t('beauty.obfResults') : t('search.offResults')}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

@@ -1,0 +1,77 @@
+---
+// Univers beauté (C23) — page d'entrée : recherche cosmétiques + méthode
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import SearchPage from '@/components/SearchPage'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const CATS = ['visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum', 'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles'] as const
+const cat = Astro.url.searchParams.get('cat') ?? ''
+const initialCat = (CATS as readonly string[]).includes(cat) ? cat : ''
+// Libellés calculés ici : un cast générique dans le JSX Astro fait trébucher le parseur
+const catLabels: Record<string, string> = Object.fromEntries(
+  CATS.map((c) => [c, t(`beauty.cat.${c}` as Parameters<typeof t>[0], locale)])
+)
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Cosmétiques et hygiène au Maroc — score beauté Bayen',
+  description: t('beauty.hubDesc', locale),
+  url: 'https://bayen.ma/beaute',
+}
+---
+
+<Layout
+  title="Cosmétiques et hygiène au Maroc — score beauté | Bayen"
+  description="Crèmes, shampooings, savons, dentifrices, maquillage vendus au Maroc : Bayen lit la liste INCI et repère perturbateurs endocriniens, allergènes et substances interdites."
+  path="/beaute"
+  jsonLd={jsonLd}
+>
+  <main>
+    <section class="mx-auto max-w-5xl px-4 pt-8 pb-2">
+      <div class="rounded-3xl border border-beauty/25 bg-gradient-to-br from-beauty/15 via-beauty/5 to-transparent p-6 sm:p-8">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-beauty px-3 py-1 text-xs font-bold text-beauty-foreground">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>
+          {t('nav.beauty', locale)}
+        </span>
+        <h1 class="font-display mt-3 text-2xl sm:text-3xl font-bold leading-tight">{t('beauty.hubTitle', locale)}</h1>
+        <p class="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{t('beauty.hubDesc', locale)}</p>
+        <div class="mt-5 flex flex-wrap gap-2">
+          {CATS.map((c) => (
+            <a
+              href={`/beaute?cat=${c}`}
+              class:list={['rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors', initialCat === c ? 'border-beauty bg-beauty text-beauty-foreground' : 'bg-card hover:bg-muted']}
+            >
+              {catLabels[c]}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <SearchPage client:load initialUniverse="cosmetic" initialCosmeticCategory={initialCat} />
+
+    <section class="mx-auto max-w-5xl px-4 pb-16">
+      <div class="rounded-3xl border bg-card p-6 sm:p-8">
+        <h2 class="font-display text-xl font-bold">{t('beauty.howTitle', locale)}</h2>
+        <ol class="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground/90">
+          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty text-sm font-bold text-beauty-foreground">1</span><span>{t('beauty.how1', locale)}</span></li>
+          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty text-sm font-bold text-beauty-foreground">2</span><span>{t('beauty.how2', locale)}</span></li>
+          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty text-sm font-bold text-beauty-foreground">3</span><span>{t('beauty.how3', locale)}</span></li>
+        </ol>
+        <p class="mt-4 text-xs text-muted-foreground">{t('beauty.disclaimer', locale)}</p>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <a href="/ingredients-cosmetiques" class="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-beauty/40 bg-card px-5 text-sm font-bold text-beauty">
+            {t('beauty.ingredientsTitle', locale)} →
+          </a>
+          <a href="/contribuer" class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground">
+            {t('nav.contribute', locale)}
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

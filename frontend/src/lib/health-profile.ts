@@ -15,6 +15,10 @@ export interface HealthProfile {
   /** Codes E exacts à éviter (E621, E102…) */
   avoidAdditives: string[]
   avoidPalmOil: boolean
+  /** Beauté (C23) : alerte si un cosmétique contient un PE suspecté/avéré */
+  avoidEndocrine: boolean
+  /** Beauté : alerte sur les 26 allergènes parfumants */
+  avoidFragranceAllergens: boolean
 }
 
 const KEY = 'bayen_health_profile'
@@ -24,6 +28,8 @@ export const EMPTY_PROFILE: HealthProfile = {
   allergens: [],
   avoidAdditives: [],
   avoidPalmOil: false,
+  avoidEndocrine: false,
+  avoidFragranceAllergens: false,
 }
 
 /** Les 14 allergènes à déclaration obligatoire (UE / ONSSA) + synonymes FR. */
@@ -56,6 +62,8 @@ export function getProfile(): HealthProfile {
       allergens: Array.isArray(p.allergens) ? p.allergens : [],
       avoidAdditives: Array.isArray(p.avoidAdditives) ? p.avoidAdditives : [],
       avoidPalmOil: Boolean(p.avoidPalmOil),
+      avoidEndocrine: Boolean(p.avoidEndocrine),
+      avoidFragranceAllergens: Boolean(p.avoidFragranceAllergens),
     }
   } catch {
     return EMPTY_PROFILE
@@ -70,6 +78,7 @@ export function saveProfile(profile: HealthProfile): void {
 
 export function isProfileEmpty(p: HealthProfile): boolean {
   return p.allergens.length === 0 && p.avoidAdditives.length === 0 && !p.avoidPalmOil
+    && !p.avoidEndocrine && !p.avoidFragranceAllergens
 }
 
 export function onProfileChange(cb: () => void): () => void {

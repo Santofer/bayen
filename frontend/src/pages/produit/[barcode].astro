@@ -15,6 +15,8 @@ import ProductAlternatives from '@/components/ProductAlternatives.tsx'
 import ShareButton from '@/components/ShareButton.tsx'
 import HalalBadge from '@/components/HalalBadge.tsx'
 import PriceSection from '@/components/PriceSection.tsx'
+import CosmeticScore, { type InciIngredient } from '@/components/CosmeticScore.tsx'
+import InciList from '@/components/InciList.tsx'
 import AddToCartButton from '@/components/AddToCartButton.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
@@ -42,6 +44,40 @@ let scanResult: {
 
 let fetchError: string | null = null
 
+// Univers beauté (C23) : ingrédients INCI appariés (jointure) pour la fiche cosmétique
+let cosmeticIngredients: InciIngredient[] = []
+async function loadCosmeticIngredients(productId: string): Promise<InciIngredient[]> {
+  try {
+    const res = await fetch(
+      `${DIRECTUS_URL}/items/products_cosmetic_ingredients?filter[products_id][_eq]=${productId}&fields=rank,raw_text,ingredient_id.id,ingredient_id.inci_name,ingredient_id.name_fr,ingredient_id.risk_level,ingredient_id.risk_types,ingredient_id.risk_status,ingredient_id.restriction_fr,ingredient_id.note_fr,ingredient_id.source_label,ingredient_id.source_url&sort=rank&limit=-1`,
+      { signal: AbortSignal.timeout(4000) }
+    )
+    if (!res.ok) return []
+    const data = await res.json()
+    return (data.data ?? [])
+      .filter((r: Record<string, unknown>) => r.ingredient_id && typeof r.ingredient_id === 'object')
+      .map((r: Record<string, unknown>) => {
+        const i = r.ingredient_id as Record<string, unknown>
+        return {
+          id: i.id as number,
+          inci_name: String(i.inci_name),
+          name_fr: (i.name_fr as string | null) ?? null,
+          risk_level: String(i.risk_level ?? 'unknown'),
+          risk_types: Array.isArray(i.risk_types) ? (i.risk_types as string[]) : [],
+          risk_status: (i.risk_status as string | null) ?? null,
+          restriction_fr: (i.restriction_fr as string | null) ?? null,
+          note_fr: (i.note_fr as string | null) ?? null,
+          source_label: (i.source_label as string | null) ?? null,
+          source_url: (i.source_url as string | null) ?? null,
+          rank: Number(r.rank ?? 0),
+          raw_text: (r.raw_text as string | null) ?? null,
+        }
+      })
+  } catch {
+    return []
+  }
+}
+
 // 1. Chercher dans Directus (isolé — un échec ici ne bloque pas le fallback OFF)
 try {
   const directusRes = await fetch(
@@ -58,7 +94,12 @@ try {
 
       // Toujours calculer le score complet (pour avoir additives_detail)
       let scoreObj: Record<string, unknown>
-      {
+      if (p.product_type === 'cosmetic') {
+        // Univers beauté : le score vient de cosmetic_risk (déterministe, côté API)
+        scoreObj = (p.cosmetic_risk as Record<string, unknown> | null)
+          ?? { total: null, label: null, unscored: true, incomplete: true }
+        cosmeticIngredients = await loadCosmeticIngredients(p.id as string)
+      } else {
         const additiveCodes: string[] = Array.isArray(p.additives) ? p.additives : []
         let additiveRisks: Array<{ code: string; risk_level: RiskLevel }> = []
         if (additiveCodes.length > 0) {
@@ -253,6 +294,32 @@ try {
   fetchError = 'Impossible de contacter Open Food Facts'
 }
 
+// 2b. Open Beauty Facts — via /bayen-api/scan (import + score cosmétique déterministe).
+//     L'endpoint essaie OFF puis OBF ; ici OFF a déjà échoué, seul OBF peut répondre.
+if (!scanResult.found && !fetchError) {
+  try {
+    const scanRes = await fetch(`${DIRECTUS_URL}/bayen-api/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barcode, session_id: `auto-${Date.now()}`, track: false }),
+      signal: AbortSignal.timeout(12000),
+    })
+    if (scanRes.ok) {
+      const scanData = await scanRes.json()
+      if (scanData.found && scanData.product?.product_type === 'cosmetic') {
+        const sp = scanData.product as Record<string, unknown>
+        cosmeticIngredients = await loadCosmeticIngredients(sp.id as string)
+        scanResult = {
+          found: true,
+          source: 'directus',
+          product: sp,
+          score: (sp.cosmetic_risk as Record<string, unknown> | null) ?? { total: null, label: null, unscored: true, incomplete: true },
+        }
+      }
+    }
+  } catch { /* non bloquant */ }
+}
+
 // 3. Auto-import dans Directus si trouvé sur OFF (fire-and-forget côté serveur)
 // L'endpoint /bayen-api/scan gère l'import proprement (pas de problème UUID image_front)
 let autoImported = false
@@ -288,6 +355,11 @@ if (scanResult.found && scanResult.source === 'open_food_facts') {
 
 const product = scanResult.product as Record<string, unknown> | undefined
 const score = scanResult.score as Record<string, unknown> | undefined
+const isCosmetic = product?.product_type === 'cosmetic'
+const cosmeticRisk = isCosmetic ? (score as unknown as import('@/lib/types').CosmeticRiskSummary | null) : null
+const cosmeticCategoryKey = isCosmetic && typeof product?.cosmetic_category === 'string'
+  ? (`beauty.cat.${product.cosmetic_category}` as Parameters<typeof t>[0])
+  : null
 
 // Alternatives plus saines (même catégorie, meilleur score)
 // Entrée d'historique local (C14) — sérialisée vers le script client en bas de page
@@ -303,7 +375,21 @@ const historyEntry = {
 let alternatives: Array<Record<string, unknown>> = []
 let isBestInCategory = false
 
-if (scanResult.source === 'directus' && product?.category_id && score?.total != null) {
+// Alternatives beauté : même catégorie cosmétique, meilleur score
+if (isCosmetic && scanResult.source === 'directus' && product?.cosmetic_category && score?.total != null) {
+  try {
+    const altRes = await fetch(
+      `${DIRECTUS_URL}/items/products?filter[product_type][_eq]=cosmetic&filter[cosmetic_category][_eq]=${product.cosmetic_category}&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score&limit=3&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,cosmetic_risk`,
+      { signal: AbortSignal.timeout(3000) }
+    )
+    if (altRes.ok) {
+      alternatives = (await altRes.json()).data ?? []
+      if (alternatives.length === 0) isBestInCategory = true
+    }
+  } catch { /* non critique */ }
+}
+
+if (!isCosmetic && scanResult.source === 'directus' && product?.category_id && score?.total != null) {
   try {
     const categoryId = typeof product.category_id === 'object'
       ? (product.category_id as Record<string, unknown>).id
@@ -357,8 +443,22 @@ const curSat = _n(product?.fat_saturated)
 const curNova = _n(product?.nova_group)
 const curAddCount = Array.isArray(product?.additives) ? (product!.additives as unknown[]).length : 0
 
+const curFlagged = cosmeticRisk
+  ? (cosmeticRisk.counts.banned ?? 0) + (cosmeticRisk.counts.high ?? 0) + (cosmeticRisk.counts.moderate ?? 0) + (cosmeticRisk.counts.low ?? 0)
+  : 0
+
 function altReasons(alt: Record<string, unknown>): string[] {
   const reasons: string[] = []
+  if (isCosmetic) {
+    const r = alt.cosmetic_risk as import('@/lib/types').CosmeticRiskSummary | null
+    if (!r) return reasons
+    const n = (r.counts.banned ?? 0) + (r.counts.high ?? 0) + (r.counts.moderate ?? 0) + (r.counts.low ?? 0)
+    if (!r.cap_reason) reasons.push('Aucun ingrédient à risque')
+    else if (n < curFlagged) reasons.push(`${curFlagged - n} ingrédient${curFlagged - n > 1 ? 's' : ''} à surveiller en moins`)
+    const curPe = cosmeticRisk?.worst.some((w) => w.risk_types.includes('endocrine'))
+    if (curPe && !r.worst.some((w) => w.risk_types.includes('endocrine'))) reasons.push('Sans perturbateur endocrinien')
+    return reasons.slice(0, 3)
+  }
   const addCount = Array.isArray(alt.additives) ? (alt.additives as unknown[]).length : 0
   if (curAddCount > 0 && addCount < curAddCount) {
     reasons.push(addCount === 0 ? 'Sans additif' : `${curAddCount - addCount} additif${curAddCount - addCount > 1 ? 's' : ''} en moins`)
@@ -375,12 +475,20 @@ function altReasons(alt: Record<string, unknown>): string[] {
 }
 
 // SEO
+const capText = cosmeticRisk?.cap_reason
+  ? ({ banned: 'contient un ingrédient interdit', high: 'contient un ingrédient à risque élevé', moderate: 'contient un ingrédient à risque modéré', low: 'quelques ingrédients à surveiller' } as Record<string, string>)[cosmeticRisk.cap_reason.risk_level] ?? ''
+  : (cosmeticRisk?.total != null ? 'aucun ingrédient à risque connu' : 'liste INCI à compléter')
+
 const pageTitle = product
-  ? `${product.name_fr} (${product.brand}) — Score ${score?.total ?? '?'}/100 | Bayen`
+  ? isCosmetic
+    ? `${product.name_fr} (${product.brand}) — Score beauté ${score?.total ?? '?'}/100 | Bayen`
+    : `${product.name_fr} (${product.brand}) — Score ${score?.total ?? '?'}/100 | Bayen`
   : `Produit ${barcode} — Bayen`
 
 const pageDescription = product
-  ? `${product.name_fr} de ${product.brand} : score ${score?.total ?? '?'}/100, Nutri-Score ${score?.nutriscore_grade ?? '?'}, NOVA ${score?.nova_group ?? '?'}.`
+  ? isCosmetic
+    ? `${product.name_fr} de ${product.brand} : score beauté ${score?.total ?? '?'}/100, ${capText}. Analyse de la liste INCI (perturbateurs endocriniens, allergènes, substances interdites).`
+    : `${product.name_fr} de ${product.brand} : score ${score?.total ?? '?'}/100, Nutri-Score ${score?.nutriscore_grade ?? '?'}, NOVA ${score?.nova_group ?? '?'}.`
   : `Produit ${barcode} non trouvé dans la base Bayen.`
 
 // Schema.org JSON-LD pour les fiches produit : Product + BreadcrumbList
@@ -418,11 +526,14 @@ const jsonLd = product
               servingSize: '100g',
             }
           : undefined,
+        category: isCosmetic ? 'Cosmétique' : undefined,
         additionalProperty: [
-          { '@type': 'PropertyValue', name: 'Score Bayen', value: score?.total ?? 'N/A' },
+          { '@type': 'PropertyValue', name: isCosmetic ? 'Score beauté Bayen' : 'Score Bayen', value: score?.total ?? 'N/A' },
           { '@type': 'PropertyValue', name: 'Label Bayen', value: score?.label ?? 'N/A' },
-          { '@type': 'PropertyValue', name: 'Nutri-Score', value: score?.nutriscore_grade ?? 'N/A' },
-          { '@type': 'PropertyValue', name: 'Groupe NOVA', value: score?.nova_group ?? 'N/A' },
+          ...(isCosmetic ? [] : [
+            { '@type': 'PropertyValue' as const, name: 'Nutri-Score', value: score?.nutriscore_grade ?? 'N/A' },
+            { '@type': 'PropertyValue' as const, name: 'Groupe NOVA', value: score?.nova_group ?? 'N/A' },
+          ]),
           ...(Array.isArray(product.additives) && (product.additives as string[]).length > 0
             ? [{
                 '@type': 'PropertyValue' as const,
@@ -563,6 +674,20 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               {scanResult.source === 'open_food_facts' && (
                 <Badge variant="outline" className="text-xs">Open Food Facts</Badge>
               )}
+              {isCosmetic && (
+                <Badge variant="outline" className="text-xs text-beauty border-beauty/40 bg-beauty/10">{t('beauty.badge', locale)}</Badge>
+              )}
+              {isCosmetic && product.data_source === 'obf' && (
+                <Badge variant="outline" className="text-xs">Open Beauty Facts</Badge>
+              )}
+              {cosmeticCategoryKey && (
+                <a href={`/beaute?cat=${product.cosmetic_category}`} class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold hover:bg-muted">
+                  {t(cosmeticCategoryKey, locale)}
+                </a>
+              )}
+              {isCosmetic && product.period_after_opening && (
+                <Badge variant="outline" className="text-xs">{t('beauty.pao', locale)} : {String(product.period_after_opening)}</Badge>
+              )}
               {product.is_organic && (
                 <Badge variant="safe" className="text-xs">Bio</Badge>
               )}
@@ -604,13 +729,13 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           </div>
         </div>
         {/* Alerte profil santé (C13) — rien si profil vide ou produit compatible */}
-        <ProfileAlert
+        {!isCosmetic && <ProfileAlert
           additives={Array.isArray(product.additives) ? product.additives as string[] : []}
           structured_ingredients={product.structured_ingredients as any[] ?? []}
           traces={Array.isArray(product.traces) ? product.traces as string[] : []}
           ingredients_text={product.ingredients_text as string ?? ''}
           client:load
-        />
+        />}
 
         {/* Code-barres mobile */}
         <div class="sm:hidden flex justify-center">
@@ -621,14 +746,24 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
 
         {/* Score complet — panneau maquette v2 */}
         <div class="rounded-3xl border bg-card p-6 sm:p-7 shadow-card space-y-5">
-          <ScoreDisplay
-            score={score as any}
-            confidenceScore={product.confidence_score as number | null | undefined}
-            dataSource={product.data_source as string | null | undefined}
-            client:load
-          />
-          {/* Produit non évalué et présent en base → proposer l'estimation IA */}
-          {scanResult.source === 'directus' && score?.total == null && (
+          {isCosmetic ? (
+            <CosmeticScore
+              risk={cosmeticRisk}
+              ingredients={cosmeticIngredients}
+              hasInciText={Boolean(product.inci_text)}
+              barcode={barcode as string}
+              client:load
+            />
+          ) : (
+            <ScoreDisplay
+              score={score as any}
+              confidenceScore={product.confidence_score as number | null | undefined}
+              dataSource={product.data_source as string | null | undefined}
+              client:load
+            />
+          )}
+          {/* Produit non évalué et présent en base → proposer l'estimation IA (alimentaire) */}
+          {!isCosmetic && scanResult.source === 'directus' && score?.total == null && (
             <div class="border-t pt-5">
               <EstimateWithAI barcode={barcode as string} client:visible />
             </div>
@@ -636,7 +771,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         </div>
 
         {/* Analyse santé — commentaires explicatifs par nutriment */}
-        <HealthAnalysis
+        {!isCosmetic && <HealthAnalysis
           nutrition={{
             energy_kcal: product.energy_kcal as number | null,
             fat_total: product.fat_total as number | null,
@@ -651,10 +786,10 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           additives={Array.isArray(product.additives) ? product.additives as string[] : []}
           ingredients={product.ingredients_text as string ?? ''}
           client:load
-        />
+        />}
 
         {/* Alternatives plus saines */}
-        {scanResult.source === 'directus' && product?.category_id && score?.total != null && (
+        {scanResult.source === 'directus' && (product?.category_id || isCosmetic) && score?.total != null && (
           <ProductAlternatives
             alternatives={alternatives.map((a: Record<string, unknown>) => ({
               barcode: a.barcode as string,
@@ -663,7 +798,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               image_front: a.image_front as string | null,
               scan_score: a.scan_score as number | null,
               score_label: a.score_label as string | null,
-              nutriscore_grade: a.nutriscore_grade as string | null,
+              nutriscore_grade: (a.nutriscore_grade as string | null) ?? null,
               reasons: altReasons(a),
             }))}
             isBestInCategory={isBestInCategory}
@@ -719,7 +854,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
             )}
             {product.image_ingredients && (
               <div class="rounded-xl border bg-card p-4">
-                <p class="text-xs font-medium text-muted-foreground mb-2"><svg class="inline w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>Liste ingrédients</p>
+                <p class="text-xs font-medium text-muted-foreground mb-2"><svg class="inline w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>{isCosmetic ? t('inci.title', locale) : 'Liste ingrédients'}</p>
                 <img
                   src={`${CDN_URL}/${product.image_ingredients}?width=800&quality=85&format=webp`}
                   alt="Liste des ingrédients"
@@ -731,8 +866,13 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           </div>
         )}
 
+        {/* Liste INCI (beauté) */}
+        {isCosmetic && product.inci_text && (
+          <InciList ingredients={cosmeticIngredients} inciText={product.inci_text as string} client:load />
+        )}
+
         {/* Ingrédients (structurés si disponibles, sinon fallback texte) */}
-        {(product.structured_ingredients || product.ingredients_text) && (
+        {!isCosmetic && (product.structured_ingredients || product.ingredients_text) && (
           <IngredientsList
             ingredients={product.structured_ingredients as any[] ?? []}
             traces={Array.isArray(product.traces) ? product.traces as string[] : []}
@@ -755,7 +895,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         )}
 
         {/* Enrichir depuis OFF (produits Directus incomplets) — détaché de la card ingrédients */}
-        {scanResult.source === 'directus' && product && product.id && (
+        {!isCosmetic && scanResult.source === 'directus' && product && product.id && (
           <div class="!mt-9">
           <EnrichFromOff
             productId={product.id as string}

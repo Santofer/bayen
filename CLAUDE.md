@@ -78,6 +78,14 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 - Les endpoints custom écrivent via Knex, ce qui **ne déclenche aucun hook Directus** :
   le crédit de points passe alors par `bayen-api/src/points.ts` (barème dupliqué avec
   `bayen-hooks`, à modifier des deux côtés)
+- **Univers beauté (C23)** : un produit porte `product_type` (`food` | `cosmetic`), les deux
+  univers ne se mélangent jamais dans une liste (`search-products?type=`). Le **score
+  cosmétique** est calculé par `scoring-cosmetic.ts` (plafond par pire ingrédient INCI :
+  interdit 5, élevé 25, modéré 50, faible 75) à partir du référentiel `cosmetic_ingredients`
+  (CosIng + annexes II/III + couche éditoriale sourcée `data/cosmetic-risks.json`).
+  La vision (`/inci-read`) ne fait que recopier la liste INCI — jamais noter.
+  Le mot « perturbateur endocrinien » n'est affiché que pour les substances des listes
+  officielles (CE 2019, SCCS), toujours qualifié « suspecté » ou « avéré », avec `source_url`.
 - Tous les textes UI en français en phase 1 — structure i18n Astro en place pour l'arabe (phase 2)
 - Tesseract n'est jamais exposé via Cloudflare Tunnel — réseau Docker interne uniquement
 - Tester les endpoints Directus custom avec `curl` avant toute intégration frontend
@@ -139,8 +147,19 @@ curl https://api.bayen.ma/bayen-api/nutrition-summary \
 # 06:00 translate-ingredients · 06:30 link-ingredients · 07:00 ocr-ingredients-images
 # 07:30 clean-nonfood-ingredients · 08:00 name-products (identification vision
 #   + détection du logo halal sur les produits jamais examinés)
+# 08:30 read-inci-images (lecture vision des listes INCI manquantes, univers beauté)
 # Hebdomadaire : dimanche 09:00 refine-dishes (revue des corrections repas,
 #   en mode rapport seul — l'ajustement des fourchettes reste manuel)
+
+# Référentiel INCI (à relancer après édition de data/cosmetic-risks.json — idempotent) :
+#   scp scripts/seed-cosmetic-ingredients.py data/cosmetic-risks.json root@192.168.1.123:/mnt/user/appdata/bayen/scripts/
+#   docker cp .../cosmetic-risks.json bayen-tesseract:/tmp/ puis
+#   docker exec -e DTOKEN=… -e APPLY=1 -i bayen-tesseract python3 - < seed-cosmetic-ingredients.py
+# Recalcul des scores beauté (admin) : POST /bayen-api/cosmetic-score {"all":true} ou {"barcode":"…"}
+
+# Tester la lecture INCI (vision) et l'autocomplétion
+curl -X POST http://localhost:5055/inci-read -F "image=@dos-emballage.jpg"
+curl "https://api.bayen.ma/bayen-api/cosmetic-ingredients?q=parab"
 
 # Snapshot schéma Directus (à faire avant chaque modification de schéma)
 npx directus schema snapshot ./directus/snapshots/$(date +%Y%m%d).yaml

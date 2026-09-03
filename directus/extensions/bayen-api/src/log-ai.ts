@@ -21,7 +21,7 @@ interface AiLogRequest {
   duration_ms?: number
 }
 
-const TYPES = new Set(['meal_analyze', 'estimate', 'compare', 'coach', 'pipeline', 'identify'])
+const TYPES = new Set(['meal_analyze', 'estimate', 'compare', 'coach', 'pipeline', 'identify', 'inci_read'])
 
 const WINDOW_MS = 5 * 60 * 1000
 const MAX = 60

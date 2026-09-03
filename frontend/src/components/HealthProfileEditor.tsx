@@ -68,6 +68,7 @@ export default function HealthProfileEditor() {
     }))
 
   const count = profile.allergens.length + profile.avoidAdditives.length + (profile.avoidPalmOil ? 1 : 0)
+    + (profile.avoidEndocrine ? 1 : 0) + (profile.avoidFragranceAllergens ? 1 : 0)
 
   return (
     <div className="space-y-6">
@@ -116,6 +117,34 @@ export default function HealthProfileEditor() {
           {profile.avoidPalmOil && <span aria-hidden="true" className="me-1.5">✕</span>}
           {t('profile.palmOil')}
         </button>
+      </section>
+
+      {/* Beauté (C23) : alertes sur les fiches cosmétiques */}
+      <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-card">
+        <h2 className="font-display font-bold text-lg">{t('profile.beautyTitle')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t('profile.beautyHint')}</p>
+        <div className="flex flex-wrap gap-2 mt-4">
+          {([
+            ['avoidEndocrine', t('profile.noEndocrine')],
+            ['avoidFragranceAllergens', t('profile.noFragranceAllergens')],
+          ] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => update((p) => ({ ...p, [key]: !p[key] }))}
+              aria-pressed={profile[key]}
+              className={cn(
+                'rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
+                profile[key]
+                  ? 'bg-destructive text-destructive-foreground border-destructive'
+                  : 'bg-background hover:bg-muted'
+              )}
+            >
+              {profile[key] && <span aria-hidden="true" className="me-1.5">✕</span>}
+              {label}
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* Additifs */}
