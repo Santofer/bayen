@@ -54,7 +54,9 @@ def main():
     token = os.environ.get("DTOKEN", "").strip()
     if not token:
         print("[err] DTOKEN manquant", flush=True); return 1
-    flt = "filter[product_type][_eq]=cosmetic&filter[status][_eq]=published&filter[inci_text][_null]=true&filter[inci_read_at][_null]=true"
+    # Sans liste, OU avec un texte inexploitable (marketing OBF → aucun ingrédient reconnu, score null)
+    flt = ("filter[product_type][_eq]=cosmetic&filter[status][_eq]=published&filter[inci_read_at][_null]=true"
+           "&filter[_or][0][inci_text][_null]=true&filter[_or][1][scan_score][_null]=true")
     if ONLY:
         flt = f"filter[barcode][_eq]={ONLY}"
     items = req(f"{DIRECTUS}/items/products?{flt}&fields=id,barcode,name_fr,image_ingredients,data_source&limit={VISION_MAX}&sort=-scan_count", token=token)["data"]
