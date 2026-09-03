@@ -117,6 +117,19 @@ def main():
         row["synonyms"] = [norm(s) for s in (e.get("synonyms") or [])]
     print("[3] éditorial :", len(edit), "entrées appliquées", flush=True)
 
+    # ── 4. Synonymes usuels (noms FR/EN, colorants US, vitamines) ───────
+    syn_path = os.environ.get("SYNONYMS", "/tmp/inci-synonyms.json")
+    if os.path.exists(syn_path):
+        syn = json.load(open(syn_path, encoding="utf-8"))
+        n = 0
+        for inci, aliases in syn.items():
+            row = rows.get(norm(inci))
+            if not row:
+                print("  [syn] INCI inconnu du référentiel :", inci, flush=True); continue
+            row["synonyms"] = sorted(set((row.get("synonyms") or []) + [norm(a) for a in aliases]))
+            n += len(aliases)
+        print("[4] synonymes :", n, "alias sur", len(syn), "INCI", flush=True)
+
     # ── Écriture ──────────────────────────────────────────────────────
     existing = req(DIRECTUS + "/items/cosmetic_ingredients?fields=id,inci_name&limit=-1", token=token)["data"]
     by_name = {norm(x["inci_name"]): x["id"] for x in existing}
@@ -131,7 +144,7 @@ def main():
         req(DIRECTUS + "/items/cosmetic_ingredients", "POST", to_create[i:i + 500], token=token)
         print("  créés", min(i + 500, len(to_create)), "/", len(to_create), flush=True)
     # Mises à jour : uniquement les lignes surchargées (annexes + éditorial), pas les 24k inchangées
-    changed = [(i, v) for i, v in to_update if v.get("risk_level") != "none" or v.get("note_fr")]
+    changed = [(i, v) for i, v in to_update if v.get("risk_level") != "none" or v.get("note_fr") or v.get("synonyms")]
     for i, v in changed:
         req(DIRECTUS + "/items/cosmetic_ingredients/" + str(i), "PATCH", v, token=token, timeout=30)
     print("[done] créés", len(to_create), "| mis à jour", len(changed), flush=True)

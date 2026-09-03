@@ -98,6 +98,34 @@ def main():
         if "inci_text" in patch:
             req(f"{DIRECTUS}/bayen-api/cosmetic-score", "POST", {"barcode": bc}, token=token, timeout=60)
     print(f"[done] lues {read} · sans image {skipped} · échecs {failed}", flush=True)
+
+    # ── Phase 2 : catégorie beauté manquante → identification vision (face avant)
+    cat_max = int(os.environ.get("CATEGORY_MAX", "60"))
+    items = req(f"{DIRECTUS}/items/products?filter[product_type][_eq]=cosmetic&filter[status][_eq]=published"
+                f"&filter[cosmetic_category][_null]=true&filter[image_front][_nnull]=true"
+                f"&fields=id,barcode,name_fr,image_front&limit={cat_max}&sort=-scan_count", token=token)["data"]
+    print(f"[cat] {len(items)} fiches sans catégorie", flush=True)
+    done = 0
+    for p in items:
+        try:
+            raw = fetch_bytes(f"{DIRECTUS}/assets/{p['image_front']}?width=1024&quality=85", token=token)
+            boundary = "----bayen-id"
+            body = (b"--" + boundary.encode() + b'\r\nContent-Disposition: form-data; name="image"; filename="f.jpg"\r\n'
+                    b"Content-Type: image/jpeg\r\n\r\n" + raw + b"\r\n--" + boundary.encode() + b"--\r\n")
+            r = urllib.request.Request(TESSERACT + "/identify-product", data=body,
+                                       headers={"Content-Type": "multipart/form-data; boundary=" + boundary}, method="POST")
+            with urllib.request.urlopen(r, timeout=120) as resp:
+                d = json.loads(resp.read().decode())
+            cat = d.get("cosmetic_category") if d.get("kind") == "cosmetic" else None
+            print(f"  {p['barcode']} {p['name_fr'][:36]!r} → {d.get('kind')} / {cat}", flush=True)
+            if cat and APPLY:
+                req(f"{DIRECTUS}/items/products/{p['id']}", "PATCH", {"cosmetic_category": cat}, token=token)
+                # la catégorie change le statut « rincé » → score à recalculer
+                req(f"{DIRECTUS}/bayen-api/cosmetic-score", "POST", {"barcode": p["barcode"]}, token=token, timeout=60)
+                done += 1
+        except Exception as e:  # noqa: BLE001
+            print(f"  {p['barcode']} identification KO : {str(e)[:80]}", flush=True)
+    print(f"[cat] catégorisées : {done}", flush=True)
     return 0
 
 

@@ -16,6 +16,8 @@ import base64
 import io
 import json
 import os
+import re
+import difflib
 import time
 import requests
 
@@ -1160,17 +1162,57 @@ def inci_read():
         if len(raw_bytes) > 8 * 1024 * 1024:
             return jsonify({'error': 'Image trop grande (>8 MB)'}), 400
 
-        image = resize_for_ai(Image.open(io.BytesIO(raw_bytes)))
-        buf = io.BytesIO()
-        image.save(buf, format='JPEG', quality=90)
-        image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+        original = Image.open(io.BytesIO(raw_bytes))
+        if original.mode != 'RGB':
+            original = original.convert('RGB')
 
-        parsed = call_ai_vision(
-            INCI_SYSTEM, "Recopie la liste d'ingrédients INCI de cette photo.", image_b64,
-            timeout=150, max_tokens=1400,
-        )
+        def _read(img):
+            buf = io.BytesIO()
+            resize_for_ai(img).save(buf, format='JPEG', quality=90)
+            return call_ai_vision(
+                INCI_SYSTEM, "Recopie la liste d'ingrédients INCI de cette photo.",
+                base64.b64encode(buf.getvalue()).decode('ascii'), timeout=90, max_tokens=1400,
+            )
+
+        parsed = _read(original)
         if parsed is None:
             return jsonify({'error': 'IA indisponible'}), 502
+
+        # Le serveur vision cappe à ~768 px : sur la photo entière d'un tube, les
+        # petits caractères deviennent illisibles (« HVDRATED », « SIOM FLUORIDE »).
+        # On relit donc l'image par tuiles (grille 2×2, recouvrement 15 %) et on
+        # laisse la version haute résolution corriger la lecture d'ensemble.
+        tiles_used = 0
+        if max(original.size) >= 1200:
+            tile_lists = []
+            w, h = original.size
+            ox, oy = int(w * 0.15), int(h * 0.15)
+            boxes = [(0, 0, w // 2 + ox, h // 2 + oy), (w // 2 - ox, 0, w, h // 2 + oy),
+                     (0, h // 2 - oy, w // 2 + ox, h), (w // 2 - ox, h // 2 - oy, w, h)]
+            for box in boxes:
+                t = _read(original.crop(box))
+                txt = (t or {}).get('inci_text')
+                if isinstance(txt, str) and len(txt.strip()) > 5 and (t or {}).get('confiance') != 'faible':
+                    tile_lists.append([x.strip() for x in txt.split(',') if x.strip()])
+                    tiles_used += 1
+            if tile_lists:
+                full = [x.strip() for x in str(parsed.get('inci_text') or '').split(',') if x.strip()]
+                merged = list(full)
+                for lst in tile_lists:
+                    for tok in lst:
+                        up = tok.upper()
+                        if any(m.upper() == up for m in merged):
+                            continue
+                        # Même ingrédient lu avec une faute dans la lecture d'ensemble → on remplace
+                        near = [i for i, m in enumerate(merged)
+                                if difflib.SequenceMatcher(None, m.upper(), up).ratio() >= 0.8]
+                        if near:
+                            merged[near[0]] = tok
+                        else:
+                            merged.append(tok)
+                parsed['inci_text'] = ', '.join(merged)
+                if parsed.get('confiance') == 'faible':
+                    parsed['confiance'] = 'moyenne'
 
         inci = parsed.get('inci_text')
         if not isinstance(inci, str) or len(inci.strip()) < 5:
@@ -1188,6 +1230,7 @@ def inci_read():
             'period_after_opening': pao,
             'confiance': confiance,
             'engine': 'vision',
+            'tiles': tiles_used,
             'duration_ms': int((time.time() - start_time) * 1000),
         })
     except Exception as e:  # noqa: BLE001

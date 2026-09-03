@@ -1751,5 +1751,36 @@
   "source_label": "CosIng",
   "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/",
   "note_fr": "Premier ingrédient de la plupart des produits."
+ },
+ {
+  "inci_name": "AVENE THERMAL SPRING WATER",
+  "name_fr": "Eau thermale d'Avène",
+  "synonyms": [
+   "AVÈNE THERMAL SPRING WATER",
+   "EAU THERMALE D'AVÈNE",
+   "AVENE AQUA"
+  ],
+  "risk_level": "none",
+  "risk_types": [],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "Nom commercial (Pierre Fabre) — eau thermale",
+  "source_url": "https://www.eau-thermale-avene.fr/",
+  "note_fr": "Eau thermale de marque, équivalent d'AQUA."
+ },
+ {
+  "inci_name": "CI 77019",
+  "name_fr": "Mica (Colour Index 77019)",
+  "synonyms": [
+   "MICA (CI 77019)",
+   "CI77019"
+  ],
+  "risk_level": "none",
+  "risk_types": [],
+  "risk_status": null,
+  "restriction_fr": null,
+  "source_label": "CosIng (MICA)",
+  "source_url": "https://ec.europa.eu/growth/tools-databases/cosing/",
+  "note_fr": "Numéro Colour Index du mica, pigment nacrant minéral."
  }
 ]

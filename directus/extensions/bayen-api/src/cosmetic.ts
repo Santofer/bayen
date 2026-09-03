@@ -65,6 +65,47 @@ async function lookup(knex: KnexRaw, names: string[]): Promise<Map<string, Ingre
   return map
 }
 
+/** Sans accents ni ponctuation flottante, pour comparer des lectures imparfaites. */
+function fold(name: string): string {
+  return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Variantes plausibles d'un jeton non reconnu : nom CosIng avec point final
+ * (« ALCOHOL DENAT. »), tiret devant le nombre (« PEG 40 » → « PEG-40 »), accents
+ * retirés, morceaux d'un « . » utilisé comme virgule (« CHOLESTEROL. PHENOXYETHANOL »).
+ */
+function variants(token: string): string[] {
+  const out = new Set<string>()
+  const f = fold(token)
+  out.add(f)
+  out.add(f + '.')
+  out.add(f.replace(/\s+(\d+)$/, '-$1'))
+  out.add(f.replace(/[.·]+$/, ''))
+  out.add(f.replace(/\s*-\s*/g, '-'))
+  out.delete(token)
+  return [...out].filter((v) => v.length >= 2)
+}
+
+/** Voisin le plus proche (pg_trgm) — pour les fautes de lecture vision. */
+async function fuzzy(knex: KnexRaw, tokens: string[]): Promise<Map<string, IngredientRow>> {
+  const map = new Map<string, IngredientRow>()
+  for (const t of tokens) {
+    const f = fold(t)
+    if (f.length < 6 || !/[A-Z]{3}/i.test(f)) continue
+    try {
+      const r = await knex.raw(
+        `SELECT id, inci_name, name_fr, risk_level, risk_types, risk_status, similarity(inci_name, ?) AS s
+         FROM cosmetic_ingredients WHERE status = 'published' AND inci_name % ?
+         ORDER BY s DESC, length(inci_name) ASC LIMIT 1`, [f, f])
+      const row = r.rows[0]
+      // 0,62 : « HVDRATED SILICA » (0,68) et « GLYCERINE » (0,73) passent, « GLYCINE » (0,50) non
+      if (row && Number(row.s) >= 0.62) map.set(t, row as unknown as IngredientRow)
+    } catch { /* extension absente : pas d'appariement approximatif */ }
+  }
+  return map
+}
+
 export interface InciMatch {
   matched: Array<MatchedIngredient & { id: number; name_fr: string | null; raw_text: string }>
   unknown: string[]
@@ -82,7 +123,32 @@ export async function matchInci(knex: KnexRaw, tokens: string[]): Promise<InciMa
       if (hit) { const r = sides.get(hit); if (r) found.set(t, r) }
     }
   }
-  const unknownMulti = tokens.filter((t) => !found.has(t) && t.includes(' '))
+  // Variantes d'écriture (point final CosIng, tiret, accents)
+  const stillUnknown = tokens.filter((t) => !found.has(t))
+  if (stillUnknown.length > 0) {
+    const alt = new Map<string, string[]>()
+    for (const t of stillUnknown) alt.set(t, variants(t))
+    const rows = await lookup(knex, [...new Set([...alt.values()].flat())])
+    for (const [t, vs] of alt) {
+      const hit = vs.find((v) => rows.has(v))
+      if (hit) { const r = rows.get(hit); if (r) found.set(t, r) }
+    }
+  }
+  // « TOCOPHERYL ACETATE. CARBOMER » : un point utilisé comme virgule
+  const dotted = tokens.filter((t) => !found.has(t) && /\.\s*[A-Z]/i.test(t))
+  const dotSplits = new Map<string, string[]>()
+  if (dotted.length > 0) {
+    const parts = [...new Set(dotted.flatMap((t) => t.split(/\.\s*(?=[A-Z])/i).map((x) => x.trim()).filter(Boolean)))]
+    const rows = await lookup(knex, parts)
+    for (const t of dotted) {
+      const ps = t.split(/\.\s*(?=[A-Z])/i).map((x) => x.trim()).filter(Boolean)
+      if (ps.length > 1 && ps.every((x) => rows.has(x))) {
+        dotSplits.set(t, ps)
+        for (const x of ps) { const r = rows.get(x); if (r) found.set(x, r) }
+      }
+    }
+  }
+  const unknownMulti = tokens.filter((t) => !found.has(t) && !dotSplits.has(t) && t.includes(' '))
 
   // Token collé (virgule perdue à l'OCR) : toutes les sous-phrases contiguës,
   // puis couverture gloutonne de gauche à droite par le plus long nom connu.
@@ -119,15 +185,23 @@ export async function matchInci(knex: KnexRaw, tokens: string[]): Promise<InciMa
     }
   }
 
+  // Dernier recours : voisin trigramme pour les fautes de lecture
+  const fuzzyHits = await fuzzy(knex, tokens.filter((t) => !found.has(t) && !splits.has(t) && !dotSplits.has(t)))
+  for (const [t, r] of fuzzyHits) found.set(t, r)
+
   const matched: InciMatch['matched'] = []
   const unknown: string[] = []
+  const seenIds = new Set<number>()
   let rank = 0
   for (const t of tokens) {
-    const parts = splits.get(t) ?? [t]
+    const parts = splits.get(t) ?? dotSplits.get(t) ?? [t]
     for (const p of parts) {
       rank++
       const r = found.get(p)
       if (!r) { unknown.push(p); continue }
+      // Deux lectures du même ingrédient (tuile + vue d'ensemble) → une seule ligne
+      if (seenIds.has(r.id)) continue
+      seenIds.add(r.id)
       matched.push({
         id: r.id, inci_name: r.inci_name, name_fr: r.name_fr, raw_text: p, rank,
         risk_level: (r.risk_level ?? 'unknown') as CosmeticRiskLevel,
