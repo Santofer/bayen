@@ -364,6 +364,9 @@ if (scanResult.found && scanResult.source === 'open_food_facts') {
 const product = scanResult.product as Record<string, unknown> | undefined
 const score = scanResult.score as Record<string, unknown> | undefined
 const isCosmetic = product?.product_type === 'cosmetic'
+const dataIssues: Array<{ field: string; message: string }> = Array.isArray(product?.data_issues)
+  ? (product!.data_issues as Array<{ field: string; message: string }>)
+  : (typeof product?.data_issues === 'string' ? (() => { try { return JSON.parse(product!.data_issues as string) } catch { return [] } })() : [])
 // Allégations protéines (règl. CE 1924/2006) : « source » ≥ 12 % de l'énergie, « riche » ≥ 20 %
 const _prot = typeof product?.proteins === 'number' ? product.proteins : null
 const _kcal = typeof product?.energy_kcal === 'number' && product.energy_kcal > 0 ? product.energy_kcal : null
@@ -705,6 +708,11 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               )}
               {product.is_organic && (
                 <Badge variant="safe" className="text-xs">Bio</Badge>
+              )}
+              {dataIssues.length > 0 && (
+                <a href={`/contribuer/${barcode}`} class="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300" title={dataIssues.map((i) => i.message).join(' · ')}>
+                  {t('product.dataIssues', locale)}
+                </a>
               )}
               {proteinClaim && (
                 <a href="/proteines" class="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary hover:bg-primary/20" title={`${Math.round((proteinShare ?? 0) * 100)} % ${t('protein.share', locale)}`}>

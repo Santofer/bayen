@@ -869,6 +869,10 @@ export const translations = {
   'protein.how2':            { fr: "Regarde le ratio protéines / calories plutôt que le chiffre brut : un beurre de cacahuètes affiche 30 g de protéines, mais 700 kcal ; une boîte de thon en apporte 33 g pour 175 kcal.", ary: 'شوف النسبة بروتين / كالوري ماشي غير الرقم: زبدة الكاوكاو فيها 30 غ بروتين ولكن 700 كالوري؛ علبة الطون فيها 33 غ ب175 كالوري.' },
   'protein.how3':            { fr: "Les barres et poudres « protéinées » sont classées comme les autres produits : additifs, édulcorants et sucres comptent dans le score. Ce n'est pas un conseil médical ni un plan d'entraînement.", ary: 'البارات والمساحيق « البروتينية » كيتنقطو بحال المنتوجات الأخرى: الإضافات والمحليات والسكر كيحسبو فالنقطة. هادا ماشي نصيحة طبية ولا برنامج تدريب.' },
   'protein.searchAll':       { fr: 'Voir tous les produits protéinés',          ary: 'شوف جميع المنتوجات البروتينية' },
+
+  // ── Garde-fous nutritionnels ─────────────────────────────────
+  'product.dataIssues':      { fr: 'Données à vérifier',                        ary: 'المعطيات خاصها التأكد' },
+  'product.dataIssuesHint':  { fr: "Le tableau nutritionnel de cette fiche contient une incohérence (énergie, macro-nutriments). Une photo de l'étiquette nous aiderait à la corriger.", ary: 'جدول التغذية ديال هاد البطاقة فيه تناقض (الطاقة، المغذيات). تصويرة ديال البطاقة غادي تعاونا نصححوها.' },
 } as const
 
 /** Clé de traduction valide */

@@ -18,6 +18,7 @@ import { randomUUID } from 'node:crypto'
 import { computeScore, type RiskLevel, type ScoreResult } from './scoring.js'
 import { notifyNewProduct } from './notify.js'
 import { scoreCosmeticProduct, mapObfCategory, type KnexRaw } from './cosmetic.js'
+import { sanitizeNutrition } from './nutrition-guard.js'
 
 // User-Agent requis par l'API Open Food Facts
 const OFF_USER_AGENT = process.env.OFF_USER_AGENT ?? 'Bayen/1.0 (contact@n0.ma)'
@@ -170,22 +171,31 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
     return typeof val === 'number' ? val : undefined
   }
 
+  const nameFr = (product.product_name_fr as string) || (product.product_name as string) || 'Produit sans nom'
+  const brand = (product.brands as string) ?? 'Marque inconnue'
+  // Garde-fous : OFF contient des kJ tapés en kcal, du sodium en mg dans « sel »…
+  const guard = sanitizeNutrition({
+    energy_kcal: num('energy-kcal_100g'), fat_total: num('fat_100g'), fat_saturated: num('saturated-fat_100g'),
+    carbs_total: num('carbohydrates_100g'), sugars: num('sugars_100g'), fiber: num('fiber_100g'),
+    proteins: num('proteins_100g'), salt: num('salt_100g'),
+  }, `${nameFr} ${brand}`)
+  const remaining = guard.issues.filter((i) => !guard.changed.includes(i.field))
+
   return {
     barcode,
-    name_fr: (product.product_name_fr as string)
-      || (product.product_name as string)
-      || 'Produit sans nom',
-    brand: (product.brands as string) ?? 'Marque inconnue',
+    name_fr: nameFr,
+    brand,
     nutriscore_grade: nutriscoreGrade as ProductRecord['nutriscore_grade'],
     nova_group: novaGroup,
-    energy_kcal: num('energy-kcal_100g'),
-    fat_total: num('fat_100g'),
-    fat_saturated: num('saturated-fat_100g'),
-    carbs_total: num('carbohydrates_100g'),
-    sugars: num('sugars_100g'),
-    fiber: num('fiber_100g'),
-    proteins: num('proteins_100g'),
-    salt: num('salt_100g'),
+    energy_kcal: guard.values.energy_kcal ?? undefined,
+    fat_total: guard.values.fat_total ?? undefined,
+    fat_saturated: guard.values.fat_saturated ?? undefined,
+    carbs_total: guard.values.carbs_total ?? undefined,
+    sugars: guard.values.sugars ?? undefined,
+    fiber: guard.values.fiber ?? undefined,
+    proteins: guard.values.proteins ?? undefined,
+    salt: guard.values.salt ?? undefined,
+    data_issues: remaining.length > 0 ? JSON.stringify(remaining.map((i) => ({ field: i.field, code: i.code, message: i.message }))) : undefined,
     ingredients_text: (product.ingredients_text_fr as string)
       || (product.ingredients_text as string)
       || undefined,

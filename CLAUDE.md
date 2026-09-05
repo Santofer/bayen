@@ -71,6 +71,11 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 - L'analyse photo de plat (`/meal-analyze`) est une **estimation** (fourchettes + confiance), pas un score santé ni un avis médical
 - Le statut **halal** n'est jamais retiré automatiquement : Open Food Facts et la
   communauté font autorité, la vision ne peut que l'ajouter (jamais l'infirmer)
+- **Garde-fous nutritionnels** (`nutrition-guard.ts`, copie frontend/extension) : toute valeur
+  entrante (OFF, contribution, OCR) passe par `sanitizeNutrition` — 4 kcal/g de protéines ou
+  glucides et 9 kcal/g de lipides ne peuvent pas dépasser l'énergie, sel ≤ 100 g, kJ tapés en
+  kcal convertis, somme P+G+L ≤ 105 g. Une valeur impossible est EFFACÉE (fiche incomplète),
+  jamais devinée ; le reste des anomalies va dans `products.data_issues`
 - Les **prix** sont agrégés par MÉDIANE par enseigne (robuste aux saisies fantaisistes),
   jamais par moyenne
 - Les corrections d'estimations repas affinent le **référentiel** `moroccan_dishes` via
@@ -148,6 +153,7 @@ curl https://api.bayen.ma/bayen-api/nutrition-summary \
 # 07:30 clean-nonfood-ingredients · 08:00 name-products (identification vision
 #   + détection du logo halal sur les produits jamais examinés)
 # 08:30 read-inci-images (lecture vision des listes INCI manquantes, univers beauté)
+# 09:15 audit-nutrition (garde-fous : kJ→kcal, valeurs impossibles effacées, data_issues)
 # Hebdomadaire : dimanche 09:00 refine-dishes (revue des corrections repas,
 #   en mode rapport seul — l'ajustement des fourchettes reste manuel)
 

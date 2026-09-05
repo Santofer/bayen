@@ -22,6 +22,7 @@
  *   POST /bayen-api/partner-request-status → Marquer une demande traitée / écartée
  *   GET  /bayen-api/cosmetic-ingredients → Autocomplétion INCI (univers beauté)
  *   POST /bayen-api/cosmetic-score       → Recalcul admin du score cosmétique
+ *   POST /bayen-api/audit-nutrition      → Garde-fous nutritionnels (admin, cron 09:15)
  */
 
 import type { Router } from 'express'
@@ -45,6 +46,7 @@ import { registerLeaderboardEndpoint } from './leaderboard.js'
 import { registerConfirmProductEndpoint } from './confirm-product.js'
 import { registerPartnerAdminEndpoints } from './partner-admin.js'
 import { registerCosmeticEndpoints } from './cosmetic.js'
+import { registerAuditNutritionEndpoint } from './audit-nutrition.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -68,4 +70,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerConfirmProductEndpoint(router, context as unknown as Parameters<typeof registerConfirmProductEndpoint>[1])
   registerPartnerAdminEndpoints(router, context as unknown as Parameters<typeof registerPartnerAdminEndpoints>[1])
   registerCosmeticEndpoints(router, context as unknown as Parameters<typeof registerCosmeticEndpoints>[1])
+  registerAuditNutritionEndpoint(router, context as unknown as Parameters<typeof registerAuditNutritionEndpoint>[1])
 }

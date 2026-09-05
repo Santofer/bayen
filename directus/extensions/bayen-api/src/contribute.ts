@@ -20,6 +20,7 @@ import { notifyNewProduct } from './notify.js'
 import { scoreProduct } from './scan.js'
 import { creditPoints } from './points.js'
 import { scoreCosmeticProduct, type KnexRaw } from './cosmetic.js'
+import { sanitizeNutrition, type NutritionInput } from './nutrition-guard.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -253,6 +254,18 @@ export function registerContributeEndpoint(router: Router, context: {
           }
         }
 
+        // Garde-fous : une valeur impossible (kJ, sodium en mg…) n'entre pas en base
+        {
+          const merged: NutritionInput = {}
+          for (const key of ['energy_kcal', 'fat_total', 'fat_saturated', 'carbs_total', 'sugars', 'fiber', 'proteins', 'salt'] as const) {
+            merged[key] = (key in fill ? fill[key] : existing[key]) as number | null
+          }
+          const guard = sanitizeNutrition(merged, `${fill.name_fr ?? existing.name_fr ?? ''} ${fill.brand ?? existing.brand ?? ''}`)
+          for (const key of guard.changed) if (key in fill) fill[key] = guard.values[key] ?? null
+          if (guard.issues.length > 0 && Object.keys(fill).length > 0) {
+            fill.data_issues = JSON.stringify(guard.issues.filter((i) => !guard.changed.includes(i.field)).map((i) => ({ field: i.field, code: i.code, message: i.message })))
+          }
+        }
         if (Object.keys(fill).length > 0) {
           await knex('products').where('barcode', barcode).update(fill)
         }
@@ -355,6 +368,14 @@ export function registerContributeEndpoint(router: Router, context: {
 
       const salt = sanitizeNumber(body.salt, 100)
       if (salt !== undefined) payload.salt = salt
+
+      // Garde-fous physiques (4 kcal/g, sel ≤ 100 g, kJ tapés en kcal…)
+      {
+        const guard = sanitizeNutrition(payload as NutritionInput, `${name_fr} ${payload.brand ?? ''}`)
+        for (const key of guard.changed) payload[key] = guard.values[key] ?? null
+        const remaining = guard.issues.filter((i) => !guard.changed.includes(i.field))
+        if (remaining.length > 0) payload.data_issues = JSON.stringify(remaining.map((i) => ({ field: i.field, code: i.code, message: i.message })))
+      }
 
       // Contenance : ce qui distingue deux variantes d'un même produit.
       const quantity = sanitizeString(body.quantity, 40)
