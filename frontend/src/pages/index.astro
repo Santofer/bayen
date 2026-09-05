@@ -219,59 +219,43 @@ const slides = [
       </div>
     </section>
 
-    <!-- CTA : Analyser un repas (feature VLM) -->
-    <section class="section-v2 pt-6 pb-2">
-      <a href="/analyser-repas" class="group flex items-center gap-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent hover:border-primary/40 hover:shadow-md transition-all p-4 sm:p-6">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary sm:w-7 sm:h-7">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0">
-          <h3 class="font-bold text-foreground text-base sm:text-lg">{t('meal.pageTitle', locale)}</h3>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-2">
-            {t('meal.pageSubtitle', locale)}
-          </p>
-        </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary flex-shrink-0 group-hover:translate-x-1 transition-transform">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </a>
-    </section>
-
-    <!-- CTA : Protéines (sportifs) -->
-    <section class="section-v2 pt-3 pb-2">
-      <a href="/proteines" class="group flex items-center gap-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent hover:border-primary/40 hover:shadow-md transition-all p-4 sm:p-6">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary sm:w-7 sm:h-7"><path d="M6 4v16M18 4v16M3 8h6M15 8h6M3 16h6M15 16h6M9 12h6"/></svg>
-        </div>
-        <div class="flex-1 min-w-0">
-          <h3 class="font-bold text-foreground text-base sm:text-lg">{t('protein.hubTitle', locale)}</h3>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-2">{t('nav.d.protein', locale)}</p>
-        </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary flex-shrink-0 group-hover:translate-x-1 transition-transform"><polyline points="9 18 15 12 9 6" /></svg>
-      </a>
-    </section>
-
-    <!-- CTA : Univers beauté (C23) -->
-    <section class="section-v2 pt-3 pb-2">
-      <a href="/beaute" class="group flex items-center gap-4 rounded-2xl border border-beauty/25 bg-gradient-to-br from-beauty/12 via-beauty/5 to-transparent hover:border-beauty/50 hover:shadow-md transition-all p-4 sm:p-6">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-beauty/12 flex items-center justify-center flex-shrink-0">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-beauty sm:w-7 sm:h-7">
-            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z" />
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0">
-          <h3 class="font-bold text-foreground text-base sm:text-lg">{t('beauty.hubTitle', locale)}</h3>
-          <p class="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-2">
-            {t('nav.d.beauty', locale)}
-          </p>
-        </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-beauty flex-shrink-0 group-hover:translate-x-1 transition-transform">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </a>
+    <!-- Trois univers : repas · protéines · beauté (cartes colorées, carousel sur mobile) -->
+    <section class="section-v2 pt-6 pb-4">
+      <div class="univ-v2">
+        <a href="/analyser-repas" class="univ-card" style="--univ-color: var(--color-primary); --univ-fg: var(--color-primary-foreground); --univ-tint: hsl(97 36% 30%)">
+          <div class="pic">
+            <img src="/home/repas.jpg" alt="" loading="lazy" width="800" height="600" />
+            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>{t('nav.meal', locale)}</span>
+          </div>
+          <div class="body">
+            <h3>{t('meal.pageTitle', locale)}</h3>
+            <p>{t('meal.pageSubtitle', locale)}</p>
+            <span class="go">{t('home.slideCoachCta', locale)} →</span>
+          </div>
+        </a>
+        <a href="/proteines" class="univ-card" style="--univ-color: var(--color-protein); --univ-fg: var(--color-protein-foreground); --univ-tint: hsl(28 78% 42%)">
+          <div class="pic">
+            <img src="/home/proteines.jpg" alt="" loading="lazy" width="800" height="600" />
+            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M3 8h6M15 8h6M3 16h6M15 16h6M9 12h6"/></svg>{t('nav.protein', locale)}</span>
+          </div>
+          <div class="body">
+            <h3>{t('protein.hubTitle', locale)}</h3>
+            <p>{t('nav.d.protein', locale)}</p>
+            <span class="go">{t('protein.topTitle', locale)} →</span>
+          </div>
+        </a>
+        <a href="/beaute" class="univ-card" style="--univ-color: var(--color-beauty); --univ-fg: var(--color-beauty-foreground); --univ-tint: hsl(190 45% 32%)">
+          <div class="pic">
+            <img src="/home/beaute.jpg" alt="" loading="lazy" width="800" height="600" />
+            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>{t('nav.beauty', locale)}</span>
+          </div>
+          <div class="body">
+            <h3>{t('beauty.hubTitle', locale)}</h3>
+            <p>{t('nav.d.beauty', locale)}</p>
+            <span class="go">{t('beauty.ingredientsTitle', locale)} →</span>
+          </div>
+        </a>
+      </div>
     </section>
 
     <!-- Comment ça marche -->
