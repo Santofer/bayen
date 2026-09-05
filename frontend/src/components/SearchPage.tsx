@@ -284,7 +284,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
     async (currentOffset: number, append: boolean) => {
       const filtersWithDebouncedQuery = { ...filters, query: debouncedQuery }
       // Exclusion d'additifs active ou univers beauté → endpoint custom SQL (voir buildCustomParams)
-      const url = filtersWithDebouncedQuery.excludeAdditives.length > 0 || filtersWithDebouncedQuery.universe === 'cosmetic'
+      // (le filtre protéines aussi : sa garde-fou d'énergie est en SQL)
+      const url = filtersWithDebouncedQuery.excludeAdditives.length > 0 || filtersWithDebouncedQuery.universe === 'cosmetic' || filtersWithDebouncedQuery.proteinMin !== null
         ? `${DIRECTUS_URL}/bayen-api/search-products?${buildCustomParams(filtersWithDebouncedQuery, currentOffset)}`
         : `${DIRECTUS_URL}/items/products?${buildQueryParams(filtersWithDebouncedQuery, currentOffset)}`
 

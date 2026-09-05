@@ -118,7 +118,8 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
       // Protéines (sportifs) : taux CONNU et au-dessus du seuil
       const proteinMin = parseFloat(String(req.query.protein_min ?? ''))
       if (Number.isFinite(proteinMin) && proteinMin > 0 && proteinMin <= 100) {
-        where.push('proteins IS NOT NULL AND proteins >= ?')
+        // Garde-fou : 4 kcal par gramme de protéines, jamais plus que l'énergie totale
+        where.push('proteins IS NOT NULL AND proteins >= ? AND proteins * 4 <= COALESCE(energy_kcal, 9999) * 1.1')
         bind.push(proteinMin)
       }
 
