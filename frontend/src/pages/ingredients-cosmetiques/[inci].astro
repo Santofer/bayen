@@ -52,7 +52,7 @@ const description = ingredient
   : `Ingrédient cosmétique ${inci} introuvable dans le référentiel Bayen.`
 ---
 
-<Layout title={title} description={description} path={`/ingredients-cosmetiques/${encodeURIComponent(inci)}`} noindex={!ingredient || !risky}>
+<Layout title={title} description={description} path={`/ingredients-cosmetiques/${encodeURIComponent(inci)}`} noindex={!ingredient || !risky} universe="beauty">
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     {!ingredient ? (
       <div class="text-center py-12">

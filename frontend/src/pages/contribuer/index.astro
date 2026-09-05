@@ -3,6 +3,7 @@
 export const prerender = false
 import Layout from '@/layouts/Layout.astro'
 import ContributeWizard from '@/components/ContributeWizard.tsx'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -18,14 +19,10 @@ const barcode = Astro.url.searchParams.get('barcode') ?? ''
   path="/contribuer"
 >
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
+    <PageHero image="/hero/contribuer.jpg" kicker={t('nav.contribute', locale)} title={t('contribute.title', locale)} subtitle={t('contribute.subtitle', locale)} class="mb-8">
+      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </PageHero>
     <div class="max-w-lg mx-auto">
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-foreground">{t('contribute.title', locale)}</h1>
-        <p class="text-sm text-muted-foreground mt-1">
-          {t('contribute.subtitle', locale)}
-        </p>
-      </div>
-
       <ContributeWizard initialBarcode={barcode} client:load />
     </div>
   </main>

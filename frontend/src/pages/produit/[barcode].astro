@@ -583,7 +583,7 @@ const imgFront = product?.image_front as string | undefined
 const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
 ---
 
-<Layout title={pageTitle} description={pageDescription} path={`/produit/${barcode}`} ogType="product" ogImage={ogImage} jsonLd={jsonLd}>
+<Layout title={pageTitle} description={pageDescription} path={`/produit/${barcode}`} ogType="product" ogImage={ogImage} jsonLd={jsonLd} universe={isCosmetic ? 'beauty' : undefined}>
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-8">
 
     {/* Erreur réseau */}

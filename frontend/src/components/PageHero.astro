@@ -1,0 +1,33 @@
+---
+/**
+ * Hero de page — photo Magnific + voile coloré selon l'univers.
+ * Les pages secondaires (contribuer, classement, panier…) n'avaient qu'un
+ * titre sur fond uni : elles reçoivent le même langage visuel que l'accueil.
+ */
+interface Props {
+  image: string
+  title: string
+  subtitle?: string
+  kicker?: string
+  tone?: 'primary' | 'beauty' | 'protein' | 'ai'
+  size?: 'md' | 'lg'
+  class?: string
+}
+const { image, title, subtitle, kicker, tone = 'primary', size = 'md', class: cls } = Astro.props
+const TONES = {
+  primary: { tint: 'hsl(100 32% 9%)', accent: '#b1cf3a', fg: '#233317' },
+  beauty: { tint: 'hsl(190 45% 10%)', accent: 'hsl(190 45% 32%)', fg: 'hsl(185 60% 95%)' },
+  protein: { tint: 'hsl(28 60% 8%)', accent: 'hsl(28 78% 42%)', fg: 'hsl(35 80% 96%)' },
+  ai: { tint: 'hsl(42 45% 9%)', accent: 'hsl(42 74% 45%)', fg: 'hsl(48 80% 96%)' },
+}[tone]
+---
+<section class:list={['page-hero', size === 'lg' && 'lg', cls]} style={`--hero-tint: ${TONES.tint}; --hero-accent: ${TONES.accent}; --hero-accent-fg: ${TONES.fg}`}>
+  <img src={image} alt="" width="1920" height="823" fetchpriority="high" />
+  <div class="scrim"></div>
+  <div class="inner">
+    {kicker && <span class="kicker"><slot name="icon" />{kicker}</span>}
+    <h1>{title}</h1>
+    {subtitle && <p>{subtitle}</p>}
+    <slot />
+  </div>
+</section>

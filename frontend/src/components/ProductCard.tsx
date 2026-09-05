@@ -79,11 +79,19 @@ export default function ProductCard({ product, className, variant = 'row', badge
 
   if (variant === 'grid') {
     const grade = product.nutriscore_grade?.toLowerCase()
+    const isBeauty = product.product_type === 'cosmetic'
+    const risk = product.cosmetic_risk
+    const flagged = risk ? (risk.counts.banned ?? 0) + (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0) + (risk.counts.low ?? 0) : 0
     return (
-      <a href={`/produit/${product.barcode}`} className={cn('pcard-v2', className)}>
+      <a href={`/produit/${product.barcode}`} className={cn('pcard-v2', isBeauty && 'pcard-beauty', className)}>
         <div className="pi">
           {imgSrc && (
             <img src={imgSrc} alt={product.name_fr} loading="lazy" />
+          )}
+          {isBeauty && (
+            <span className="uni" aria-label="Cosmétique">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9.9 15.5a2 2 0 0 0-1.4-1.4L2.4 12.5a.5.5 0 0 1 0-1L8.5 9.9a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0z"/></svg>
+            </span>
           )}
           {product.scan_score != null && (
             <span className="sc" style={{ backgroundColor: scoreColor }}>
@@ -100,6 +108,9 @@ export default function ProductCard({ product, className, variant = 'row', badge
               .filter(Boolean)
               .join(' · ')}
           </span>
+        )}
+        {isBeauty && risk && risk.token_count > 0 && (
+          <span className="meta">{risk.token_count} ingrédients · {flagged} à surveiller</span>
         )}
         {beauty ? (
           <span className="ns" style={{ backgroundColor: beauty.color }}>

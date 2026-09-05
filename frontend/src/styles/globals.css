@@ -813,3 +813,117 @@ body::after {
 .univ-card .body p { font-size: .875rem; color: var(--color-muted-foreground); line-height: 1.45; }
 .univ-card .go { margin-top: auto; padding-top: 8px; font-size: .85rem; font-weight: 800; color: var(--univ-color); }
 .dark .univ-card .go { filter: brightness(1.15); }
+
+/* ════════════════════════════════════════════════════════════════
+   UNIVERS — rethème complet d'une page (posé sur <body> par Layout)
+   Les utilitaires Tailwind lisent var(--color-*) : tout bascule,
+   en-tête compris. Le score garde ses couleurs sémantiques.
+   ════════════════════════════════════════════════════════════════ */
+.univ-beauty {
+  --color-background: hsl(186 32% 93%);
+  --color-foreground: hsl(192 30% 12%);
+  --color-card: hsl(184 45% 98.5%);
+  --color-card-foreground: hsl(192 30% 12%);
+  --color-popover: hsl(184 40% 97%);
+  --color-popover-foreground: hsl(192 30% 12%);
+  --color-primary: hsl(190 45% 32%);
+  --color-primary-foreground: hsl(185 60% 95%);
+  --color-secondary: hsl(186 30% 89%);
+  --color-secondary-foreground: hsl(192 30% 14%);
+  --color-muted: hsl(186 28% 89%);
+  --color-muted-foreground: hsl(190 14% 42%);
+  --color-accent: hsl(186 38% 85%);
+  --color-accent-foreground: hsl(190 45% 24%);
+  --color-border: hsl(186 24% 82%);
+  --color-input: hsl(186 24% 80%);
+  --color-ring: hsl(190 45% 32%);
+  --shadow-card: 0 1px 2px hsl(190 40% 20% / 0.05), 0 2px 8px hsl(190 40% 20% / 0.06);
+}
+.dark.univ-beauty, .dark .univ-beauty, .univ-beauty.dark {
+  --color-background: hsl(192 34% 6%);
+  --color-foreground: hsl(186 40% 92%);
+  --color-card: hsl(190 26% 12%);
+  --color-card-foreground: hsl(186 40% 92%);
+  --color-popover: hsl(190 28% 10%);
+  --color-popover-foreground: hsl(186 40% 92%);
+  --color-primary: hsl(185 55% 60%);
+  --color-primary-foreground: hsl(190 50% 10%);
+  --color-secondary: hsl(190 22% 15%);
+  --color-secondary-foreground: hsl(186 40% 90%);
+  --color-muted: hsl(190 22% 14%);
+  --color-muted-foreground: hsl(188 14% 58%);
+  --color-accent: hsl(190 24% 18%);
+  --color-accent-foreground: hsl(186 40% 92%);
+  --color-border: hsl(190 18% 17%);
+  --color-input: hsl(190 18% 19%);
+  --color-ring: hsl(185 55% 60%);
+}
+.univ-protein {
+  --color-background: hsl(36 45% 92%);
+  --color-foreground: hsl(28 30% 12%);
+  --color-card: hsl(38 60% 98.5%);
+  --color-card-foreground: hsl(28 30% 12%);
+  --color-popover: hsl(38 55% 97%);
+  --color-popover-foreground: hsl(28 30% 12%);
+  --color-primary: hsl(28 78% 42%);
+  --color-primary-foreground: hsl(35 80% 96%);
+  --color-secondary: hsl(34 40% 88%);
+  --color-secondary-foreground: hsl(28 30% 14%);
+  --color-muted: hsl(34 35% 88%);
+  --color-muted-foreground: hsl(28 14% 42%);
+  --color-accent: hsl(32 55% 84%);
+  --color-accent-foreground: hsl(28 60% 22%);
+  --color-border: hsl(32 28% 80%);
+  --color-input: hsl(32 28% 78%);
+  --color-ring: hsl(28 78% 42%);
+  --shadow-card: 0 1px 2px hsl(28 40% 20% / 0.05), 0 2px 8px hsl(28 40% 20% / 0.06);
+}
+.dark.univ-protein, .dark .univ-protein, .univ-protein.dark {
+  --color-background: hsl(28 32% 6%);
+  --color-foreground: hsl(36 40% 92%);
+  --color-card: hsl(28 24% 12%);
+  --color-card-foreground: hsl(36 40% 92%);
+  --color-popover: hsl(28 26% 10%);
+  --color-popover-foreground: hsl(36 40% 92%);
+  --color-primary: hsl(32 85% 60%);
+  --color-primary-foreground: hsl(30 60% 10%);
+  --color-secondary: hsl(28 22% 15%);
+  --color-secondary-foreground: hsl(36 40% 90%);
+  --color-muted: hsl(28 22% 14%);
+  --color-muted-foreground: hsl(32 14% 58%);
+  --color-accent: hsl(28 24% 18%);
+  --color-accent-foreground: hsl(36 40% 92%);
+  --color-border: hsl(28 18% 17%);
+  --color-input: hsl(28 18% 19%);
+  --color-ring: hsl(32 85% 60%);
+}
+/* Le vert de la palette produit (fond des vignettes) suit l'univers */
+.univ-beauty .pcard-v2 .pi { background: linear-gradient(135deg, hsl(186 35% 90%), hsl(186 30% 82%)); }
+.univ-protein .pcard-v2 .pi { background: linear-gradient(135deg, hsl(36 55% 90%), hsl(32 45% 82%)); }
+.dark .univ-beauty .pcard-v2 .pi, .dark.univ-beauty .pcard-v2 .pi { background: linear-gradient(135deg, hsl(190 20% 20%), hsl(190 24% 14%)); }
+.dark .univ-protein .pcard-v2 .pi, .dark.univ-protein .pcard-v2 .pi { background: linear-gradient(135deg, hsl(28 20% 20%), hsl(28 24% 14%)); }
+
+/* ── Carte produit beauté : fond teinté + glyphe (distincte de l'alimentaire) ── */
+.pcard-v2.pcard-beauty { background: hsl(184 45% 97%); border-color: hsl(186 30% 82%); }
+.dark .pcard-v2.pcard-beauty { background: hsl(190 30% 12%); border-color: hsl(190 28% 20%); }
+.pcard-v2.pcard-beauty .pi { background: hsl(186 30% 88%); }
+.dark .pcard-v2.pcard-beauty .pi { background: hsl(190 25% 18%); }
+.pcard-v2 .uni { position: absolute; top: 8px; inset-inline-start: 8px; z-index: 2; width: 24px; height: 24px; border-radius: 8px; background: var(--color-beauty); color: var(--color-beauty-foreground); display: flex; align-items: center; justify-content: center; }
+.pcard-v2 .uni svg { width: 13px; height: 13px; }
+.pcard-v2 .meta { display: block; font-size: 0.72rem; color: var(--color-muted-foreground); margin-top: 2px; }
+
+/* ── Hero de page réutilisable ── */
+.page-hero { position: relative; overflow: hidden; border-radius: 28px; border: 1px solid var(--color-border); min-height: 240px; display: flex; flex-direction: column; justify-content: flex-end; color: #fff; }
+.page-hero.lg { min-height: 320px; }
+.page-hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.page-hero .scrim { position: absolute; inset: 0; background: linear-gradient(to top, var(--hero-tint) 0%, color-mix(in srgb, var(--hero-tint) 55%, transparent) 55%, color-mix(in srgb, var(--hero-tint) 12%, transparent) 100%); }
+[dir='ltr'] .page-hero .scrim { background: linear-gradient(90deg, var(--hero-tint) 0%, color-mix(in srgb, var(--hero-tint) 62%, transparent) 55%, color-mix(in srgb, var(--hero-tint) 12%, transparent) 100%), linear-gradient(to top, color-mix(in srgb, var(--hero-tint) 70%, transparent), transparent 45%); }
+.page-hero .inner { position: relative; padding: 26px 22px; max-width: 640px; display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 640px) { .page-hero .inner { padding: 36px 40px; } }
+.page-hero .kicker { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 5px 11px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; background: var(--hero-accent); color: var(--hero-accent-fg); }
+.page-hero h1 { font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; line-height: 1.08; letter-spacing: -.01em; margin: 0; }
+.page-hero p { margin: 0; font-size: .95rem; line-height: 1.5; color: hsl(0 0% 100% / .82); max-width: 560px; }
+.page-hero .ctas { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+.page-hero .ctas a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; font-size: 14px; font-weight: 800; }
+.page-hero .ctas a.main { background: var(--hero-accent); color: var(--hero-accent-fg); }
+.page-hero .ctas a.ghost { border: 1px solid hsl(0 0% 100% / .35); background: hsl(0 0% 100% / .12); color: #fff; }

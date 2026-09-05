@@ -7,6 +7,7 @@ import Layout from '@/layouts/Layout.astro'
 import MealJournal from '@/components/MealJournal'
 import NutritionDashboard from '@/components/NutritionDashboard'
 import WeeklyCoach from '@/components/WeeklyCoach'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -20,10 +21,9 @@ const locale = getLocale(localeCookie)
   noindex={true}
 >
   <main class="container mx-auto max-w-screen-lg px-4 pt-6 pb-24">
-    <header class="mb-6 space-y-2">
-      <h1 class="text-3xl font-bold text-foreground">{t('journal.title', locale)}</h1>
-      <p class="text-sm text-muted-foreground">{t('journal.subtitle', locale)}</p>
-    </header>
+    <PageHero image="/hero/journal.jpg" tone="ai" kicker={t('nav.journal', locale)} title={t('journal.title', locale)} subtitle={t('journal.subtitle', locale)} class="mb-8">
+      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+    </PageHero>
 
     <div class="mb-6 space-y-6">
       <NutritionDashboard client:load />

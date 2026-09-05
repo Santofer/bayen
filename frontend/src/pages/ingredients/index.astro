@@ -1,6 +1,8 @@
 ---
+// Base d'ingrédients — hero, recherche et filtres (SSR, paramètres d'URL)
 export const prerender = false
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -16,87 +18,132 @@ interface Ingredient {
   icon: string
 }
 
-let ingredients: Ingredient[] = []
+const CATEGORIES: Record<string, string> = {
+  cereale: 'Céréales',
+  sucre: 'Sucres & chocolat',
+  graisse: 'Huiles & graisses',
+  laitier: 'Produits laitiers',
+  proteine: 'Protéines & noix',
+  fruit_legume: 'Fruits & légumes',
+  sel: 'Sel & minéraux',
+  eau: 'Eau',
+  arome: 'Arômes & épices',
+  additif: 'Additifs alimentaires',
+  autre: 'Autres',
+}
 
+const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 60)
+const cat = Astro.url.searchParams.get('cat') ?? ''
+const activeCat = cat in CATEGORIES ? cat : ''
+const onlyAllergens = Astro.url.searchParams.get('allergenes') === '1'
+
+let all: Ingredient[] = []
 try {
   const res = await fetch(
     `${DIRECTUS_URL}/items/ingredients?sort=category,name_fr&limit=-1&fields=id,name_fr,name_ar,category,is_allergen,allergen_type,icon`,
     { signal: AbortSignal.timeout(5000) }
   )
-  if (res.ok) {
-    const data = await res.json()
-    ingredients = data.data ?? []
-  }
-} catch {}
+  if (res.ok) all = (await res.json()).data ?? []
+} catch { /* page servie vide */ }
 
-// Grouper par catégorie
-const categories: Record<string, { label: string; items: Ingredient[] }> = {
-  cereale: { label: 'Céréales', items: [] },
-  sucre: { label: 'Sucres & chocolat', items: [] },
-  graisse: { label: 'Huiles & graisses', items: [] },
-  laitier: { label: 'Produits laitiers', items: [] },
-  proteine: { label: 'Protéines & noix', items: [] },
-  fruit_legume: { label: 'Fruits & légumes', items: [] },
-  sel: { label: 'Sel & minéraux', items: [] },
-  eau: { label: 'Eau', items: [] },
-  arome: { label: 'Arômes & épices', items: [] },
-  additif: { label: 'Additifs alimentaires', items: [] },
-  autre: { label: 'Autres', items: [] },
-}
+const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const needle = fold(q)
+const filtered = all.filter((i) =>
+  (!activeCat || (CATEGORIES[i.category] ? i.category : 'autre') === activeCat)
+  && (!onlyAllergens || i.is_allergen)
+  && (!needle || fold(i.name_fr).includes(needle) || (i.name_ar ?? '').includes(q))
+)
+const allergenCount = all.filter((i) => i.is_allergen).length
+const countBy = (key: string) => all.filter((i) => (CATEGORIES[i.category] ? i.category : 'autre') === key).length
 
-for (const ing of ingredients) {
-  const cat = categories[ing.category] ?? categories.autre
-  cat.items.push(ing)
+// Regroupement par catégorie (ordre de CATEGORIES)
+const groups = Object.entries(CATEGORIES)
+  .map(([key, label]) => ({ key, label, items: filtered.filter((i) => (CATEGORIES[i.category] ? i.category : 'autre') === key) }))
+  .filter((g) => g.items.length > 0)
+
+const link = (params: Record<string, string>) => {
+  const sp = new URLSearchParams()
+  const merged = { q, cat: activeCat, allergenes: onlyAllergens ? '1' : '', ...params }
+  for (const [k, v] of Object.entries(merged)) if (v) sp.set(k, v)
+  const qs = sp.toString()
+  return `/ingredients${qs ? `?${qs}` : ''}`
 }
+const hasFilter = Boolean(q || activeCat || onlyAllergens)
+const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.name_fr)
 ---
 
 <Layout
   title="Base d'ingrédients alimentaires — Bayen Maroc"
-  description="Tous les ingrédients alimentaires identifiés dans les produits du marché marocain, classés par catégorie."
+  description="Tous les ingrédients alimentaires identifiés dans les produits du marché marocain : recherche, familles, allergènes, et les produits qui les contiennent."
   path="/ingredients"
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/></svg>Base d'ingrédients</h1>
-      <p class="text-sm text-muted-foreground mt-1">
-        {ingredients.length} ingrédients référencés. Cliquez sur un ingrédient pour voir les produits qui le contiennent.
+  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 space-y-6">
+    <PageHero image="/hero/ingredients.jpg" kicker={t('nav.ingredients', locale)} title="Ce qu'il y a dedans, ingrédient par ingrédient" subtitle={`${all.length} ingrédients relevés sur les étiquettes des produits vendus au Maroc, dont ${allergenCount} allergènes à déclaration obligatoire. Clique sur un ingrédient pour voir les produits qui le contiennent.`} size="lg">
+      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
+      <form method="get" action="/ingredients" class="mt-2 flex w-full max-w-xl gap-2">
+        {activeCat && <input type="hidden" name="cat" value={activeCat} />}
+        {onlyAllergens && <input type="hidden" name="allergenes" value="1" />}
+        <label class="relative flex-1">
+          <svg class="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" name="q" value={q} placeholder="Lécithine, huile de palme, glutamate…" aria-label="Rechercher un ingrédient" class="h-12 w-full rounded-full border border-white/30 bg-white/95 ps-11 pe-4 text-sm font-medium text-neutral-900 outline-none placeholder:text-neutral-500 focus:ring-2 focus:ring-white/60" />
+        </label>
+        <button type="submit" class="h-12 rounded-full bg-[var(--hero-accent)] px-5 text-sm font-extrabold text-[var(--hero-accent-fg)]">Chercher</button>
+      </form>
+    </PageHero>
+
+    <!-- Filtres : familles + allergènes -->
+    <div class="flex flex-wrap items-center gap-2">
+      <a href={link({ cat: '' })} class:list={['rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors', !activeCat ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-muted']}>Toutes <span class="opacity-70">({all.length})</span></a>
+      {Object.entries(CATEGORIES).filter(([k]) => countBy(k) > 0).map(([key, label]) => (
+        <a href={link({ cat: key })} class:list={['rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors', activeCat === key ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-muted']}>
+          {label} <span class="opacity-70">({countBy(key)})</span>
+        </a>
+      ))}
+      <a href={link({ allergenes: onlyAllergens ? '' : '1' })} class:list={['ms-auto inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-bold transition-colors', onlyAllergens ? 'border-destructive bg-destructive text-destructive-foreground' : 'border-destructive/40 bg-card text-destructive hover:bg-destructive/10']}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3ZM12 9v4M12 17h.01"/></svg>
+        Allergènes seulement ({allergenCount})
+      </a>
+    </div>
+
+    <!-- Résultats -->
+    <div class="flex items-baseline justify-between">
+      <p class="text-sm text-muted-foreground">
+        {hasFilter ? `${filtered.length} ingrédient${filtered.length > 1 ? 's' : ''}` : `${all.length} ingrédients`}{q && <> pour « <strong class="text-foreground">{q}</strong> »</>}
       </p>
+      {hasFilter && <a href="/ingredients" class="text-sm font-semibold text-primary hover:underline">Réinitialiser</a>}
     </div>
 
-    {/* Légende */}
-    <div class="flex flex-wrap gap-2 mb-6">
-      <span class="text-xs px-2 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/30 dark:border-red-800 dark:text-red-300 inline-flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Allergène</span>
-      <span class="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">Ingrédient courant</span>
-    </div>
-
-    {/* Catégories */}
-    <div class="space-y-6">
-      {Object.entries(categories)
-        .filter(([_, cat]) => cat.items.length > 0)
-        .map(([key, cat]) => (
-          <div>
-            <h2 class="text-sm font-bold text-foreground flex items-center gap-2 mb-3 sticky top-14 bg-background py-1 z-10">
-              {cat.label}
-              <span class="text-xs font-normal text-muted-foreground">({cat.items.length})</span>
-            </h2>
-            <div class="flex flex-wrap gap-1.5">
-              {cat.items.map((ing) => (
-                <a
-                  href={`/ingredients/${ing.id}`}
-                  class:list={[
-                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-colors hover:shadow-sm',
-                    ing.is_allergen
-                      ? 'bg-red-50 border border-red-200 text-red-800 hover:bg-red-100 dark:bg-red-950/30 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-950/50'
-                      : 'bg-muted text-foreground hover:bg-muted/80 border border-transparent',
-                  ]}
-                >
-                  <span class="font-medium">{locale === 'ary' && ing.name_ar ? ing.name_ar : ing.name_fr}</span>
-                  {ing.is_allergen && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>}
+    {groups.length === 0 ? (
+      <div class="rounded-2xl border bg-card p-10 text-center">
+        <p class="font-semibold">Aucun ingrédient ne correspond.</p>
+        <p class="mt-1 text-sm text-muted-foreground">Essaie un autre mot, ou retire un filtre.</p>
+      </div>
+    ) : (
+      <div class="space-y-8">
+        {groups.map((g) => (
+          <section>
+            <div class="sec-head-v2">
+              <h2>{g.label}</h2>
+              <span class="text-sm text-muted-foreground">{g.items.length}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              {g.items.map((i) => (
+                <a href={`/ingredients/${i.id}`} class:list={['group flex items-center gap-3 rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-card', i.is_allergen && 'border-destructive/40']}>
+                  <span class:list={['flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl', i.is_allergen ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary']}>
+                    {i.is_allergen
+                      ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3ZM12 9v4M12 17h.01"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10ZM2 21c0-3 1.9-5.5 5-6.5"/></svg>}
+                  </span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-sm font-semibold group-hover:text-primary">{name(i)}</span>
+                    <span class="block truncate text-[11px] text-muted-foreground">{i.is_allergen ? `Allergène${i.allergen_type ? ` · ${i.allergen_type}` : ''}` : g.label}</span>
+                  </span>
                 </a>
               ))}
             </div>
-          </div>
+          </section>
         ))}
-    </div>
+      </div>
+    )}
   </main>
 </Layout>

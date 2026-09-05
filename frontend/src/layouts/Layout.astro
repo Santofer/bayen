@@ -30,9 +30,11 @@ interface Props {
   jsonLd?: Record<string, unknown>
   /** Ne pas indexer */
   noindex?: boolean
+  /** Univers de la page : rethème tous les tokens (beauté bleu-vert, protéines ambre) */
+  universe?: 'beauty' | 'protein'
 }
 
-const { title, description = 'Bayen — Scannez. Comprenez. Choisissez mieux.', hideNav = false, path, ogImage, ogType, jsonLd, noindex } = Astro.props
+const { title, description = 'Bayen — Scannez. Comprenez. Choisissez mieux.', hideNav = false, path, ogImage, ogType, jsonLd, noindex, universe } = Astro.props
 const currentPath = Astro.url.pathname
 
 // ── Mega menus (desktop) — pages regroupées par section ─────────
@@ -128,7 +130,7 @@ const megaMenus = [
     <!-- Umami analytics — tracking anonymisé, auto-hébergé sur umami.n0.ma -->
     <script is:inline defer src="https://umami.n0.ma/script.js" data-website-id="0d7f39e8-44c0-4ec7-bcbc-01ad7917a368"></script>
   </head>
-  <body class="min-h-screen bg-background font-sans antialiased overflow-x-hidden">
+  <body class:list={["min-h-screen bg-background font-sans antialiased overflow-x-hidden", universe === 'beauty' && 'univ-beauty', universe === 'protein' && 'univ-protein']}>
     {!hideNav && (
       <header class="sticky z-50 border" data-bayen-nav>
         <div class="flex min-h-14 items-center gap-2 md:gap-4 lg:gap-[22px] px-3 sm:px-[22px]">
