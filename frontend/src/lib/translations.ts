@@ -845,6 +845,30 @@ export const translations = {
   'profile.beautyHint':      { fr: 'Alertes sur les fiches cosmétiques',       ary: 'تنبيهات فبطاقات مستحضرات التجميل' },
   'profile.noEndocrine':     { fr: 'Éviter les perturbateurs endocriniens',    ary: 'تجنب المخلات الهرمونية' },
   'profile.noFragranceAllergens': { fr: 'Éviter les allergènes parfumants',    ary: 'تجنب مسببات الحساسية ديال العطور' },
+
+  // ── Protéines (sportifs, fit) ─────────────────────────────────
+  'nav.protein':             { fr: 'Protéines',                                ary: 'البروتين' },
+  'nav.d.protein':           { fr: 'Les produits les plus riches en protéines', ary: 'المنتوجات الغنية بالبروتين' },
+  'protein.title':           { fr: 'Riches en protéines',                       ary: 'غنية بالبروتين' },
+  'protein.hubTitle':        { fr: 'Les produits les plus protéinés au Maroc', ary: 'المنتوجات الأكثر بروتين فالمغرب' },
+  'protein.hubDesc':         { fr: "Sport, prise de masse, satiété : voici les produits vendus au Maroc qui apportent le plus de protéines pour 100 g, avec leur score, leur sucre et leur sel — parce qu'une barre « protéinée » peut aussi être une barre chocolatée.", ary: 'الرياضة، الشبع، بناء العضلات: هاد المنتوجات المبيوعة فالمغرب هي لي فيها أكثر بروتين ف100 غ، مع النقطة والسكر والملح — حيت شي « بار بروتيني » يقدر يكون غير شوكولاطة.' },
+  'protein.per100':          { fr: 'g de protéines / 100 g',                    ary: 'غ بروتين / 100 غ' },
+  'protein.rich':            { fr: 'Riche en protéines',                        ary: 'غني بالبروتين' },
+  'protein.source':          { fr: 'Source de protéines',                       ary: 'مصدر بروتين' },
+  'protein.share':           { fr: "de l'énergie vient des protéines",          ary: 'من الطاقة جاية من البروتين' },
+  'protein.filter20':        { fr: 'Très protéiné (≥ 20 g)',                    ary: 'بروتين بزاف (≥ 20 غ)' },
+  'protein.filter12':        { fr: 'Protéiné (≥ 12 g)',                         ary: 'بروتيني (≥ 12 غ)' },
+  'protein.sort':            { fr: 'Plus de protéines',                         ary: 'أكثر بروتين' },
+  'protein.all':             { fr: 'Tous',                                      ary: 'الكل' },
+  'protein.topTitle':        { fr: 'Le top protéines',                          ary: 'أحسن مصادر البروتين' },
+  'protein.byCategory':      { fr: 'Par famille',                               ary: 'حسب العائلة' },
+  'protein.cleanTitle':      { fr: 'Protéinés et bien notés',                   ary: 'بروتين ونقطة مزيانة' },
+  'protein.cleanDesc':       { fr: 'Au moins 12 g de protéines, score Bayen ≥ 60, sucres ≤ 5 g.', ary: 'على الأقل 12 غ بروتين، نقطة Bayen ≥ 60، سكر ≤ 5 غ.' },
+  'protein.howTitle':        { fr: 'Comment lire ces chiffres ?',               ary: 'كيفاش نقراو هاد الأرقام؟' },
+  'protein.how1':            { fr: "En Europe, un produit peut se dire « source de protéines » quand au moins 12 % de son énergie vient des protéines, et « riche en protéines » à partir de 20 %. Bayen applique ces deux seuils officiels.", ary: 'فأوروبا، المنتوج كيقدر يتسمى « مصدر بروتين » إلا 12٪ على الأقل من الطاقة ديالو جاية من البروتين، و« غني بالبروتين » من 20٪. Bayen كيطبق هاد المعيارين الرسميين.' },
+  'protein.how2':            { fr: "Regarde le ratio protéines / calories plutôt que le chiffre brut : un beurre de cacahuètes affiche 30 g de protéines, mais 700 kcal ; une boîte de thon en apporte 33 g pour 175 kcal.", ary: 'شوف النسبة بروتين / كالوري ماشي غير الرقم: زبدة الكاوكاو فيها 30 غ بروتين ولكن 700 كالوري؛ علبة الطون فيها 33 غ ب175 كالوري.' },
+  'protein.how3':            { fr: "Les barres et poudres « protéinées » sont classées comme les autres produits : additifs, édulcorants et sucres comptent dans le score. Ce n'est pas un conseil médical ni un plan d'entraînement.", ary: 'البارات والمساحيق « البروتينية » كيتنقطو بحال المنتوجات الأخرى: الإضافات والمحليات والسكر كيحسبو فالنقطة. هادا ماشي نصيحة طبية ولا برنامج تدريب.' },
+  'protein.searchAll':       { fr: 'Voir tous les produits protéinés',          ary: 'شوف جميع المنتوجات البروتينية' },
 } as const
 
 /** Clé de traduction valide */

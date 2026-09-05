@@ -23,6 +23,7 @@ const SORT_OPTIONS = [
   { value: '-scan_count', labelKey: 'search.sortMostScanned' },
   { value: '-scan_score', labelKey: 'search.sortBestScore' },
   { value: '-date_created', labelKey: 'search.sortNewest' },
+  { value: '-proteins', labelKey: 'protein.sort' },
 ] as const
 
 type SortValue = (typeof SORT_OPTIONS)[number]['value']
@@ -61,6 +62,8 @@ interface Filters {
   excludeAdditives: string[]
   /** Seuil max de sucres g/100g (0.5 = sans sucres, 5 = faible) — null = off */
   sugarMax: number | null
+  /** Seuil min de protéines g/100g (12 = source, 20 = riche) — null = off */
+  proteinMin: number | null
   sort: SortValue
 }
 
@@ -78,6 +81,7 @@ const defaultFilters: Filters = {
   bio: false,
   excludeAdditives: [],
   sugarMax: null,
+  proteinMin: null,
   sort: '-scan_count',
 }
 
@@ -146,6 +150,12 @@ function buildQueryParams(filters: Filters, offset: number): string {
     params.set('filter[sugars][_nnull]', 'true')
   }
 
+  // Protéines (sportifs) : taux connu ET au-dessus du seuil
+  if (filters.proteinMin !== null) {
+    params.set('filter[proteins][_gte]', String(filters.proteinMin))
+    params.set('filter[proteins][_nnull]', 'true')
+  }
+
   // Tri
   params.set('sort', filters.sort)
 
@@ -180,6 +190,7 @@ function buildCustomParams(filters: Filters, offset: number): string {
   if (filters.halal) p.set('halal', 'true')
   if (filters.bio) p.set('bio', 'true')
   if (filters.sugarMax !== null) p.set('sugar_max', String(filters.sugarMax))
+  if (filters.proteinMin !== null) p.set('protein_min', String(filters.proteinMin))
   p.set('exclude_additives', filters.excludeAdditives.join(','))
   p.set('sort', filters.sort)
   p.set('limit', String(PAGE_SIZE))
@@ -212,6 +223,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
     try {
       const sp = new URLSearchParams(window.location.search)
       const fromUrl: Universe | null = sp.get('univers') === 'beaute' ? 'cosmetic' : null
+      const prot = Number(sp.get('proteines'))
+      if (prot === 12 || prot === 20) setFilters((prev) => ({ ...prev, proteinMin: prot, sort: '-proteins' }))
       const c = sp.get('cat') ?? ''
       const cat = (COSMETIC_CATEGORIES as readonly string[]).includes(c) ? c : ''
       if (fromUrl && (fromUrl !== (initialUniverse ?? 'food') || cat)) {
@@ -371,6 +384,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
     filters.halal,
     filters.bio,
     filters.sugarMax,
+    filters.proteinMin,
     filters.excludeAdditives,
     filters.sort,
   ])
@@ -420,6 +434,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
     filters.halal ||
     filters.bio ||
     filters.sugarMax !== null ||
+    filters.proteinMin !== null ||
     filters.excludeAdditives.length > 0
 
   const hasMore = products.length < totalCount
@@ -515,6 +530,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
                     filters.halal,
                     filters.bio,
                     filters.sugarMax !== null,
+                    filters.proteinMin !== null,
                     filters.excludeAdditives.length > 0,
                   ].filter(Boolean).length
                 }
@@ -673,6 +689,16 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
               label={t('search.lowSugar')}
               active={filters.sugarMax === 5}
               onClick={() => updateFilter('sugarMax', filters.sugarMax === 5 ? null : 5)}
+            />
+            <ToggleChip
+              label={t('protein.filter12')}
+              active={filters.proteinMin === 12}
+              onClick={() => updateFilter('proteinMin', filters.proteinMin === 12 ? null : 12)}
+            />
+            <ToggleChip
+              label={t('protein.filter20')}
+              active={filters.proteinMin === 20}
+              onClick={() => updateFilter('proteinMin', filters.proteinMin === 20 ? null : 20)}
             />
             {profileAdditives.length > 0 && (
               <ToggleChip

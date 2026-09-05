@@ -101,7 +101,7 @@ const alertSvg = '<svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="n
                 {categoryLabels[ingredient.category] ?? ingredient.category}
               </span>
               {ingredient.is_allergen && (
-                <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200 font-medium">
                   <svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Allergène{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
                 </span>
               )}
@@ -111,8 +111,8 @@ const alertSvg = '<svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="n
 
         {/* Info allergène */}
         {ingredient.is_allergen && (
-          <div class="rounded-xl border border-red-200 bg-red-50 p-4">
-            <p class="text-sm text-red-800">
+          <div class="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
+            <p class="text-sm text-red-800 dark:text-red-200">
               <strong>⚠️ Allergène majeur</strong> — Cet ingrédient fait partie des 14 allergènes à déclaration obligatoire selon la réglementation européenne et marocaine (ONSSA).
               {ingredient.allergen_type === 'gluten' && ' Le gluten est une protéine présente dans le blé, l\'orge, le seigle et l\'avoine.'}
               {ingredient.allergen_type === 'lait' && ' Les protéines de lait de vache sont l\'un des allergènes les plus courants chez les enfants.'}

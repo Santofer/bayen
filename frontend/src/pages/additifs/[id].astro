@@ -55,11 +55,13 @@ const RISK_COLORS: Record<string, string> = {
   banned_ma: '#7f1d1d',
 }
 
+// Fond clair ET variante sombre : sans elle, le bloc « limité » restait un
+// rectangle orange pâle avec du texte clair, illisible en mode nuit.
 const RISK_BG: Record<string, string> = {
-  safe: 'bg-green-50 border-green-200',
-  limited: 'bg-orange-50 border-orange-200',
-  avoid: 'bg-red-50 border-red-200',
-  banned_ma: 'bg-red-100 border-red-300',
+  safe: 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800',
+  limited: 'bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-800',
+  avoid: 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800',
+  banned_ma: 'bg-red-100 border-red-300 dark:bg-red-950/50 dark:border-red-700',
 }
 
 const RISK_DESC_KEYS: Record<string, string> = {
@@ -102,7 +104,7 @@ const pageDescription = additive
     </a>
 
     {fetchError && (
-      <div class="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+      <div class="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-6 text-center">
         <p class="text-red-800">{fetchError}</p>
       </div>
     )}

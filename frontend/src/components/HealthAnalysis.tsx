@@ -166,7 +166,7 @@ export default function HealthAnalysis(props: HealthAnalysisProps) {
             </span>
           )}
           {badCount > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200 font-medium">
               {badCount} {badCount > 1 ? t('health.alertsPlural') : t('health.alerts')}
             </span>
           )}

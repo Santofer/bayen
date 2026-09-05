@@ -364,6 +364,13 @@ if (scanResult.found && scanResult.source === 'open_food_facts') {
 const product = scanResult.product as Record<string, unknown> | undefined
 const score = scanResult.score as Record<string, unknown> | undefined
 const isCosmetic = product?.product_type === 'cosmetic'
+// Allégations protéines (règl. CE 1924/2006) : « source » ≥ 12 % de l'énergie, « riche » ≥ 20 %
+const _prot = typeof product?.proteins === 'number' ? product.proteins : null
+const _kcal = typeof product?.energy_kcal === 'number' && product.energy_kcal > 0 ? product.energy_kcal : null
+const proteinShare = _prot != null && _kcal != null ? (_prot * 4) / _kcal : null
+const proteinClaim: 'rich' | 'source' | null = !isCosmetic && _prot != null && proteinShare != null && proteinShare <= 1.08
+  ? (proteinShare >= 0.2 && _prot >= 10 ? 'rich' : proteinShare >= 0.12 && _prot >= 5 ? 'source' : null)
+  : null
 const cosmeticRisk = isCosmetic ? (score as unknown as import('@/lib/types').CosmeticRiskSummary | null) : null
 const cosmeticCategoryKey = isCosmetic && typeof product?.cosmetic_category === 'string'
   ? (`beauty.cat.${product.cosmetic_category}` as Parameters<typeof t>[0])
@@ -698,6 +705,11 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               )}
               {product.is_organic && (
                 <Badge variant="safe" className="text-xs">Bio</Badge>
+              )}
+              {proteinClaim && (
+                <a href="/proteines" class="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary hover:bg-primary/20" title={`${Math.round((proteinShare ?? 0) * 100)} % ${t('protein.share', locale)}`}>
+                  {proteinClaim === 'rich' ? t('protein.rich', locale) : t('protein.source', locale)} · {_prot} g
+                </a>
               )}
             </div>
             {/* Halal : badge sourcé + confirmation communautaire (C17) */}

@@ -154,7 +154,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                 key={i}
                 className={cn(
                   'inline-flex items-center px-2 py-0.5 rounded-md text-xs',
-                  isAdditive ? 'bg-orange-50 text-orange-700 border border-orange-200' :
+                  isAdditive ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800' :
                   isAllergen ? 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 font-medium' :
                   'bg-muted/50 text-foreground'
                 )}

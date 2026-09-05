@@ -21,6 +21,8 @@ interface ProductCardProps {
   className?: string
   /** 'row' = carte horizontale (accueil) · 'grid' = carte verticale maquette v2 (recherche, catégories) */
   variant?: 'row' | 'grid'
+  /** Pastille imposée à la place du Nutri-Score (galerie protéines : « 33 g prot. ») */
+  badge?: { text: string; color: string }
 }
 
 const SCORE_COLORS: Record<ScoreLabel, string> = {
@@ -57,7 +59,7 @@ function cosmeticBadge(product: Product): { text: string; color: string } | null
   return { text: word, color }
 }
 
-export default function ProductCard({ product, className, variant = 'row' }: ProductCardProps) {
+export default function ProductCard({ product, className, variant = 'row', badge }: ProductCardProps) {
   const scoreColor = product.score_label
     ? SCORE_COLORS[product.score_label]
     : '#a1a1aa'
@@ -73,7 +75,7 @@ export default function ProductCard({ product, className, variant = 'row' }: Pro
     : null
 
   // Variante grille — carte verticale de la maquette v2 (recherche)
-  const beauty = cosmeticBadge(product)
+  const beauty = badge ?? cosmeticBadge(product)
 
   if (variant === 'grid') {
     const grade = product.nutriscore_grade?.toLowerCase()

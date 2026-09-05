@@ -1,0 +1,141 @@
+---
+// Galerie protéines — sportifs, prise de masse, satiété (SSR)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import ProductCard from '@/components/ProductCard.tsx'
+import { getLocale, t } from '@/lib/i18n'
+import type { Product } from '@/lib/types'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+
+interface Row extends Product { proteins: number; energy_kcal: number | null; sugars: number | null; salt: number | null; category_id: number | null }
+
+const FIELDS = 'id,barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count,proteins,energy_kcal,sugars,salt,category_id,product_type,status'
+
+/**
+ * Garde-fou : quelques fiches portent des protéines fantaisistes (« 73 g » pour des
+ * flocons de blé, « 65 g » pour un fromage fondu). Au-delà de 45 g/100 g on n'accepte
+ * que ce qui est plausible : poudres, collagène, levure, spiruline, gélatine.
+ * Et l'énergie des protéines (4 kcal/g) ne peut pas dépasser l'énergie totale.
+ */
+const POWDER_RE = /whey|prot[ée]in|collag|isolat|levure|spirulin|g[ée]latin|poudre|powder|caséine|casein|soja texturé|lentille|pois chiche|parmesan|parmigiano|grana|pecorino|comté|gruyère|emmental|thon|sardine|maquereau|anchois/i
+function plausible(p: Row): boolean {
+  if (p.proteins == null || p.proteins <= 0 || p.proteins > 95) return false
+  if (p.energy_kcal != null && p.energy_kcal > 0 && p.proteins * 4 > p.energy_kcal * 1.08) return false
+  if (p.proteins > 45 && !POWDER_RE.test(`${p.name_fr} ${p.brand}`)) return false
+  return true
+}
+const share = (p: Row): number | null => (p.energy_kcal && p.energy_kcal > 0 ? Math.round((p.proteins * 4 / p.energy_kcal) * 100) : null)
+
+let all: Row[] = []
+try {
+  const res = await fetch(
+    `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&filter[product_type][_eq]=food&filter[proteins][_gte]=10&filter[image_front][_nnull]=true&fields=${FIELDS}&sort=-proteins&limit=300`,
+    { signal: AbortSignal.timeout(6000) }
+  )
+  if (res.ok) all = ((await res.json()).data ?? []).filter(plausible)
+} catch { /* page servie vide */ }
+
+const top = all.slice(0, 20)
+const clean = all.filter((p) => p.proteins >= 12 && (p.scan_score ?? 0) >= 60 && (p.sugars ?? 0) <= 5).slice(0, 15)
+const FAMILIES: Array<{ id: number; slug: string; label: string }> = [
+  { id: 3, slug: 'produits-laitiers', label: 'Laitiers & fromages' },
+  { id: 4, slug: 'charcuterie-viandes', label: 'Viandes & poissons' },
+  { id: 7, slug: 'conserves', label: 'Conserves' },
+  { id: 2, slug: 'cereales-petit-dejeuner', label: 'Céréales & barres' },
+  { id: 10, slug: 'snacks-chips', label: 'Snacks & graines' },
+  { id: 8, slug: 'epices-condiments', label: 'Compléments & poudres' },
+]
+const byFamily = FAMILIES.map((f) => ({ ...f, items: all.filter((p) => p.category_id === f.id).slice(0, 10) })).filter((f) => f.items.length >= 3)
+
+const badge = (p: Row) => ({
+  text: `${Math.round(p.proteins)} g ${locale === 'ary' ? 'بروتين' : 'PROT.'}${share(p) != null ? ` · ${share(p)} %` : ''}`,
+  color: share(p) != null && share(p)! >= 20 ? '#476a32' : '#0f766e',
+})
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: t('protein.hubTitle', locale),
+  itemListElement: top.map((p, i) => ({ '@type': 'ListItem', position: i + 1, name: `${p.name_fr} (${p.brand})`, url: `https://bayen.ma/produit/${p.barcode}` })),
+}
+---
+
+<Layout
+  title="Produits riches en protéines au Maroc — classement pour 100 g | Bayen"
+  description="Le classement des produits vendus au Maroc qui apportent le plus de protéines pour 100 g : thon, fromages, barres, poudres, avec le score Bayen, le sucre et le sel. Pour sportifs et amateurs de nutrition."
+  path="/proteines"
+  jsonLd={jsonLd}
+>
+  <main class="mx-auto max-w-5xl px-4 py-6 pb-24 space-y-10">
+    <section class="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/12 via-primary/5 to-transparent p-6 sm:p-8">
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M3 8h6M15 8h6M3 16h6M15 16h6M9 12h6"/></svg>
+        {t('protein.title', locale)}
+      </span>
+      <h1 class="font-display mt-3 text-2xl sm:text-3xl font-bold leading-tight">{t('protein.hubTitle', locale)}</h1>
+      <p class="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{t('protein.hubDesc', locale)}</p>
+      <div class="mt-5 flex flex-wrap gap-2">
+        <a href="/recherche?proteines=20" class="inline-flex min-h-[44px] items-center rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground">{t('protein.filter20', locale)}</a>
+        <a href="/recherche?proteines=12" class="inline-flex min-h-[44px] items-center rounded-full border border-primary/30 bg-card px-5 text-sm font-bold text-primary">{t('protein.filter12', locale)}</a>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head-v2">
+        <h2>{t('protein.topTitle', locale)}</h2>
+        <span class="text-sm text-muted-foreground">{t('protein.per100', locale)}</span>
+      </div>
+      {top.length === 0 ? (
+        <div class="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t('search.noResults', locale)}</div>
+      ) : (
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {top.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
+        </div>
+      )}
+    </section>
+
+    {clean.length >= 3 && (
+      <section>
+        <div class="sec-head-v2">
+          <h2>{t('protein.cleanTitle', locale)}</h2>
+          <span class="text-sm text-muted-foreground">{t('protein.cleanDesc', locale)}</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {clean.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
+        </div>
+      </section>
+    )}
+
+    {byFamily.length > 0 && (
+      <section class="space-y-8">
+        <h2 class="font-display text-xl font-bold">{t('protein.byCategory', locale)}</h2>
+        {byFamily.map((f) => (
+          <div>
+            <div class="sec-head-v2">
+              <h3 class="font-bold">{f.label}</h3>
+              <a href={`/categories/${f.slug}`} class="text-sm text-primary hover:underline">{t('protein.all', locale)} →</a>
+            </div>
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {f.items.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
+            </div>
+          </div>
+        ))}
+      </section>
+    )}
+
+    <section class="rounded-3xl border bg-card p-6 sm:p-8">
+      <h2 class="font-display text-xl font-bold">{t('protein.howTitle', locale)}</h2>
+      <ol class="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground/90">
+        {[t('protein.how1', locale), t('protein.how2', locale), t('protein.how3', locale)].map((txt, i) => (
+          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{i + 1}</span><span>{txt}</span></li>
+        ))}
+      </ol>
+      <a href="/recherche?proteines=12" class="mt-5 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-primary/30 bg-card px-5 text-sm font-bold text-primary">
+        {t('protein.searchAll', locale)} →
+      </a>
+    </section>
+  </main>
+</Layout>

@@ -18,6 +18,7 @@ export const GET: APIRoute = async () => {
     { url: '/', priority: '1.0', changefreq: 'daily', lastmod: STATIC_LASTMOD },
     { url: '/recherche', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
     { url: '/beaute', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
+    { url: '/proteines', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
     { url: '/ingredients-cosmetiques', priority: '0.7', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
     { url: '/additifs', priority: '0.7', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
     { url: '/blog', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },

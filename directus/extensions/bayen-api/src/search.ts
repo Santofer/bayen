@@ -19,7 +19,8 @@
  *   cosmetic_category visage|corps|cheveux|hygiene|dents|maquillage|parfum|solaire|bebe|homme|eclaircissant|ongles
  *   risk_free         'true' → aucun ingrédient à risque modéré/élevé/interdit (beauté)
  *   no_endocrine      'true' → aucun perturbateur endocrinien suspecté/avéré (beauté)
- *   sort              -scan_count | -scan_score | -date_created
+ *   protein_min       g/100 g minimum (protéines connues uniquement) — sportifs / fit
+ *   sort              -scan_count | -scan_score | -date_created | -proteins
  *   limit ≤ 50, offset
  *
  * Public : ne renvoie que les produits published.
@@ -39,6 +40,7 @@ const SORTS: Record<string, string> = {
   '-scan_count': 'scan_count DESC NULLS LAST',
   '-scan_score': 'scan_score DESC NULLS LAST',
   '-date_created': 'date_created DESC NULLS LAST',
+  '-proteins': 'proteins DESC NULLS LAST',
 }
 
 const CODE_RE = /^E\d{3,4}[A-Z]?$/
@@ -113,6 +115,13 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
         bind.push(sugarMax)
       }
 
+      // Protéines (sportifs) : taux CONNU et au-dessus du seuil
+      const proteinMin = parseFloat(String(req.query.protein_min ?? ''))
+      if (Number.isFinite(proteinMin) && proteinMin > 0 && proteinMin <= 100) {
+        where.push('proteins IS NOT NULL AND proteins >= ?')
+        bind.push(proteinMin)
+      }
+
       // Exclusion : le produit ne doit contenir AUCUN des codes listés
       for (const code of exclude) {
         where.push(`COALESCE(additives::text, '') NOT LIKE ?`)
@@ -127,7 +136,7 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
       const whereSql = where.join(' AND ')
       const fields =
         'id, barcode, name_fr, brand, quantity, image_front, scan_score, score_label, ' +
-        'nutriscore_grade, nova_group, additives, scan_count, product_type, cosmetic_category, cosmetic_risk'
+        'nutriscore_grade, nova_group, additives, scan_count, product_type, cosmetic_category, cosmetic_risk, proteins, energy_kcal'
 
       const [rowsRes, countRes] = await Promise.all([
         knex.raw(
