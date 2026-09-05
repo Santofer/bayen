@@ -80,7 +80,7 @@ const CATEGORY_IMAGES = new Set<string>([
   'plats-prepares',
 ])
 const categoryImage = (slug: string) =>
-  `/categories/${CATEGORY_IMAGES.has(slug) ? slug : '_fallback'}.jpg`
+  `/categories/${CATEGORY_IMAGES.has(slug) ? slug : '_fallback'}.jpg?v=2`
 
 const pageTitle = locale === 'ary' ? 'الفئات — باين' : 'Catégories — Bayen'
 const pageHeading = locale === 'ary' ? 'الفئات' : 'Catégories'
