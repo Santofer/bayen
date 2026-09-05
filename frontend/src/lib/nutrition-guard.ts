@@ -71,7 +71,8 @@ export function auditNutrition(n: NutritionInput, name = ''): NutritionIssue[] {
       if (num(n[field]) != null) issues.push({ field, code: 'sum_over_100', message: `protéines + glucides + lipides = ${((p ?? 0) + (c ?? 0) + (f ?? 0)).toFixed(0)} g > 100 g` })
     }
   }
-  if (s != null && c != null && s > c + 2) issues.push({ field: 'sugars', code: 'sugars_over_carbs', message: `sucres ${s} g > glucides ${c} g` })
+  // Sucres > glucides : l'étiquette donne toujours les sucres, ce sont les glucides (0, portion…) qui sont faux
+  if (s != null && c != null && s > c + 2 && s <= 100) issues.push({ field: 'carbs_total', code: 'sugars_over_carbs', message: `sucres ${s} g > glucides ${c} g` })
   if (sat != null && f != null && sat > f + 0.5) issues.push({ field: 'fat_saturated', code: 'saturated_over_fat', message: `saturés ${sat} g > lipides ${f} g` })
   if (salt != null && salt > 30 && salt <= 100 && !SALTY_RE.test(name)) {
     issues.push({ field: 'salt', code: 'salt_implausible', message: `sel ${salt} g/100 g pour un produit qui n'est ni sel, ni levure, ni bouillon` })
@@ -83,25 +84,25 @@ export function auditNutrition(n: NutritionInput, name = ''): NutritionIssue[] {
   const theo = theoreticalEnergy(n)
   if (e != null && e > 0) {
     // Chaque macro-nutriment ne peut pas dépasser l'énergie totale (polyols : 2,4 kcal/g)
-    if (p != null && 4 * p > e * 1.1) issues.push({ field: 'proteins', code: 'macro_over_energy', message: `${p} g de protéines = ${4 * p} kcal > ${e} kcal` })
-    if (c != null && 4 * c > e * 1.1 && 2.4 * c > e * 1.15) issues.push({ field: 'carbs_total', code: 'macro_over_energy', message: `${c} g de glucides = ${4 * c} kcal > ${e} kcal` })
-    if (f != null && 9 * f > e * 1.15) issues.push({ field: 'fat_total', code: 'macro_over_energy', message: `${f} g de lipides = ${9 * f} kcal > ${e} kcal` })
+    if (p != null && 4 * p > e * 1.1 + 15) issues.push({ field: 'proteins', code: 'macro_over_energy', message: `${p} g de protéines = ${4 * p} kcal > ${e} kcal` })
+    if (c != null && 4 * c > e * 1.1 + 15 && 2.4 * c > e * 1.15 + 15) issues.push({ field: 'carbs_total', code: 'macro_over_energy', message: `${c} g de glucides = ${4 * c} kcal > ${e} kcal` })
+    if (f != null && 9 * f > e * 1.15 + 15) issues.push({ field: 'fat_total', code: 'macro_over_energy', message: `${f} g de lipides = ${9 * f} kcal > ${e} kcal` })
     if (theo != null && theo > 40) {
       const ratio = e / theo
-      if (ratio > 3.2 && ratio < 5.2) {
+      if (ratio > 3.0 && ratio < 5.6) {
         issues.push({ field: 'energy_kcal', code: 'energy_in_kj', message: `${e} ressemble à des kJ (théorique ${theo.toFixed(0)} kcal)` })
-      } else if (e > 950 || ratio > 1.5 || ratio < 0.55) {
+      } else if (e > 950) {
+        issues.push({ field: 'energy_kcal', code: 'out_of_range', message: `${e} kcal > 950 (théorique ${theo.toFixed(0)})` })
+      } else if (ratio > 1.5 || ratio < 0.55) {
         issues.push({ field: 'energy_kcal', code: 'energy_mismatch', message: `${e} kcal pour ${theo.toFixed(0)} kcal théoriques` })
       }
     } else if (e > 950) {
       issues.push({ field: 'energy_kcal', code: 'out_of_range', message: `${e} kcal > 950` })
     }
-  } else if (e === 0 && (p ?? 0) + (c ?? 0) + (f ?? 0) > 5) {
+  } else if (e === 0 && ((p ?? 0) > 1.5 || (f ?? 0) > 1.5)) {
     issues.push({ field: 'energy_kcal', code: 'energy_zero', message: 'énergie 0 avec des macro-nutriments' })
   }
-  if (fib != null && c != null && fib > c + 5 && !issues.some((i) => i.field === 'fiber')) {
-    issues.push({ field: 'fiber', code: 'out_of_range', message: `fibres ${fib} g > glucides ${c} g` })
-  }
+  // (fibres > glucides est normal : en étiquetage européen les fibres ne font pas partie des glucides)
   return issues
 }
 
@@ -125,8 +126,10 @@ export function sanitizeNutrition(n: NutritionInput, name = ''): { values: Nutri
       changed.add(issue.field)
     }
   }
-  // Un sucre sans glucides ou des saturés sans lipides ne veulent plus rien dire
-  if (changed.has('carbs_total') && num(values.sugars) != null) { values.sugars = null; changed.add('sugars') }
+  // Un sucre sans glucides ne veut plus rien dire — sauf si les glucides ont été effacés
+  // justement parce que les sucres, eux, étaient cohérents (sugars_over_carbs)
+  const carbsDroppedForSugars = issues.some((i) => i.code === 'sugars_over_carbs')
+  if (changed.has('carbs_total') && !carbsDroppedForSugars && num(values.sugars) != null) { values.sugars = null; changed.add('sugars') }
   if (changed.has('fat_total') && num(values.fat_saturated) != null) { values.fat_saturated = null; changed.add('fat_saturated') }
   return { values, issues, changed: [...changed] }
 }
