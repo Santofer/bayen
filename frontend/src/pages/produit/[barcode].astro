@@ -461,7 +461,8 @@ const curSat = _n(product?.fat_saturated)
 const curNova = _n(product?.nova_group)
 const curAddCount = Array.isArray(product?.additives) ? (product!.additives as unknown[]).length : 0
 
-const curFlagged = cosmeticRisk
+// (une fiche beauté jamais scorée n'a pas de `counts` : ne pas planter la page)
+const curFlagged = cosmeticRisk?.counts
   ? (cosmeticRisk.counts.banned ?? 0) + (cosmeticRisk.counts.high ?? 0) + (cosmeticRisk.counts.moderate ?? 0) + (cosmeticRisk.counts.low ?? 0)
   : 0
 
@@ -469,12 +470,12 @@ function altReasons(alt: Record<string, unknown>): string[] {
   const reasons: string[] = []
   if (isCosmetic) {
     const r = alt.cosmetic_risk as import('@/lib/types').CosmeticRiskSummary | null
-    if (!r) return reasons
+    if (!r || !r.counts) return reasons
     const n = (r.counts.banned ?? 0) + (r.counts.high ?? 0) + (r.counts.moderate ?? 0) + (r.counts.low ?? 0)
     if (!r.cap_reason) reasons.push('Aucun ingrédient à risque')
     else if (n < curFlagged) reasons.push(`${curFlagged - n} ingrédient${curFlagged - n > 1 ? 's' : ''} à surveiller en moins`)
-    const curPe = cosmeticRisk?.worst.some((w) => w.risk_types.includes('endocrine'))
-    if (curPe && !r.worst.some((w) => w.risk_types.includes('endocrine'))) reasons.push('Sans perturbateur endocrinien')
+    const curPe = cosmeticRisk?.worst?.some((w) => w.risk_types.includes('endocrine'))
+    if (curPe && !(r.worst ?? []).some((w) => w.risk_types.includes('endocrine'))) reasons.push('Sans perturbateur endocrinien')
     return reasons.slice(0, 3)
   }
   const addCount = Array.isArray(alt.additives) ? (alt.additives as unknown[]).length : 0
