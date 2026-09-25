@@ -18,7 +18,8 @@ Pour chaque produit : télécharge l'image depuis Directus → /pipeline local
 l'existant, REMPLACE les liens products_ingredients (référentiel : match
 name_fr, création sinon), réécrit ingredients_text en FR propre, fusionne
 traces et additifs. Marque ingredients_ocr_at dans tous les cas (pas de
-boucle infinie sur les photos illisibles — relancer en forçant : FORCE=1).
+boucle infinie sur les photos illisibles — relancer en forçant : FORCE=1),
+SAUF si l'IA était injoignable (`ai_unavailable`) : la nuit suivante retente.
 
 Dry-run : APPLY=0. Token admin : DTOKEN.
 """
@@ -230,6 +231,12 @@ def main():
             # 2. Lecture vision
             r = post_multipart(TESSERACT + "/pipeline", "image_nutrition",
                                str(p["barcode"]) + ".jpg", blob)
+            # IA en panne ≠ photo illisible : pas de marquage, relecture demain
+            if r.get("ai_unavailable"):
+                fail += 1
+                print("  [retry] " + (p.get("name_fr") or "?")[:35]
+                      + " : IA indisponible, relecture la nuit prochaine", flush=True)
+                continue
             parsed = r.get("parsed_data") or {}
             items = [x for x in (parsed.get("ingredients") or []) if isinstance(x, dict)][:40]
 
