@@ -113,6 +113,11 @@ export function registerEstimateEndpoint(
         }),
         signal: AbortSignal.timeout(45_000),
       })
+      // IA en panne (502/500) ≠ « non estimable » : rien n'est écrit, on retentera
+      if (!aiRes.ok) {
+        res.status(502).json({ error: "L'estimation IA est indisponible pour le moment." })
+        return
+      }
       const ai = (await aiRes.json()) as EstimateResponse
 
       if (!ai.estimable || !ai.nutrition_100g) {

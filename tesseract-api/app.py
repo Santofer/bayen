@@ -9,7 +9,7 @@ IA : serveur vLLM partagé (OpenAI-compatible), modèle multimodal Qwen3.5-9B.
 Configuré par env AI_BASE_URL / AI_MODEL / AI_API_KEY.
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g, has_request_context
 import pytesseract
 from PIL import Image, ImageFilter, ImageEnhance
 import base64
@@ -32,6 +32,16 @@ AI_API_KEY = os.environ.get('AI_API_KEY', 'sk-local')
 # Côté grand côté max pour les images envoyées au modèle vision.
 # Le serveur cappe à ~768×768 → envoyer plus gros = gaspillage/latence.
 AI_IMAGE_MAX_SIDE = int(os.environ.get('AI_IMAGE_MAX_SIDE', '768'))
+
+
+def _mark_ai_unavailable():
+    """Mémorise, pour la requête en cours, que l'IA était injoignable.
+
+    Distingue une panne (réseau, 5xx, 429…) d'une réponse inexploitable :
+    /pipeline le signale pour que les crons ne marquent pas le travail fait.
+    """
+    if has_request_context():
+        g.ai_unavailable = True
 
 
 def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2):
@@ -60,6 +70,9 @@ def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2):
         )
         if resp.status_code != 200:
             app.logger.warning(f'AI HTTP {resp.status_code}: {resp.text[:300]}')
+            # 400/413/422 = requête refusée pour CETTE entrée ; le reste = panne
+            if resp.status_code not in (400, 413, 422):
+                _mark_ai_unavailable()
             return None
         data = resp.json()
         content = data['choices'][0]['message']['content'].strip()
@@ -70,17 +83,17 @@ def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2):
         elif '```' in content:
             content = content.split('```')[1].split('```')[0].strip()
         return json.loads(content)
-    except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError, IndexError) as e:
+    except requests.exceptions.RequestException as e:
+        app.logger.warning(f'AI error: {e}')
+        _mark_ai_unavailable()
+        return None
+    except (json.JSONDecodeError, KeyError, IndexError) as e:
         app.logger.warning(f'AI error: {e}')
         return None
 
 
-def call_ai_text(system_prompt, user_prompt, retries=2, **kw):
-    """Parsing texte (étiquette nutritionnelle OCR → JSON structuré)."""
-    messages = [
-        {'role': 'system', 'content': system_prompt},
-        {'role': 'user', 'content': user_prompt},
-    ]
+def _ai_chat_retry(messages, retries=2, **kw):
+    """_ai_chat avec relances bornées (retries + 1 tentatives)."""
     for attempt in range(retries + 1):
         result = _ai_chat(messages, **kw)
         if result is not None:
@@ -90,7 +103,16 @@ def call_ai_text(system_prompt, user_prompt, retries=2, **kw):
     return None
 
 
-def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=700):
+def call_ai_text(system_prompt, user_prompt, retries=2, **kw):
+    """Parsing texte (étiquette nutritionnelle OCR → JSON structuré)."""
+    messages = [
+        {'role': 'system', 'content': system_prompt},
+        {'role': 'user', 'content': user_prompt},
+    ]
+    return _ai_chat_retry(messages, retries=retries, **kw)
+
+
+def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=700, retries=2):
     """Analyse vision : 1 image (data URL base64) + consigne texte."""
     messages = [
         {'role': 'system', 'content': system_prompt},
@@ -101,7 +123,7 @@ def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=7
             }},
         ]},
     ]
-    return _ai_chat(messages, max_tokens=max_tokens, timeout=timeout)
+    return _ai_chat_retry(messages, retries=retries, max_tokens=max_tokens, timeout=timeout)
 
 
 def resize_for_ai(image, max_side=AI_IMAGE_MAX_SIDE):
@@ -904,6 +926,8 @@ def pipeline():
                 return jsonify({
                     'job_status': 'low_confidence',
                     'engine': engine,
+                    # Vision en panne ≠ photo illisible : l'appelant doit retenter
+                    'ai_unavailable': bool(g.get('ai_unavailable')),
                     'ocr_confidence': round(ocr_confidence, 1),
                     'ocr_text': ocr_text,
                     'message': 'Photo trop floue ou illisible. Essayez avec une meilleure photo.',
@@ -917,6 +941,7 @@ def pipeline():
             return jsonify({
                 'job_status': 'manual_required',
                 'engine': engine,
+                'ai_unavailable': bool(g.get('ai_unavailable')),
                 'ocr_confidence': round(ocr_confidence, 1) if ocr_confidence is not None else None,
                 'ocr_text': ocr_text,
                 'message': "L'IA n'a pas pu analyser l'étiquette. Saisissez les données manuellement.",
