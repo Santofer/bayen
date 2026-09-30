@@ -114,11 +114,11 @@ function parseDirectusError(data: DirectusErrorResponse): string {
 // ────────────────────────────────────────────────────────────────
 
 /** Connexion email + mot de passe (via proxy pour éviter CORS) */
-export async function login(email: string, password: string): Promise<void> {
+export async function login(email: string, password: string, antibot: Record<string, unknown> = {}): Promise<void> {
   const response = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ ...antibot, email, password }),
   })
 
   const data = await response.json()
@@ -135,12 +135,14 @@ export async function login(email: string, password: string): Promise<void> {
 export async function register(
   email: string,
   password: string,
-  displayName: string
+  displayName: string,
+  antibot: Record<string, unknown> = {}
 ): Promise<void> {
   const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      ...antibot,
       email,
       password,
       first_name: displayName,

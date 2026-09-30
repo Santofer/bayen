@@ -6,6 +6,7 @@
 import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { login, register } from '@/lib/auth'
+import { useAntibot } from '@/lib/antibot'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 
@@ -18,6 +19,7 @@ export default function AuthForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
+  const antibot = useAntibot('auth-gotcha')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -60,9 +62,9 @@ export default function AuthForm() {
 
     try {
       if (activeTab === 'login') {
-        await login(email, password)
+        await login(email, password, antibot.fields)
       } else {
-        await register(email, password, displayName.trim())
+        await register(email, password, displayName.trim(), antibot.fields)
       }
 
       // Redirection après connexion réussie
@@ -108,6 +110,7 @@ export default function AuthForm() {
 
       {/* Formulaire */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {antibot.honeypot}
         {/* Nom d'affichage (inscription uniquement) */}
         {activeTab === 'register' && (
           <div className="space-y-2">

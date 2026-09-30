@@ -13,6 +13,7 @@ import { useState } from 'react'
 import { ThumbsUp, ThumbsDown, Check, Loader2 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader } from '@/lib/auth'
+import { useAntibot } from '@/lib/antibot'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -42,6 +43,7 @@ export default function MealFeedback({
 }: Props) {
   const { t } = useLocale()
   const [rating, setRating] = useState<'up' | 'down' | null>(null)
+  const antibot = useAntibot('mealfb-gotcha')
   const [sent, setSent] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -65,6 +67,7 @@ export default function MealFeedback({
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
         body: JSON.stringify({
+          ...antibot.fields,
           rating: value,
           plat_detecte: plat,
           confiance_ia: confiance,
@@ -128,6 +131,7 @@ export default function MealFeedback({
 
       {rating === 'down' && (
         <div className="mt-4 rounded-2xl border bg-popover p-4">
+          {antibot.honeypot}
           <p className="font-bold">{t('mealfb.correctTitle')}</p>
 
           <div className="mt-3 flex flex-col gap-2.5">

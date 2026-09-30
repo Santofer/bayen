@@ -14,6 +14,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { isBot } from './antibot.js'
 import type { Router, Request } from 'express'
 import { creditPoints } from './points.js'
 
@@ -93,6 +94,7 @@ export function registerMealFeedbackEndpoint(router: Router, context: { database
         return
       }
 
+      if (isBot(req.body ?? {})) { res.json({ ok: true }); return }
       const body = (req.body ?? {}) as FeedbackRequest
       const rating = body.rating
       if (rating !== 'up' && rating !== 'down') {

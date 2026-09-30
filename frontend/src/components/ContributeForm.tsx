@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken } from '@/lib/auth'
+import { useAntibot } from '@/lib/antibot'
 import { Camera, Check, Lightbulb, UtensilsCrossed, FileText } from 'lucide-react'
 
 interface ContributeFormProps {
@@ -65,6 +66,8 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
   const [frontPhotoUploaded, setFrontPhotoUploaded] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  // ponytail: écrit Directus en direct (pas d'endpoint à nous) → contrôle anti-bot côté client seulement
+  const antibot = useAntibot('fix-gotcha')
   const [error, setError] = useState<string | null>(null)
 
   // Étape 1 : Code-barres
@@ -138,6 +141,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
 
   // Soumission
   const handleSubmit = async () => {
+    if (antibot.bot()) { setSubmitted(true); return }
     setSubmitting(true)
     setError(null)
 
@@ -525,6 +529,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
       {/* Étape 1 : Code-barres (mode création uniquement) */}
       {step === 'barcode' && !isEditMode && (
         <form onSubmit={handleBarcodeSubmit} className="space-y-4">
+          {antibot.honeypot}
           <div className="rounded-xl border bg-card p-5">
             <label className="block text-sm font-medium text-foreground mb-2">
               {t('contribute.barcode')}

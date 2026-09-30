@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader, isAuthenticated } from '@/lib/auth'
+import { useAntibot } from '@/lib/antibot'
 import halalLogo from '@/assets/halal-logo.svg?raw'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
@@ -157,6 +158,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
   const [error, setError] = useState('')
   const [earned, setEarned] = useState<{ total: number; lines: Array<[string, number]> }>({ total: 0, lines: [] })
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null)
+  const antibot = useAntibot('contrib-gotcha')
 
   useEffect(() => {
     setLoggedIn(isAuthenticated())
@@ -289,6 +291,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
     setError('')
     try {
       const body: Record<string, unknown> = {
+        ...antibot.fields,
         barcode,
         name_fr: name.trim(),
         brand: brand.trim() || undefined,
@@ -666,6 +669,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
 
       {step === 'info' && (
         <div className="flex flex-1 flex-col gap-4">
+          {antibot.honeypot}
           {prefilled && (
             <p className="inline-flex items-center gap-2 self-start rounded-full border border-accent bg-accent/50 px-4 py-2 text-[13px] font-bold text-accent-foreground">
               <Sparkles size={15} />
