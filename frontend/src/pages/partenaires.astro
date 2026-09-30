@@ -8,9 +8,9 @@ import { getLocale } from '@/lib/i18n'
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
 
-// Les demandes partent vers /bayen-api/partner-request : stockées dans la
-// collection partner_requests (admin Directus) + email à l'équipe.
-const API_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+// Les demandes partent vers nBot (boîte « Formulaires », tri IA des prospects) :
+// voir @/lib/nbot-leads. L'ancien endpoint /bayen-api/partner-request et la
+// collection partner_requests restent en place pour l'historique.
 
 const args = [
   {
@@ -78,15 +78,15 @@ const args = [
         <h2 class="font-display font-bold text-foreground text-2xl">Parlons de votre marque</h2>
         <p class="text-sm text-muted-foreground mt-1.5">Remplissez ce formulaire, notre équipe revient vers vous sous 48 h.</p>
 
-        <form id="partner-form" class="mt-6 space-y-4" data-api={API_URL}>
+        <form id="partner-form" class="mt-6 space-y-4">
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-semibold mb-1.5" for="pf-company">Entreprise / marque</label>
-              <input id="pf-company" name="company" required class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary" placeholder="Ex : Jaouda" />
+              <input id="pf-company" name="societe" required class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary" placeholder="Ex : Jaouda" />
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1.5" for="pf-role">Vous êtes</label>
-              <select id="pf-role" name="role" class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary">
+              <select id="pf-role" name="profil" class="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:border-primary">
                 <option>Marque / fabricant</option>
                 <option>Producteur</option>
                 <option>Distributeur</option>
@@ -110,8 +110,8 @@ const args = [
           </div>
           <!-- Honeypot anti-bots : invisible pour un humain -->
           <div aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden">
-            <label for="pf-website">Site web</label>
-            <input id="pf-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+            <label for="pf-gotcha">Ne pas remplir</label>
+            <input id="pf-gotcha" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
           </div>
           <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground font-bold py-3.5 hover:bg-primary/90 transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
@@ -123,39 +123,35 @@ const args = [
     </section>
   </main>
 
-  <script is:inline>
-    (() => {
-      const form = document.getElementById('partner-form')
-      const status = document.getElementById('pf-status')
-      if (!form) return
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault()
-        const data = Object.fromEntries(new FormData(form).entries())
-        const btn = form.querySelector('button[type=submit]')
-        const show = (msg, ok) => {
-          status.textContent = msg
-          status.className = 'text-sm text-center ' + (ok ? 'text-primary' : 'text-destructive')
-        }
-        btn.disabled = true
-        try {
-          const res = await fetch(form.dataset.api + '/bayen-api/partner-request', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          if (res.status === 429) {
-            show('Vous avez déjà envoyé plusieurs demandes. Réessayez dans une heure.', false)
-            return
-          }
-          if (!res.ok) throw new Error('http')
-          form.reset()
-          show('Merci ! Votre demande a bien été envoyée. Nous revenons vers vous sous 48 h.', true)
-        } catch {
-          show('Une erreur est survenue. Réessayez dans quelques instants.', false)
-        } finally {
-          btn.disabled = false
-        }
+  <script>
+    import { sendLead } from '@/lib/nbot-leads'
+
+    const form = document.getElementById('partner-form') as HTMLFormElement | null
+    const status = document.getElementById('pf-status')
+    // Anti-bot nBot : un envoi en moins de 3 s après l'affichage est ignoré.
+    const startedAt = Date.now()
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const btn = form.querySelector<HTMLButtonElement>('button[type=submit]')
+      const show = (msg: string, ok: boolean) => {
+        if (!status) return
+        status.textContent = msg
+        status.className = 'text-sm text-center ' + (ok ? 'text-primary' : 'text-destructive')
+      }
+      if (btn) btn.disabled = true
+      const error = await sendLead({
+        ...Object.fromEntries(new FormData(form).entries()),
+        form: 'contact',
+        formName: 'Demande de partenariat — marques & producteurs',
+        startedAt,
       })
-    })()
+      if (btn) btn.disabled = false
+      if (error) {
+        show(error, false)
+        return
+      }
+      form.reset()
+      show('Merci ! Votre demande a bien été envoyée. Nous revenons vers vous sous 48 h.', true)
+    })
   </script>
 </Layout>

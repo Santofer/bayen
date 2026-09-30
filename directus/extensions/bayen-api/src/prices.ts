@@ -10,6 +10,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { isBot } from './antibot.js'
 import type { Router, Request } from 'express'
 import { creditPoints } from './points.js'
 
@@ -86,6 +87,7 @@ export function registerPricesEndpoints(router: Router, context: { database: unk
         return
       }
 
+      if (isBot(req.body ?? {})) { res.json({ ok: true }); return }
       const { barcode, price_mad, store, city, session_id } = (req.body ?? {}) as PriceRequest
 
       if (typeof barcode !== 'string' || !/^\d{8,14}$/.test(barcode)) {

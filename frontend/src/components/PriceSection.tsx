@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { Tag, Plus, Check } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader } from '@/lib/auth'
+import { useAntibot } from '@/lib/antibot'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -54,6 +55,7 @@ function formatPrice(n: number): string {
 }
 
 export default function PriceSection({ barcode }: Props) {
+  const antibot = useAntibot('price-gotcha')
   const { t } = useLocale()
   const [data, setData] = useState<Aggregate | null>(null)
   const [open, setOpen] = useState(false)
@@ -94,6 +96,7 @@ export default function PriceSection({ barcode }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
         body: JSON.stringify({
+          ...antibot.fields,
           barcode,
           price_mad: value,
           store: chosenStore,
@@ -207,6 +210,7 @@ export default function PriceSection({ barcode }: Props) {
         </button>
       ) : (
         <div className="mt-4 rounded-2xl border bg-popover p-4">
+          {antibot.honeypot}
           <p className="font-bold">{t('price.howMuch')}</p>
 
           <div className="mt-3 flex items-baseline justify-center gap-2 rounded-2xl border-2 border-primary bg-card px-4 py-5">

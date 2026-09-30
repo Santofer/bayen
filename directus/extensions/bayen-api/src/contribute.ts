@@ -21,6 +21,7 @@ import { scoreProduct } from './scan.js'
 import { creditPoints } from './points.js'
 import { scoreCosmeticProduct, type KnexRaw } from './cosmetic.js'
 import { sanitizeNutrition, type NutritionInput } from './nutrition-guard.js'
+import { isBot } from './antibot.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -148,10 +149,10 @@ export function registerContributeEndpoint(router: Router, context: {
         return
       }
 
-      const body = (req.body ?? {}) as ContributeRequest & { url?: string; website?: string }
+      const body = (req.body ?? {}) as ContributeRequest
 
-      // Honeypot — champ caché que les bots remplissent automatiquement
-      if (body.url || body.website) {
+      // Anti-bot (honeypot `_gotcha`, minuteur `startedAt`) — réponse fake-success
+      if (isBot(body as Record<string, unknown>)) {
         recordRejection(ip)
         // Réponse fake-success pour ne pas révéler la présence du honeypot
         res.status(200).json({ ok: true, existed: false, product_id: '00000000-0000-0000-0000-000000000000' })
