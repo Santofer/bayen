@@ -11,7 +11,7 @@ Configuré par env AI_BASE_URL / AI_MODEL / AI_API_KEY.
 
 from flask import Flask, request, jsonify, g, has_request_context
 import pytesseract
-from PIL import Image, ImageFilter, ImageEnhance
+from PIL import Image, ImageFilter, ImageEnhance, UnidentifiedImageError, ImageOps
 import base64
 import io
 import json
@@ -1039,7 +1039,15 @@ def meal_analyze():
         if len(raw_bytes) > 8 * 1024 * 1024:
             return jsonify({'error': 'Image trop grande (>8 MB)', 'job_status': 'error'}), 400
 
-        image = Image.open(io.BytesIO(raw_bytes))
+        try:
+            # exif_transpose : une photo de téléphone est stockée couchée + drapeau EXIF
+            image = ImageOps.exif_transpose(Image.open(io.BytesIO(raw_bytes)))
+        except UnidentifiedImageError:
+            return jsonify({
+                'job_status': 'error',
+                'message': "Format de photo non reconnu (HEIC ?). Réessaie depuis l'appareil photo, "
+                           "ou règle-le en JPEG (« Le plus compatible » sur iPhone).",
+            }), 415
         image = resize_for_ai(image)
 
         buf = io.BytesIO()

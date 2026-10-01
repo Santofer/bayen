@@ -16,6 +16,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLocale } from '@/lib/i18n'
+import { shrinkToFile } from '@/lib/image'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 import { addMealToHistory } from '@/lib/meal-history'
 import MealFeedback from '@/components/MealFeedback.tsx'
@@ -113,8 +114,11 @@ export default function MealPhotoAnalyzer() {
     }
   }, [previewUrl])
 
-  const handleFile = (f: File | null | undefined) => {
-    if (!f) return
+  const handleFile = async (picked: File | null | undefined) => {
+    if (!picked) return
+    // Photo de téléphone (3 à 12 Mo, parfois HEIC) → JPEG ≤ 1280 px avant tout.
+    // Si le navigateur ne sait pas la décoder, on tente l'originale.
+    const f = await shrinkToFile(picked).catch(() => picked)
     if (f.size > 8 * 1024 * 1024) {
       setErrorMsg(t('meal.error.tooLarge'))
       setScreen('error')
@@ -139,7 +143,7 @@ export default function MealPhotoAnalyzer() {
       form.append('image', file)
 
       const res = await fetch('/api/meal-score', { method: 'POST', body: form })
-      const data = (await res.json()) as VlmResponse
+      const data = (await res.json().catch(() => ({ job_status: 'error' }))) as VlmResponse
 
       if (data.job_status === 'not_a_meal') {
         setErrorMsg(data.message ?? t('meal.error.notAMeal'))
@@ -154,8 +158,9 @@ export default function MealPhotoAnalyzer() {
 
       setAnalysis(data.analysis)
       setScreen('result')
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : t('meal.error.generic'))
+    } catch {
+      // Réseau coupé ou délai dépassé : le message technique du navigateur n'aide personne
+      setErrorMsg(t('meal.error.generic'))
       setScreen('error')
     }
   }, [file, t])
@@ -507,14 +512,14 @@ export default function MealPhotoAnalyzer() {
             accept="image/*"
             capture="environment"
             className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0])}
+            onChange={(e) => void handleFile(e.target.files?.[0])}
           />
           <input
             ref={inputFileRef}
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0])}
+            onChange={(e) => void handleFile(e.target.files?.[0])}
           />
         </>
       )}

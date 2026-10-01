@@ -18,6 +18,7 @@ import {
 import { useLocale } from '@/lib/i18n'
 import { authHeader, isAuthenticated } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
+import { shrink } from '@/lib/image'
 import halalLogo from '@/assets/halal-logo.svg?raw'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
@@ -73,23 +74,6 @@ const NUTRIENTS = [
 
 type NutrientKey = (typeof NUTRIENTS)[number]['key']
 type Nutrition = Partial<Record<NutrientKey, number | null>>
-
-/**
- * Réduit la photo avant envoi : une photo de téléphone fait 3 à 8 Mo, ce qui
- * est long à téléverser en 3G et inutile pour lire une étiquette.
- */
-async function shrink(file: File, maxSide = 1280, quality = 0.82): Promise<string> {
-  const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height))
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.round(bitmap.width * scale)
-  canvas.height = Math.round(bitmap.height * scale)
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('canvas indisponible')
-  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
-  bitmap.close()
-  return canvas.toDataURL('image/jpeg', quality)
-}
 
 function sessionId(): string {
   try {

@@ -47,7 +47,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // Mesure d'usage anonyme — fire-and-forget
     const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
-    void fetch(`${DIRECTUS_URL}/bayen-api/log-ai`, {
+    const logged = fetch(`${DIRECTUS_URL}/bayen-api/log-ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -57,6 +57,9 @@ export async function POST(context: APIContext): Promise<Response> {
       }),
       signal: AbortSignal.timeout(3000),
     }).catch(() => { /* la mesure ne doit jamais casser la lecture */ })
+    // Sur Cloudflare, une requête lancée après la réponse est tuée : waitUntil la garde en vie
+    const ctx = (context.locals as { runtime?: { ctx?: { waitUntil(p: Promise<unknown>): void } } }).runtime?.ctx
+    if (ctx) ctx.waitUntil(logged)
 
     return new Response(data, {
       status: res.status,
