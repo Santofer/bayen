@@ -45,7 +45,7 @@ const LEVEL_COLOR: Record<string, string> = {
   high: '#ef4444',
   moderate: '#f97316',
   low: '#b1cf3a',
-  none: '#476a32',
+  none: 'var(--color-score-excellent)',
   unknown: '#a1a1aa',
 }
 
@@ -127,7 +127,7 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
     )
   }
 
-  const color = LEVEL_COLOR[risk.cap_reason?.risk_level ?? 'none'] ?? '#476a32'
+  const color = LEVEL_COLOR[risk.cap_reason?.risk_level ?? 'none'] ?? 'var(--color-score-excellent)'
   const scoreLabelKeys: Record<string, 'score.excellent' | 'score.bon' | 'score.mediocre' | 'score.mauvais'> = {
     excellent: 'score.excellent', bon: 'score.bon', 'médiocre': 'score.mediocre', mauvais: 'score.mauvais',
   }

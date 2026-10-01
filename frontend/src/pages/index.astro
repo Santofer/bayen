@@ -107,7 +107,7 @@ const slides = [
     img: '/hero/scan.jpg?v=2', href: '/scan', icon: ICONS.scan, isH1: true,
     badge: t('home.slideScanBadge', locale),
     title: t('home.hero1', locale), em: t('home.hero2', locale),
-    desc: t('home.slideScanDesc', locale), cta: t('home.scanBtn', locale),
+    desc: t('home.slideScanDesc', locale).replace(/2 ?000\+?/, totalProducts > 0 ? totalProducts.toLocaleString('fr-FR') : '3 000'), cta: t('home.scanBtn', locale),
   },
   {
     img: '/hero/repas.jpg?v=2', href: '/analyser-repas', icon: ICONS.spark, isH1: false,

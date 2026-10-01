@@ -42,7 +42,7 @@ interface ScoreDisplayProps {
 // ────────────────────────────────────────────────────────────────
 
 const SCORE_COLORS: Record<string, string> = {
-  excellent: '#476a32',
+  excellent: 'var(--color-score-excellent)',
   bon: '#b1cf3a',
   'médiocre': '#f97316',
   mauvais: '#ef4444',
@@ -303,7 +303,7 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
         const ratio = item.points / item.max
         // Couleur graduée façon maquette : vert forêt → lime → orange → rouge
         const barColor =
-          ratio >= 0.7 ? '#476a32' : ratio >= 0.45 ? '#b1cf3a' : ratio >= 0.2 ? '#f97316' : '#ef4444'
+          ratio >= 0.7 ? 'var(--color-score-excellent)' : ratio >= 0.45 ? '#b1cf3a' : ratio >= 0.2 ? '#f97316' : '#ef4444'
         return (
           <div key={item.label}>
             <div className="flex items-baseline justify-between mb-1.5">

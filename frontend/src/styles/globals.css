@@ -109,6 +109,8 @@
   --color-ring: hsl(72 61% 52%);
   --color-ai: hsl(45 80% 62%);
   --color-ai-foreground: hsl(45 60% 10%);
+  /* vert « Excellent » lisible sur fond sombre (anneau, libellé, barres) */
+  --color-score-excellent: hsl(97 45% 55%);
   --color-beauty: hsl(185 55% 60%);
   --color-beauty-foreground: hsl(190 50% 10%);
   --color-protein: hsl(32 85% 60%);

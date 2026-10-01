@@ -750,6 +750,10 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                 client:load
               />
             </div>
+            {/* Code-barres mobile : dans la carte, plus d'îlot isolé entre deux blocs */}
+            <div class="sm:hidden mt-3 inline-flex h-14 items-center rounded-lg border bg-white px-2">
+              <Fragment set:html={barcodeMarkup} />
+            </div>
           </div>
 
           {/* Code-barres à droite — même hauteur que la photo */}
@@ -765,13 +769,6 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           ingredients_text={product.ingredients_text as string ?? ''}
           client:load
         />}
-
-        {/* Code-barres mobile */}
-        <div class="sm:hidden flex justify-center">
-          <div class="flex items-center justify-center h-16 px-3 rounded-lg bg-white border">
-            <Fragment set:html={barcodeMarkup} />
-          </div>
-        </div>
 
         {/* Score complet — panneau maquette v2 */}
         <div class="rounded-3xl border bg-card p-6 sm:p-7 shadow-card space-y-5">
