@@ -188,7 +188,7 @@ export async function enrichProduct(database: unknown, barcode: string): Promise
     }
   }
   if (kind && kind !== 'food') {
-    if (Object.keys(patch).length > 0) await knex('products').where({ barcode }).update(patch)
+    await knex('products').where({ barcode }).update({ ...patch, enriched_at: new Date() })
     return { estimated: false, reason: 'not_food' }
   }
 
@@ -230,9 +230,13 @@ export async function enrichProduct(database: unknown, barcode: string): Promise
     Object.assign(patch, { scan_score: score.total, score_label: score.label, nutriscore_grade: score.nutriscore_grade ?? null })
     if (methods.length === 0) methods.push('score')
   }
-  if (Object.keys(patch).length === 0) return { estimated: false, reason: score.total != null ? 'complete' : 'not_estimable' }
+  // Date d'examen posée dans tous les cas : le cron ne revoit pas une fiche sans issue avant 30 jours
+  if (Object.keys(patch).length === 0) {
+    await knex('products').where({ barcode }).update({ enriched_at: new Date() })
+    return { estimated: false, reason: score.total != null ? 'complete' : 'not_estimable' }
+  }
 
-  await knex('products').where({ barcode }).update(patch)
+  await knex('products').where({ barcode }).update({ ...patch, enriched_at: new Date() })
   return {
     estimated: score.total != null,
     method: methods[0],

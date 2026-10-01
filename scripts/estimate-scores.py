@@ -13,6 +13,7 @@ import json
 import os
 import sys
 import time
+import urllib.parse
 import urllib.request
 import urllib.error
 
@@ -40,12 +41,17 @@ def main():
 
     # Fiches sans score, sans énergie ou à la nutrition partielle (sucres/sel/AGS),
     # les plus scannées d'abord ; les estimations IA déjà posées sont laissées tranquilles
-    base = ("/items/products?filter[status][_eq]=published&filter[product_type][_eq]=food"
-            "&filter[barcode][_nnull]=true&filter[data_source][_neq]=ai_estimate"
-            "&filter[_or][0][scan_score][_null]=true&filter[_or][1][energy_kcal][_null]=true"
-            "&filter[_or][2][sugars][_null]=true&filter[_or][3][salt][_null]=true"
-            "&filter[_or][4][fat_saturated][_null]=true"
-            "&fields=barcode,name_fr&sort=-scan_count&limit=" + str(BATCH_MAX))
+    # … et pas examinées depuis 30 jours (enriched_at), sinon les fiches sans issue
+    # reviendraient chaque nuit en tête de liste et bloqueraient les suivantes
+    flt = {"_and": [
+        {"status": {"_eq": "published"}}, {"product_type": {"_eq": "food"}},
+        {"barcode": {"_nnull": True}}, {"data_source": {"_neq": "ai_estimate"}},
+        {"_or": [{"scan_score": {"_null": True}}, {"energy_kcal": {"_null": True}}, {"sugars": {"_null": True}},
+                 {"salt": {"_null": True}}, {"fat_saturated": {"_null": True}}]},
+        {"_or": [{"enriched_at": {"_null": True}}, {"enriched_at": {"_lt": "$NOW(-30 days)"}}]},
+    ]}
+    base = ("/items/products?filter=" + urllib.parse.quote(json.dumps(flt))
+            + "&fields=barcode,name_fr&sort=-scan_count&limit=" + str(BATCH_MAX))
     prods = req(API + base, token=token)["data"]
     ts = time.strftime("%Y-%m-%dT%H:%M:%S")
     print("[" + ts + "] " + str(len(prods)) + " produits non evalues", flush=True)
