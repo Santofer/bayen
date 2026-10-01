@@ -28,7 +28,7 @@ export default function InciList({ ingredients, inciText }: Props) {
   const rows: InciIngredient[] = ingredients.length > 0
     ? ingredients
     : parseInci(inciText).map((n, i) => ({ id: null, inci_name: n, name_fr: null, risk_level: 'unknown', risk_types: [], risk_status: null, restriction_fr: null, note_fr: null, source_label: null, source_url: null, rank: i + 1, raw_text: null }))
-  const shown = open ? rows : rows.slice(0, 12)
+  const shown = open ? rows : rows.slice(0, 10)
 
   return (
     <div className="rounded-xl border bg-card p-6">
@@ -41,23 +41,17 @@ export default function InciList({ ingredients, inciText }: Props) {
       {raw ? (
         <p className="text-xs leading-relaxed text-muted-foreground break-words">{inciText}</p>
       ) : (
-        <ol className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
-          {shown.map((i) => (
-            <li key={`${i.rank}-${i.inci_name}`} className="flex items-start gap-2 text-sm">
-              <span className={cn('mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full', DOT[i.risk_level] ?? DOT.unknown)} title={t(levelKey(i.risk_level))} />
-              <span className="min-w-0">
-                {i.id != null ? (
-                  <a href={`/ingredients-cosmetiques/${encodeURIComponent(i.inci_name)}`} className="hover:text-primary hover:underline">{i.inci_name}</a>
-                ) : (
-                  <span className="text-muted-foreground">{i.inci_name}</span>
-                )}
-                {i.name_fr && <span className="ms-1.5 text-xs text-muted-foreground">{i.name_fr}</span>}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <div className="flex flex-wrap gap-1.5">
+          {shown.map((i) => {
+            const chip = cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold', i.risk_level === 'low' && 'border-[#b1cf3a] bg-[#b1cf3a]/10', (i.risk_level === 'moderate' || i.risk_level === 'high' || i.risk_level === 'banned') && 'border-destructive/50 bg-destructive/10')
+            const inner = <><span className={cn('h-2 w-2 flex-shrink-0 rounded-full', DOT[i.risk_level] ?? DOT.unknown)} />{i.inci_name}</>
+            return i.id != null
+              ? <a key={`${i.rank}-${i.inci_name}`} href={`/ingredients-cosmetiques/${encodeURIComponent(i.inci_name)}`} title={[i.name_fr, t(levelKey(i.risk_level))].filter(Boolean).join(' · ')} className={cn(chip, 'hover:border-primary')}>{inner}</a>
+              : <span key={`${i.rank}-${i.inci_name}`} className={cn(chip, 'text-muted-foreground')}>{inner}</span>
+          })}
+        </div>
       )}
-      {!raw && rows.length > 12 && (
+      {!raw && rows.length > 10 && (
         <button type="button" onClick={() => setOpen(!open)} className="mt-4 text-sm font-semibold text-primary hover:underline">
           {open ? t('inci.hide') : `${t('inci.showAll')} (${rows.length})`}
         </button>

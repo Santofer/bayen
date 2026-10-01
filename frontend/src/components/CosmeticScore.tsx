@@ -176,11 +176,26 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
           )}
           <p className="text-xs text-muted-foreground">{t('beauty.scoreHint')}</p>
           {risk.incomplete && <p className="text-xs text-orange-600 dark:text-orange-300">{t('beauty.incompleteDesc')}</p>}
-          <p className="text-xs text-muted-foreground">
-            {risk.matched_count}/{risk.token_count} {t('inci.count')}
-          </p>
         </div>
       </div>
+
+      {/* Compteurs par niveau : la composition se lit d'un coup d'œil (maquette fiche mobile) */}
+      <div className="grid grid-cols-4 gap-1.5">
+        {([
+          ['banned', risk.counts.banned ?? 0, 'beauty.tile.banned', 'text-[#7f1d1d] dark:text-red-300'],
+          ['risk', (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0), 'beauty.tile.risk', 'text-[#f97316]'],
+          ['low', risk.counts.low ?? 0, 'beauty.tile.low', 'text-[#6f8a1c] dark:text-[#b1cf3a]'],
+          ['none', risk.counts.none ?? 0, 'beauty.tile.none', 'text-beauty'],
+        ] as const).map(([key, n, labelKey, cls]) => (
+          <div key={key} className="flex flex-col items-center gap-0.5 rounded-xl bg-background/70 px-1 py-2">
+            <span className={cn('font-display text-lg font-extrabold leading-none', n === 0 && key !== 'none' ? 'text-muted-foreground/60' : cls)}>{n}</span>
+            <span className="text-center text-[10px] leading-tight text-muted-foreground">{t(labelKey)}</span>
+          </div>
+        ))}
+      </div>
+      <p className="-mt-3 text-center text-xs text-muted-foreground">
+        {risk.matched_count}/{risk.token_count} {t('inci.count')}
+      </p>
 
       {/* Alertes profil santé */}
       {profile && ((profile.avoidEndocrine && hasEndocrine) || (profile.avoidFragranceAllergens && hasFragranceAllergen)) && (
@@ -247,6 +262,14 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
           <p className="text-[11px] text-muted-foreground">{t('beauty.unknownHint')}</p>
         </div>
       )}
+
+      <a
+        href={`/contribuer/${barcode}`}
+        className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-beauty px-5 text-sm font-bold text-beauty-foreground"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+        {t('beauty.completeCta')}
+      </a>
 
       <p className="text-[11px] text-muted-foreground border-t pt-4">{t('beauty.disclaimer')}</p>
     </div>

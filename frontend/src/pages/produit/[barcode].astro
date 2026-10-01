@@ -652,8 +652,19 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
     {/* Produit trouvé */}
     {!fetchError && scanResult.found && product && score && (
       <div class="space-y-6">
+        {/* Barre collante : nom + score restent visibles pendant la lecture des détails */}
+        <div id="product-sticky" class="product-sticky" aria-hidden="true">
+          {product.image_front && (
+            <img src={(product.image_front as string).startsWith('http') ? (product.image_front as string) : `${CDN_URL}/${product.image_front}?width=96&height=96&fit=cover&quality=75&format=webp`} alt="" width="36" height="36" />
+          )}
+          <span class="min-w-0 flex-1 truncate text-sm font-bold">{product.name_fr}</span>
+          {score?.total != null && (
+            <span class="sticky-score" style={`background: ${score.total >= 75 ? '#476a32' : score.total >= 50 ? '#b1cf3a' : score.total >= 25 ? '#f97316' : '#ef4444'}; color: ${score.total >= 50 && score.total < 75 ? '#1d2617' : '#fff'}`}>{score.total}</span>
+          )}
+        </div>
+
         {/* En-tête produit — card maquette v2 */}
-        <div class="flex gap-4 sm:gap-5 items-start rounded-3xl border bg-card p-4 sm:p-5 shadow-card">
+        <div id="product-head" class="flex gap-4 sm:gap-5 items-start rounded-3xl border bg-card p-4 sm:p-5 shadow-card">
           {/* Image */}
           <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-muted flex-shrink-0">
             {product.image_front ? (
@@ -984,6 +995,15 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
     )}
 
   </main>
+
+  <script>
+    // Barre collante : visible dès que l'en-tête produit sort de l'écran
+    const head = document.getElementById('product-head')
+    const bar = document.getElementById('product-sticky')
+    if (head && bar) {
+      new IntersectionObserver(([e]) => bar.classList.toggle('on', !e.isIntersecting && e.boundingClientRect.top < 0), { threshold: 0 }).observe(head)
+    }
+  </script>
 
   {/* Côté client, si le produit existe (les bots n'exécutent pas de JS) :
       1. historique local « Mes scans » (C14) — à CHAQUE visite ;

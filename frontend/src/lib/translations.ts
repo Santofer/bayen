@@ -880,6 +880,11 @@ export const translations = {
   'product.dataIssues':      { fr: 'Données à vérifier',                        ary: 'المعطيات خاصها التأكد' },
   'product.dataIssuesHint':  { fr: "Le tableau nutritionnel de cette fiche contient une incohérence (énergie, macro-nutriments). Une photo de l'étiquette nous aiderait à la corriger.", ary: 'جدول التغذية ديال هاد البطاقة فيه تناقض (الطاقة، المغذيات). تصويرة ديال البطاقة غادي تعاونا نصححوها.' },
   'mealfb.sharePhoto': { fr: "Joindre ma photo à cette correction pour améliorer l'IA (anonyme, jamais publiée).", ary: 'زيد التصويرة ديالي مع هاد التصحيح باش يتحسن الذكاء الاصطناعي (بلا سمية، عمرها ما تنشر).' },
+  'beauty.tile.banned':  { fr: 'interdit',        ary: 'ممنوع' },
+  'beauty.tile.risk':    { fr: 'élevé / modéré',  ary: 'كبير / متوسط' },
+  'beauty.tile.low':     { fr: 'à surveiller',    ary: 'راقب' },
+  'beauty.tile.none':    { fr: 'sans risque',     ary: 'بلا خطر' },
+  'beauty.completeCta':  { fr: 'Compléter la fiche · +20 pts', ary: 'كمّل البطاقة · +20 نقطة' },
 } as const
 
 /** Clé de traduction valide */

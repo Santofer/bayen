@@ -929,3 +929,29 @@ body::after {
 .page-hero .ctas a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; font-size: 14px; font-weight: 800; }
 .page-hero .ctas a.main { background: var(--hero-accent); color: var(--hero-accent-fg); }
 .page-hero .ctas a.ghost { border: 1px solid hsl(0 0% 100% / .35); background: hsl(0 0% 100% / .12); color: #fff; }
+
+/* ── Fiche produit : barre collante (nom + score) ─────────────────── */
+.product-sticky {
+  position: fixed; z-index: 40; left: 50%; top: 76px; transform: translate(-50%, -12px);
+  width: min(560px, calc(100% - 24px)); display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px 6px 6px; border-radius: 999px; border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-card) 92%, transparent); backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px hsl(100 30% 8% / .18); opacity: 0; pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.product-sticky.on { opacity: 1; transform: translate(-50%, 0); }
+.product-sticky img { width: 36px; height: 36px; border-radius: 999px; object-fit: cover; flex-shrink: 0; }
+.product-sticky .sticky-score { flex-shrink: 0; min-width: 40px; height: 32px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .product-sticky { transition: none; } }
+
+/* ── Vignettes : scintillement tant que la photo charge (pas de carré vide) ── */
+@keyframes pi-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+.pcard-v2 .pi:has(img) {
+  background-image: linear-gradient(100deg, transparent 30%, hsl(0 0% 100% / .35) 50%, transparent 70%), linear-gradient(135deg, #e8ecd0, #d5dcb5);
+  /* 6 passages (~8 s) : la photo est chargée bien avant, inutile de repeindre derrière elle */
+  background-size: 200% 100%, 100% 100%; animation: pi-shimmer 1.4s linear 6;
+}
+.dark .pcard-v2 .pi:has(img) {
+  background-image: linear-gradient(100deg, transparent 30%, hsl(0 0% 100% / .06) 50%, transparent 70%), linear-gradient(135deg, hsl(100 18% 20%), hsl(100 22% 14%));
+}
+@media (prefers-reduced-motion: reduce) { .pcard-v2 .pi:has(img) { animation: none; } }
