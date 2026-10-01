@@ -3,17 +3,20 @@
  *
  * Une estimation par IA se trompe parfois de plat ou de portion, et personne
  * ne pouvait le signaler. Le pouce mesure la fiabilité perçue ; la correction,
- * elle, alimente le référentiel des plats marocains (via un script de revue
- * hebdomadaire — les retours ne réentraînent pas le modèle).
+ * elle, alimente le référentiel des plats (script de revue hebdomadaire). Si
+ * l'utilisateur coche la case, la photo est jointe à la correction : ces couples
+ * photo + bonne réponse servent à mesurer l'IA, puis à l'entraîner (LoRA).
+ * Rien n'est jamais publié, et sans case cochée aucune photo n'est gardée.
  *
  * Anonyme par défaut, un seul retour par analyse.
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ThumbsUp, ThumbsDown, Check, Loader2 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
+import { shrink } from '@/lib/image'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -23,6 +26,8 @@ interface Props {
   portionEstimee?: number | null
   caloriesEstimees?: number | null
   mealScanId?: string | null
+  /** Photo analysée (déjà réduite) : jointe à une correction si l'utilisateur l'accepte */
+  photo?: File | null
 }
 
 function sessionId(): string {
@@ -39,7 +44,7 @@ function sessionId(): string {
 }
 
 export default function MealFeedback({
-  plat, confiance, portionEstimee, caloriesEstimees, mealScanId,
+  plat, confiance, portionEstimee, caloriesEstimees, mealScanId, photo,
 }: Props) {
   const { t } = useLocale()
   const [rating, setRating] = useState<'up' | 'down' | null>(null)
@@ -50,6 +55,18 @@ export default function MealFeedback({
   const [dish, setDish] = useState(plat ?? '')
   const [portion, setPortion] = useState(portionEstimee ? String(portionEstimee) : '')
   const [kcal, setKcal] = useState(caloriesEstimees ? String(caloriesEstimees) : '')
+  const [sharePhoto, setSharePhoto] = useState(false)
+  const [dishNames, setDishNames] = useState<string[]>([])
+
+  // Référentiel des plats proposé en saisie : des corrections homogènes (« Harira »,
+  // pas « hrira »/« soupe ») sont directement exploitables
+  useEffect(() => {
+    if (rating !== 'down' || dishNames.length > 0) return
+    fetch('/api/directus/items/moroccan_dishes?fields=name_fr&sort=name_fr&limit=-1')
+      .then((r) => r.json())
+      .then((j: { data?: Array<{ name_fr: string }> }) => setDishNames((j.data ?? []).map((d) => d.name_fr)))
+      .catch(() => { /* saisie libre */ })
+  }, [rating, dishNames.length])
 
   const send = async (value: 'up' | 'down', withCorrection: boolean): Promise<void> => {
     setBusy(true)
@@ -63,6 +80,20 @@ export default function MealFeedback({
         if (Number.isFinite(k) && k > 0 && k !== caloriesEstimees) correction.calories_kcal = k
       }
 
+      // Photo jointe seulement si correction ET case cochée
+      let photoId: string | undefined
+      if (withCorrection && sharePhoto && photo && Object.keys(correction).length > 0) {
+        photoId = await shrink(photo)
+          .then((image) => fetch(`${API}/bayen-api/upload-photo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image, kind: 'meal' }),
+          }))
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d: { file_id?: string } | null) => d?.file_id)
+          .catch(() => undefined)
+      }
+
       await fetch(`${API}/bayen-api/meal-feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
@@ -74,6 +105,7 @@ export default function MealFeedback({
           meal_scan_id: mealScanId ?? undefined,
           session_id: sessionId(),
           correction: Object.keys(correction).length > 0 ? correction : undefined,
+          photo_id: photoId,
         }),
       })
       setSent(true)
@@ -143,8 +175,12 @@ export default function MealFeedback({
                 type="text"
                 value={dish}
                 onChange={(e) => setDish(e.target.value)}
+                list="mealfb-dishes"
                 className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] font-bold outline-none"
               />
+              <datalist id="mealfb-dishes">
+                {dishNames.map((n) => <option key={n} value={n} />)}
+              </datalist>
             </label>
 
             <label className="flex items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
@@ -175,6 +211,18 @@ export default function MealFeedback({
               <span className="flex-shrink-0 text-[13px] font-semibold text-muted-foreground">kcal</span>
             </label>
           </div>
+
+          {photo && (
+            <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-[13px] leading-snug text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={sharePhoto}
+                onChange={(e) => setSharePhoto(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[var(--color-primary)]"
+              />
+              <span>{t('mealfb.sharePhoto')}</span>
+            </label>
+          )}
 
           <button
             type="button"

@@ -42,7 +42,8 @@ function clientIp(req: Request): string {
   return req.ip ?? req.socket?.remoteAddress ?? 'unknown'
 }
 
-const KINDS = new Set(['front', 'ingredients', 'nutrition'])
+// 'meal' : photo de repas jointe à une correction (jeu d'entraînement de l'IA repas)
+const KINDS = new Set(['front', 'ingredients', 'nutrition', 'meal'])
 const MAX_BYTES = 4 * 1024 * 1024
 
 export function registerUploadPhotoEndpoint(

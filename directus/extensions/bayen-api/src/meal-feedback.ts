@@ -31,6 +31,8 @@ interface FeedbackRequest {
   correction?: Correction
   confiance_ia?: string
   session_id?: string
+  /** Photo du repas partagée avec la correction (case cochée par l'utilisateur) */
+  photo_id?: string
 }
 
 const WINDOW_MS = 60 * 60 * 1000
@@ -116,6 +118,8 @@ export function registerMealFeedbackEndpoint(router: Router, context: { database
         rating,
         correction: correction ? JSON.stringify(correction) : null,
         confiance_ia: typeof body.confiance_ia === 'string' ? body.confiance_ia.slice(0, 10) : null,
+        // Photo seulement avec une correction : sans la bonne réponse, elle n'apprend rien
+        photo: correction && typeof body.photo_id === 'string' && UUID_RE.test(body.photo_id) ? body.photo_id : null,
         date_created: new Date(),
       })
 

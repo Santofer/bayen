@@ -325,8 +325,10 @@ def meal_system_prompt():
     if not names:
         return MEAL_SYSTEM
     return MEAL_SYSTEM + (
-        "\n\nPLATS MAROCAINS DE RÉFÉRENCE — si le repas photographié correspond "
-        "à l'un d'eux, emploie EXACTEMENT ce nom dans le champ \"plat\" :\n"
+        "\n\nPLATS DE RÉFÉRENCE (cuisine marocaine et plats courants au Maroc) — si le "
+        "repas photographié correspond à l'un d'eux, emploie EXACTEMENT ce nom dans le "
+        "champ \"plat\" ; s'il y a plusieurs plats, nomme le principal. Un plat absent "
+        "de la liste se décrit simplement en français :\n"
         + ', '.join(names) + '.'
     )
 

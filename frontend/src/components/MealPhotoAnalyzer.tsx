@@ -416,6 +416,7 @@ export default function MealPhotoAnalyzer() {
 
         {/* Retour sur la fiabilité de l'estimation (C21) */}
         <MealFeedback
+          photo={file}
           plat={analysis.plat}
           confiance={analysis.confiance}
           portionEstimee={analysis.portion_estimee_g}
