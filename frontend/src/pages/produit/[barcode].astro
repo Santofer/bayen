@@ -788,8 +788,8 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               client:load
             />
           )}
-          {/* Produit non évalué et présent en base → proposer l'estimation IA (alimentaire) */}
-          {!isCosmetic && scanResult.source === 'directus' && score?.total == null && (
+          {/* Fiche sans score, ou score calculé sur des données incomplètes → la compléter */}
+          {!isCosmetic && scanResult.source === 'directus' && (score?.total == null || (score?.incomplete && product.data_source !== 'ai_estimate')) && (
             <div class="border-t pt-5">
               <EstimateWithAI barcode={barcode as string} client:visible />
             </div>

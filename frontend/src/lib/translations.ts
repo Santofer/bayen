@@ -31,10 +31,16 @@ export const translations = {
   'score.contributeData':   { fr: 'Compléter ce produit',                                          ary: 'كمّل هاد المنتوج' },
   'score.aiEstimate':       { fr: 'Estimation IA',                                                 ary: 'تقدير بالذكاء الاصطناعي' },
   // Estimation IA (produit sans données)
-  'estimate.button':        { fr: "Estimer avec l'IA",                                             ary: 'قدّر بالذكاء الاصطناعي' },
+  'estimate.button':        { fr: "Compléter avec l'IA",                                           ary: 'كمّل بالذكاء الاصطناعي' },
+  'estimate.step1':         { fr: 'Recherche dans Open Food Facts…',                               ary: 'كنقلبو ف Open Food Facts…' },
+  'estimate.step2':         { fr: "Lecture de l'étiquette nutritionnelle…",                        ary: 'كنقراو جدول التغذية…' },
+  'estimate.step3':         { fr: 'Identification du produit sur la photo…',                       ary: 'كنعرفو المنتوج من التصويرة…' },
+  'estimate.step4':         { fr: 'Estimation et calcul du score…',                                ary: 'كنقدّرو ونحسبو النقطة…' },
+  'estimate.notFood':       { fr: "La photo montre un produit qui n'est pas un aliment : pas de score nutritionnel.", ary: 'التصويرة كتبين منتوج ماشي ماكلة: ما كاينش نقطة غذائية.' },
+  'estimate.addPhoto':      { fr: 'Photographier le tableau · +20 pts',                            ary: 'صوّر جدول التغذية · +20 نقطة' },
   'estimate.loading':       { fr: 'Estimation en cours…',                                          ary: 'كنقدّرو…' },
-  'estimate.hint':          { fr: "Pour les aliments de base (semoule, farine, huile…), notre IA estime les valeurs de référence.", ary: 'للأطعمة الأساسية (السميدة، الطحين، الزيت…)، الذكاء الاصطناعي كيقدّر القيم المرجعية.' },
-  'estimate.notEstimable':  { fr: "Ce produit est trop spécifique pour une estimation fiable. Ajoute ses infos manuellement.", ary: 'هاد المنتوج خاص بزاف باش نقدّروه. زيد المعلومات ديالو يدويا.' },
+  'estimate.hint':          { fr: "L'IA cherche les données manquantes (Open Food Facts, photo de l'étiquette) et n'estime qu'en dernier recours. Le score reste calculé par notre algorithme.", ary: 'الذكاء الاصطناعي كيقلب على المعطيات الناقصة (Open Food Facts، تصويرة البطاقة) وما كيقدّر غير فالأخير. النقطة كتبقى محسوبة بالخوارزمية ديالنا.' },
+  'estimate.notEstimable':  { fr: "Aucune source fiable trouvée pour ce produit. Une photo de son tableau nutritionnel suffit à le noter.", ary: 'ما لقينا حتى مصدر موثوق لهاد المنتوج. تصويرة ديال جدول التغذية كافية باش ننقطوه.' },
   'estimate.error':         { fr: "L'estimation n'a pas abouti. Réessaie.",                        ary: 'التقدير ما نجحش. عاود.' },
 
   // ── Nutri-Score ─────────────────────────────────────────────

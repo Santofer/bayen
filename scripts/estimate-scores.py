@@ -17,7 +17,7 @@ import urllib.request
 import urllib.error
 
 API = os.environ.get("DIRECTUS_URL", "http://bayen-directus:8055")
-BATCH_MAX = 120  # plafond par run (appels IA ~3s chacun)
+BATCH_MAX = int(os.environ.get("BATCH_MAX", "80"))  # plafond par run (cascade 5 à 60 s par fiche)
 # Noms génériques inexploitables → on saute (l'IA refuserait de toute façon)
 SKIP_NAMES = {"produit sans nom", "inconnu", "", "?"}
 
@@ -38,31 +38,33 @@ def main():
         print("[err] DTOKEN manquant", flush=True)
         return 1
 
-    prods = req(
-        API + "/items/products?filter[scan_score][_null]=true"
-        "&filter[energy_kcal][_null]=true&filter[barcode][_nnull]=true"
-        "&filter[status][_eq]=published&fields=barcode,name_fr"
-        "&limit=" + str(BATCH_MAX) + "&sort=-date_created",
-        token=token,
-    )["data"]
+    # Fiches sans score, sans énergie ou à la nutrition partielle (sucres/sel/AGS),
+    # les plus scannées d'abord ; les estimations IA déjà posées sont laissées tranquilles
+    base = ("/items/products?filter[status][_eq]=published&filter[product_type][_eq]=food"
+            "&filter[barcode][_nnull]=true&filter[data_source][_neq]=ai_estimate"
+            "&filter[_or][0][scan_score][_null]=true&filter[_or][1][energy_kcal][_null]=true"
+            "&filter[_or][2][sugars][_null]=true&filter[_or][3][salt][_null]=true"
+            "&filter[_or][4][fat_saturated][_null]=true"
+            "&fields=barcode,name_fr&sort=-scan_count&limit=" + str(BATCH_MAX))
+    prods = req(API + base, token=token)["data"]
     ts = time.strftime("%Y-%m-%dT%H:%M:%S")
     print("[" + ts + "] " + str(len(prods)) + " produits non evalues", flush=True)
     if not prods:
         return 0
 
     ok = skip = no = err = 0
+    methods, reasons = {}, {}
     for p in prods:
-        name = (p.get("name_fr") or "").strip()
-        if name.lower() in SKIP_NAMES or len(name) < 4:
-            skip += 1
-            continue
         try:
             r = req(API + "/bayen-api/estimate-and-score", "POST",
-                    {"barcode": p["barcode"]}, token=token, timeout=60)
+                    {"barcode": p["barcode"]}, token=token, timeout=300)
             if r.get("estimated"):
                 ok += 1
+                methods[r.get("method") or "?"] = methods.get(r.get("method") or "?", 0) + 1
             else:
-                no += 1  # not_estimable / already_scored / not_scorable
+                no += 1
+                reasons[r.get("reason") or "?"] = reasons.get(r.get("reason") or "?", 0) + 1
+            print("  " + p["barcode"] + " " + (p.get("name_fr") or "")[:34] + " -> " + str(r.get("method") or r.get("reason")) + " " + ",".join(r.get("filled") or []), flush=True)
         except urllib.error.HTTPError as e:
             err += 1
             if e.code == 429:
@@ -71,8 +73,8 @@ def main():
             err += 1
         time.sleep(1.0)  # respiration entre appels IA
 
-    print("[done] estimes=" + str(ok) + " non-estimables=" + str(no)
-          + " sautes=" + str(skip) + " erreurs=" + str(err), flush=True)
+    print("[done] completes=" + str(ok) + " " + json.dumps(methods) + " | non completes=" + str(no) + " "
+          + json.dumps(reasons) + " | erreurs=" + str(err), flush=True)
     return 0
 
 

@@ -112,7 +112,7 @@ def call_ai_text(system_prompt, user_prompt, retries=2, **kw):
     return _ai_chat_retry(messages, retries=retries, **kw)
 
 
-def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=700, retries=2):
+def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=700, retries=2, temperature=0.2):
     """Analyse vision : 1 image (data URL base64) + consigne texte."""
     messages = [
         {'role': 'system', 'content': system_prompt},
@@ -123,7 +123,7 @@ def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=7
             }},
         ]},
     ]
-    return _ai_chat_retry(messages, retries=retries, max_tokens=max_tokens, timeout=timeout)
+    return _ai_chat_retry(messages, retries=retries, max_tokens=max_tokens, timeout=timeout, temperature=temperature)
 
 
 def resize_for_ai(image, max_side=AI_IMAGE_MAX_SIDE):
@@ -397,7 +397,9 @@ ESTIMATE_SYSTEM = (
     "- estimable=false UNIQUEMENT si : nom vague ou inidentifiable (code, mot "
     "inconnu, « produit sans nom »), plat composite très variable (plat "
     "préparé complet, pâtisserie artisanale), ou pas un aliment.\n"
-    "- Valeurs pour 100 g, réalistes et cohérentes entre elles.\n"
+    "- Valeurs pour 100 g du produit TEL QUE VENDU (poudre, granulés, concentré, sirop), "
+    "JAMAIS une fois préparé ou dilué : café soluble ≈ 240 kcal, cacao en poudre ≈ 380 kcal, "
+    "lait en poudre ≈ 500 kcal, bouillon cube ≈ 250 kcal. Réalistes et cohérentes entre elles.\n"
     "- nova_group, en distinguant PRÉCISÉMENT le brut du raffiné :\n"
     "  • 1 = brut / minimalement transformé ET COMPLET : fruits et légumes frais, "
     "légumineuses, œufs, lait nature, céréales COMPLÈTES (blé complet, riz complet), "
@@ -782,16 +784,24 @@ def estimate_nutrition():
     if not name:
         return jsonify({'estimable': False, 'error': 'name requis'}), 400
 
-    context_bits = str(data.get('category', '') or data.get('brand', '')).strip()
+    brand = str(data.get('brand', '') or '').strip()
+    category = str(data.get('category', '') or '').strip()
+    ingredients = str(data.get('ingredients', '') or '').strip()[:600]
     start = time.time()
 
     user = f"Produit : {name}"
-    if context_bits:
-        user += f"\nContexte (marque/catégorie) : {context_bits}"
+    if brand:
+        user += f"\nMarque : {brand}"
+    if category:
+        user += f"\nCatégorie : {category}"
+    if ingredients:
+        # La liste d'ingrédients lève l'ambiguïté d'un nom commercial (« VIP Classique »)
+        user += f"\nIngrédients (étiquette) : {ingredients}"
     user += "\n\nEstime les valeurs nutritionnelles de référence pour 100 g de cet aliment."
 
     try:
-        parsed = call_ai_text(ESTIMATE_SYSTEM, user, max_tokens=400)
+        # Température 0 : une même fiche doit recevoir la même estimation (pas de pile ou face)
+        parsed = call_ai_text(ESTIMATE_SYSTEM, user, max_tokens=400, temperature=0)
         dur = int((time.time() - start) * 1000)
 
         if parsed is None:
@@ -1276,10 +1286,13 @@ IDENTIFY_SYSTEM = (
     "Tu es un expert des produits alimentaires et cosmétiques vendus au Maroc. Tu regardes "
     "la photo de la FACE AVANT d'un emballage et tu identifies le produit. Tu retournes "
     "UNIQUEMENT du JSON valide :\n"
-    '{"name_fr":"","brand":"","quantity":null,"halal_logo":null,'
+    '{"name_fr":"","brand":"","generic":"","quantity":null,"halal_logo":null,'
     '"kind":"food|cosmetic|other","cosmetic_category":null,'
     '"confiance":"faible|moyenne|elevee"}\n'
     "Règles STRICTES :\n"
+    "- generic : le TYPE de produit en quelques mots génériques, sans marque, tel qu'écrit "
+    "ou évident sur l'emballage (ex. « café soluble », « biscuits fourrés au chocolat », "
+    "« fromage fondu en portions », « eau minérale », « couches pour bébé »). null si illisible.\n"
     "- kind : « food » pour un aliment ou une boisson, « cosmetic » pour un produit "
     "d'hygiène ou de beauté (crème, shampooing, savon, dentifrice, maquillage, parfum, "
     "déodorant…), « other » sinon.\n"
@@ -1320,7 +1333,7 @@ def identify_product():
 
         parsed = call_ai_vision(
             IDENTIFY_SYSTEM, 'Identifie ce produit (aliment ou cosmétique).', image_b64,
-            timeout=90, max_tokens=300,
+            timeout=90, max_tokens=300, temperature=0,
         )
         if parsed is None:
             return jsonify({'error': 'IA indisponible'}), 502
@@ -1352,6 +1365,7 @@ def identify_product():
         return jsonify({
             'name_fr': _clean(parsed.get('name_fr'), 120),
             'brand': _clean(parsed.get('brand'), 80),
+            'generic': _clean(parsed.get('generic'), 120),
             'quantity': _clean(parsed.get('quantity'), 40),
             'halal_logo': halal_logo,
             'kind': kind,
