@@ -163,6 +163,14 @@ curl https://api.bayen.ma/bayen-api/nutrition-summary \
 #   docker exec -e DTOKEN=… -e APPLY=1 -i bayen-tesseract python3 - < seed-cosmetic-ingredients.py
 # Recalcul des scores beauté (admin) : POST /bayen-api/cosmetic-score {"all":true} ou {"barcode":"…"}
 
+# IA repas — mesurer avant/après tout changement (consigne, référentiel, modèle, LoRA)
+#   jeu de photos libres (Wikimedia Commons, attribution dans manifest.jsonl) :
+#     /mnt/user/appdata/bayen/datasets/meal-dataset (scripts/build-meal-dataset.py)
+#   étalon : docker exec -e DATA=/tmp/meal-dataset -i bayen-tesseract python3 - < scripts/eval-meal-dataset.py
+#   corrections utilisateurs avec photo : scripts/eval-meal.py
+# Compléter les fiches alimentaires (cascade OFF → photo étiquette → identification → estimation) :
+#   POST /bayen-api/estimate-and-score {"barcode"} — cron 05:00 scripts/estimate-scores.py (BATCH_MAX)
+
 # Tester la lecture INCI (vision) et l'autocomplétion
 curl -X POST http://localhost:5055/inci-read -F "image=@dos-emballage.jpg"
 curl "https://api.bayen.ma/bayen-api/cosmetic-ingredients?q=parab"
