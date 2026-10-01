@@ -187,7 +187,9 @@ export async function enrichProduct(database: unknown, barcode: string): Promise
       if (Object.keys(fix).length > 0) apply(fix, 'identify')
     }
   }
-  if (kind && kind !== 'food') {
+  // Un produit déjà rangé dans une catégorie alimentaire reste un aliment : la photo
+  // seule s'est trompée sur une tisane et un vinaigre, jamais sur une lessive classée
+  if (kind && kind !== 'food' && p.category_id == null) {
     await knex('products').where({ barcode }).update({ ...patch, enriched_at: new Date() })
     return { estimated: false, reason: 'not_food' }
   }
