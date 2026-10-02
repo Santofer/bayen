@@ -330,6 +330,24 @@ def meal_system_prompt():
         "champ \"plat\" ; s'il y a plusieurs plats, nomme le principal. Un plat absent "
         "de la liste se décrit simplement en français :\n"
         + ', '.join(names) + '.'
+        # Paires confondues à l'étalonnage du 01/10/2026 (scripts/eval-meal-dataset.py)
+        + "\n\nREPÈRES VISUELS pour les plats proches :\n"
+        "- Chebakia = fleur/rosace de pâte frite brune, enrobée de miel et sésame ; "
+        "Sfenj = beignet en anneau, doré, non sucré ou saupoudré de sucre.\n"
+        "- Seffa medfouna = dôme de vermicelles fins (cheveux d'ange) décoré de "
+        "cannelle et sucre glace en rayons ; Sellou = poudre/pâte brune compacte "
+        "(farine grillée, amandes, sésame).\n"
+        "- Baghrir = crêpe épaisse criblée de petits trous sur le dessus ; Msemen = "
+        "galette carrée feuilletée, lisse et dorée.\n"
+        "- Rfissa = msemen effiloché sous un bouillon jaune aux lentilles et "
+        "poulet ; Mhancha = gâteau en spirale (serpent) d'amandes.\n"
+        "- Tacos (french tacos) = galette de blé pliée et grillée en losange, "
+        "farcie de frites, viande et sauce fromagère ; Sandwich kefta = pain "
+        "(baguette ou khobz) avec boulettes ou viande hachée grillée.\n"
+        "- Tanjia = viande confite servie dans/à côté de la jarre en terre ; une "
+        "tanjia fermée est un plat si la jarre est sur une table de repas.\n"
+        "- N'emploie un nom de la liste que si le plat correspond VRAIMENT ; sinon "
+        "décris-le simplement (une pizza reste une pizza, une glace une glace)."
     )
 
 
@@ -1067,7 +1085,8 @@ def meal_analyze():
         image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
 
         ai_start = time.time()
-        parsed = call_ai_vision(meal_system_prompt(), 'Analyse ce plat.', image_b64, timeout=60)
+        # 700 tokens tronquait les plats composés (JSON coupé → 502)
+        parsed = call_ai_vision(meal_system_prompt(), 'Analyse ce plat.', image_b64, timeout=90, max_tokens=1500)
         ai_duration = int((time.time() - ai_start) * 1000)
 
         if parsed is None:

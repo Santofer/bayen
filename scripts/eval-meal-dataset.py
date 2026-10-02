@@ -13,6 +13,8 @@ import collections, json, os, random, sys, time, unicodedata, urllib.request
 
 DATA = os.environ.get("DATA", "/tmp/meal-dataset")
 PER = int(os.environ.get("PER_FAMILY", "10"))
+# ONLY=tacos,chebakia : rejoue ces familles sur les MÊMES photos que l'étalon complet
+ONLY = set(filter(None, os.environ.get("ONLY", "").split(",")))
 VISION = os.environ.get("TESSERACT_URL", "http://localhost:5000")
 # Mots qui signalent la bonne famille dans la réponse du modèle
 FAMILY_WORDS = {
@@ -45,6 +47,8 @@ def main():
         by_fam[r["family"]].append(r)
     random.seed(7)
     sample = [x for fam in by_fam.values() for x in random.sample(fam, min(PER, len(fam)))]
+    if ONLY:
+        sample = [x for x in sample if x["family"] in ONLY]
     print(f"{len(sample)} photos évaluées sur {len(rows)} ({len(by_fam)} familles)", flush=True)
     stats = collections.defaultdict(lambda: {"n": 0, "exact": 0, "family": 0})
     confusions = collections.Counter()
