@@ -44,7 +44,7 @@ def _mark_ai_unavailable():
         g.ai_unavailable = True
 
 
-def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2):
+def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2, repetition_penalty=None):
     """Appel chat/completions vLLM (OpenAI-compatible).
 
     Force la sortie JSON stricte (response_format) et désactive le mode
@@ -58,6 +58,9 @@ def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2):
         'temperature': temperature,
         'max_tokens': max_tokens,
     }
+    if repetition_penalty:
+        # Paramètre vLLM : casse les boucles (« poulet, oignons, … » répétés jusqu'à la coupure)
+        payload['repetition_penalty'] = repetition_penalty
     try:
         resp = requests.post(
             f'{AI_BASE_URL}/chat/completions',
@@ -112,7 +115,7 @@ def call_ai_text(system_prompt, user_prompt, retries=2, **kw):
     return _ai_chat_retry(messages, retries=retries, **kw)
 
 
-def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=700, retries=2, temperature=0.2):
+def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=700, retries=2, temperature=0.2, **kw):
     """Analyse vision : 1 image (data URL base64) + consigne texte."""
     messages = [
         {'role': 'system', 'content': system_prompt},
@@ -123,7 +126,7 @@ def call_ai_vision(system_prompt, user_text, image_b64, timeout=60, max_tokens=7
             }},
         ]},
     ]
-    return _ai_chat_retry(messages, retries=retries, max_tokens=max_tokens, timeout=timeout, temperature=temperature)
+    return _ai_chat_retry(messages, retries=retries, max_tokens=max_tokens, timeout=timeout, temperature=temperature, **kw)
 
 
 def resize_for_ai(image, max_side=AI_IMAGE_MAX_SIDE):
@@ -361,6 +364,7 @@ MEAL_SYSTEM = (
     '"caracteristiques":[], "conseil":"", "alternatives":[], '
     '"confiance":"faible|moyenne|elevee", "remarques":""}\n\n'
     "RÈGLES IMPÉRATIVES :\n"
+    "- ingredients : 3 à 8 ingrédients principaux VISIBLES, chacun UNE seule fois.\n"
     "- calories_kcal : TOUJOURS une fourchette (min/max), estimée pour TOUT ce "
     "qui est visible (plusieurs items = somme). macros_g = grammes pour la "
     "portion visible totale.\n"
@@ -1085,8 +1089,9 @@ def meal_analyze():
         image_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
 
         ai_start = time.time()
-        # 700 tokens tronquait les plats composés (JSON coupé → 502)
-        parsed = call_ai_vision(meal_system_prompt(), 'Analyse ce plat.', image_b64, timeout=90, max_tokens=1500)
+        # Une réponse fait ~250 tokens : au-delà, c'est une boucle de répétition (JSON coupé → 502)
+        parsed = call_ai_vision(meal_system_prompt(), 'Analyse ce plat.', image_b64, timeout=90,
+                                max_tokens=900, repetition_penalty=1.05)
         ai_duration = int((time.time() - ai_start) * 1000)
 
         if parsed is None:
