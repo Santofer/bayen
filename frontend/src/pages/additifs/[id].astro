@@ -4,7 +4,9 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import ProductCard from '@/components/ProductCard.tsx'
-import { Badge } from '@/components/ui/badge.tsx'
+import { RISK_FILL } from '@/components/AdditiveTag.tsx'
+import type { Product, RiskLevel } from '@/lib/types'
+import type { TranslationKey } from '@/lib/translations'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -12,7 +14,7 @@ const { id } = Astro.params
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 let additive: Record<string, unknown> | null = null
-let products: Record<string, unknown>[] = []
+let products: Product[] = []
 let productsCount = 0
 let fetchError: string | null = null
 
@@ -41,44 +43,36 @@ try {
   fetchError = 'Impossible de contacter le serveur'
 }
 
-const RISK_LABEL_KEYS: Record<string, string> = {
+const RISK_LABEL_KEYS: Record<RiskLevel, TranslationKey> = {
   safe: 'additive.risk.safe',
   limited: 'additive.risk.limited',
   avoid: 'additive.risk.avoid',
   banned_ma: 'additive.risk.banned',
 }
 
-const RISK_COLORS: Record<string, string> = {
-  safe: '#476a32',
-  limited: '#f97316',
-  avoid: '#ef4444',
-  banned_ma: '#7f1d1d',
+// Vignettes teintées (classes .tint-* : gèrent le mode sombre, texte foreground)
+const RISK_BG: Record<RiskLevel, string> = {
+  safe: 'tint-menthe',
+  limited: 'tint-citron',
+  avoid: 'tint-tomate',
+  banned_ma: 'tint-tomate',
 }
 
-// Fond clair ET variante sombre : sans elle, le bloc « limité » restait un
-// rectangle orange pâle avec du texte clair, illisible en mode nuit.
-const RISK_BG: Record<string, string> = {
-  safe: 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800',
-  limited: 'bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-800',
-  avoid: 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800',
-  banned_ma: 'bg-red-100 border-red-300 dark:bg-red-950/50 dark:border-red-700',
-}
-
-const RISK_DESC_KEYS: Record<string, string> = {
+const RISK_DESC_KEYS: Record<RiskLevel, TranslationKey> = {
   safe: 'additive.riskDesc.safe',
   limited: 'additive.riskDesc.limited',
   avoid: 'additive.riskDesc.avoid',
   banned_ma: 'additive.riskDesc.banned',
 }
 
-const RISK_IMPACT_KEYS: Record<string, string> = {
+const RISK_IMPACT_KEYS: Record<RiskLevel, TranslationKey> = {
   safe: 'additive.impactNone',
   limited: 'additive.impactLimited',
   avoid: 'additive.impactAvoid',
   banned_ma: 'additive.impactBanned',
 }
 
-const riskLevel = (additive?.risk_level as string) ?? 'limited'
+const riskLevel: RiskLevel = (additive?.risk_level as RiskLevel | undefined) ?? 'limited'
 const pageTitle = additive
   ? `${id} — ${additive.name_fr} | Bayen`
   : `Additif ${id} — Bayen`
@@ -104,13 +98,15 @@ const pageDescription = additive
     </a>
 
     {fetchError && (
-      <div class="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-6 text-center">
-        <p class="text-red-800">{fetchError}</p>
+      <div class="tint-tomate rounded-xl border-2 border-line p-6 text-center">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="88" height="130" class="mx-auto mb-3" />
+        <p class="text-foreground font-semibold">{fetchError}</p>
       </div>
     )}
 
     {!fetchError && !additive && (
       <div class="rounded-xl border bg-card p-8 text-center">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="100" height="148" class="mx-auto mb-3" />
         <h1 class="text-xl font-bold text-foreground mb-2">{t('additive.notFound', locale)} ({id})</h1>
         <p class="text-sm text-muted-foreground">{t('additive.notFoundDesc', locale)}</p>
       </div>
@@ -123,10 +119,10 @@ const pageDescription = additive
           <div class="flex items-center gap-3 mb-2">
             <h1 class="text-3xl font-bold font-mono text-foreground">{id}</h1>
             <div
-              class="px-3 py-1 rounded-full text-sm font-semibold text-white"
-              style={`background-color: ${RISK_COLORS[riskLevel]}`}
+              class="px-3 py-1 rounded-full border-2 border-encre text-sm font-bold text-encre shadow-[2px_2px_0_var(--color-hard)]"
+              style={`background-color: ${RISK_FILL[riskLevel]}`}
             >
-              {t(RISK_LABEL_KEYS[riskLevel] as any, locale)}
+              {t(RISK_LABEL_KEYS[riskLevel], locale)}
             </div>
           </div>
           <h2 class="text-xl text-foreground">{(locale === 'ary' && additive.name_ar) || additive.name_fr}</h2>
@@ -136,12 +132,12 @@ const pageDescription = additive
         </div>
 
         <!-- Niveau de risque -->
-        <div class={`rounded-xl border p-5 ${RISK_BG[riskLevel]}`}>
-          <h3 class="font-semibold mb-2" style={`color: ${RISK_COLORS[riskLevel]}`}>
-            {t(RISK_LABEL_KEYS[riskLevel] as any, locale)}
+        <div class:list={['rounded-xl border-2 border-line p-5', RISK_BG[riskLevel]]}>
+          <h3 class="font-semibold mb-2 text-foreground">
+            {t(RISK_LABEL_KEYS[riskLevel], locale)}
           </h3>
           <p class="text-sm text-foreground/80">
-            {t(RISK_DESC_KEYS[riskLevel] as any, locale)}
+            {t(RISK_DESC_KEYS[riskLevel], locale)}
           </p>
         </div>
 
@@ -174,7 +170,7 @@ const pageDescription = additive
         <div class="rounded-xl border bg-card p-5">
           <h3 class="text-sm font-semibold text-foreground mb-2">{t('additive.scoreImpact', locale)}</h3>
           <p class="text-sm text-muted-foreground">
-            {t(RISK_IMPACT_KEYS[riskLevel] as any, locale)}
+            {t(RISK_IMPACT_KEYS[riskLevel], locale)}
           </p>
         </div>
 
@@ -187,7 +183,7 @@ const pageDescription = additive
             </div>
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {products.map((product) => (
-                <ProductCard product={product as any} variant="grid" />
+                <ProductCard product={product} variant="grid" />
               ))}
             </div>
           </div>

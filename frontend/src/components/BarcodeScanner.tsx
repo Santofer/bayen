@@ -216,7 +216,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
   return (
     <div className={cn('flex flex-col items-center gap-4', className)}>
       {!showManual && (
-        <div className="relative w-full max-w-sm aspect-[3/4] rounded-xl overflow-hidden bg-black">
+        <div className="relative w-full max-w-sm aspect-[3/4] rounded-[28px] overflow-hidden border-2 border-line bg-encre shadow-[var(--shadow-lift)]">
           {/* Flux vidéo caméra */}
           <video
             ref={videoRef}
@@ -228,30 +228,37 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
           {/* Overlay scan */}
           {cameraActive && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              {/* Cadre de visée : équerres lime à 90° (maquette v2) */}
-              <div className="relative w-64 h-32">
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#b1cf3a]" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-[#b1cf3a]" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-[#b1cf3a]" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#b1cf3a]" />
-                {/* Faisceau de balayage lime (maquette v2) */}
-                <div className="absolute left-2 right-2 h-[3px] rounded-full animate-scan" style={{ background: 'linear-gradient(90deg, transparent, #b1cf3a, transparent)', boxShadow: '0 0 18px #b1cf3a' }} />
+            <div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+              style={{ background: 'radial-gradient(ellipse 150px 95px at 50% 50%, transparent 98%, color-mix(in srgb, var(--color-encre) 62%, transparent) 100%)' }}
+            >
+              {/* Cadre de visée menthe : équerres arrondies (maquette Scan) */}
+              <div className="relative w-64 h-36">
+                <div className="absolute top-0 left-0 w-12 h-10 border-t-4 border-l-4 border-menthe rounded-tl-[22px]" />
+                <div className="absolute top-0 right-0 w-12 h-10 border-t-4 border-r-4 border-menthe rounded-tr-[22px]" />
+                <div className="absolute bottom-0 left-0 w-12 h-10 border-b-4 border-l-4 border-menthe rounded-bl-[22px]" />
+                <div className="absolute bottom-0 right-0 w-12 h-10 border-b-4 border-r-4 border-menthe rounded-br-[22px]" />
+                {/* Faisceau de balayage menthe */}
+                <div
+                  className="absolute left-4 right-4 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-menthe animate-pulse"
+                  style={{ boxShadow: '0 0 18px var(--color-menthe)' }}
+                />
               </div>
             </div>
           )}
 
           {/* Badge succès */}
           {lastScanned && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg z-20">
-              <Check size={14} className="text-current inline-block mr-1" />{lastScanned}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-menthe text-encre border-2 border-encre px-4 py-2 rounded-full font-display text-sm font-bold shadow-[var(--shadow-card)] z-20">
+              <Check size={14} className="text-current inline-block me-1" />{lastScanned}
             </div>
           )}
 
           {/* Erreur caméra */}
           {cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-6 text-center z-20">
-              <p className="text-white text-sm mb-4">{cameraError}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-encre/90 p-6 text-center z-20">
+              <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="106" className="mb-3 h-auto w-[72px]" />
+              <p className="text-creme text-sm mb-4">{cameraError}</p>
               <Button variant="secondary" size="sm" onClick={() => setShowManual(true)}>
                 Saisir manuellement
               </Button>
@@ -260,15 +267,15 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
           {/* Loading */}
           {starting && !cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-20">
-              <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-3" />
-              <p className="text-white/60 text-xs">Activation de la caméra...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-encre z-20">
+              <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" className="naanaa-bob mb-3 h-auto w-[72px]" />
+              <p className="text-creme/70 text-xs">Activation de la caméra...</p>
             </div>
           )}
 
           {/* Instruction */}
           {cameraActive && !lastScanned && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs z-20 flex items-center gap-1.5">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 whitespace-nowrap bg-creme/15 text-creme border-[1.5px] border-creme/40 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold z-20 flex items-center gap-1.5">
               <ScanBarcode size={14} />
               Placez le code-barres dans le cadre
             </div>
@@ -288,7 +295,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
               placeholder="6111080016394"
               value={manualInput}
               onChange={(e) => setManualInput(e.target.value.replace(/\D/g, ''))}
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex-1 min-w-0 h-11 rounded-full border-2 border-line bg-card px-4 py-2 font-display text-sm tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               autoFocus
             />
             <Button type="submit" disabled={!isValidBarcode(manualInput.trim())}>Chercher</Button>
@@ -298,8 +305,8 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
       <Button variant="ghost" size="sm" onClick={() => setShowManual(!showManual)} className="text-muted-foreground">
         {showManual
-          ? <><Camera size={14} className="text-current inline-block mr-1" />Utiliser la caméra</>
-          : <><Keyboard size={14} className="text-current inline-block mr-1" />Saisir manuellement</>}
+          ? <><Camera size={14} className="text-current inline-block me-1" />Utiliser la caméra</>
+          : <><Keyboard size={14} className="text-current inline-block me-1" />Saisir manuellement</>}
       </Button>
     </div>
   )

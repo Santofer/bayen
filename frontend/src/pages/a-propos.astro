@@ -5,6 +5,7 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -42,38 +43,31 @@ const jsonLd = [
   jsonLd={jsonLd}
 >
   <!-- Bannière hero -->
-  <section class="relative overflow-hidden">
-    <img src="/hero/a-propos.jpg" alt="Marché alimentaire au Maroc" class="absolute inset-0 h-full w-full object-cover" />
-    <div class="absolute inset-0" style="background: linear-gradient(90deg, hsl(100 32% 9% / 0.9) 0%, hsl(100 30% 12% / 0.68) 55%, hsl(100 28% 16% / 0.28) 100%)"></div>
-    <div class="relative container mx-auto max-w-screen-md px-4 py-14 sm:py-20">
-      <span class="inline-flex items-center gap-2 rounded-full bg-[#b1cf3a] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#233317]">
-        Notre mission
-      </span>
-      <h1 class="font-display font-extrabold text-[#f0f2d2] text-3xl sm:text-5xl leading-tight mt-4">
-        Rendre clair ce qu’on mange
-      </h1>
-      <p class="text-[#f0f2d2]/85 mt-4 max-w-xl text-base leading-relaxed">
-        Bayen (بَيَّن — « c’est clair, ça se voit ») est une initiative citoyenne marocaine
-        pour la transparence alimentaire — gratuite, open source, sans publicité.
-      </p>
-    </div>
+  <section class="container mx-auto max-w-screen-md px-4 pt-6">
+    <PageHero
+      image="/hero/a-propos.jpg"
+      tone="framboise"
+      mascot="salut"
+      size="lg"
+      kicker="Notre mission"
+      title="Rendre clair ce qu’on mange"
+      subtitle="Bayen (بَيَّن — « c’est clair, ça se voit ») est une initiative citoyenne marocaine pour la transparence alimentaire — gratuite, open source, sans publicité."
+    />
   </section>
 
-  <!-- Bande de chiffres -->
-  <section class="container mx-auto max-w-screen-md px-4 -mt-8 relative z-10">
+  <!-- Bande de chiffres : aplats citron · menthe · myrtille, texte encre -->
+  <section class="container mx-auto max-w-screen-md px-4 mt-6">
     <div class="grid grid-cols-3 gap-3 sm:gap-4">
-      <div class="rounded-2xl border bg-card p-4 text-center shadow-card">
-        <p class="font-display text-2xl sm:text-3xl font-extrabold text-primary">2 000+</p>
-        <p class="text-xs text-muted-foreground mt-1">Produits notés</p>
-      </div>
-      <div class="rounded-2xl border bg-card p-4 text-center shadow-card">
-        <p class="font-display text-2xl sm:text-3xl font-extrabold text-primary">100%</p>
-        <p class="text-xs text-muted-foreground mt-1">Gratuit &amp; sans pub</p>
-      </div>
-      <div class="rounded-2xl border bg-card p-4 text-center shadow-card">
-        <p class="font-display text-2xl sm:text-3xl font-extrabold text-primary">Open</p>
-        <p class="text-xs text-muted-foreground mt-1">Code source public</p>
-      </div>
+      {[
+        { n: '2 000+', l: 'Produits notés', c: 'citron' },
+        { n: '100%', l: 'Gratuit & sans pub', c: 'menthe' },
+        { n: 'Open', l: 'Code source public', c: 'myrtille' },
+      ].map((s) => (
+        <div class="rounded-2xl border-2 border-encre p-4 text-center text-encre shadow-[var(--shadow-card)]" style={`background: var(--color-${s.c})`}>
+          <p class="font-display text-2xl sm:text-3xl font-extrabold">{s.n}</p>
+          <p class="text-xs mt-1 opacity-85">{s.l}</p>
+        </div>
+      ))}
     </div>
   </section>
 
@@ -93,10 +87,10 @@ const jsonLd = [
       <section class="rounded-2xl border bg-card p-6 space-y-3">
         <h2 class="text-xl font-bold text-foreground">Qui est derrière</h2>
         <p class="text-sm text-muted-foreground leading-relaxed">
-          Bayen est porté par <a href="https://www.n0.ma" class="text-primary hover:underline">N0</a>, le studio créatif d'Amine Benboubker basé à Casablanca, en partenariat technique avec <a href="https://netspace.ma" class="text-primary hover:underline">Netspace</a>. C'est un projet pro-bono — aucun investisseur, aucune monétisation directe, aucune donnée revendue à des tiers.
+          Bayen est porté par <a href="https://www.n0.ma" class="text-brand-ink hover:underline">N0</a>, le studio créatif d'Amine Benboubker basé à Casablanca, en partenariat technique avec <a href="https://netspace.ma" class="text-brand-ink hover:underline">Netspace</a>. C'est un projet pro-bono — aucun investisseur, aucune monétisation directe, aucune donnée revendue à des tiers.
         </p>
         <p class="text-sm text-muted-foreground leading-relaxed">
-          Les algorithmes de scoring, le code source et la méthodologie sont <strong class="text-foreground">100% publics sur GitHub</strong> : <a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">github.com/Santofer/bayen</a>. Tu peux vérifier toi-même comment chaque score est calculé.
+          Les algorithmes de scoring, le code source et la méthodologie sont <strong class="text-foreground">100% publics sur GitHub</strong> : <a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="text-brand-ink hover:underline">github.com/Santofer/bayen</a>. Tu peux vérifier toi-même comment chaque score est calculé.
         </p>
       </section>
 
@@ -106,26 +100,26 @@ const jsonLd = [
           On ne fabrique aucune donnée nutritionnelle. Toutes les valeurs viennent de :
         </p>
         <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
-          <li><a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Open Food Facts</a> — la base mondiale collaborative (75% de nos produits sont auto-importés)</li>
+          <li><a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer" class="text-brand-ink hover:underline">Open Food Facts</a> — la base mondiale collaborative (75% de nos produits sont auto-importés)</li>
           <li>Contributions de la communauté marocaine (photo du tableau nutritionnel + OCR + validation)</li>
           <li>L'algorithme <strong class="text-foreground">Nutri-Score officiel européen</strong> (Santé Publique France, 2017)</li>
           <li>La <strong class="text-foreground">classification NOVA</strong> (Université de São Paulo, 2009) sur le degré de transformation</li>
           <li>La liste des <strong class="text-foreground">additifs à risque selon l'EFSA</strong> (Autorité européenne) et le <strong class="text-foreground">CIRC</strong> (Centre international de recherche sur le cancer / OMS)</li>
         </ul>
         <p class="text-sm text-muted-foreground leading-relaxed pt-2">
-          → <a href="/methodologie" class="text-primary hover:underline font-medium">Lire la méthodologie complète du score Bayen</a>
+          → <a href="/methodologie" class="text-brand-ink hover:underline font-medium">Lire la méthodologie complète du score Bayen</a>
         </p>
       </section>
 
       <section class="rounded-2xl border bg-card p-6 space-y-3">
         <h2 class="text-xl font-bold text-foreground">Nos engagements</h2>
         <ul class="text-sm text-muted-foreground space-y-2">
-          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Gratuit pour toujours</strong> — pas d'abonnement caché, pas de freemium déguisé</li>
-          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans publicité</strong> — l'app ne te pousse aucun produit</li>
-          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans pression commerciale</strong> — on ne reçoit aucune compensation des marques</li>
-          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Données personnelles minimales</strong> — pas de tracking invasif, analytics anonymisées (Umami)</li>
-          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Open source</strong> — le code est vérifiable par n'importe qui</li>
-          <li class="flex gap-2"><span class="text-primary font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Souveraineté</strong> — toute l'infrastructure tourne au Maroc, sur des serveurs qu'on contrôle</li>
+          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Gratuit pour toujours</strong> — pas d'abonnement caché, pas de freemium déguisé</li>
+          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans publicité</strong> — l'app ne te pousse aucun produit</li>
+          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans pression commerciale</strong> — on ne reçoit aucune compensation des marques</li>
+          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Données personnelles minimales</strong> — pas de tracking invasif, analytics anonymisées (Umami)</li>
+          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Open source</strong> — le code est vérifiable par n'importe qui</li>
+          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Souveraineté</strong> — toute l'infrastructure tourne au Maroc, sur des serveurs qu'on contrôle</li>
         </ul>
       </section>
 
@@ -148,9 +142,9 @@ const jsonLd = [
           Bayen est un projet ouvert. Tu peux :
         </p>
         <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
-          <li><a href="/contribuer" class="text-primary hover:underline">Ajouter un produit manquant</a> directement depuis l'app</li>
-          <li><a href="https://github.com/Santofer/bayen/issues" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Signaler un bug ou suggérer une amélioration</a> sur GitHub</li>
-          <li>Nous écrire à <a href="mailto:contact@n0.ma" class="text-primary hover:underline">contact@n0.ma</a> pour un partenariat, un retour presse, ou un partenariat ONG/association</li>
+          <li><a href="/contribuer" class="text-brand-ink hover:underline">Ajouter un produit manquant</a> directement depuis l'app</li>
+          <li><a href="https://github.com/Santofer/bayen/issues" target="_blank" rel="noopener noreferrer" class="text-brand-ink hover:underline">Signaler un bug ou suggérer une amélioration</a> sur GitHub</li>
+          <li>Nous écrire à <a href="mailto:contact@n0.ma" class="text-brand-ink hover:underline">contact@n0.ma</a> pour un partenariat, un retour presse, ou un partenariat ONG/association</li>
         </ul>
       </section>
 

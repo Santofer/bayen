@@ -30,11 +30,12 @@ interface LeaderboardProps {
   pointsSuffix?: string
 }
 
+// Aplat d'avatar par rang (mêmes couleurs que le compte ; texte encre dessus)
 const RANK_COLORS: Record<string, string> = {
-  nouveau: '#a1a1aa',
-  contributeur: '#b1cf3a',
-  expert: '#f97316',
-  'vérifié': '#476a32',
+  nouveau: 'var(--color-framboise)',
+  contributeur: 'var(--color-menthe)',
+  expert: 'var(--color-citron)',
+  'vérifié': 'var(--color-myrtille)',
 }
 
 interface MyStats {

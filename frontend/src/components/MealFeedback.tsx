@@ -119,16 +119,17 @@ export default function MealFeedback({
 
   if (sent) {
     return (
-      <div className="rounded-2xl border bg-card p-4 shadow-[var(--shadow-card)]">
-        <p className="flex items-center gap-2 font-bold text-primary">
-          <Check size={17} /> {t('mealfb.thanks')}
+      <div className="naanaa">
+        <img src="/mascotte/naanaa-bravo.webp" alt="" width="64" height="94" className="naanaa-bob" />
+        <p className="bubble flex items-center gap-2 font-bold">
+          <Check size={17} className="text-brand-ink" /> {t('mealfb.thanks')}
         </p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-[var(--shadow-card)] sm:p-5">
+    <div className="rounded-2xl border bg-card p-4 sm:p-5">
       <p className="font-bold">{t('mealfb.question')}</p>
       <p className="mt-0.5 text-[13px] text-muted-foreground">{t('mealfb.why')}</p>
 
@@ -139,8 +140,8 @@ export default function MealFeedback({
           disabled={busy}
           className={
             rating === 'up'
-              ? 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-primary/[0.09] text-sm font-bold text-primary'
-              : 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-primary/[0.09] text-sm font-bold text-primary disabled:opacity-60'
+              ? 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-full border-2 border-encre bg-menthe text-sm font-bold text-encre shadow-[var(--shadow-card)]'
+              : 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-full border-2 border-encre bg-menthe text-sm font-bold text-encre shadow-[var(--shadow-card)] disabled:opacity-60'
           }
         >
           {busy && rating === null ? <Loader2 size={18} className="animate-spin" /> : <ThumbsUp size={18} />}
@@ -152,8 +153,8 @@ export default function MealFeedback({
           disabled={busy}
           className={
             rating === 'down'
-              ? 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-primary/[0.09] text-sm font-bold text-primary'
-              : 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border bg-card text-sm font-bold text-muted-foreground'
+              ? 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-full border-2 border-encre bg-menthe text-sm font-bold text-encre shadow-[var(--shadow-card)]'
+              : 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-full border-2 border-line bg-card text-sm font-bold text-foreground'
           }
         >
           <ThumbsDown size={18} />
@@ -162,7 +163,7 @@ export default function MealFeedback({
       </div>
 
       {rating === 'down' && (
-        <div className="mt-4 rounded-2xl border bg-popover p-4">
+        <div className="mt-4 rounded-2xl border-[1.5px] border-line bg-muted p-4">
           {antibot.honeypot}
           <p className="font-bold">{t('mealfb.correctTitle')}</p>
 
@@ -228,14 +229,14 @@ export default function MealFeedback({
             type="button"
             onClick={() => void send('down', true)}
             disabled={busy}
-            className="mt-3.5 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-bold text-primary-foreground disabled:opacity-60"
+            className="btn-pop mt-3.5 min-h-[52px] w-full disabled:opacity-60"
           >
             {busy ? <Loader2 size={18} className="animate-spin" /> : null}
             {t('mealfb.send')}
           </button>
 
           <p className="mt-2.5 text-center text-xs text-muted-foreground">
-            <span className="font-bold text-primary">+10 {t('points.points')}</span> — {t('mealfb.anonNote')}
+            <span className="font-bold text-brand-ink">+10 {t('points.points')}</span> — {t('mealfb.anonNote')}
           </p>
         </div>
       )}

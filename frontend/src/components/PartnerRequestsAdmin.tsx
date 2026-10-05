@@ -26,7 +26,7 @@ interface PartnerRequest {
 }
 
 const STATUS_META: Record<PartnerRequest['status'], { label: string; cls: string }> = {
-  new: { label: 'Nouvelle', cls: 'bg-primary text-primary-foreground' },
+  new: { label: 'Nouvelle', cls: 'bg-citron text-encre border-[1.5px] border-encre' },
   processed: { label: 'Traitée', cls: 'bg-secondary text-secondary-foreground' },
   dismissed: { label: 'Écartée', cls: 'bg-muted text-muted-foreground' },
 }
@@ -129,7 +129,7 @@ export default function PartnerRequestsAdmin() {
       {requests.map((r) => {
         const meta = STATUS_META[r.status]
         return (
-          <div key={r.id} className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]">
+          <div key={r.id} className="rounded-2xl border bg-card p-5">
             <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
               <div className="min-w-0 flex-1">
                 <p className="font-display text-lg font-bold leading-tight">{r.company}</p>
@@ -154,7 +154,7 @@ export default function PartnerRequestsAdmin() {
             <div className="mt-3.5 flex flex-wrap items-center gap-2.5 border-t pt-3.5">
               <a
                 href={`mailto:${r.email}?subject=${encodeURIComponent(`Bayen — votre demande de partenariat (${r.company})`)}`}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground"
+                className="btn-pop min-h-[44px] text-sm"
               >
                 <Mail size={15} />
                 Répondre à {r.email}
@@ -164,7 +164,7 @@ export default function PartnerRequestsAdmin() {
                   type="button"
                   onClick={() => void setStatus(r.id, 'processed')}
                   disabled={busyId === r.id}
-                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-primary/30 bg-card px-4 text-sm font-semibold text-primary disabled:opacity-60"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-line bg-card px-4 text-sm font-semibold text-foreground disabled:opacity-60"
                 >
                   {busyId === r.id ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
                   Marquer traitée

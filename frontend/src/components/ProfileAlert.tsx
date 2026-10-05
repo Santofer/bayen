@@ -27,32 +27,28 @@ export default function ProfileAlert(product: ProductForCheck) {
 
   const direct = hits.filter((h) => h.source === 'ingredient')
   const traces = hits.filter((h) => h.source === 'trace')
-  // Rouge si le produit en contient vraiment, orange s'il s'agit seulement de traces
+  // Tomate si le produit en contient vraiment, citron s'il s'agit seulement de traces.
+  // Aplat franc → tout le texte est en encre, dans les deux thèmes.
   const severe = direct.length > 0
+  // Puce crème sur l'aplat (.pop-chip hors calque Tailwind → `!`)
+  const chip = 'pop-chip border-encre! bg-creme! text-encre!'
 
   return (
     <div
-      className={
-        severe
-          ? 'rounded-2xl border-2 border-destructive/40 bg-destructive/10 p-4 sm:p-5'
-          : 'rounded-2xl border-2 border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-4 sm:p-5'
-      }
+      className={`rounded-2xl border-2 border-encre p-4 text-encre shadow-[var(--shadow-card)] sm:p-5 ${severe ? 'bg-tomate' : 'bg-citron'}`}
       role="alert"
     >
       <div className="flex gap-3">
-        <span className={severe ? 'text-destructive flex-shrink-0' : 'text-orange-600 dark:text-orange-400 flex-shrink-0'}>
+        <span className="flex-shrink-0">
           {severe ? <AlertTriangle size={22} /> : <Info size={22} />}
         </span>
         <div className="min-w-0 flex-1">
           {direct.length > 0 && (
             <>
-              <p className="font-bold text-foreground">{t('profile.alertContains')}</p>
+              <p className="font-bold">{t('profile.alertContains')}</p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {direct.map((h) => (
-                  <span
-                    key={`${h.type}-${h.label}`}
-                    className="rounded-full bg-destructive px-2.5 py-1 text-xs font-bold text-destructive-foreground"
-                  >
+                  <span key={`${h.type}-${h.label}`} className={`${chip} font-bold!`}>
                     {(locale === 'ary' && h.labelAr) || h.label}
                   </span>
                 ))}
@@ -62,13 +58,10 @@ export default function ProfileAlert(product: ProductForCheck) {
 
           {traces.length > 0 && (
             <div className={direct.length > 0 ? 'mt-3' : ''}>
-              <p className="font-semibold text-foreground text-sm">{t('profile.alertTraces')}</p>
+              <p className="font-semibold text-sm">{t('profile.alertTraces')}</p>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {traces.map((h) => (
-                  <span
-                    key={`trace-${h.label}`}
-                    className="rounded-full border border-orange-400 dark:border-orange-700 px-2.5 py-1 text-xs font-semibold text-orange-800 dark:text-orange-300"
-                  >
+                  <span key={`trace-${h.label}`} className={chip}>
                     {(locale === 'ary' && h.labelAr) || h.label}
                   </span>
                 ))}
@@ -78,7 +71,7 @@ export default function ProfileAlert(product: ProductForCheck) {
 
           <a
             href="/profil"
-            className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold underline underline-offset-2 opacity-80 hover:opacity-100"
           >
             <SlidersHorizontal size={13} /> {t('profile.edit')}
           </a>

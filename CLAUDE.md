@@ -52,6 +52,21 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 
 ---
 
+## Identité visuelle « Marché Pop » (refonte 2026-10)
+
+- Tokens dans `frontend/src/styles/globals.css` : crème `#FFF8EC`, encre `#1B1B1B`, menthe `#19C08B`,
+  citron, tomate, myrtille, figue, framboise ; sombre = aubergine `#1D1430`. Titres Unbounded, texte Readex Pro.
+- Texte posé sur un aplat vif = ENCRE, jamais blanc. Menthe en TEXTE = `text-brand-ink` (le menthe vif ne passe pas AA).
+- Cartes : `bg-card border` reçoit automatiquement contour encre + ombre nette (règle globale).
+- Score : `lib/score-colors.ts` (aplats + versions texte), pastille `.score-sticker` (chiffre + mot).
+  Échelle 4 niveaux (75/50/25) — les couleurs de `scoreToLabel` sont dupliquées dans l'extension.
+- Univers : beauté framboise, protéines myrtille, repas/IA figue — jamais une teinte de l'échelle de score.
+- Mascotte Naânaa (brin de menthe) : `public/mascotte/naanaa-<pose>.webp` (salut, astuce, bravo, loupe,
+  oups, nuit, scan, courses). Logo vectoriel bilingue (chadda menthe) : `public/logo-*.svg`,
+  régénérable par `design/` (Baloo Bhaijaan 2). Couvertures du journal : `public/blog/covers/<slug>.webp`
+  (aussi posées dans Directus par `scripts/set-blog-covers.py`).
+- Visuels : photos à plat, objets à ombre nette sur aplat de couleur, sans texte (générés sur Magnific).
+
 ## Structure API — règles strictes
 
 - Toutes les requêtes Directus passent par le client SDK dans `frontend/src/lib/directus.ts`

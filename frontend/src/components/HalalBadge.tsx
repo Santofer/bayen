@@ -76,13 +76,14 @@ export default function HalalBadge({ barcode, isHalal, source, confirmations }: 
     <div className="mt-3 border-t pt-3">
       <div className="flex items-center gap-2">
       <span
-        className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.09] py-1 pl-1.5 pr-2.5 text-primary"
+        // Puce Marché Pop sur vignette menthe (gère le sombre), texte et logo à la couleur du texte
+        className="pop-chip tint-menthe"
         aria-label={t('halal.badge')}
       >
         <span
           className="block h-5 w-5 flex-shrink-0"
-          // Logo halal officiel recoloré : ses aplats verts utilisent
-          // currentColor et prennent donc la couleur de la charte.
+          // Logo halal officiel recoloré : ses aplats utilisent currentColor
+          // et prennent donc la couleur du texte (encre en clair, crème en sombre).
           dangerouslySetInnerHTML={{ __html: halalLogo }}
         />
         <span className="text-xs font-extrabold">{t('halal.badge')}</span>
@@ -92,7 +93,7 @@ export default function HalalBadge({ barcode, isHalal, source, confirmations }: 
         type="button"
         onClick={confirm}
         disabled={busy || done}
-        className="ms-auto inline-flex min-h-[44px] flex-shrink-0 items-center px-3 -me-3 text-xs font-bold text-primary disabled:text-muted-foreground"
+        className="ms-auto inline-flex min-h-[44px] flex-shrink-0 items-center px-3 -me-3 text-xs font-bold text-brand-ink disabled:text-muted-foreground"
       >
         {done ? t('halal.confirmed') : t('halal.confirm')}
       </button>

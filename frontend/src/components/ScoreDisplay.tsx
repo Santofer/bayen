@@ -1,26 +1,25 @@
 /**
  * Affichage du score Bayen (0–100) — composant complet
  *
- * - Cercle animé 0–100, coloré selon niveau
+ * - Pastille de score 0–100 (chiffre animé + mot), aplat selon niveau
  * - Barre Nutri-Score A→E
  * - Pastilles NOVA 1→4
  * - Liste additifs avec badge risque
  * - Points positifs / négatifs
  * - Badge "Non vérifié" si confidence_score < 0.8
  *
- * Couleurs :
- *   75–100 : #476a32 (excellent)
- *   50–74  : #b1cf3a (bon)
- *   25–49  : #f97316 (médiocre)
- *   0–24   : #ef4444 (mauvais)
+ * Couleurs : système « Marché Pop » de score-colors.ts (aplats + texte encre),
+ * pastille inclinée `.score-sticker.lg`, barres à contour encre.
  *
  * Référence : SPEC.md §9
  */
 
 import { useEffect, useState } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
+import { SCORE_FILL } from '@/lib/score-colors'
+import { ScoreSticker } from '@/components/ProductCard'
+import { RISK_FILL } from '@/components/AdditiveTag'
 import type { ScoreResult, RiskLevel, NutriScoreGrade, NovaGroup, AdditiveResult } from '@/lib/types'
 
 // ────────────────────────────────────────────────────────────────
@@ -35,67 +34,25 @@ interface ScoreDisplayProps {
   dataSource?: string | null
   /** Classes CSS additionnelles */
   className?: string
+  /** La pastille est déjà affichée ailleurs (en-tête de la fiche) : ne pas la répéter */
+  hideBadge?: boolean
 }
 
 // ────────────────────────────────────────────────────────────────
 // Constantes
 // ────────────────────────────────────────────────────────────────
 
-const SCORE_COLORS: Record<string, string> = {
-  excellent: 'var(--color-score-excellent)',
-  bon: '#b1cf3a',
-  'médiocre': '#f97316',
-  mauvais: '#ef4444',
-}
-
-const NUTRISCORE_COLORS: Record<NutriScoreGrade, string> = {
-  A: '#038141',
-  B: '#85bb2f',
-  C: '#fecb02',
-  D: '#ee8100',
-  E: '#e63e11',
-}
-
-const NUTRISCORE_LABELS: Record<NutriScoreGrade, string> = {
-  A: 'Excellente qualité nutritionnelle',
-  B: 'Bonne qualité nutritionnelle',
-  C: 'Qualité nutritionnelle moyenne',
-  D: 'Qualité nutritionnelle médiocre',
-  E: 'Mauvaise qualité nutritionnelle',
-}
-
-const NOVA_LABELS: Record<NovaGroup, string> = {
-  1: 'Non transformé',
-  2: 'Ingrédient culinaire',
-  3: 'Transformé',
-  4: 'Ultra-transformé',
-}
-
-const NOVA_COLORS: Record<NovaGroup, string> = {
-  1: '#476a32',
-  2: '#b1cf3a',
-  3: '#f97316',
-  4: '#ef4444',
-}
-
-const RISK_VARIANTS: Record<RiskLevel, 'safe' | 'limited' | 'avoid' | 'banned'> = {
-  safe: 'safe',
-  limited: 'limited',
-  avoid: 'avoid',
-  banned_ma: 'banned',
-}
+// Puce de statut posée sur un aplat : texte et contour encre (règle globale
+// .pop-chip hors calque → `!` ; ne pas passer dans cn())
+const STATUS_CHIP = 'pop-chip border-encre! text-encre!'
 
 // ────────────────────────────────────────────────────────────────
 // Sous-composants
 // ────────────────────────────────────────────────────────────────
 
-/** Cercle animé du score global */
-function ScoreCircle({ score, label, color }: { score: number; label: string; color: string }) {
+/** Pastille Marché Pop du score global : chiffre animé au montage + mot */
+function ScoreBadge({ score, label }: { score: number; label: string }) {
   const [animatedScore, setAnimatedScore] = useState(0)
-  const radius = 54
-  const circumference = 2 * Math.PI * radius
-  const progress = (animatedScore / 100) * circumference
-  const strokeDashoffset = circumference - progress
 
   // Animation du score au montage
   useEffect(() => {
@@ -118,49 +75,10 @@ function ScoreCircle({ score, label, color }: { score: number; label: string; co
     return () => cancelAnimationFrame(frame)
   }, [score])
 
+  // La couleur suit le score final (pas le chiffre animé, sinon elle clignote)
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-36 h-36">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-          {/* Cercle de fond */}
-          <circle
-            cx="60"
-            cy="60"
-            r={radius}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="8"
-            className="text-muted/30"
-          />
-          {/* Cercle de progression */}
-          <circle
-            cx="60"
-            cy="60"
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            style={{ transition: 'stroke-dashoffset 0.1s ease-out' }}
-          />
-        </svg>
-        {/* Score au centre */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold" style={{ color }}>
-            {animatedScore}
-          </span>
-          <span className="text-xs text-muted-foreground">/100</span>
-        </div>
-      </div>
-      {/* Label */}
-      <span
-        className="text-sm font-semibold uppercase tracking-wide"
-        style={{ color }}
-      >
-        {label}
-      </span>
+    <div className="flex justify-center md:px-2">
+      <ScoreSticker score={score} value={animatedScore} word={label} size="lg" />
     </div>
   )
 }
@@ -257,15 +175,14 @@ function AdditivesList({ additives }: { additives: AdditiveResult[] }) {
       </h3>
       <div className="flex flex-wrap gap-1.5">
         {sorted.map((additive) => (
-          <Badge
+          <span
             key={additive.code}
-            variant={RISK_VARIANTS[additive.risk_level]}
+            className="pop-chip border-encre! text-encre!"
+            style={{ backgroundColor: RISK_FILL[additive.risk_level] }}
           >
-            {additive.code}
-            <span className="ml-1 opacity-75">
-              {t(riskKeys[additive.risk_level])}
-            </span>
-          </Badge>
+            <b>{additive.code}</b>
+            <span className="opacity-80">{t(riskKeys[additive.risk_level])}</span>
+          </span>
         ))}
       </div>
     </div>
@@ -301,19 +218,19 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
       <h3 className="text-sm font-medium text-foreground">{t('product.scoreDetail')}</h3>
       {items.map((item) => {
         const ratio = item.points / item.max
-        // Couleur graduée façon maquette : vert forêt → lime → orange → rouge
+        // Aplat gradué (mêmes seuils qu'avant) : menthe → vert pomme → orange → tomate
         const barColor =
-          ratio >= 0.7 ? 'var(--color-score-excellent)' : ratio >= 0.45 ? '#b1cf3a' : ratio >= 0.2 ? '#f97316' : '#ef4444'
+          ratio >= 0.7 ? SCORE_FILL.excellent : ratio >= 0.45 ? SCORE_FILL.bon : ratio >= 0.2 ? SCORE_FILL.mediocre : SCORE_FILL.mauvais
         return (
-          <div key={item.label}>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-[0.8rem] font-semibold text-foreground">{item.label}</span>
-              <span className="text-xs text-muted-foreground">{item.points} / {item.max} pts</span>
-            </div>
-            {/* Track pleine largeur (maquette produit) */}
-            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+          <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-x-2.5 gap-y-1">
+            <span className="text-sm font-semibold text-foreground">{item.label}</span>
+            <span className="text-[13px] tabular-nums text-muted-foreground">
+              <b className="text-foreground">{item.points}</b> / {item.max} pts
+            </span>
+            {/* Barre à contour encre (maquette FichePop) */}
+            <div className="col-span-2 h-2.5 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">
               <div
-                className="h-full rounded-full transition-all duration-500"
+                className="h-full transition-all duration-500"
                 style={{ width: `${Math.max(ratio * 100, 2)}%`, backgroundColor: barColor }}
               />
             </div>
@@ -333,6 +250,7 @@ export default function ScoreDisplay({
   confidenceScore,
   dataSource,
   className,
+  hideBadge = false,
 }: ScoreDisplayProps) {
   const { t } = useLocale()
 
@@ -340,29 +258,21 @@ export default function ScoreDisplay({
   if (score.unscored || score.total == null || score.label == null) {
     return (
       <div className={cn('flex flex-col items-center text-center gap-4 py-4', className)}>
-        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
+        {/* Naânaa à la loupe : la fiche existe mais les données manquent */}
+        <div className="naanaa text-start">
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" />
+          <div className="bubble">
+            <p className="font-display text-base font-bold text-foreground">{t('score.notEvaluated')}</p>
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">{t('score.notEvaluatedDesc')}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-lg font-bold text-foreground">{t('score.notEvaluated')}</p>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs">{t('score.notEvaluatedDesc')}</p>
-        </div>
-        <a
-          href="/contribuer"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <a href="/contribuer" className="btn-pop">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           {t('score.contributeData')}
         </a>
       </div>
     )
   }
-
-  const color = SCORE_COLORS[score.label] ?? SCORE_COLORS.mauvais
 
   // Badge "Vérifié" : données confirmées 3× par la communauté (confidence ≥ 0.8)
   const isVerified = confidenceScore != null && confidenceScore >= 0.8
@@ -392,35 +302,25 @@ export default function ScoreDisplay({
       {/* Badges d'avertissement */}
       <div className="flex flex-wrap gap-2 justify-center">
         {isAiEstimate && (
-          <Badge variant="outline" className="text-ai border-ai/40 bg-ai/10">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 inline"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>
+          <span className={`${STATUS_CHIP} bg-ai!`}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>
             {t('score.aiEstimate')}
-          </Badge>
+          </span>
         )}
         {score.incomplete && !isAiEstimate && (
-          <Badge variant="outline" className="text-orange-600 dark:text-orange-300 border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-950/40">
-            {t('score.incomplete')}
-          </Badge>
+          <span className={`${STATUS_CHIP} bg-citron!`}>{t('score.incomplete')}</span>
         )}
         {isVerified && (
-          <Badge variant="outline" className="text-green-700 dark:text-green-300 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/40">
-            {t('score.verified')}
-          </Badge>
+          <span className={`${STATUS_CHIP} bg-menthe!`}>{t('score.verified')}</span>
         )}
         {isCommunityUnverified && (
-          <Badge variant="outline" className="text-amber-600 dark:text-amber-300 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40">
-            {t('score.unverified')}
-          </Badge>
+          <span className={`${STATUS_CHIP} bg-framboise!`}>{t('score.unverified')}</span>
         )}
       </div>
 
-      {/* Panneau score façon maquette : anneau à gauche, barres détaillées à droite */}
-      <div className="flex flex-col md:grid md:grid-cols-[auto_1fr] md:items-center gap-6 md:gap-8">
-        <ScoreCircle
-          score={score.total}
-          label={translatedLabel}
-          color={color}
-        />
+      {/* Panneau score façon maquette : grosse pastille à gauche, barres détaillées à droite */}
+      <div className={hideBadge ? 'flex flex-col gap-6' : 'flex flex-col md:grid md:grid-cols-[auto_1fr] md:items-center gap-6 md:gap-8'}>
+        {!hideBadge && <ScoreBadge score={score.total} label={translatedLabel} />}
         <ScoreBreakdown score={score} />
       </div>
 

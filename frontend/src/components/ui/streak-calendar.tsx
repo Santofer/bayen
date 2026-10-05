@@ -120,13 +120,13 @@ const StreakCalendar = React.forwardRef<HTMLDivElement, StreakCalendarProps>(
                   'flex aspect-square items-center justify-center rounded-lg text-xs transition-colors',
                   !inView && 'opacity-30',
                   active
-                    ? 'bg-orange-500/20 text-orange-600'
-                    : 'border border-dashed border-muted-foreground/30 text-muted-foreground',
-                  isToday && 'ring-2 ring-primary/50'
+                    ? 'border-2 border-encre bg-citron text-encre'
+                    : 'border border-dashed border-muted-foreground/40 text-muted-foreground',
+                  isToday && 'ring-2 ring-line ring-offset-2 ring-offset-card'
                 )}
               >
                 {active ? (
-                  <Flame className="h-4 w-4" aria-hidden="true" />
+                  <Flame className="h-4 w-4 fill-tomate" aria-hidden="true" />
                 ) : (
                   <span className="text-[10px]">{view === 'month' ? dayNum : ''}</span>
                 )}

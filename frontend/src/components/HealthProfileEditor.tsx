@@ -86,10 +86,10 @@ export default function HealthProfileEditor() {
                 onClick={() => toggleAllergen(a.key)}
                 aria-pressed={on}
                 className={cn(
-                  'rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
+                  'rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors',
                   on
-                    ? 'bg-destructive text-destructive-foreground border-destructive'
-                    : 'bg-background hover:bg-muted'
+                    ? 'bg-tomate text-encre border-encre'
+                    : 'bg-background border-line hover:bg-muted'
                 )}
               >
                 {on && <span aria-hidden="true" className="me-1.5">✕</span>}
@@ -108,10 +108,10 @@ export default function HealthProfileEditor() {
           onClick={() => update((p) => ({ ...p, avoidPalmOil: !p.avoidPalmOil }))}
           aria-pressed={profile.avoidPalmOil}
           className={cn(
-            'mt-4 rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
+            'mt-4 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors',
             profile.avoidPalmOil
-              ? 'bg-destructive text-destructive-foreground border-destructive'
-              : 'bg-background hover:bg-muted'
+              ? 'bg-tomate text-encre border-encre'
+              : 'bg-background border-line hover:bg-muted'
           )}
         >
           {profile.avoidPalmOil && <span aria-hidden="true" className="me-1.5">✕</span>}
@@ -134,10 +134,10 @@ export default function HealthProfileEditor() {
               onClick={() => update((p) => ({ ...p, [key]: !p[key] }))}
               aria-pressed={profile[key]}
               className={cn(
-                'rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
+                'rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors',
                 profile[key]
-                  ? 'bg-destructive text-destructive-foreground border-destructive'
-                  : 'bg-background hover:bg-muted'
+                  ? 'bg-tomate text-encre border-encre'
+                  : 'bg-background border-line hover:bg-muted'
               )}
             >
               {profile[key] && <span aria-hidden="true" className="me-1.5">✕</span>}
@@ -165,12 +165,12 @@ export default function HealthProfileEditor() {
                   aria-pressed={on}
                   title={a.name_fr}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors',
+                    'inline-flex items-center gap-1 rounded-full border-2 px-2.5 py-1 text-xs font-semibold transition-colors',
                     on
-                      ? 'bg-destructive text-destructive-foreground border-destructive'
+                      ? 'bg-tomate text-encre border-encre'
                       : a.risk_level === 'limited'
-                        ? 'bg-background border-orange-300 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-950/30'
-                        : 'bg-background border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/30'
+                        ? 'bg-background border-score-mediocre hover:bg-muted'
+                        : 'bg-background border-score-mauvais hover:bg-muted'
                   )}
                 >
                   {on && <span aria-hidden="true">✕</span>}
@@ -190,8 +190,8 @@ export default function HealthProfileEditor() {
             <span className="text-muted-foreground">{t('profile.empty')}</span>
           ) : (
             <span>
-              <b className="font-bold text-primary">{count}</b> {t('profile.activeCount')}
-              {saved && <span className="ms-2 text-primary font-semibold">· {t('profile.saved')}</span>}
+              <b className="font-bold text-brand-ink">{count}</b> {t('profile.activeCount')}
+              {saved && <span className="ms-2 text-brand-ink font-semibold">· {t('profile.saved')}</span>}
             </span>
           )}
         </p>

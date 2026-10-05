@@ -85,10 +85,10 @@ export default function PointsDashboard() {
   return (
     <div className="flex flex-col gap-4">
       {/* Carte rang */}
-      <div className="relative overflow-hidden rounded-3xl bg-primary p-5 text-primary-foreground shadow-[0_12px_32px_hsl(97_40%_20%/0.3)]">
+      <div className="relative overflow-hidden rounded-3xl border-2 border-encre bg-menthe p-5 text-encre shadow-[var(--shadow-card)]">
         <Trophy
           size={150}
-          className="pointer-events-none absolute -bottom-10 -right-8 opacity-[0.07]"
+          className="pointer-events-none absolute -bottom-10 -right-8 opacity-[0.12]"
           aria-hidden="true"
         />
         <div className="flex items-center justify-between">
@@ -121,23 +121,33 @@ export default function PointsDashboard() {
                 {Math.max(0, rankInfo.next - points)} {t('points.toNext')}
               </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-primary-foreground/20">
-              <div className="h-full rounded-full bg-primary-foreground" style={{ width: `${progress}%` }} />
+            <div className="h-2.5 overflow-hidden rounded-full border-[1.5px] border-encre bg-creme">
+              <div className="h-full bg-encre" style={{ width: `${progress}%` }} />
             </div>
           </div>
         )}
       </div>
 
+      {/* Naânaa applaudit dès le premier point */}
+      {points > 0 && (
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-bravo.webp" alt="" width="72" height="106" className="naanaa-bob" />
+          <p className="bubble">
+            <b>{t('points.earned')} : +{points}</b>
+          </p>
+        </div>
+      )}
+
       {/* Barème */}
       <h2 className="mt-1 font-display text-lg font-bold">{t('points.howTo')}</h2>
       <div className="grid grid-cols-2 gap-2.5">
         {ACTIONS.map(({ type, key, points: pts, Icon }) => (
-          <div key={type} className="flex flex-col gap-2 rounded-[18px] border bg-card p-3.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/[0.09] text-primary">
+          <div key={type} className="flex flex-col gap-2 rounded-2xl border bg-card p-3.5">
+            <span className="tint-menthe flex h-9 w-9 items-center justify-center rounded-xl border-[1.5px] border-line text-foreground">
               <Icon size={18} />
             </span>
             <span className="text-sm font-bold leading-tight">{t(key)}</span>
-            <span className="text-[15px] font-extrabold text-primary">
+            <span className="font-display text-[15px] font-extrabold text-brand-ink">
               +{pts} {pts > 1 ? 'pts' : 'pt'}
             </span>
           </div>
@@ -146,10 +156,10 @@ export default function PointsDashboard() {
 
       {/* Activité récente */}
       <h2 className="mt-1 font-display text-lg font-bold">{t('points.recent')}</h2>
-      <div className="rounded-[18px] border bg-card px-4">
+      <div className="rounded-2xl border bg-card px-4">
         {loggedIn === false ? (
           <p className="py-4 text-sm text-muted-foreground">
-            <a href="/connexion" className="font-bold text-primary">
+            <a href="/connexion" className="font-bold text-brand-ink">
               {t('nav.account')}
             </a>{' '}
             — {t('contrib.anonNote')}
@@ -170,7 +180,7 @@ export default function PointsDashboard() {
                 {labelFor(a.type)}
                 {a.label && <span className="text-muted-foreground"> — {a.label}</span>}
               </span>
-              <span className="flex-shrink-0 text-[13px] font-extrabold text-primary">
+              <span className="pop-chip flex-shrink-0 border-encre bg-citron font-display font-extrabold text-encre">
                 +{pointsFor(a.type)}
               </span>
             </div>

@@ -7,6 +7,7 @@ import BlogCard from '@/components/BlogCard.tsx'
 import { getLocale, t } from '@/lib/i18n'
 import type { Article, ArticleCategory } from '@/lib/types'
 import { marked } from 'marked'
+import { localCover, withLocalCover } from '@/lib/blog-covers'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 const { slug } = Astro.params
@@ -36,7 +37,7 @@ if (article) {
     const res = await fetch(url, { signal: AbortSignal.timeout(3000) })
     if (res.ok) {
       const data = await res.json()
-      relatedArticles = (data.data ?? []) as Article[]
+      relatedArticles = ((data.data ?? []) as Article[]).map((a) => withLocalCover(a, Astro.url))
     }
   } catch {
     // non bloquant
@@ -62,14 +63,18 @@ if (contentRaw) {
   contentHtml = typeof result === 'string' ? result : ''
 }
 
-// Cover : image dédiée, sinon visuel de secours par catégorie (cohérent BlogCard)
-const coverUrl = article?.cover_image
-  ? article.cover_image.startsWith('http')
-    ? article.cover_image
-    : `${CDN_URL}/${article.cover_image}`
-  : article
-    ? `/blog/fallback-${article.category}.jpg`
-    : null
+// Cover : visuel local Marché Pop (/blog/covers/<slug>.webp), sinon image Directus,
+// sinon visuel de secours par catégorie (cohérent BlogCard). Absolue pour og:image.
+const localCoverPath = article ? localCover(article.slug) : null
+const coverUrl = localCoverPath
+  ? new URL(localCoverPath, Astro.url).href
+  : article?.cover_image
+    ? article.cover_image.startsWith('http')
+      ? article.cover_image
+      : `${CDN_URL}/${article.cover_image}`
+    : article
+      ? `/blog/fallback-${article.category}.jpg`
+      : null
 
 const CATEGORY_LABELS_FR: Record<ArticleCategory, string> = {
   'bien-etre': 'Bien-être',
@@ -77,11 +82,12 @@ const CATEGORY_LABELS_FR: Record<ArticleCategory, string> = {
   guides: 'Guides',
   actualites: 'Actualités',
 }
+// Aplats Marché Pop (mêmes couleurs que la liste du blog), texte encre
 const CATEGORY_COLORS: Record<ArticleCategory, string> = {
-  'bien-etre': '#476a32',
-  habitudes: '#b1cf3a',
-  guides: '#0f766e',
-  actualites: '#f97316',
+  'bien-etre': 'var(--color-framboise)',
+  habitudes: 'var(--color-menthe)',
+  guides: 'var(--color-citron)',
+  actualites: 'var(--color-myrtille)',
 }
 
 // Format date (réutilise la logique de BlogCard)
@@ -172,6 +178,7 @@ const jsonLd = article
 
     {!article ? (
       <div class="rounded-xl border bg-card p-12 text-center">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="100" height="148" class="naanaa-bob mx-auto mb-4" />
         <h1 class="text-2xl font-bold text-foreground mb-2">
           {t('blog.notFound', locale)}
         </h1>
@@ -181,10 +188,10 @@ const jsonLd = article
       </div>
     ) : (
       <article>
-        {/* Cover hero — maquette v2 : 21/9 pleine largeur, coins 26px */}
+        {/* Cover hero — 16:9 à contour encre et ombre nette */}
         {coverUrl && (
           <div class="mx-auto mb-2" style="max-width: 1000px">
-            <div class="w-full overflow-hidden rounded-3xl bg-muted shadow-card" style="aspect-ratio: 21/10">
+            <div class="aspect-video w-full overflow-hidden rounded-3xl border-2 border-line bg-muted shadow-[var(--shadow-card)]">
               <img src={coverUrl} alt={title as string} class="w-full h-full object-cover" loading="eager" />
             </div>
           </div>
@@ -193,10 +200,10 @@ const jsonLd = article
         <div class="mx-auto" style="max-width: 680px">
         {/* Catégorie */}
         <span
-          class="inline-block mt-6 rounded-full px-3 py-1.5 font-extrabold uppercase text-white"
+          class="inline-block mt-6 rounded-full border-[1.5px] border-encre px-3 py-1.5 font-extrabold uppercase text-encre"
           style={`background-color: ${CATEGORY_COLORS[article.category]}; font-size: 0.7rem; letter-spacing: 0.06em`}
         >
-          {t(`blog.category.${article.category}` as any, locale)}
+          {t(`blog.category.${article.category}`, locale)}
         </span>
 
         {/* Titre display (maquette) */}
@@ -238,26 +245,26 @@ const jsonLd = article
             alt="Amine Benboubker"
             width="64"
             height="64"
-            class="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-primary/20"
+            class="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-line"
             loading="eager"
           />
           <div class="flex-1 min-w-0">
             <p class="font-display font-bold text-foreground text-lg">Amine Benboubker</p>
             <p class="text-xs text-muted-foreground mt-0.5">
               Fondateur de Bayen · Casablanca ·{' '}
-              <a href="https://aminebenboubker.com" target="_blank" rel="noopener" class="text-primary font-semibold hover:underline">aminebenboubker.com</a>
-              {' '}· Studio <a href="https://www.n0.ma" target="_blank" rel="noopener" class="text-primary hover:underline">N0.ma</a>
+              <a href="https://aminebenboubker.com" target="_blank" rel="noopener" class="text-brand-ink font-semibold hover:underline">aminebenboubker.com</a>
+              {' '}· Studio <a href="https://www.n0.ma" target="_blank" rel="noopener" class="text-brand-ink hover:underline">N0.ma</a>
             </p>
             <p class="text-sm text-muted-foreground mt-2 leading-relaxed">
               Articles écrits avec rigueur, en citant systématiquement les sources scientifiques (OMS, EFSA, CIRC, ANSES). Algorithme de scoring public et open source.{' '}
-              <a href="/methodologie" class="text-primary hover:underline">Notre méthodologie</a> · <a href="/a-propos" class="text-primary hover:underline">À propos de Bayen</a>
+              <a href="/methodologie" class="text-brand-ink hover:underline">Notre méthodologie</a> · <a href="/a-propos" class="text-brand-ink hover:underline">À propos de Bayen</a>
             </p>
           </div>
         </div>
 
         {/* Bas de page */}
         <div class="mt-8 pt-6 border-t">
-          <a href="/blog" class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+          <a href="/blog" class="inline-flex items-center gap-1 text-sm font-medium text-brand-ink hover:underline">
             {t('blog.back', locale)}
           </a>
         </div>
@@ -314,7 +321,7 @@ const jsonLd = article
   }
   .bayen-prose p { color: var(--color-foreground); }
   .bayen-prose a {
-    color: var(--color-primary);
+    color: var(--color-brand-ink);
     text-decoration: underline;
     text-underline-offset: 3px;
     font-weight: 500;
@@ -329,7 +336,7 @@ const jsonLd = article
   .bayen-prose ol { list-style-type: decimal; }
   .bayen-prose li { margin-top: 0.25em; }
   .bayen-prose blockquote {
-    border-inline-start: 4px solid #b1cf3a;
+    border-inline-start: 4px solid var(--color-citron);
     background: var(--color-card);
     border-radius: 0 16px 16px 0;
     padding: 18px 22px;

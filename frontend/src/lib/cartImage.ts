@@ -1,17 +1,19 @@
 /**
- * Génère une image PNG (canvas) de la liste de courses, aux couleurs Bayen,
+ * Génère une image PNG (canvas) de la liste de courses, aux couleurs Marché Pop
+ * (fond crème, bandeau menthe, pastilles de score inclinées à contour encre),
  * pour partage WhatsApp ou téléchargement. 100% client, aucune dépendance.
  */
 
 import type { CartItem } from './cart'
+import { scoreFill, SCORE_ON } from '@/lib/score-colors'
 
-function scoreColor(s: number | null): string {
-  if (s == null) return '#9ca3af'
-  if (s >= 75) return '#476a32'
-  if (s >= 50) return '#8bb02e'
-  if (s >= 25) return '#f97316'
-  return '#ef4444'
-}
+// Palette Marché Pop (fixe : l'image partagée ne suit pas le thème de l'écran)
+const CREME = '#FFF8EC'
+const SOFT = '#F3EADB'
+const MENTHE = '#19C08B'
+const MUTED = '#5E5A52'
+const DISPLAY = '"Unbounded", "Readex Pro", system-ui, sans-serif'
+const TEXT = '"Readex Pro", system-ui, sans-serif'
 
 function truncate(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
   if (ctx.measureText(text).width <= maxWidth) return text
@@ -36,51 +38,65 @@ export async function renderCartImage(items: CartItem[]): Promise<Blob | null> {
   if (!ctx) return null
   ctx.scale(scale, scale)
 
-  // Fond
-  ctx.fillStyle = '#ffffff'
+  // Polices de la marque si elles sont déjà chargées par la page
+  await document.fonts?.ready
+
+  // Fond crème
+  ctx.fillStyle = CREME
   ctx.fillRect(0, 0, W, H)
 
-  // En-tête vert Bayen
-  ctx.fillStyle = '#476a32'
+  // En-tête : bandeau menthe, texte encre, filet encre dessous
+  ctx.fillStyle = MENTHE
   ctx.fillRect(0, 0, W, HEADER)
-  ctx.fillStyle = '#b1cf3a'
-  ctx.font = 'bold 36px system-ui, sans-serif'
-  ctx.fillText('Bayen', PAD, 54)
-  ctx.fillStyle = '#f0f2d2'
-  ctx.font = '600 22px system-ui, sans-serif'
-  ctx.fillText('Ma liste de courses', PAD, 90)
+  ctx.fillStyle = SCORE_ON
+  ctx.fillRect(0, HEADER - 3, W, 3)
+  ctx.font = `800 36px ${DISPLAY}`
+  ctx.fillText('Bayen', PAD, 56)
+  ctx.font = `600 22px ${TEXT}`
+  ctx.fillText('Ma liste de courses', PAD, 92)
 
   // Lignes
   items.forEach((it, i) => {
     const y = HEADER + i * ROW
     if (i % 2 === 1) {
-      ctx.fillStyle = '#f6f7ee'
+      ctx.fillStyle = SOFT
       ctx.fillRect(0, y, W, ROW)
     }
     const cy = y + ROW / 2
-    // Pastille score
+    // Pastille score : ombre nette décalée, aplat du score, contour encre, inclinée de -8°
     const cx = PAD + 20
+    ctx.save()
+    ctx.translate(cx, cy)
+    ctx.rotate((-8 * Math.PI) / 180)
     ctx.beginPath()
-    ctx.arc(cx, cy, 19, 0, Math.PI * 2)
-    ctx.fillStyle = scoreColor(it.scan_score)
+    ctx.arc(2, 2, 20, 0, Math.PI * 2)
+    ctx.fillStyle = SCORE_ON
     ctx.fill()
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 16px system-ui, sans-serif'
+    ctx.beginPath()
+    ctx.arc(0, 0, 20, 0, Math.PI * 2)
+    ctx.fillStyle = scoreFill(it.scan_score)
+    ctx.fill()
+    ctx.lineWidth = 2
+    ctx.strokeStyle = SCORE_ON
+    ctx.stroke()
+    ctx.fillStyle = SCORE_ON
+    ctx.font = `800 14px ${DISPLAY}`
     ctx.textAlign = 'center'
-    ctx.fillText(it.scan_score != null ? String(it.scan_score) : '?', cx, cy + 6)
-    ctx.textAlign = 'left'
+    ctx.fillText(it.scan_score != null ? String(it.scan_score) : '?', 0, 5)
+    ctx.restore()
     // Nom + marque
-    ctx.fillStyle = '#1a1a1a'
-    ctx.font = '600 20px system-ui, sans-serif'
-    ctx.fillText(truncate(ctx, it.name_fr, W - PAD * 2 - 60), PAD + 52, cy - 2)
-    ctx.fillStyle = '#8a8a8a'
-    ctx.font = '15px system-ui, sans-serif'
-    ctx.fillText(truncate(ctx, it.brand ?? '', W - PAD * 2 - 60), PAD + 52, cy + 19)
+    ctx.textAlign = 'left'
+    ctx.fillStyle = SCORE_ON
+    ctx.font = `600 20px ${TEXT}`
+    ctx.fillText(truncate(ctx, it.name_fr, W - PAD * 2 - 60), PAD + 56, cy - 2)
+    ctx.fillStyle = MUTED
+    ctx.font = `15px ${TEXT}`
+    ctx.fillText(truncate(ctx, it.brand ?? '', W - PAD * 2 - 60), PAD + 56, cy + 19)
   })
 
   // Pied
-  ctx.fillStyle = '#9a9a9a'
-  ctx.font = '15px system-ui, sans-serif'
+  ctx.fillStyle = MUTED
+  ctx.font = `15px ${TEXT}`
   ctx.textAlign = 'center'
   ctx.fillText('bayen.ma — Mange mieux au Maroc', W / 2, H - 22)
   ctx.textAlign = 'left'

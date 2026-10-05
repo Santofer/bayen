@@ -10,6 +10,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocale } from '@/lib/i18n'
 import { Search, X, Loader2, Trophy, Sparkles, Lightbulb } from 'lucide-react'
+import { scoreText } from '@/lib/score-colors'
+import { cn } from '@/lib/utils'
+import { ScoreSticker, productTint } from '@/components/ProductCard'
 
 const DIRECTUS_URL = '/api/directus'
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
@@ -31,14 +34,6 @@ interface Product {
 
 const FIELDS = 'barcode,name_fr,brand,image_front,scan_score,score_label,nutriscore_grade,nova_group,sugars,salt,fat_saturated,additives'
 
-function scoreColor(s: number | null): string {
-  if (s == null) return '#9ca3af'
-  if (s >= 75) return '#476a32'
-  if (s >= 50) return '#b1cf3a'
-  if (s >= 25) return '#f97316'
-  return '#ef4444'
-}
-
 const addCount = (p: Product) => (Array.isArray(p.additives) ? p.additives.length : 0)
 
 /** Slot de sélection d'un produit (recherche + résultat). */
@@ -47,7 +42,7 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
   onPick: (p: Product) => void
   onClear: () => void
   placeholder: string
-  /** Duel maquette v2 : le gagnant reçoit bordure lime + couronne */
+  /** Duel : le gagnant passe sur fond citron + couronne */
   isWinner?: boolean
   crownLabel?: string
 }) {
@@ -75,15 +70,16 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
   }, [q, product])
 
   if (product) {
-    // Card « fighter » (duel maquette v2) : le gagnant a bordure lime + glow + couronne
+    // Carte « fighter » : le gagnant passe sur vignette citron, ombre plus haute + couronne
     return (
       <div
-        className={`relative h-full rounded-3xl border-2 bg-card p-4 sm:p-5 shadow-card ${
-          isWinner ? 'border-[#b1cf3a] shadow-[0_0_0_4px_hsl(68_60%_55%/0.22)]' : 'border-border'
-        }`}
+        className={cn(
+          'relative h-full rounded-3xl border-2 p-4 sm:p-5',
+          isWinner ? 'tint-citron border-line shadow-[var(--shadow-lift)]' : 'bg-card'
+        )}
       >
         {isWinner && crownLabel && (
-          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#b1cf3a] px-3 py-1 text-[0.66rem] font-extrabold uppercase tracking-[0.06em] text-[#233317]">
+          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-encre bg-citron px-3 py-1 text-[0.66rem] font-extrabold uppercase tracking-[0.06em] text-encre">
             <Trophy className="h-3 w-3" /> {crownLabel}
           </span>
         )}
@@ -91,17 +87,15 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
           <X className="h-4 w-4" />
         </button>
         <div className="flex flex-col items-center text-center gap-2">
-          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-muted flex-shrink-0 mt-1.5">
+          <div className={cn('mt-1.5 grid h-24 w-24 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-line', productTint(product.barcode))}>
             {product.image_front ? (
-              <img src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}?width=200&height=200&fit=cover&format=webp`} alt={product.name_fr} className="w-full h-full object-cover" />
-            ) : <div className="w-full h-full" />}
+              <img src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}?width=200&height=200&fit=cover&format=webp`} alt={product.name_fr} className="size-[86%] object-contain mix-blend-multiply dark:mix-blend-normal" />
+            ) : null}
           </div>
-          <p className="text-sm font-semibold line-clamp-2 leading-tight">{product.name_fr}</p>
+          <p className="text-sm font-bold line-clamp-2 leading-tight">{product.name_fr}</p>
           <p className="text-xs text-muted-foreground">{product.brand}</p>
           {product.scan_score != null && (
-            <div className="font-display text-4xl font-extrabold leading-none mt-1" style={{ color: scoreColor(product.scan_score) }}>
-              {product.scan_score}
-            </div>
+            <ScoreSticker score={product.scan_score} className="mt-1" />
           )}
         </div>
       </div>
@@ -109,7 +103,7 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
   }
 
   return (
-    <div className="h-full rounded-3xl border-2 border-dashed bg-card/50 p-3 relative">
+    <div className="h-full rounded-3xl border-2 border-dashed border-line/40 p-3 relative">
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
@@ -117,26 +111,26 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => results.length && setOpen(true)}
           placeholder={placeholder}
-          className="w-full h-10 rounded-lg border border-input bg-background pl-9 pr-3 text-sm"
+          className="w-full h-10 rounded-full border-2 border-line bg-card pl-9 pr-3 text-sm"
         />
       </div>
       {open && results.length > 0 && (
-        <ul className="absolute z-20 left-3 right-3 mt-1 max-h-64 overflow-y-auto rounded-lg border bg-popover shadow-lg">
+        <ul className="absolute z-20 left-3 right-3 mt-1 max-h-64 overflow-y-auto rounded-2xl border-2 border-line bg-popover shadow-[var(--shadow-card)]">
           {results.map((r) => (
             <li key={r.barcode}>
               <button
                 onClick={() => { onPick(r); setQ(''); setResults([]); setOpen(false) }}
                 className="w-full flex items-center gap-2 p-2 hover:bg-muted text-left"
               >
-                <div className="w-9 h-9 rounded bg-muted overflow-hidden flex-shrink-0">
-                  {r.image_front && <img src={r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=80&height=80&fit=cover&format=webp`} alt="" className="w-full h-full object-cover" />}
+                <div className={cn('grid h-9 w-9 flex-shrink-0 place-items-center overflow-hidden rounded-lg border-[1.5px] border-line', productTint(r.barcode))}>
+                  {r.image_front && <img src={r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=80&height=80&fit=cover&format=webp`} alt="" className="size-[86%] object-contain mix-blend-multiply dark:mix-blend-normal" />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium truncate">{r.name_fr}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{r.brand}</p>
                 </div>
                 {r.scan_score != null && (
-                  <span className="text-xs font-bold flex-shrink-0" style={{ color: scoreColor(r.scan_score) }}>{r.scan_score}</span>
+                  <span className="font-display text-xs font-extrabold flex-shrink-0" style={{ color: scoreText(r.scan_score) }}>{r.scan_score}</span>
                 )}
               </button>
             </li>
@@ -215,14 +209,14 @@ export default function Comparator() {
       {a && b && (
         <>
           {/* Tableau comparatif */}
-          <div className="rounded-3xl border bg-card overflow-hidden shadow-card">
+          <div className="rounded-3xl border bg-card overflow-hidden">
             <table className="w-full text-sm">
               <tbody>
                 {rows.map((r, i) => (
                   <tr key={i} className={i % 2 ? 'bg-muted/30' : ''}>
-                    <td className={`px-3 py-2.5 text-center font-semibold ${r.better === 'A' ? 'text-green-700 dark:text-green-300' : ''}`}>{r.av}</td>
+                    <td className={`px-3 py-2.5 text-center font-semibold ${r.better === 'A' ? 'font-extrabold text-brand-ink' : ''}`}>{r.av}</td>
                     <td className="px-2 py-2.5 text-center text-[11px] text-muted-foreground whitespace-nowrap">{r.label}</td>
-                    <td className={`px-3 py-2.5 text-center font-semibold ${r.better === 'B' ? 'text-green-700 dark:text-green-300' : ''}`}>{r.bv}</td>
+                    <td className={`px-3 py-2.5 text-center font-semibold ${r.better === 'B' ? 'font-extrabold text-brand-ink' : ''}`}>{r.bv}</td>
                   </tr>
                 ))}
               </tbody>
@@ -230,8 +224,8 @@ export default function Comparator() {
           </div>
 
           {/* Verdict IA */}
-          <div className="rounded-3xl border border-ai/30 bg-ai/10 p-5">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-ai mb-2">
+          <div className="rounded-3xl border bg-card p-5">
+            <h3 className="text-sm font-semibold flex items-center gap-2 text-ai-ink mb-2">
               <Sparkles className="h-4 w-4" />
               {t('cmp.verdictTitle')}
             </h3>
@@ -242,7 +236,7 @@ export default function Comparator() {
                 <p className="text-sm text-foreground/90 leading-relaxed">{verdict.raison}</p>
                 {verdict.conseil && (
                   <p className="text-sm text-foreground/80 leading-relaxed flex gap-2">
-                    <Lightbulb className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                    <Lightbulb className="h-4 w-4 text-brand-ink flex-shrink-0 mt-0.5" />
                     {verdict.conseil}
                   </p>
                 )}

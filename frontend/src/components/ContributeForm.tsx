@@ -451,12 +451,15 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
   // Rendu après soumission réussie
   if (submitted) {
     return (
-      <div className="rounded-xl border bg-card p-8 text-center">
-        <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto mb-4">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-primary" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
+      <div className="rounded-2xl border bg-card p-8 text-center">
+        {/* Contribution réussie : Naânaa applaudit */}
+        <img
+          src="/mascotte/naanaa-bravo.webp"
+          alt=""
+          width="96"
+          height="141"
+          className="naanaa-bob mx-auto mb-4 h-auto w-24"
+        />
         <h2 className="text-xl font-bold text-foreground mb-2">
           {isEditMode ? 'Produit mis à jour !' : t('contribute.thanks')}
         </h2>
@@ -509,7 +512,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               <div className={cn(
                 'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold',
                 isCurrent && 'bg-primary text-primary-foreground',
-                isPast && 'bg-primary/20 text-primary',
+                isPast && 'bg-primary/20 text-brand-ink',
                 !isCurrent && !isPast && 'bg-muted text-muted-foreground'
               )}>
                 {isPast ? '\u2713' : i + 1}
@@ -641,7 +644,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                 <div key={key} className="space-y-1">
                   <label className="block text-xs font-medium text-muted-foreground">{label}</label>
                   {existingProduct[field] && (
-                    <p className="text-[10px] text-green-600 flex items-center gap-0.5"><Check size={12} className="text-current" /> Image existante</p>
+                    <p className="text-[10px] text-brand-ink flex items-center gap-0.5"><Check size={12} className="text-current" /> Image existante</p>
                   )}
                   <input
                     type="file"
@@ -710,8 +713,9 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           )}
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+            <div className="naanaa" role="alert">
+              <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="82" />
+              <p className="bubble text-sm">{error}</p>
             </div>
           )}
 
@@ -753,32 +757,33 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               {isEditMode && frontPhotoUploaded && (
                 <>
                   <span className="text-muted-foreground">Photo</span>
-                  <span className="text-green-700 dark:text-green-400">Nouvelle photo uploadée</span>
+                  <span className="text-foreground">Nouvelle photo uploadée</span>
                 </>
               )}
             </div>
           </div>
 
           {!isEditMode && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4">
-              <p className="text-xs text-amber-800 dark:text-amber-200">
-                Les photos seront analysées par notre IA (OCR + Mistral) pour extraire les données nutritionnelles
+            <div className="rounded-2xl border-2 border-line tint-citron p-4">
+              <p className="text-xs text-foreground">
+                Les photos seront analysées par notre IA (lecture visuelle Qwen, OCR en secours) pour extraire les données nutritionnelles
                 et la liste des ingrédients. Un modérateur vérifiera les données avant publication.
               </p>
             </div>
           )}
 
           {isEditMode && (
-            <div className="rounded-xl border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4">
-              <p className="text-xs text-blue-800 dark:text-blue-200">
+            <div className="rounded-2xl border-2 border-line tint-myrtille p-4">
+              <p className="text-xs text-foreground">
                 Les modifications seront appliquées immédiatement au produit existant.
               </p>
             </div>
           )}
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+            <div className="naanaa" role="alert">
+              <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="82" />
+              <p className="bubble text-sm">{error}</p>
             </div>
           )}
 
@@ -789,7 +794,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
             <Button onClick={handleSubmit} className="flex-1" disabled={submitting}>
               {submitting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                   {isEditMode ? 'Mise à jour...' : t('contribute.sending')}
                 </>
               ) : (

@@ -431,15 +431,15 @@ export default function OffImporter() {
             />
             <Button onClick={handleSearch} disabled={state === 'searching' || state === 'importing'}>
               {state === 'searching' ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : 'Rechercher'}
             </Button>
           </div>
 
           {state === 'exists' && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4">
-              <p className="text-sm text-amber-800 dark:text-amber-200">Ce produit existe déjà dans Bayen.</p>
-              <a href={`/produit/${barcode}`} className="text-sm text-primary hover:underline mt-1 inline-block">Voir la fiche →</a>
+            <div className="rounded-2xl border-2 border-line tint-citron p-4">
+              <p className="text-sm text-foreground">Ce produit existe déjà dans Bayen.</p>
+              <a href={`/produit/${barcode}`} className="text-sm text-brand-ink hover:underline mt-1 inline-block">Voir la fiche →</a>
             </div>
           )}
 
@@ -478,7 +478,7 @@ export default function OffImporter() {
               <Button onClick={handleImport} className="w-full" disabled={state === 'importing'}>
                 {state === 'importing' ? (
                   <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     Import en cours...
                   </span>
                 ) : 'Importer dans Bayen'}
@@ -487,9 +487,9 @@ export default function OffImporter() {
           )}
 
           {state === 'done' && product && (
-            <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30 p-4 text-center">
-              <p className="text-sm text-green-800 dark:text-green-200 font-medium flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> {product.name} importé avec succès !</p>
-              <a href={`/produit/${product.barcode}`} className="text-sm text-primary hover:underline mt-2 inline-block">Voir la fiche →</a>
+            <div className="rounded-2xl border-2 border-line tint-menthe p-4 text-center">
+              <p className="text-sm text-foreground font-medium flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> {product.name} importé avec succès !</p>
+              <a href={`/produit/${product.barcode}`} className="text-sm text-brand-ink hover:underline mt-2 inline-block">Voir la fiche →</a>
               <div className="mt-3">
                 <Button variant="outline" size="sm" onClick={() => { setState('idle'); setBarcode(''); setProduct(null) }}>
                   Importer un autre
@@ -499,8 +499,8 @@ export default function OffImporter() {
           )}
 
           {error && state === 'error' && (
-            <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4">
-              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+            <div className="rounded-2xl border-2 border-line tint-tomate p-4">
+              <p className="text-sm text-foreground">{error}</p>
               <Button variant="outline" size="sm" className="mt-2" onClick={() => setState('idle')}>Réessayer</Button>
             </div>
           )}
@@ -520,7 +520,7 @@ export default function OffImporter() {
           <Button onClick={handleBatchImport} disabled={state === 'importing'} className="w-full">
             {state === 'importing' ? (
               <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 Import en cours... {batchProgress}%
               </span>
             ) : `Importer ${barcodeList.split(/[\n,;\s]+/).filter(c => /^\d{8,13}$/.test(c.trim())).length} produits`}
@@ -539,10 +539,10 @@ export default function OffImporter() {
               {batchResults.map((r, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs py-1 border-b last:border-0">
                   <span className="font-mono text-muted-foreground w-28 flex-shrink-0">{r.barcode}</span>
-                  {r.status === 'imported' && <span className="text-green-600 flex items-center gap-1"><CheckCircle size={14} className="text-current" /> {r.name}</span>}
-                  {r.status === 'exists' && <span className="text-amber-600 flex items-center gap-1"><AlertTriangle size={14} className="text-current" /> Déjà existant</span>}
+                  {r.status === 'imported' && <span className="text-brand-ink flex items-center gap-1"><CheckCircle size={14} className="text-current" /> {r.name}</span>}
+                  {r.status === 'exists' && <span className="text-score-mediocre-ink flex items-center gap-1"><AlertTriangle size={14} className="text-current" /> Déjà existant</span>}
                   {r.status === 'not_found' && <span className="text-muted-foreground flex items-center gap-1"><XCircle size={14} className="text-current" /> Non trouvé sur OFF</span>}
-                  {r.status === 'error' && <span className="text-red-600 flex items-center gap-1"><XCircle size={14} className="text-current" /> Erreur</span>}
+                  {r.status === 'error' && <span className="text-destructive flex items-center gap-1"><XCircle size={14} className="text-current" /> Erreur</span>}
                 </div>
               ))}
             </div>

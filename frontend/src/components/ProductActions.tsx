@@ -8,7 +8,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
@@ -182,10 +181,10 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
   if (!canAct && !isAdmin) return null
 
   return (
-    <div className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]">
+    <div className="rounded-2xl border bg-card p-5">
       {/* En-tête de carte — même anatomie que les autres sections de la fiche */}
       <div className="mb-4 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 border-encre bg-menthe text-encre">
           <Check size={16} />
         </span>
         <div className="min-w-0 flex-1">
@@ -195,7 +194,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           </p>
         </div>
         {confidenceScore >= 0.8 && (
-          <Badge variant="safe" className="flex-shrink-0 text-xs">Vérifié</Badge>
+          <span className="pop-chip flex-shrink-0 border-encre! bg-menthe! text-encre!">Vérifié</span>
         )}
       </div>
 
@@ -208,8 +207,8 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           className={cn(
             'inline-flex min-h-[46px] items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors',
             hasConfirmed
-              ? 'bg-primary/10 text-primary'
-              : 'border border-primary/30 bg-card text-primary hover:bg-primary/[0.06] disabled:opacity-60',
+              ? 'border-2 border-encre bg-menthe text-encre'
+              : 'border-2 border-line bg-card text-foreground hover:bg-muted disabled:opacity-60',
           )}
         >
           <Check size={16} />
@@ -219,7 +218,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           type="button"
           onClick={() => setShowReport(!showReport)}
           disabled={submitting}
-          className="inline-flex min-h-[46px] items-center gap-2 rounded-full border bg-card px-5 text-sm font-semibold transition-colors hover:bg-accent disabled:opacity-60"
+          className="inline-flex min-h-[46px] items-center gap-2 rounded-full border-2 border-line bg-card px-5 text-sm font-semibold transition-colors hover:bg-muted disabled:opacity-60"
         >
           <AlertTriangle size={16} />
           {t('product.report')}
@@ -228,7 +227,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
-            className="sm:ms-auto inline-flex min-h-[46px] items-center gap-2 rounded-full border border-destructive/40 bg-card px-5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+            className="sm:ms-auto inline-flex min-h-[46px] items-center gap-2 rounded-full border-2 border-destructive bg-card px-5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
           >
             <Trash2 size={16} />
             Supprimer ce produit
@@ -238,9 +237,9 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       {/* Confirmation suppression */}
       {showDeleteConfirm && (
-        <div className="mt-3 rounded-xl border-2 border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-3">
-          <p className="text-sm font-medium text-red-800 dark:text-red-200">Supprimer définitivement ce produit ?</p>
-          <p className="text-xs text-red-600 dark:text-red-400">Cette action est irréversible.</p>
+        <div className="mt-3 rounded-xl border-2 border-destructive bg-tomate/15 p-4 space-y-3">
+          <p className="text-sm font-semibold text-foreground">Supprimer définitivement ce produit ?</p>
+          <p className="text-xs font-semibold text-destructive">Cette action est irréversible.</p>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -259,13 +258,13 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       {/* Modale signalement */}
       {showReport && (
-        <div className="mt-3 rounded-xl border bg-popover p-4 space-y-3">
+        <div className="mt-3 rounded-xl border-[1.5px] border-line bg-popover p-4 space-y-3">
           <p className="text-sm font-medium">Qu'est-ce qui est incorrect ?</p>
           <textarea
             value={reportText}
             onChange={(e) => setReportText(e.target.value)}
             placeholder="Décrivez l'erreur (données nutritionnelles incorrectes, mauvaise image, etc.)"
-            className="w-full h-24 rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full h-24 rounded-xl border-2 border-line bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             autoFocus
           />
           <div className="flex gap-2">
@@ -281,7 +280,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       {/* Feedback */}
       {feedback && (
-        <div className="mt-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 px-3 py-2 text-sm text-green-800 dark:text-green-200">
+        <div className="mt-3 rounded-xl border-2 border-encre bg-menthe px-3 py-2 text-sm font-semibold text-encre" role="status">
           {feedback}
         </div>
       )}

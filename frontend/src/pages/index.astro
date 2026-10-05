@@ -6,7 +6,8 @@ import Layout from '@/layouts/Layout.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 import BlogCarousel from '@/components/BlogCarousel.tsx'
 import { getLocale, t } from '@/lib/i18n'
-import type { Article } from '@/lib/types'
+import type { Article, Product } from '@/lib/types'
+import { withLocalCover } from '@/lib/blog-covers'
 
 // Locale depuis le cookie SSR
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -15,7 +16,7 @@ const locale = getLocale(localeCookie)
 // Récupérer les produits récents et les stats depuis Directus
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
-let recentProducts: Record<string, unknown>[] = []
+let recentProducts: Product[] = []
 let recentArticles: Article[] = []
 let totalProducts = 0
 let totalScans = 0
@@ -74,7 +75,7 @@ try {
   }
   if (articlesRes.ok) {
     const articlesData = await articlesRes.json()
-    recentArticles = (articlesData.data ?? []) as Article[]
+    recentArticles = ((articlesData.data ?? []) as Article[]).map((a) => withLocalCover(a, Astro.url))
   }
   if (catCountRes.ok) {
     const catData = await catCountRes.json()
@@ -100,35 +101,54 @@ const ICONS: Record<string, string> = {
   basket: '<path d="m5 11 4-7"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="m9 11 1 9"/><path d="m15 11-1 9"/>',
   scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.5 5-6.5"/>',
+  drop: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+  dumbbell: '<path d="M6 4v16M18 4v16M3 8h6M15 8h6M3 16h6M15 16h6M9 12h6"/>',
+  camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
 }
+
+// Quatre univers (maquettes Main / Desktop) : aplat franc, texte encre
+const UNIVERSES = [
+  { href: '/recherche', color: 'menthe', img: '/hero/scan.jpg', icon: ICONS.leaf, tag: t('beauty.food', locale), title: t('beauty.food', locale), desc: t('home.step2Desc', locale), cta: t('nav.search', locale) },
+  { href: '/beaute', color: 'framboise', img: '/home/beaute.jpg', icon: ICONS.drop, tag: t('nav.beauty', locale), title: t('beauty.hubTitle', locale), desc: t('nav.d.beauty', locale), cta: t('beauty.ingredientsTitle', locale) },
+  { href: '/proteines', color: 'myrtille', img: '/home/proteines.jpg', icon: ICONS.dumbbell, tag: t('nav.protein', locale), title: t('protein.hubTitle', locale), desc: t('nav.d.protein', locale), cta: t('protein.topTitle', locale) },
+  { href: '/analyser-repas', color: 'figue', img: '/home/repas.jpg', icon: ICONS.camera, tag: t('nav.meal', locale), title: t('meal.pageTitle', locale), desc: t('meal.pageSubtitle', locale), cta: t('home.slideCoachCta', locale) },
+]
+
+// Étapes « Comment ça marche » : une pastille colorée par étape
+const STEPS = [
+  { color: 'citron', title: t('home.step1', locale), desc: t('home.step1Desc', locale), icon: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/>' },
+  { color: 'framboise', title: t('home.step2', locale), desc: t('home.step2Desc', locale), icon: '<circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/>' },
+  { color: 'myrtille', title: t('home.step3', locale), desc: t('home.step3Desc', locale), icon: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>' },
+]
 
 const slides = [
   {
-    img: '/hero/scan.jpg?v=2', href: '/scan', icon: ICONS.scan, isH1: true,
+    img: '/hero/scan.jpg?v=2', bg: 'var(--color-menthe)', href: '/scan', icon: ICONS.scan, isH1: true,
     badge: t('home.slideScanBadge', locale),
     title: t('home.hero1', locale), em: t('home.hero2', locale),
     desc: t('home.slideScanDesc', locale).replace(/2 ?000\+?/, totalProducts > 0 ? totalProducts.toLocaleString('fr-FR') : '3 000'), cta: t('home.scanBtn', locale),
   },
   {
-    img: '/hero/repas.jpg?v=2', href: '/analyser-repas', icon: ICONS.spark, isH1: false,
+    img: '/hero/repas.jpg?v=2', bg: 'var(--color-figue)', href: '/analyser-repas', icon: ICONS.spark, isH1: false,
     badge: t('home.slideCoachBadge', locale),
     title: t('home.slideCoachTitle', locale), em: t('home.slideCoachEm', locale),
     desc: t('home.slideCoachDesc', locale), cta: t('home.slideCoachCta', locale),
   },
   {
-    img: '/hero/panier.jpg?v=2', href: '/panier', icon: ICONS.basket, isH1: false,
+    img: '/hero/panier.jpg?v=2', bg: 'var(--color-citron)', href: '/panier', icon: ICONS.basket, isH1: false,
     badge: t('home.slideCartBadge', locale),
     title: t('home.slideCartTitle', locale), em: t('home.slideCartEm', locale),
     desc: t('home.slideCartDesc', locale), cta: t('home.slideCartCta', locale),
   },
   {
-    img: '/hero/comparer.jpg?v=2', href: '/comparer', icon: ICONS.scale, isH1: false,
+    img: '/hero/comparer.jpg?v=2', bg: 'var(--color-myrtille)', href: '/comparer', icon: ICONS.scale, isH1: false,
     badge: t('home.slideCompareBadge', locale),
     title: t('home.slideCompareTitle', locale), em: t('home.slideCompareEm', locale),
     desc: t('home.slideCompareDesc', locale), cta: t('home.slideCompareCta', locale),
   },
   {
-    img: '/hero/partenaires.jpg?v=2', href: '/partenaires', icon: ICONS.users, isH1: false,
+    img: '/hero/partenaires.jpg?v=2', bg: 'var(--color-framboise)', href: '/partenaires', icon: ICONS.users, isH1: false,
     badge: t('home.slidePartnerBadge', locale),
     title: t('home.slidePartnerTitle', locale), em: t('home.slidePartnerEm', locale),
     desc: t('home.slidePartnerDesc', locale), cta: t('home.slidePartnerCta', locale),
@@ -143,11 +163,11 @@ const slides = [
 >
   <main class="pb-24 md:pb-8">
 
-    <!-- HERO CAROUSEL — vitrine des fonctionnalités (maquette v2, CSS .hero-* dans globals.css) -->
+    <!-- HERO CAROUSEL — une slide = une fonctionnalité, chacune sur son aplat (CSS .hero-* dans globals.css) -->
     <header class="hero-v2">
       <div id="hero-slides" class="hero-slides">
         {slides.map((s) => (
-          <div class="hero-slide">
+          <div class="hero-slide" style={`--slide-bg: ${s.bg}`}>
             <img src={s.img} alt="" loading="eager" />
             <div class="hero-scrim">
               <span class="hero-kicker">
@@ -166,7 +186,7 @@ const slides = [
         ))}
       </div>
 
-      <!-- Dots — sous le carousel (maquette) -->
+      <!-- Dots — sous le carousel -->
       <div id="hero-dots" class="hero-dots">
         {slides.map((_, i) => (
           <button type="button" class:list={[{ on: i === 0 }]} aria-label={`Fonctionnalité ${i + 1}`}></button>
@@ -175,7 +195,7 @@ const slides = [
     </header>
 
     <script is:inline>
-      // Carousel : autoplay doux + dots synchronisés + pause au survol (maquette v2)
+      // Carousel : autoplay doux + dots synchronisés + pause au survol
       (() => {
         const slides = document.getElementById('hero-slides')
         const dotsEl = document.getElementById('hero-dots')
@@ -203,7 +223,7 @@ const slides = [
       })()
     </script>
 
-    <!-- Stats bandeau (maquette v2) -->
+    <!-- Bandeau stats : citron · framboise · myrtille (couleurs portées par .stat-v2) -->
     <section class="stats-v2">
       <div class="stat-v2">
         <div class="n">{totalProducts.toLocaleString('fr-FR')}</div>
@@ -219,93 +239,54 @@ const slides = [
       </div>
     </section>
 
-    <!-- Trois univers : repas · protéines · beauté (cartes colorées, carousel sur mobile) -->
-    <section class="section-v2 pt-6 pb-4">
-      <div class="univ-v2">
-        <a href="/analyser-repas" class="univ-card" style="--univ-color: var(--color-primary); --univ-fg: var(--color-primary-foreground); --univ-tint: hsl(97 36% 30%)">
-          <div class="pic">
-            <img src="/home/repas.jpg" alt="" loading="lazy" width="800" height="600" />
-            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>{t('nav.meal', locale)}</span>
-          </div>
-          <div class="body">
-            <h3>{t('meal.pageTitle', locale)}</h3>
-            <p>{t('meal.pageSubtitle', locale)}</p>
-            <span class="go">{t('home.slideCoachCta', locale)} →</span>
-          </div>
-        </a>
-        <a href="/proteines" class="univ-card" style="--univ-color: var(--color-protein); --univ-fg: var(--color-protein-foreground); --univ-tint: hsl(28 78% 42%)">
-          <div class="pic">
-            <img src="/home/proteines.jpg" alt="" loading="lazy" width="800" height="600" />
-            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M3 8h6M15 8h6M3 16h6M15 16h6M9 12h6"/></svg>{t('nav.protein', locale)}</span>
-          </div>
-          <div class="body">
-            <h3>{t('protein.hubTitle', locale)}</h3>
-            <p>{t('nav.d.protein', locale)}</p>
-            <span class="go">{t('protein.topTitle', locale)} →</span>
-          </div>
-        </a>
-        <a href="/beaute" class="univ-card" style="--univ-color: var(--color-beauty); --univ-fg: var(--color-beauty-foreground); --univ-tint: hsl(190 45% 32%)">
-          <div class="pic">
-            <img src="/home/beaute.jpg" alt="" loading="lazy" width="800" height="600" />
-            <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>{t('nav.beauty', locale)}</span>
-          </div>
-          <div class="body">
-            <h3>{t('beauty.hubTitle', locale)}</h3>
-            <p>{t('nav.d.beauty', locale)}</p>
-            <span class="go">{t('beauty.ingredientsTitle', locale)} →</span>
-          </div>
-        </a>
+    <!-- Quatre univers : 2×2 compact sur mobile (maquette Main), cartes illustrées dès md (Desktop) -->
+    <section class="section-v2 pt-8 pb-2">
+      <div class="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        {UNIVERSES.map((u) => (
+          <a href={u.href} class="univ-card max-md:!min-h-0" style={`--univ-color: var(--color-${u.color})`}>
+            <div class="pic max-md:hidden">
+              <img src={u.img} alt="" loading="lazy" width="800" height="600" />
+              <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={u.icon} />{u.tag}</span>
+            </div>
+            <div class="body max-md:!p-3.5 max-md:!gap-1">
+              <span class="md:hidden mb-4 flex h-10 w-10 items-center justify-center rounded-xl border-2 border-encre bg-creme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={u.icon} />
+              </span>
+              <h3 class="max-md:!text-[0.95rem]">{u.title}</h3>
+              <p class="max-md:line-clamp-2 max-md:!text-xs">{u.desc}</p>
+              <span class="go max-md:hidden">{u.cta} →</span>
+            </div>
+          </a>
+        ))}
       </div>
     </section>
 
-    <!-- Comment ça marche -->
-    <section class="reveal section-v2 py-12">
-      <h2 class="font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
-      <div class="grid sm:grid-cols-3 gap-6">
-        <div class="text-center">
-          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <path d="M3 7V5a2 2 0 012-2h2" />
-              <path d="M17 3h2a2 2 0 012 2v2" />
-              <path d="M21 17v2a2 2 0 01-2 2h-2" />
-              <path d="M7 21H5a2 2 0 01-2-2v-2" />
-              <line x1="7" y1="12" x2="17" y2="12" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-foreground">1. {t('home.step1', locale)}</h3>
-          <p class="text-sm text-muted-foreground mt-1">
-            {t('home.step1Desc', locale)}
-          </p>
-        </div>
-        <div class="text-center">
-          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M8 12l3 3 5-5" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-foreground">2. {t('home.step2', locale)}</h3>
-          <p class="text-sm text-muted-foreground mt-1">
-            {t('home.step2Desc', locale)}
-          </p>
-        </div>
-        <div class="text-center">
-          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-foreground">3. {t('home.step3', locale)}</h3>
-          <p class="text-sm text-muted-foreground mt-1">
-            {t('home.step3Desc', locale)}
-          </p>
-        </div>
+    <!-- L'astuce de Naânaa -->
+    <section class="section-v2 pt-8">
+      <div class="naanaa max-w-2xl">
+        <img src="/mascotte/naanaa-astuce.webp" alt="" width="72" height="106" class="naanaa-bob" loading="lazy" />
+        <p class="bubble"><b>{t('home.tipTitle', locale)}</b><br />{t('home.tip', locale)}</p>
       </div>
     </section>
 
-    <!-- Articles récents (blog) -->
+    <!-- Produits récemment notés -->
+    {recentProducts.length > 0 && (
+      <section class="reveal section-v2 pt-10 pb-2">
+        <div class="sec-head-v2">
+          <h2>{t('home.latestProducts', locale)}</h2>
+          <a href="/recherche">{t('home.seeAll', locale)} →</a>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          {recentProducts.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Le journal (articles récents) -->
     {recentArticles.length > 0 && (
-      <section class="reveal section-v2 pb-12">
+      <section class="reveal section-v2 pt-10 pb-2">
         <div class="sec-head-v2">
           <h2>{t('blog.recentTitle', locale)}</h2>
           <a href="/blog">{t('blog.seeAll', locale)} →</a>
@@ -314,38 +295,39 @@ const slides = [
       </section>
     )}
 
-    <!-- Produits populaires -->
-    {recentProducts.length > 0 && (
-      <section class="reveal section-v2 pb-12">
-        <div class="sec-head-v2">
-          <h2>{t('home.latestProducts', locale)}</h2>
-          <a href="/recherche">{t('home.seeAll', locale)} →</a>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          {recentProducts.map((product) => (
-            <ProductCard product={product as any} />
-          ))}
-        </div>
-      </section>
-    )}
+    <!-- Comment ça marche -->
+    <section class="reveal section-v2 py-12">
+      <h2 class="font-bold text-foreground text-center mb-8">{t('home.howTitle', locale)}</h2>
+      <div class="grid sm:grid-cols-3 gap-6">
+        {STEPS.map((s, i) => (
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-full border-2 border-encre text-encre flex items-center justify-center mx-auto mb-3 shadow-[3px_3px_0_var(--color-hard)] -rotate-6" style={`background: var(--color-${s.color})`}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={s.icon} />
+            </div>
+            <h3 class="font-semibold text-foreground">{i + 1}. {s.title}</h3>
+            <p class="text-sm text-muted-foreground mt-1">{s.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
 
-    <!-- CTA Contribution -->
+    <!-- CTA Contribution : Naânaa applaudit -->
     <section class="reveal section-v2 pb-8">
-      <div class="rounded-xl bg-card border border-border p-6 sm:p-8 text-center">
-        <h2 class="font-bold text-foreground">{t('home.missingTitle', locale)}</h2>
-        <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-          {t('home.missingDesc', locale)}
-        </p>
-        <a
-          href="/contribuer"
-          class="inline-flex items-center gap-2 mt-4 px-6 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          {t('home.addProduct', locale)}
-        </a>
+      <div class="rounded-3xl border bg-card p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-start">
+        <img src="/mascotte/naanaa-bravo.webp" alt="" width="88" height="130" class="naanaa-bob flex-none" loading="lazy" />
+        <div class="flex-1">
+          <h2 class="font-bold text-foreground">{t('home.missingTitle', locale)}</h2>
+          <p class="text-sm text-muted-foreground mt-2 max-w-md">
+            {t('home.missingDesc', locale)}
+          </p>
+          <a href="/contribuer" class="btn-pop mt-4">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            {t('home.addProduct', locale)}
+          </a>
+        </div>
       </div>
     </section>
 
@@ -353,7 +335,7 @@ const slides = [
     <section class="reveal section-v2 pb-12">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <a href="/importer" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-ink">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
@@ -361,11 +343,11 @@ const slides = [
           <span class="text-xs font-medium">{t('home.import', locale)}</span>
         </a>
         <a href="/classement" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-ink"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
           <span class="text-xs font-medium">{t('home.ranking', locale)}</span>
         </a>
         <a href="/categories" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-ink">
             <rect x="3" y="3" width="7" height="7" />
             <rect x="14" y="3" width="7" height="7" />
             <rect x="14" y="14" width="7" height="7" />
@@ -374,7 +356,7 @@ const slides = [
           <span class="text-xs font-medium">{t('search.categories', locale)}</span>
         </a>
         <a href="/additifs" class="flex flex-col items-center gap-2 card-lift rounded-2xl border bg-card p-4 text-center">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-ink">
             <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
             <path d="M8.5 2h7" />
           </svg>

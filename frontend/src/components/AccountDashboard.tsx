@@ -8,10 +8,12 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import type { CSSProperties } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { getAccessToken } from '@/lib/auth'
+import { scoreFill, scoreLevel, SCORE_WORD } from '@/lib/score-colors'
 import StreakWidget from '@/components/StreakWidget'
 
 const DIRECTUS_URL = '/api/directus'
@@ -40,12 +42,12 @@ interface Scan {
   product_id: { name_fr: string; barcode: string; scan_score: number | null } | string
 }
 
-// Niveaux et seuils
-const RANK_INFO: Record<string, { label: string; color: string; min: number; next: number | null }> = {
-  nouveau: { label: 'Nouveau', color: '#a1a1aa', min: 0, next: 100 },
-  contributeur: { label: 'Contributeur', color: '#b1cf3a', min: 100, next: 500 },
-  expert: { label: 'Expert', color: '#f97316', min: 500, next: 2000 },
-  'vérifié': { label: 'Vérifié', color: '#476a32', min: 2000, next: null },
+// Niveaux et seuils — `fill` = aplat Marché Pop (texte encre posé dessus)
+const RANK_INFO: Record<string, { label: string; fill: string; min: number; next: number | null }> = {
+  nouveau: { label: 'Nouveau', fill: 'bg-framboise', min: 0, next: 100 },
+  contributeur: { label: 'Contributeur', fill: 'bg-menthe', min: 100, next: 500 },
+  expert: { label: 'Expert', fill: 'bg-citron', min: 500, next: 2000 },
+  'vérifié': { label: 'Vérifié', fill: 'bg-myrtille', min: 2000, next: null },
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -162,83 +164,91 @@ export default function AccountDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* En-tête profil */}
-      <div className="flex items-start gap-4">
+      {/* En-tête profil : avatar aplat + rang + progression (maquette Compte) */}
+      <div className="rounded-2xl border bg-card p-4 flex items-center gap-4">
         <div
-          className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-          style={{ backgroundColor: rank.color }}
+          className={cn(
+            'w-16 h-16 rounded-full border-2 border-encre flex items-center justify-center text-encre font-display text-2xl font-extrabold flex-shrink-0',
+            rank.fill,
+          )}
         >
           {(user.display_name ?? user.email)[0].toUpperCase()}
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 space-y-1.5">
           {editing ? (
             <div className="flex gap-2">
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="flex-1 h-9 rounded-md border border-input bg-background px-3 text-sm"
+                className="flex-1 min-w-0 h-9 rounded-full border-2 border-line bg-background px-3 text-sm"
                 autoFocus
               />
               <Button size="sm" onClick={handleSaveProfile}>Enregistrer</Button>
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Annuler</Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold">{user.display_name ?? user.email}</h2>
-              <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+            <div className="flex items-center gap-1">
+              <h2 className="text-lg font-bold truncate">{user.display_name ?? user.email}</h2>
+              <Button size="sm" variant="ghost" onClick={() => setEditing(true)} aria-label="Modifier le nom">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838.838-2.872a2 2 0 0 1 .506-.855z"/></svg>
               </Button>
             </div>
           )}
-          <p className="text-sm text-muted-foreground">{user.email}</p>
-          <div className="flex gap-1.5 mt-1">
+          <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
             {user.isAdmin && (
-              <Badge className="text-white bg-red-600 hover:bg-red-700">Admin</Badge>
+              <span className="pop-chip bg-tomate text-encre border-encre">Admin</span>
             )}
-            <Badge className="text-white" style={{ backgroundColor: rank.color }}>{rank.label}</Badge>
+            <span className={cn('pop-chip text-encre border-encre', rank.fill)}>{rank.label}</span>
+            <b className="font-display text-sm">{user.points} pts</b>
           </div>
+          {/* Barre de progression vers le prochain niveau */}
+          {rank.next && (
+            <>
+              <div className="h-2.5 rounded-full border-[1.5px] border-line bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-menthe transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Encore {rank.next - user.points} points pour atteindre{' '}
+                {RANK_INFO[Object.keys(RANK_INFO).find((k) => RANK_INFO[k].min === rank.next) ?? '']?.label ?? 'le niveau suivant'}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-xl border bg-card p-4 text-center">
-          <p className="text-2xl font-bold text-primary">{user.points}</p>
-          <p className="text-xs text-muted-foreground">Points</p>
-        </div>
-        <div className="rounded-xl border bg-card p-4 text-center">
-          <p className="text-2xl font-bold text-foreground">{user.contributions_count}</p>
-          <p className="text-xs text-muted-foreground">Contributions</p>
-        </div>
-        <div className="rounded-xl border bg-card p-4 text-center">
-          <p className="text-2xl font-bold text-foreground">{scans.length}</p>
-          <p className="text-xs text-muted-foreground">Scans récents</p>
-        </div>
-        <div className="rounded-xl border bg-card p-4 text-center">
-          <p className="text-2xl font-bold text-foreground">{approvalRate}%</p>
-          <p className="text-xs text-muted-foreground">Taux d'approbation</p>
-        </div>
-      </div>
-
-      {/* Barre de progression vers le prochain niveau */}
-      {rank.next && (
-        <div className="rounded-xl border bg-card p-4">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="font-medium">{rank.label}</span>
-            <span className="text-muted-foreground">{user.points} / {rank.next} pts</span>
-          </div>
-          <div className="h-3 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${progress}%`, backgroundColor: rank.color }}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Encore {rank.next - user.points} points pour atteindre{' '}
-            {RANK_INFO[Object.keys(RANK_INFO).find((k) => RANK_INFO[k].min === rank.next) ?? '']?.label ?? 'le niveau suivant'}
+      {/* Naânaa applaudit les points gagnés */}
+      {user.points > 0 && (
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-bravo.webp" alt="" width="72" height="106" className="naanaa-bob" />
+          <p className="bubble">
+            <b>{user.points} pts !</b> Merci pour tes contributions, elles rendent chaque étiquette plus claire.
           </p>
         </div>
       )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="rounded-2xl border bg-card p-4 text-center">
+          <p className="font-display text-2xl font-extrabold text-brand-ink">{user.points}</p>
+          <p className="text-xs text-muted-foreground">Points</p>
+        </div>
+        <div className="rounded-2xl border bg-card p-4 text-center">
+          <p className="font-display text-2xl font-extrabold text-foreground">{user.contributions_count}</p>
+          <p className="text-xs text-muted-foreground">Contributions</p>
+        </div>
+        <div className="rounded-2xl border bg-card p-4 text-center">
+          <p className="font-display text-2xl font-extrabold text-foreground">{scans.length}</p>
+          <p className="text-xs text-muted-foreground">Scans récents</p>
+        </div>
+        <div className="rounded-2xl border bg-card p-4 text-center">
+          <p className="font-display text-2xl font-extrabold text-foreground">{approvalRate}%</p>
+          <p className="text-xs text-muted-foreground">Taux d'approbation</p>
+        </div>
+      </div>
 
       {/* Série de scans quotidiens (streak) — masqué si aucun scan */}
       <StreakWidget />
@@ -247,24 +257,24 @@ export default function AccountDashboard() {
       <div className="grid sm:grid-cols-2 gap-3">
         <a
           href="/analyser-repas"
-          className="group flex items-center gap-3 rounded-xl border bg-card p-4 hover:border-primary/40 hover:shadow-sm transition-all"
+          className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+          <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
               <circle cx="12" cy="13" r="4" />
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Analyser un repas</p>
+            <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Analyser un repas</p>
             <p className="text-xs text-muted-foreground">Photo → description + calories</p>
           </div>
         </a>
         <a
           href="/compte/journal"
-          className="group flex items-center gap-3 rounded-xl border bg-card p-4 hover:border-primary/40 hover:shadow-sm transition-all"
+          className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+          <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
@@ -274,15 +284,15 @@ export default function AccountDashboard() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Mon journal</p>
+            <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Mon journal</p>
             <p className="text-xs text-muted-foreground">Historique des analyses de repas</p>
           </div>
         </a>
         <a
           href="/compte/points"
-          className="group flex items-center gap-3 rounded-xl border bg-card p-4 hover:border-primary/40 hover:shadow-sm transition-all"
+          className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+          <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
               <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
@@ -293,16 +303,16 @@ export default function AccountDashboard() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Mes contributions</p>
+            <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Mes contributions</p>
             <p className="text-xs text-muted-foreground">Points, rang et barème</p>
           </div>
         </a>
         {user.isAdmin && (
           <a
             href="/compte/partenariats"
-            className="group flex items-center gap-3 rounded-xl border bg-card p-4 hover:border-primary/40 hover:shadow-sm transition-all"
+            className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
           >
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+            <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m11 17 2 2a1 1 0 1 0 3-3" />
                 <path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4" />
@@ -312,7 +322,7 @@ export default function AccountDashboard() {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Demandes de partenariat</p>
+              <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Demandes de partenariat</p>
               <p className="text-xs text-muted-foreground">Réservé à l'équipe — marques et producteurs</p>
             </div>
           </a>
@@ -320,7 +330,7 @@ export default function AccountDashboard() {
       </div>
 
       {/* Contributions */}
-      <div className="rounded-xl border bg-card p-4">
+      <div className="rounded-2xl border bg-card p-4">
         <h3 className="text-sm font-semibold mb-3">Mes contributions</h3>
         {contributions.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aucune contribution pour le moment.</p>
@@ -335,7 +345,7 @@ export default function AccountDashboard() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
                       {productBarcode ? (
-                        <a href={`/produit/${productBarcode}`} className="hover:text-primary">{productName}</a>
+                        <a href={`/produit/${productBarcode}`} className="hover:text-brand-ink">{productName}</a>
                       ) : productName}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -351,10 +361,16 @@ export default function AccountDashboard() {
       </div>
 
       {/* Scans récents */}
-      <div className="rounded-xl border bg-card p-4">
+      <div className="rounded-2xl border bg-card p-4">
         <h3 className="text-sm font-semibold mb-3">Mes scans récents</h3>
         {scans.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucun scan pour le moment.</p>
+          <div className="naanaa">
+            <img src="/mascotte/naanaa-scan.webp" alt="" width="64" height="94" />
+            <p className="bubble">
+              Aucun scan pour le moment.{' '}
+              <a href="/scan" className="font-bold underline underline-offset-2">Scanner un produit</a>
+            </p>
+          </div>
         ) : (
           <div className="space-y-2">
             {scans.map((s) => {
@@ -365,14 +381,21 @@ export default function AccountDashboard() {
                 <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0">
                   <div className="flex-1 min-w-0">
                     {productBarcode ? (
-                      <a href={`/produit/${productBarcode}`} className="text-sm font-medium hover:text-primary truncate block">{productName}</a>
+                      <a href={`/produit/${productBarcode}`} className="text-sm font-medium hover:text-brand-ink truncate block">{productName}</a>
                     ) : (
                       <p className="text-sm font-medium truncate">{productName}</p>
                     )}
                     <p className="text-xs text-muted-foreground">{new Date(s.date_created).toLocaleDateString('fr-FR')}</p>
                   </div>
                   {productScore != null && (
-                    <span className="text-sm font-bold text-primary">{productScore}/100</span>
+                    <span
+                      className="score-sticker sm"
+                      style={{ '--c': scoreFill(productScore) } as CSSProperties}
+                      role="img"
+                      aria-label={`Score ${productScore}/100 — ${SCORE_WORD[scoreLevel(productScore) ?? 'mauvais']}`}
+                    >
+                      <b>{productScore}</b>
+                    </span>
                   )}
                 </div>
               )

@@ -9,10 +9,13 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 ---
 
 <Layout title="Connexion — Bayen" path="/connexion" noindex={true}>
-  <main class="flex items-start justify-center px-4 py-10 sm:py-14 pb-24">
-    <div class="auth-card">
+  <main class="flex flex-col items-center px-4 py-8 sm:py-12 pb-24">
+    {/* Naânaa accueille (pose « salut ») au-dessus de la carte */}
+    <img src="/mascotte/naanaa-salut.webp" alt="" width="96" height="141" class="naanaa-bob relative z-10 -mb-4" />
+    <div class="w-full max-w-[440px] rounded-[28px] border-2 border-line bg-card px-[30px] py-[34px] shadow-[var(--shadow-lift)]">
       <a href="/" class="flex justify-center mb-5" aria-label="Bayen — accueil">
-        <img src="/logo-bayn.svg" alt="Bayen" data-bayen-logo style="height: 38px; width: auto; filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
+        <img src="/logo-wordmark.svg" alt="Bayen" class="brand-logo on-light" style="height: 38px" />
+        <img src="/logo-wordmark-light.svg" alt="Bayen" class="brand-logo on-dark" style="height: 38px" />
       </a>
       <h1 class="text-center text-[1.7rem] font-bold leading-tight">{t('login.welcome', locale)}</h1>
       <p class="text-center text-sm text-muted-foreground mt-1.5 mb-6">
@@ -23,16 +26,3 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
     </div>
   </main>
 </Layout>
-
-<style>
-  /* Card centrée (maquette se-connecter v2) */
-  .auth-card {
-    width: 100%;
-    max-width: 440px;
-    background: var(--color-card);
-    border: 1px solid var(--color-border);
-    border-radius: 28px;
-    padding: 34px 30px;
-    box-shadow: var(--shadow-lift);
-  }
-</style>

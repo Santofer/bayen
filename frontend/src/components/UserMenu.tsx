@@ -120,7 +120,7 @@ export default function UserMenu() {
         onClick={() => setMenuOpen(!menuOpen)}
         className={cn(
           'flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full text-sm font-semibold transition-colors',
-          'bg-primary text-primary-foreground hover:bg-primary/90'
+          'border-2 border-encre bg-menthe font-display text-encre hover:-translate-y-px'
         )}
         aria-label="Menu utilisateur"
         aria-expanded={menuOpen}
@@ -130,19 +130,19 @@ export default function UserMenu() {
 
       {/* Dropdown menu */}
       {menuOpen && (
-        <div className="absolute right-0 top-12 w-64 rounded-lg border bg-background shadow-lg z-50">
+        <div className="absolute end-0 top-12 w-64 rounded-2xl border-2 border-line bg-popover text-popover-foreground shadow-[var(--shadow-lift)] z-50">
           {/* Info utilisateur */}
-          <div className="p-4 border-b">
+          <div className="p-4 border-b-2 border-line/15">
             <p className="font-medium text-sm truncate">{user.display_name || user.email}</p>
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
               {user.role === 'admin' && (
-                <Badge className="text-xs bg-red-600 text-white hover:bg-red-700">Admin</Badge>
+                <span className="pop-chip h-6 border-encre bg-tomate text-encre">Admin</span>
               )}
               <Badge variant="secondary" className="text-xs">
                 {rankLabels[user.rank]}
               </Badge>
-              <span className="text-xs text-muted-foreground">
+              <span className="font-display text-xs font-bold">
                 {user.points} pts
               </span>
             </div>
@@ -153,7 +153,7 @@ export default function UserMenu() {
             <a
               href="/compte"
               onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium hover:bg-muted transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                 <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
@@ -165,7 +165,7 @@ export default function UserMenu() {
               <a
                 href="/admin/import-off"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium hover:bg-muted transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                   <path d="M12 3v12" /><path d="m8 11 4 4 4-4" /><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" />
@@ -176,7 +176,7 @@ export default function UserMenu() {
             <button
               type="button"
               onClick={() => void handleLogout()}
-              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-destructive hover:bg-muted transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />

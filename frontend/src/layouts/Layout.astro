@@ -58,6 +58,8 @@ const NAV_ICONS: Record<string, string> = {
   shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
 }
 
+const ICO_TINTS = ['var(--color-menthe)', 'var(--color-citron)', 'var(--color-framboise)', 'var(--color-myrtille)', 'var(--color-figue)', 'var(--color-tomate)']
+
 const megaMenus = [
   {
     label: t('nav.explore', locale),
@@ -102,13 +104,14 @@ const megaMenus = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#476a32" />
+    <meta name="theme-color" content="#FFF8EC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1D1430" media="(prefers-color-scheme: dark)" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.bayen.ma" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <title>{title}</title>
     <SeoHead title={title} description={description} path={path} ogImage={ogImage} ogType={ogType} jsonLd={jsonLd} noindex={noindex} />
     <!-- Appliquer locale + thème sauvegardés avant le premier paint -->
@@ -136,7 +139,8 @@ const megaMenus = [
         <div class="flex min-h-14 items-center gap-2 md:gap-4 lg:gap-[22px] px-3 sm:px-[22px]">
           <!-- Logo -->
           <a href="/" class="flex items-center flex-shrink-0" aria-label="Bayen — accueil">
-            <img src="/logo-bayn.svg" alt="Bayen" data-bayen-logo style="height: 30px; width: auto; display: block; filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
+            <img src="/logo-wordmark.svg" alt="Bayen" class="brand-logo on-light" width="120" height="40" />
+            <img src="/logo-wordmark-light.svg" alt="" aria-hidden="true" class="brand-logo on-dark" width="120" height="40" />
           </a>
 
           <!-- Navigation desktop — mega menus par section -->
@@ -150,9 +154,9 @@ const megaMenus = [
                     <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
                   </button>
                   <div class="nav-panel" role="menu">
-                    {menu.items.map((item) => (
+                    {menu.items.map((item, i) => (
                       <a href={item.href} class:list={['nav-panel-item', { on: item.href !== '/' && currentPath.startsWith(item.href) }]} role="menuitem">
-                        <span class="nav-panel-ico">
+                        <span class="nav-panel-ico" style={`--ico-bg: ${ICO_TINTS[i % ICO_TINTS.length]}`}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
                         </span>
                         <span class="min-w-0">
@@ -198,13 +202,13 @@ const megaMenus = [
     <slot />
 
     {!hideNav && (
-      <footer class="border-t mt-12 pb-20 md:pb-0 bg-[#476a32] text-[#f0f2d2] dark:bg-[hsl(105_30%_10%)] dark:text-[hsl(63_40%_92%)]">
+      <footer class="site-footer mt-12 pb-28 md:pb-0">
         <div class="container mx-auto max-w-screen-lg px-4 py-10">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-8">
             <!-- Marque -->
             <div class="col-span-2 sm:col-span-1">
               <a href="/" class="flex items-center mb-3">
-                <img src="/logo-bayn.svg" alt="Bayen" class="h-7 w-auto" data-bayen-footer-logo style="filter: brightness(0) invert(1);" />
+                <img src="/logo-lockup-light.svg" alt="Bayen — بيّن" class="h-20 w-auto" width="120" height="80" />
               </a>
               <p class="text-sm opacity-70">
                 {t('home.hero1', locale)}<br />{t('home.hero2', locale)}
@@ -269,105 +273,30 @@ const megaMenus = [
     )}
 
     {!hideNav && (
-      <!-- Navigation mobile bottom -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t" data-bayen-nav style="padding-bottom: env(safe-area-inset-bottom, 8px);">
-        <div class="flex items-center justify-around h-16 px-2 pb-1">
-          <a href="/" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/' ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            {t('nav.home', locale)}
-          </a>
-          <a href="/recherche" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/recherche' ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            {t('nav.search', locale)}
-          </a>
-          <a href="/scan" class="flex flex-col items-center gap-1 -mt-5">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" data-bayen-scan-btn>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7V5a2 2 0 012-2h2" />
-                <path d="M17 3h2a2 2 0 012 2v2" />
-                <path d="M21 17v2a2 2 0 01-2 2h-2" />
-                <path d="M7 21H5a2 2 0 01-2-2v-2" />
-                <line x1="7" y1="12" x2="17" y2="12" />
-              </svg>
-            </div>
-            <span class="text-xs font-medium">{t('nav.scan', locale)}</span>
-          </a>
-          <a href="/additifs" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath.startsWith('/additifs') ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
-              <path d="M8.5 2h7" />
-            </svg>
-            {t('nav.additives', locale)}
-          </a>
-          <a href="/compte" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/compte' ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            {t('nav.account', locale)}
-          </a>
-        </div>
+      <!-- Barre d'onglets mobile : îlot flottant, scan au centre -->
+      <nav class="tabbar md:hidden" aria-label={t('nav.main', locale)}>
+        <a href="/" class:list={[{ on: currentPath === '/' }]} aria-current={currentPath === '/' ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" /></svg>
+          {t('nav.home', locale)}
+        </a>
+        <a href="/recherche" class:list={[{ on: currentPath.startsWith('/recherche') }]} aria-current={currentPath.startsWith('/recherche') ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          {t('nav.search', locale)}
+        </a>
+        <a href="/scan" class="tab-scan" aria-label={t('nav.scan', locale)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" /><path d="M8 9v6M11 9v6M14 9v6M17 9v6" /></svg>
+        </a>
+        <a href="/analyser-repas" class:list={[{ on: currentPath.startsWith('/analyser-repas') }]} aria-current={currentPath.startsWith('/analyser-repas') ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /></svg>
+          {t('nav.mealShort', locale)}
+        </a>
+        <a href="/compte" class:list={[{ on: currentPath.startsWith('/compte') }]} aria-current={currentPath.startsWith('/compte') ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5" /></svg>
+          {t('nav.account', locale)}
+        </a>
       </nav>
     )}
 
-    <!-- Appliquer les couleurs navbar (inline pour éviter le tree-shaking Tailwind v4) -->
-    <script is:inline>
-      (function() {
-        function applyNavColors() {
-          var isDark = document.documentElement.classList.contains('dark');
-          var bg = isDark ? '#1c3014' : '#f0f2d2';
-          var fg = isDark ? '#b1cf3a' : '#476a32';
-          var bc = isDark ? 'rgba(177,207,58,0.15)' : 'rgba(71,106,50,0.1)';
-          var navs = document.querySelectorAll('[data-bayen-nav]');
-          for (var i = 0; i < navs.length; i++) {
-            navs[i].style.backgroundColor = bg;
-            navs[i].style.color = fg;
-            navs[i].style.borderColor = bc;
-          }
-          // Logo : vert foncé en light, lime en dark
-          var logos = document.querySelectorAll('[data-bayen-logo]');
-          var logoFilter = isDark
-            ? 'brightness(0) saturate(100%) invert(81%) sepia(45%) saturate(500%) hue-rotate(30deg) brightness(105%) contrast(90%)'
-            : 'brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%)';
-          for (var j = 0; j < logos.length; j++) {
-            logos[j].style.filter = logoFilter;
-          }
-          // Bouton scan mobile : lime sur vert foncé en dark, vert foncé sur crème en light
-          var scanBtns = document.querySelectorAll('[data-bayen-scan-btn]');
-          for (var k = 0; k < scanBtns.length; k++) {
-            scanBtns[k].style.backgroundColor = isDark ? '#b1cf3a' : '#476a32';
-            scanBtns[k].style.color = isDark ? '#1c3014' : '#f0f2d2';
-          }
-          // Footer logo : crème en light (sur fond vert), lime en dark
-          var footerLogos = document.querySelectorAll('[data-bayen-footer-logo]');
-          var footerFilter = isDark
-            ? 'brightness(0) saturate(100%) invert(81%) sepia(45%) saturate(500%) hue-rotate(30deg) brightness(105%) contrast(90%)'
-            : 'brightness(0) invert(1) sepia(20%) saturate(200%) hue-rotate(20deg)';
-          for (var fl = 0; fl < footerLogos.length; fl++) {
-            footerLogos[fl].style.filter = footerFilter;
-          }
-        }
-        // Appliquer au chargement
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyNavColors);
-        } else {
-          applyNavColors();
-        }
-        // Observer les changements de thème (classe .dark sur <html>)
-        var observer = new MutationObserver(function(mutations) {
-          for (var m of mutations) {
-            if (m.attributeName === 'class') applyNavColors();
-          }
-        });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-      })();
-    </script>
 
     <!-- PWA : install prompt + service worker (jamais en dev — il servirait
          du stale pendant les compilations lentes et masquerait les changements) -->

@@ -30,12 +30,13 @@ type SortValue = (typeof SORT_OPTIONS)[number]['value']
 
 const NUTRISCORE_GRADES: NutriScoreGrade[] = ['A', 'B', 'C', 'D', 'E']
 
+// Couleurs officielles Nutri-Score (tokens), lettre et contour encre
 const NUTRISCORE_COLORS: Record<NutriScoreGrade, string> = {
-  A: 'bg-[#038141]',
-  B: 'bg-lime-500',
-  C: 'bg-yellow-400',
-  D: 'bg-orange-500',
-  E: 'bg-red-600',
+  A: 'bg-nutriscore-a',
+  B: 'bg-nutriscore-b',
+  C: 'bg-nutriscore-c',
+  D: 'bg-nutriscore-d',
+  E: 'bg-nutriscore-e',
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -223,6 +224,9 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
     try {
       const sp = new URLSearchParams(window.location.search)
       const fromUrl: Universe | null = sp.get('univers') === 'beaute' ? 'cosmetic' : null
+      // ?q= : recherche lancée depuis la barre de l'accueil
+      const q = (sp.get('q') ?? '').trim().slice(0, 80)
+      if (q) setFilters((prev) => ({ ...prev, query: q }))
       const prot = Number(sp.get('proteines'))
       if (prot === 12 || prot === 20) setFilters((prev) => ({ ...prev, proteinMin: prot, sort: '-proteins' }))
       const c = sp.get('cat') ?? ''
@@ -447,7 +451,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
       {/* Univers (C23) : Alimentation | Beauté — deux bases, deux scores, jamais mélangés */}
-      <div className="grid grid-cols-2 gap-1 rounded-full border bg-card p-1 max-w-sm" role="tablist">
+      <div className="grid grid-cols-2 gap-1 rounded-full border-2 border-line bg-card p-1 max-w-sm" role="tablist">
         {(['food', 'cosmetic'] as const).map((u) => (
           <button
             key={u}
@@ -456,10 +460,10 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
             aria-selected={filters.universe === u}
             onClick={() => setUniverse(u)}
             className={cn(
-              'min-h-[40px] rounded-full text-sm font-bold transition-colors',
+              'min-h-[40px] rounded-full border-2 text-sm font-bold transition-colors',
               filters.universe === u
-                ? u === 'cosmetic' ? 'bg-beauty text-beauty-foreground' : 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted'
+                ? u === 'cosmetic' ? 'border-encre bg-beauty text-beauty-foreground' : 'border-encre bg-primary text-primary-foreground'
+                : 'border-transparent text-muted-foreground hover:bg-muted'
             )}
           >
             {u === 'food' ? t('beauty.food') : t('beauty.cosmetic')}
@@ -518,7 +522,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
             </svg>
             {t('search.filters')}
             {hasActiveFilters && (
-              <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground text-primary text-[10px] font-bold">
+              <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-encre text-creme text-[10px] font-bold dark:bg-creme dark:text-encre">
                 {
                   [
                     filters.cosmeticCategory !== '',
@@ -555,7 +559,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
         <select
           value={filters.sort}
           onChange={(e) => updateFilter('sort', e.target.value as SortValue)}
-          className="rounded-lg border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="rounded-full border-2 border-line bg-card px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40"
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -573,7 +577,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
             <select
               value={filters.cosmeticCategory}
               onChange={(e) => updateFilter('cosmeticCategory', e.target.value)}
-              className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="w-full rounded-xl border-2 border-line bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
               <option value="">{t('beauty.allCategories')}</option>
               {COSMETIC_CATEGORIES.map((c) => (
@@ -583,7 +587,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              {t('search.scoreMin')} : <span className="font-bold text-primary">{filters.scoreMin}</span>
+              {t('search.scoreMin')} : <span className="font-bold text-brand-ink">{filters.scoreMin}</span>
             </label>
             <input type="range" min={0} max={100} step={5} value={filters.scoreMin}
               onChange={(e) => updateFilter('scoreMin', Number(e.target.value))} className="w-full accent-primary" />
@@ -606,7 +610,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
               onChange={(e) =>
                 updateFilter('categoryId', e.target.value ? Number(e.target.value) : null)
               }
-              className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="w-full rounded-xl border-2 border-line bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             >
               <option value="">{t('search.allCategories')}</option>
               {categories.map((cat) => (
@@ -621,7 +625,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
           {/* Score minimum */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              {t('search.scoreMin')} : <span className="font-bold text-primary">{filters.scoreMin}</span>
+              {t('search.scoreMin')} : <span className="font-bold text-brand-ink">{filters.scoreMin}</span>
             </label>
             <input
               type="range"
@@ -653,8 +657,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
                     className={cn(
                       'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold transition-all',
                       active
-                        ? `${NUTRISCORE_COLORS[grade]} text-white shadow-sm`
-                        : 'border bg-background text-muted-foreground hover:bg-muted'
+                        ? `${NUTRISCORE_COLORS[grade]} border-2 border-encre text-encre shadow-[2px_2px_0_var(--color-hard)]`
+                        : 'border-2 border-line/30 bg-background text-muted-foreground hover:bg-muted'
                     )}
                   >
                     {grade}
@@ -750,8 +754,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
                         active
                           ? 'bg-destructive text-destructive-foreground border-destructive'
                           : a.risk_level === 'limited'
-                            ? 'bg-background border-orange-300 dark:border-orange-800 text-foreground hover:bg-orange-50 dark:hover:bg-orange-950/30'
-                            : 'bg-background border-red-300 dark:border-red-800 text-foreground hover:bg-red-50 dark:hover:bg-red-950/30'
+                            ? 'border-line bg-citron/15 text-foreground hover:bg-citron/30'
+                            : 'border-line bg-tomate/15 text-foreground hover:bg-tomate/30'
                       )}
                       title={a.name_fr}
                     >
@@ -793,13 +797,13 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
       {/* Résultats Open Food Facts (quand Directus est vide) */}
       {!loading && products.length === 0 && offResults.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 px-4 py-2.5">
-            <svg className="w-4 h-4 text-amber-600 dark:text-amber-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex items-center gap-2 rounded-2xl border-2 border-encre bg-citron px-4 py-2.5 text-encre">
+            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 16v-4" />
               <path d="M12 8h.01" />
             </svg>
-            <p className="text-sm text-amber-800 dark:text-amber-200">
+            <p className="text-sm">
               {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {isBeauty ? t('beauty.obfResults') : t('search.offResults')}
             </p>
           </div>
@@ -824,26 +828,15 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
 
       {/* État vide (ni local ni OFF) */}
       {!loading && !searchingOff && products.length === 0 && offResults.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <svg
-            className="mb-4 text-muted-foreground/40"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-            <path d="M8 11h6" />
-          </svg>
-          <p className="text-lg font-medium text-foreground">{t('search.noResults')}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('search.noResultsDesc')}
-          </p>
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          {/* Naânaa à la loupe : rien trouvé */}
+          <div className="naanaa text-start">
+            <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" />
+            <div className="bubble">
+              <p className="font-display text-base font-bold text-foreground">{t('search.noResults')}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t('search.noResultsDesc')}</p>
+            </div>
+          </div>
           {hasActiveFilters && (
             <Button
               variant="outline"
@@ -913,12 +906,9 @@ function ToggleChip({
     <button
       type="button"
       onClick={onClick}
-      className={cn(
-        'rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
-        active
-          ? 'border-primary bg-primary/10 text-primary'
-          : 'border-border bg-background text-muted-foreground hover:bg-muted'
-      )}
+      // Puce de filtre Marché Pop : active = aplat citron, texte et contour encre
+      className={cn('filter-pill', active && 'on')}
+      aria-pressed={active}
     >
       {active && (
         <svg
@@ -945,17 +935,15 @@ function LoadingSkeleton() {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex gap-3 rounded-xl border bg-card p-3 animate-pulse"
-        >
-          <div className="h-20 w-20 rounded-lg bg-muted flex-shrink-0" />
-          <div className="flex-1 space-y-2 py-1">
-            <div className="h-4 w-3/4 rounded bg-muted" />
-            <div className="h-3 w-1/2 rounded bg-muted" />
+        // Même silhouette que .pcard-v2 : vignette carrée, nom, puces
+        <div key={i} className="rounded-[20px] border bg-card p-2.5 animate-pulse">
+          <div className="mb-2.5 aspect-square rounded-[14px] bg-muted" />
+          <div className="space-y-2">
+            <div className="h-4 w-3/4 rounded-full bg-muted" />
+            <div className="h-3 w-1/2 rounded-full bg-muted" />
             <div className="flex gap-1.5">
-              <div className="h-4 w-12 rounded-full bg-muted" />
-              <div className="h-4 w-12 rounded-full bg-muted" />
+              <div className="h-5 w-14 rounded-full bg-muted" />
+              <div className="h-5 w-12 rounded-full bg-muted" />
             </div>
           </div>
         </div>

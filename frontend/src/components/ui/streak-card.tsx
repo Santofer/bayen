@@ -72,13 +72,15 @@ const StreakCard = React.forwardRef<HTMLDivElement, StreakCardProps>(
       <section
         ref={ref}
         aria-label="Carte de série"
-        className={cn('bg-card rounded-2xl border p-6 shadow-sm', className)}
+        className={cn('bg-card rounded-2xl border p-6', className)}
         {...props}
       >
         <header className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Flame className="text-orange-500 h-6 w-6" aria-hidden="true" />
-            <h3 className="text-2xl leading-none font-semibold">{title}</h3>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-encre bg-tomate text-encre">
+              <Flame className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h3 className="text-xl leading-none">{title}</h3>
           </div>
           {onActionClick && (
             <Button
@@ -93,24 +95,30 @@ const StreakCard = React.forwardRef<HTMLDivElement, StreakCardProps>(
           )}
         </header>
 
-        <p className="mb-4 text-5xl leading-none font-semibold tracking-tight">
-          {currentStreak}
-          <span className="text-muted-foreground ml-2 text-2xl font-medium">{L.days}</span>
-        </p>
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <p className="font-display text-5xl leading-none font-extrabold tracking-tight">
+            {currentStreak}
+            <span className="text-muted-foreground ms-2 font-sans text-2xl font-medium">{L.days}</span>
+          </p>
+          {/* Naânaa applaudit une série en cours */}
+          {currentStreak >= 2 && (
+            <img src="/mascotte/naanaa-bravo.webp" alt="" width="48" height="71" className="naanaa-bob -mb-2 h-auto w-12" />
+          )}
+        </div>
 
         <StreakCalendar streak={streak} view={view} startOfWeek={1} today={today} className="max-w-none" />
 
-        <div className="mt-4 grid grid-cols-2 gap-4 border-t border-dashed pt-4" aria-label="Statistiques de série">
+        <div className="mt-4 grid grid-cols-2 gap-4 border-t-2 border-dashed border-line/30 pt-4" aria-label="Statistiques de série">
           <div>
             <p className="text-muted-foreground text-sm">{L.longest}</p>
-            <p className="text-3xl leading-tight font-semibold">
+            <p className="font-display text-3xl leading-tight font-extrabold">
               {longestStreak}
-              <span className="ml-1 text-2xl font-medium">{L.days}</span>
+              <span className="ms-1 font-sans text-2xl font-medium">{L.days}</span>
             </p>
           </div>
           <div className="text-right">
             <p className="text-muted-foreground text-sm">{L.total}</p>
-            <p className="text-3xl leading-tight font-semibold">{total.toLocaleString('fr-FR')}</p>
+            <p className="font-display text-3xl leading-tight font-extrabold">{total.toLocaleString('fr-FR')}</p>
           </div>
         </div>
 
@@ -118,7 +126,7 @@ const StreakCard = React.forwardRef<HTMLDivElement, StreakCardProps>(
           <div className="mt-4 border-t pt-4">
             <button
               type="button"
-              className="bg-muted flex w-full items-center justify-between rounded-xl px-4 py-3 text-left"
+              className="bg-muted flex w-full items-center justify-between rounded-xl border-[1.5px] border-line px-4 py-3 text-start"
               onClick={() => setIsHowItWorksOpen((prev) => !prev)}
               aria-expanded={isHowItWorksOpen}
               aria-controls={howItWorksContentId}
@@ -139,7 +147,7 @@ const StreakCard = React.forwardRef<HTMLDivElement, StreakCardProps>(
                   const Icon = index === 0 ? CheckCircle2 : index === 1 ? Flame : RefreshCcw
                   return (
                     <div key={`${item}-${index}`} className="flex items-start gap-3">
-                      <Icon className="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                      <Icon className="text-brand-ink mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
                       <p className="text-muted-foreground text-sm leading-snug">{item}</p>
                     </div>
                   )

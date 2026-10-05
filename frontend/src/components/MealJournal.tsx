@@ -29,17 +29,19 @@ interface MealScanRow {
   date_created: string
 }
 
+// Pastille de fiabilité (aplats Marché Pop)
 const CONFIANCE_DOT: Record<string, string> = {
-  faible: '#f59e0b',
-  moyenne: '#3b82f6',
-  elevee: '#16a34a',
+  faible: 'var(--color-score-mediocre)',
+  moyenne: 'var(--color-citron)',
+  elevee: 'var(--color-menthe)',
 }
 
+// Verdict qualitatif : aplat de l'échelle de score, texte encre posé dessus
 const VERDICT_META: Record<string, { color: string; label: string }> = {
-  sain:        { color: '#476a32', label: 'Sain' },
-  equilibre:   { color: '#7a9e3a', label: 'Équilibré' },
-  a_limiter:   { color: '#f97316', label: 'À limiter' },
-  occasionnel: { color: '#ef4444', label: 'Occasionnel' },
+  sain:        { color: 'var(--color-score-excellent)', label: 'Sain' },
+  equilibre:   { color: 'var(--color-score-bon)', label: 'Équilibré' },
+  a_limiter:   { color: 'var(--color-score-mediocre)', label: 'À limiter' },
+  occasionnel: { color: 'var(--color-score-mauvais)', label: 'Occasionnel' },
 }
 
 function kcalLabel(s: MealScanRow): string | null {
@@ -112,8 +114,9 @@ export default function MealJournal() {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
-        {error}
+      <div className="naanaa">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="106" />
+        <p className="bubble">{error}</p>
       </div>
     )
   }
@@ -131,7 +134,7 @@ export default function MealJournal() {
           {stats.count > 0 && (
             <p className="text-sm">
               {t('meal.localToday')} :{' '}
-              <b className="font-display text-xl font-extrabold text-primary">
+              <b className="font-display text-xl font-extrabold text-brand-ink">
                 {stats.kcalMin === stats.kcalMax ? stats.kcalMax : `${stats.kcalMin}–${stats.kcalMax}`}
               </b>{' '}
               <span className="text-xs text-muted-foreground">{t('journal.kcal')}</span>
@@ -140,16 +143,13 @@ export default function MealJournal() {
         </div>
 
         {localEntries.length === 0 ? (
-          <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Camera className="h-8 w-8 text-primary" />
+          <div className="rounded-2xl border bg-card p-8 flex flex-col items-center gap-5">
+            <div className="naanaa">
+              <img src="/mascotte/naanaa-courses.webp" alt="" width="72" height="106" />
+              <p className="bubble">{t('meal.localEmpty')}</p>
             </div>
-            <p className="text-muted-foreground">{t('meal.localEmpty')}</p>
-            <a
-              href="/analyser-repas"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90"
-            >
-              {t('meal.analyzeCta')}
+            <a href="/analyser-repas" className="btn-pop">
+              <Camera size={18} /> {t('meal.analyzeCta')}
             </a>
           </div>
         ) : (
@@ -162,7 +162,7 @@ export default function MealJournal() {
                 <article key={e.id} className="rounded-2xl border bg-card p-4 shadow-card">
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="font-semibold text-foreground line-clamp-2">{e.plat}</h3>
-                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary whitespace-nowrap">
+                    <span className="pop-chip border-encre bg-ai font-display font-bold text-encre">
                       {kcal} {t('journal.kcal')}
                     </span>
                   </div>
@@ -189,8 +189,8 @@ export default function MealJournal() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-dashed bg-card/50 p-4 text-center">
-          <a href="/connexion?next=/compte/journal" className="text-sm font-semibold text-primary hover:underline">
+        <div className="rounded-2xl border-2 border-dashed border-line/40 p-4 text-center">
+          <a href="/connexion?next=/compte/journal" className="text-sm font-semibold text-brand-ink hover:underline">
             {t('meal.loginToSave')} →
           </a>
         </div>
@@ -200,16 +200,13 @@ export default function MealJournal() {
 
   if (scans.length === 0) {
     return (
-      <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
-        <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-          <Camera className="h-8 w-8 text-primary" />
+      <div className="rounded-2xl border bg-card p-8 flex flex-col items-center gap-5">
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-courses.webp" alt="" width="72" height="106" />
+          <p className="bubble">{t('journal.empty')}</p>
         </div>
-        <p className="text-muted-foreground">{t('journal.empty')}</p>
-        <a
-          href="/analyser-repas"
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-        >
-          {t('journal.emptyCta')}
+        <a href="/analyser-repas" className="btn-pop">
+          <Camera size={18} /> {t('journal.emptyCta')}
         </a>
       </div>
     )
@@ -222,8 +219,8 @@ export default function MealJournal() {
         const dot = s.confiance ? CONFIANCE_DOT[s.confiance] : null
         const vmeta = s.verdict ? VERDICT_META[s.verdict] : null
         return (
-          <article key={s.id} className="rounded-2xl border bg-card overflow-hidden">
-            <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+          <article key={s.id} className="card-lift rounded-2xl border bg-card overflow-hidden">
+            <div className="relative aspect-[4/3] tint-figue border-b-2 border-line overflow-hidden">
               {s.image ? (
                 <img
                   src={`${CDN_URL}/${s.image}`}
@@ -239,14 +236,14 @@ export default function MealJournal() {
               {/* Verdict qualitatif */}
               {vmeta && (
                 <div
-                  className="absolute top-2 left-2 rounded-full text-white text-[11px] font-bold px-2.5 py-1 shadow-lg"
+                  className="absolute top-2 start-2 rounded-full border-[1.5px] border-encre text-encre text-[11px] font-bold px-2.5 py-1"
                   style={{ backgroundColor: vmeta.color }}
                 >
                   {vmeta.label}
                 </div>
               )}
               {kcal && (
-                <div className="absolute top-2 right-2 rounded-full bg-black/70 text-white text-xs font-bold px-3 py-1.5 shadow-lg backdrop-blur-sm">
+                <div className="absolute top-2 end-2 rounded-full border-[1.5px] border-encre bg-creme text-encre font-display text-xs font-bold px-3 py-1.5">
                   {kcal} {t('journal.kcal')}
                 </div>
               )}
@@ -256,7 +253,7 @@ export default function MealJournal() {
                 {s.plat ?? '—'}
               </h3>
               <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                {dot && <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: dot }} />}
+                {dot && <span className="inline-block w-2.5 h-2.5 rounded-full border border-line" style={{ backgroundColor: dot }} />}
                 {s.portion_g != null && <span>≈ {s.portion_g} g</span>}
               </p>
               <p className="text-[11px] text-muted-foreground">{formatDate(s.date_created)}</p>

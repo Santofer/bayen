@@ -43,12 +43,12 @@ interface MealAnalysis {
   reference?: { dish_id: number; name_fr: string; recalibrated: boolean }
 }
 
-/** Style + libellé du verdict (4 niveaux qualitatifs). */
-const VERDICT_META: Record<Verdict, { color: string; bg: string; emoji: string }> = {
-  sain:        { color: '#476a32', bg: 'bg-green-50 dark:bg-green-950/40 border-green-300 dark:border-green-800', emoji: '🥗' },
-  equilibre:   { color: '#7a9e3a', bg: 'bg-lime-50 dark:bg-lime-950/40 border-lime-300 dark:border-lime-800', emoji: '👍' },
-  a_limiter:   { color: '#f97316', bg: 'bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-800', emoji: '⚠️' },
-  occasionnel: { color: '#ef4444', bg: 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800', emoji: '🍔' },
+/** Aplat + emoji du verdict (4 niveaux qualitatifs, échelle de score, texte encre). */
+const VERDICT_META: Record<Verdict, { fill: string; emoji: string }> = {
+  sain:        { fill: 'bg-score-excellent', emoji: '🥗' },
+  equilibre:   { fill: 'bg-score-bon', emoji: '👍' },
+  a_limiter:   { fill: 'bg-score-mediocre', emoji: '⚠️' },
+  occasionnel: { fill: 'bg-score-mauvais', emoji: '🍔' },
 }
 
 interface VlmResponse {
@@ -61,10 +61,11 @@ interface VlmResponse {
 
 type Screen = 'idle' | 'preview' | 'analyzing' | 'result' | 'error'
 
+/** Pastille de fiabilité : aplat franc, texte encre */
 const CONFIANCE_STYLE: Record<Confiance, string> = {
-  faible: 'text-amber-700 border-amber-300 bg-amber-50 dark:text-amber-300 dark:border-amber-800 dark:bg-amber-950/40',
-  moyenne: 'text-blue-700 border-blue-300 bg-blue-50 dark:text-blue-300 dark:border-blue-800 dark:bg-blue-950/40',
-  elevee: 'text-green-700 border-green-300 bg-green-50 dark:text-green-300 dark:border-green-800 dark:bg-green-950/40',
+  faible: 'bg-score-mediocre',
+  moyenne: 'bg-citron',
+  elevee: 'bg-menthe',
 }
 
 function formatKcalRange(cal: { min: number | null; max: number | null }): string | null {
@@ -239,23 +240,34 @@ export default function MealPhotoAnalyzer() {
   if (screen === 'analyzing') {
     return (
       <div className="rounded-2xl border bg-card p-8 text-center space-y-4">
-        <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 text-primary animate-spin" />
-        </div>
-        <h2 className="text-xl font-bold">{t('meal.analyzing')}</h2>
+        {/* Naânaa inspecte l'assiette pendant l'analyse IA */}
+        <img
+          src="/mascotte/naanaa-loupe.webp"
+          alt=""
+          width="96"
+          height="141"
+          className="naanaa-bob mx-auto h-auto w-24"
+        />
+        <h2 className="text-xl font-bold flex items-center justify-center gap-2">
+          <Loader2 className="h-5 w-5 text-ai-ink animate-spin" />
+          {t('meal.analyzing')}
+        </h2>
         <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('meal.analyzingHint')}</p>
-        <div className="text-xs font-mono text-muted-foreground">{elapsed}s</div>
+        <div className="pop-chip font-display">{elapsed}s</div>
       </div>
     )
   }
 
   if (screen === 'error') {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30 p-6 space-y-3">
-        <div className="flex items-start gap-2 text-red-800 dark:text-red-200">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold">{t('meal.error.title')}</h3>
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <div className="naanaa items-start">
+          <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="106" />
+          <div className="bubble">
+            <h3 className="font-semibold flex items-center gap-1.5 text-destructive">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              {t('meal.error.title')}
+            </h3>
             <p className="text-sm mt-1">{errorMsg}</p>
           </div>
         </div>
@@ -279,28 +291,65 @@ export default function MealPhotoAnalyzer() {
 
     return (
       <div className="space-y-6">
-        {/* Photo */}
-        <div className="relative rounded-2xl overflow-hidden border bg-muted aspect-[4/3]">
+        {/* Photo (maquette Repas : vignette arrondie, ombre nette) */}
+        <div className="relative rounded-[28px] overflow-hidden border-2 border-line tint-figue aspect-[4/3] shadow-[var(--shadow-lift)]">
           {previewUrl && (
             <img src={previewUrl} alt={analysis.plat ?? 'Repas'} className="w-full h-full object-cover" />
           )}
         </div>
 
-        {/* Titre */}
-        <div className="text-center">
+        {/* Titre + verdict qualitatif (remplace le score 0-100, inadapté aux plats) + fiabilité */}
+        <div className="space-y-2">
           <h2 className="text-2xl font-bold">{analysis.plat}</h2>
+          <div className="flex flex-wrap gap-1.5">
+            <span className={`pop-chip h-8 border-encre text-sm font-bold text-encre ${vmeta.fill}`}>
+              <span aria-hidden="true">{vmeta.emoji}</span> {t(`meal.verdict.${verdict}`)}
+            </span>
+            <span className={`pop-chip h-8 border-encre text-encre ${CONFIANCE_STYLE[confiance]}`}>
+              {t('meal.confianceLabel')} : {t(`meal.confiance.${confiance}`)}
+            </span>
+          </div>
         </div>
 
-        {/* Verdict qualitatif (remplace le score 0-100, inadapté aux plats) */}
-        <div className={`rounded-2xl border-2 p-5 text-center ${vmeta.bg}`}>
-          <div className="text-3xl mb-1">{vmeta.emoji}</div>
-          <p className="text-xl font-bold" style={{ color: vmeta.color }}>
-            {t(`meal.verdict.${verdict}`)}
+        {/* Carte d'estimation : aplat figue, fourchettes en Unbounded */}
+        <div className="rounded-2xl border-2 border-encre bg-ai text-encre p-5 space-y-4 shadow-[var(--shadow-card)]">
+          <p className="flex items-center gap-2 font-semibold">
+            <Flame className="h-4 w-4" />
+            {t('meal.caloriesTitle')}
           </p>
+          {kcalRange ? (
+            <p className="font-display text-4xl font-extrabold leading-none">
+              {kcalRange} <span className="text-lg">{t('meal.kcal')}</span>
+            </p>
+          ) : (
+            <p className="font-display text-2xl font-extrabold">—</p>
+          )}
+          {analysis.portion_estimee_g != null && (
+            <p className="text-xs opacity-80">
+              {t('meal.forPortion')} {analysis.portion_estimee_g} g
+            </p>
+          )}
+          {(m.proteines != null || m.glucides != null || m.lipides != null) && (
+            <div>
+              <h3 className="sr-only">{t('meal.macrosTitle')}</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  ['proteines', m.proteines, t('meal.proteines')],
+                  ['glucides', m.glucides, t('meal.glucides')],
+                  ['lipides', m.lipides, t('meal.lipides')],
+                ] as const).map(([key, val, label]) => (
+                  <div key={key} className="rounded-xl border-2 border-encre bg-creme p-2.5">
+                    <p className="text-[11px]">{label}</p>
+                    <p className="font-display text-base font-extrabold">{val != null ? `${val}` : '—'}<span className="text-xs font-medium"> g</span></p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {caracteristiques.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
+            <div className="flex flex-wrap gap-1.5">
               {caracteristiques.map((c, i) => (
-                <span key={i} className="rounded-full bg-background/70 border text-xs px-2.5 py-1 font-medium">
+                <span key={i} className="pop-chip border-encre bg-creme text-encre">
                   {c}
                 </span>
               ))}
@@ -308,57 +357,16 @@ export default function MealPhotoAnalyzer() {
           )}
         </div>
 
-        {/* Hero calories (fourchette) */}
-        <div className="rounded-2xl border bg-card p-6 text-center">
-          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm mb-1">
-            <Flame className="h-4 w-4 text-orange-500" />
-            {t('meal.caloriesTitle')}
-          </div>
-          {kcalRange ? (
-            <p className="text-4xl font-bold text-foreground">
-              {kcalRange} <span className="text-xl font-medium text-muted-foreground">{t('meal.kcal')}</span>
-            </p>
-          ) : (
-            <p className="text-2xl font-bold text-muted-foreground">—</p>
-          )}
-          {analysis.portion_estimee_g != null && (
-            <p className="text-xs text-muted-foreground mt-1">
-              {t('meal.forPortion')} {analysis.portion_estimee_g} g
-            </p>
-          )}
-          <div className="mt-3">
-            <Badge variant="outline" className={CONFIANCE_STYLE[confiance]}>
-              {t('meal.confianceLabel')} : {t(`meal.confiance.${confiance}`)}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Macros */}
-        {(m.proteines != null || m.glucides != null || m.lipides != null) && (
-          <div className="rounded-2xl border bg-card p-4">
-            <h3 className="text-sm font-semibold mb-3">{t('meal.macrosTitle')}</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {([
-                ['proteines', m.proteines, t('meal.proteines')],
-                ['glucides', m.glucides, t('meal.glucides')],
-                ['lipides', m.lipides, t('meal.lipides')],
-              ] as const).map(([key, val, label]) => (
-                <div key={key} className="rounded-xl bg-muted/50 p-3 text-center">
-                  <p className="text-xl font-bold text-foreground">{val != null ? `${val}` : '—'}<span className="text-sm font-medium text-muted-foreground"> g</span></p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Conseil */}
+        {/* Conseil : c'est Naânaa qui le donne */}
         {analysis.conseil && (
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex gap-3">
-            <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-semibold text-primary mb-0.5">{t('meal.conseilTitle')}</h3>
-              <p className="text-sm text-foreground/80 leading-relaxed">{analysis.conseil}</p>
+          <div className="naanaa items-start">
+            <img src="/mascotte/naanaa-astuce.webp" alt="" width="64" height="94" />
+            <div className="bubble">
+              <h3 className="text-sm font-semibold mb-0.5 flex items-center gap-1.5">
+                <Lightbulb className="h-4 w-4 text-ai-ink" />
+                {t('meal.conseilTitle')}
+              </h3>
+              <p className="text-sm leading-relaxed">{analysis.conseil}</p>
             </div>
           </div>
         )}
@@ -367,13 +375,13 @@ export default function MealPhotoAnalyzer() {
         {alternatives.length > 0 && (
           <div className="rounded-2xl border bg-card p-4">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-green-600" />
+              <Leaf className="h-4 w-4 text-brand-ink" />
               {t('meal.alternativesTitle')}
             </h3>
             <ul className="space-y-2">
               {alternatives.map((alt, i) => (
                 <li key={i} className="flex gap-2 text-sm text-foreground/80">
-                  <span className="text-green-600 flex-shrink-0">→</span>
+                  <span className="text-brand-ink font-bold flex-shrink-0">→</span>
                   <span>{alt}</span>
                 </li>
               ))}
@@ -442,10 +450,10 @@ export default function MealPhotoAnalyzer() {
             </Button>
           )}
           {saved && (
-            <div className="flex-1 rounded-md bg-green-50 border border-green-200 dark:bg-green-950/40 dark:border-green-900 px-4 py-2 flex items-center gap-2 text-green-800 dark:text-green-200 text-sm">
-              <CheckCircle className="h-4 w-4" />
+            <div className="flex-1 rounded-full tint-menthe border-2 border-line px-4 py-2 flex items-center gap-2 text-foreground text-sm font-semibold">
+              <CheckCircle className="h-4 w-4 text-brand-ink" />
               {t('meal.savedOk')}{' '}
-              <a href="/compte/journal" className="ml-auto underline text-sm font-medium">{t('meal.seeJournal')}</a>
+              <a href="/compte/journal" className="ms-auto underline text-sm font-bold">{t('meal.seeJournal')}</a>
             </div>
           )}
           {!loggedIn && !saved && (
@@ -468,7 +476,7 @@ export default function MealPhotoAnalyzer() {
     <div className="space-y-4">
       {screen === 'preview' && previewUrl ? (
         <>
-          <div className="rounded-2xl overflow-hidden border bg-muted aspect-[4/3]">
+          <div className="rounded-[28px] overflow-hidden border-2 border-line tint-figue aspect-[4/3] shadow-[var(--shadow-card)]">
             <img src={previewUrl} alt="aperçu" className="w-full h-full object-cover" />
           </div>
           <div className="flex gap-3">
@@ -486,11 +494,13 @@ export default function MealPhotoAnalyzer() {
         <>
           <button
             onClick={() => inputCameraRef.current?.click()}
-            className="w-full rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors p-10 flex flex-col items-center gap-3 text-primary"
+            className="card-lift w-full rounded-[28px] border-2 border-dashed border-line tint-figue p-10 flex flex-col items-center gap-3 text-foreground"
           >
-            <Camera className="h-10 w-10" />
+            <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-encre bg-ai text-encre shadow-[var(--shadow-card)]">
+              <Camera className="h-8 w-8" />
+            </span>
             <span className="font-semibold text-lg">{t('meal.takePhoto')}</span>
-            <span className="text-xs text-muted-foreground max-w-xs text-center">{t('meal.takePhotoHint')}</span>
+            <span className="text-xs text-foreground/75 max-w-xs text-center">{t('meal.takePhotoHint')}</span>
           </button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -502,7 +512,7 @@ export default function MealPhotoAnalyzer() {
           </div>
           <button
             onClick={() => inputFileRef.current?.click()}
-            className="w-full rounded-xl border bg-card hover:bg-accent transition-colors p-4 flex items-center justify-center gap-2 text-sm font-medium"
+            className="card-lift w-full rounded-full border-2 border-line bg-card p-3.5 flex items-center justify-center gap-2 text-sm font-semibold"
           >
             <Upload className="h-4 w-4" />
             {t('meal.uploadFile')}

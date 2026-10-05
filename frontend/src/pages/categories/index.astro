@@ -3,7 +3,8 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
-import { getLocale } from '@/lib/i18n'
+import PageHero from '@/components/PageHero.astro'
+import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
@@ -90,6 +91,8 @@ const pageSubtitle = locale === 'ary'
 const emptyMsg = locale === 'ary'
   ? 'حتا فئة ما متوفرة دابا.'
   : 'Aucune catégorie disponible pour le moment.'
+// Aplats Marché Pop en rotation sous chaque visuel (texte encre)
+const TILE_COLORS = ['menthe', 'citron', 'framboise', 'myrtille', 'figue', 'tomate'] as const
 const productsSuffix = (count: number) => {
   if (locale === 'ary') return `${count} منتج`
   return `${count} produit${count !== 1 ? 's' : ''}`
@@ -98,35 +101,31 @@ const productsSuffix = (count: number) => {
 
 <Layout title={pageTitle} path="/categories">
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-8">
-    <h1 class="text-2xl font-bold text-foreground mb-1">{pageHeading}</h1>
-    <p class="text-sm text-muted-foreground mb-6">{pageSubtitle}</p>
+    <PageHero image="/categories/_fallback.jpg?v=2" tone="primary" kicker={t('search.categories', locale)} title={pageHeading} subtitle={`${pageSubtitle} · ${t('nav.d.categories', locale)}`} class="mb-8">
+      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    </PageHero>
 
     {categories.length > 0 ? (
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-        {categories.map((cat) => {
+        {categories.map((cat, i) => {
           const name = locale === 'ary' && cat.name_ar ? cat.name_ar : cat.name_fr
           return (
             <a
               href={`/categories/${cat.slug}`}
-              class={`cat-card group relative block overflow-hidden rounded-2xl shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lift ${cat.product_count === 0 ? 'opacity-70' : ''}`}
-              style="aspect-ratio: 1 / 1.12"
+              class:list={['group flex flex-col overflow-hidden rounded-2xl border-2 border-encre text-encre shadow-[var(--shadow-card)] card-lift', cat.product_count === 0 && 'opacity-70']}
+              style={`background: var(--color-${TILE_COLORS[i % TILE_COLORS.length]})`}
             >
-              <img
-                src={categoryImage(cat.slug)}
-                alt={name}
-                loading="lazy"
-                class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-              />
-              {/* Scrim aux couleurs Bayen : lisibilité + teinte de marque */}
-              <div
-                class="absolute inset-0"
-                style="background: linear-gradient(to top, hsl(100 30% 10% / 0.82) 0%, hsl(100 28% 14% / 0.42) 42%, hsl(100 25% 18% / 0.08) 100%), linear-gradient(120deg, hsl(97 40% 22% / 0.30), transparent 60%)"
-              />
-              <div class="absolute inset-x-0 bottom-0 p-3.5 md:p-4">
-                <h2 class="font-display font-bold text-white leading-tight text-[0.95rem] md:text-base drop-shadow-[0_1px_6px_hsl(100_40%_6%/0.5)]">
-                  {name}
-                </h2>
-                <span class="mt-1.5 inline-block rounded-full border border-white/25 bg-white/[0.18] px-2.5 py-1 text-[0.7rem] font-bold text-white backdrop-blur-sm">
+              <div class="aspect-[4/3] overflow-hidden border-b-2 border-encre">
+                <img
+                  src={categoryImage(cat.slug)}
+                  alt={name}
+                  loading="lazy"
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+                />
+              </div>
+              <div class="flex flex-1 flex-col items-start gap-2 p-3 md:p-3.5">
+                <h2 class="font-display font-bold leading-tight !text-[0.95rem] md:!text-base">{name}</h2>
+                <span class="mt-auto rounded-full border-[1.5px] border-encre bg-creme px-2.5 py-0.5 text-[0.7rem] font-bold">
                   {productsSuffix(cat.product_count)}
                 </span>
               </div>
@@ -136,6 +135,7 @@ const productsSuffix = (count: number) => {
       </div>
     ) : (
       <div class="rounded-xl border bg-card p-8 text-center">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="88" height="130" class="mx-auto mb-3" />
         <p class="text-sm text-muted-foreground">{emptyMsg}</p>
       </div>
     )}

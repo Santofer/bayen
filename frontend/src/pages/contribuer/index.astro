@@ -19,7 +19,7 @@ const barcode = Astro.url.searchParams.get('barcode') ?? ''
   path="/contribuer"
 >
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <PageHero image="/hero/contribuer.jpg" kicker={t('nav.contribute', locale)} title={t('contribute.title', locale)} subtitle={t('contribute.subtitle', locale)} class="mb-8">
+    <PageHero image="/hero/contribuer.jpg" tone="citron" mascot="bravo" kicker={t('nav.contribute', locale)} title={t('contribute.title', locale)} subtitle={t('contribute.subtitle', locale)} class="mb-8">
       <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </PageHero>
     <div class="max-w-lg mx-auto">

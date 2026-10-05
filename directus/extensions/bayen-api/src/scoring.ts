@@ -298,10 +298,10 @@ export function computeAdditivesScore(
  * Convertit un score total (0–100) en label et couleur.
  */
 export function scoreToLabel(score: number): { label: ScoreLabel; color: string } {
-  if (score >= 75) return { label: 'excellent', color: '#16a34a' }
-  if (score >= 50) return { label: 'bon', color: '#84cc16' }
-  if (score >= 25) return { label: 'médiocre', color: '#f97316' }
-  return { label: 'mauvais', color: '#ef4444' }
+  if (score >= 75) return { label: 'excellent', color: '#19C08B' }
+  if (score >= 50) return { label: 'bon', color: '#A6E35F' }
+  if (score >= 25) return { label: 'médiocre', color: '#FFA24D' }
+  return { label: 'mauvais', color: '#FF5A3C' }
 }
 
 /**

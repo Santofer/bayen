@@ -404,7 +404,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
               else if (step === 'nutrition' || step === 'inci') setStep('price')
               else void submit(false)
             }}
-            className="-me-3 flex min-h-[44px] items-center px-3 text-[13px] font-bold text-primary"
+            className="-me-3 flex min-h-[44px] items-center px-3 text-[13px] font-bold text-brand-ink"
           >
             {t('contrib.skip')}
           </button>
@@ -415,7 +415,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
-              className={n <= stepIndex ? 'h-1.5 flex-1 rounded-full bg-primary' : 'h-1.5 flex-1 rounded-full bg-primary/15'}
+              className={n <= stepIndex ? 'h-2 flex-1 rounded-full border-[1.5px] border-line bg-menthe' : 'h-2 flex-1 rounded-full border-[1.5px] border-line/30 bg-muted'}
             />
           ))}
         </div>
@@ -429,8 +429,8 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
       <label
         className={
           p
-            ? 'flex cursor-pointer items-center gap-4 rounded-[20px] border-2 border-primary bg-card p-4 shadow-[var(--shadow-card)]'
-            : 'flex cursor-pointer items-center gap-4 rounded-[20px] border border-dashed border-primary/45 bg-card p-4'
+            ? 'flex cursor-pointer items-center gap-4 rounded-[20px] border-2 bg-card p-4'
+            : 'flex cursor-pointer items-center gap-4 rounded-[20px] border-2 border-dashed border-line/45 bg-background p-4'
         }
       >
         <input
@@ -444,17 +444,17 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             e.target.value = ''
           }}
         />
-        <span className="relative flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-muted">
+        <span className="relative flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] border-[1.5px] border-line tint-creme">
           {p ? (
             <>
               <img src={p.preview} alt="" className="h-full w-full object-cover" />
               {p.uploading ? (
                 <span className="absolute inset-0 flex items-center justify-center bg-background/60">
-                  <Loader2 size={20} className="animate-spin text-primary" />
+                  <Loader2 size={20} className="animate-spin text-brand-ink" />
                 </span>
               ) : (
-                <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-success-600)] shadow">
-                  <Check size={13} className="text-white" strokeWidth={3} />
+                <span className="absolute -end-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-encre bg-menthe">
+                  <Check size={13} className="text-encre" strokeWidth={3} />
                 </span>
               )}
             </>
@@ -469,8 +469,8 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
         <span
           className={
             p
-              ? 'flex min-h-[44px] items-center px-2 text-[13px] font-bold text-primary'
-              : 'flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_4px_14px_hsl(97_40%_20%/0.25)]'
+              ? 'flex min-h-[44px] items-center px-2 text-[13px] font-bold text-brand-ink'
+              : 'flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full border-2 border-encre bg-menthe text-encre shadow-[var(--shadow-card)]'
           }
         >
           {p ? t('contrib.retake') : <Camera size={21} />}
@@ -492,8 +492,8 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             className={
               universe === u
                 ? u === 'cosmetic'
-                  ? 'min-h-[42px] rounded-full bg-beauty text-sm font-bold text-beauty-foreground'
-                  : 'min-h-[42px] rounded-full bg-primary text-sm font-bold text-primary-foreground'
+                  ? 'min-h-[42px] rounded-full border-2 border-encre bg-beauty text-sm font-bold text-encre'
+                  : 'min-h-[42px] rounded-full border-2 border-encre bg-menthe text-sm font-bold text-encre'
                 : 'min-h-[42px] rounded-full text-sm font-semibold text-muted-foreground'
             }
           >
@@ -514,7 +514,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-full bg-primary text-[17px] font-bold text-primary-foreground shadow-[0_8px_24px_hsl(97_40%_20%/0.3)] disabled:opacity-60"
+      className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-full border-2 border-encre bg-menthe text-[17px] font-bold text-encre shadow-[var(--shadow-card)] transition-transform active:translate-x-[2px] active:translate-y-[2px] disabled:opacity-60"
     >
       {label}
       {!disabled && <ArrowRight size={19} />}
@@ -525,12 +525,15 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
   if (step === 'done') {
     return (
       <div className="flex flex-col items-center py-8 text-center">
-        <div className="relative mb-6 flex h-[148px] w-[148px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_16px_44px_hsl(97_40%_20%/0.35)]">
-          <div>
-            <div className="font-display text-[42px] font-extrabold leading-none">+{earned.total}</div>
-            <div className="text-[13px] font-bold uppercase tracking-wider opacity-85">{t('points.points')}</div>
+        <div className="mb-6 flex items-end justify-center gap-2">
+          <img src="/mascotte/naanaa-bravo.webp" alt="" width="96" height="141" className="naanaa-bob h-auto w-24" />
+          <div className="relative flex h-[136px] w-[136px] -rotate-8 items-center justify-center rounded-full border-[3px] border-encre bg-citron text-encre shadow-[var(--shadow-lift)]">
+            <div>
+              <div className="font-display text-[40px] font-extrabold leading-none">+{earned.total}</div>
+              <div className="text-[12px] font-bold uppercase tracking-wider">{t('points.points')}</div>
+            </div>
+            <Star size={26} className="absolute -top-2 end-1 fill-menthe text-encre" />
           </div>
-          <Star size={26} className="absolute -top-2 right-1 fill-[#b1cf3a] text-[#b1cf3a]" />
         </div>
 
         <h1 className="font-display text-2xl font-bold leading-tight">{t('contrib.thanksTitle')}</h1>
@@ -538,19 +541,19 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           « {name} » {t('contrib.thanksDesc')}
         </p>
 
-        <div className="mt-6 w-full max-w-[320px] rounded-[20px] border bg-card p-4 shadow-[var(--shadow-card)]">
+        <div className="mt-6 w-full max-w-[320px] rounded-[20px] border bg-card p-4">
           <div className="flex flex-col gap-2.5">
             {earned.lines.map(([label, pts]) => (
               <div key={label} className="flex items-center justify-between text-sm">
                 <span className="font-semibold">{label}</span>
-                <span className="font-extrabold text-primary">+{pts}</span>
+                <span className="font-display font-extrabold text-brand-ink">+{pts}</span>
               </div>
             ))}
           </div>
           {loggedIn !== true && (
             <p className="mt-3.5 border-t pt-3.5 text-[13px] text-muted-foreground">
               {t('contrib.anonNote')}{' '}
-              <a href="/connexion" className="font-bold text-primary">
+              <a href="/connexion" className="font-bold text-brand-ink">
                 {t('nav.account')}
               </a>
             </p>
@@ -560,13 +563,13 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
         <div className="mt-7 flex w-full max-w-[320px] flex-col gap-3">
           <a
             href={`/produit/${barcode}`}
-            className="flex min-h-[58px] items-center justify-center rounded-full bg-primary text-[17px] font-bold text-primary-foreground shadow-[0_8px_24px_hsl(97_40%_20%/0.3)]"
+            className="flex min-h-[58px] items-center justify-center rounded-full border-2 border-encre bg-menthe text-[17px] font-bold text-encre shadow-[var(--shadow-card)] transition-transform active:translate-x-[2px] active:translate-y-[2px]"
           >
             {t('contrib.seeProduct')}
           </a>
           <a
             href="/scan"
-            className="flex min-h-[54px] items-center justify-center gap-2.5 rounded-full border border-primary/30 bg-card text-[15px] font-bold text-primary"
+            className="btn-pop ghost min-h-[54px]"
           >
             <RotateCcw size={17} />
             {t('contrib.scanAnother')}
@@ -618,17 +621,20 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           )}
 
           {readingInci && (
-            <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <p className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
               <Loader2 size={15} className="animate-spin" />
               {t('inci.reading')}
             </p>
           )}
 
           {identifying && (
-            <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <Loader2 size={15} className="animate-spin" />
-              {t('contrib.identifying')}
-            </p>
+            <div className="naanaa">
+              <img src="/mascotte/naanaa-loupe.webp" alt="" width="56" height="82" className="naanaa-bob" />
+              <p className="bubble flex items-center gap-2 text-sm font-semibold">
+                <Loader2 size={15} className="animate-spin text-ai-ink" />
+                {t('contrib.identifying')}
+              </p>
+            </div>
           )}
 
           <div className="flex items-start gap-2.5 rounded-2xl border border-accent bg-accent/50 px-4 py-3">
@@ -636,7 +642,12 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             <p className="text-[13px] leading-snug text-accent-foreground">{t('contrib.photoBonus')}</p>
           </div>
 
-          {error && <p className="text-sm font-semibold text-destructive">{error}</p>}
+          {error && (
+            <div className="naanaa" role="alert">
+              <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="82" />
+              <p className="bubble text-sm font-semibold text-destructive">{error}</p>
+            </div>
+          )}
 
           <div className="mt-auto pt-4">
             <Cta
@@ -707,7 +718,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                     onClick={() => setCosmeticCategory(cosmeticCategory === c ? null : c)}
                     className={
                       cosmeticCategory === c
-                        ? 'flex min-h-[46px] items-center gap-1.5 rounded-full bg-beauty px-4 text-sm font-bold text-beauty-foreground'
+                        ? 'flex min-h-[46px] items-center gap-1.5 rounded-full border-2 border-encre bg-beauty px-4 text-sm font-bold text-encre'
                         : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
                     }
                   >
@@ -728,7 +739,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                   onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}
                   className={
                     categoryId === c.id
-                      ? 'flex min-h-[46px] items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground'
+                      ? 'flex min-h-[46px] items-center gap-1.5 rounded-full border-2 border-encre bg-menthe px-4 text-sm font-bold text-encre'
                       : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
                   }
                 >
@@ -741,7 +752,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           )}
 
           <div className="flex items-center gap-3.5 rounded-[20px] border bg-card p-4">
-            <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-full bg-primary/[0.09] text-primary">
+            <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-line tint-menthe text-foreground">
               <span className="block h-6 w-6" dangerouslySetInnerHTML={{ __html: halalLogo }} />
             </span>
             <span className="min-w-0 flex-1 text-[15px] font-bold">{t('halal.question')}</span>
@@ -751,7 +762,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                 onClick={() => setHalal(halal === true ? null : true)}
                 className={
                   halal === true
-                    ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-[13.5px] font-bold text-primary-foreground'
+                    ? 'flex min-h-[46px] items-center rounded-full border-2 border-encre bg-menthe px-4 text-[13.5px] font-bold text-encre'
                     : 'flex min-h-[46px] items-center rounded-full bg-secondary px-4 text-[13.5px] font-semibold text-muted-foreground'
                 }
               >
@@ -762,7 +773,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                 onClick={() => setHalal(halal === false ? null : false)}
                 className={
                   halal === false
-                    ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-[13.5px] font-bold text-primary-foreground'
+                    ? 'flex min-h-[46px] items-center rounded-full border-2 border-encre bg-menthe px-4 text-[13.5px] font-bold text-encre'
                     : 'flex min-h-[46px] items-center rounded-full bg-secondary px-4 text-[13.5px] font-semibold text-muted-foreground'
                 }
               >
@@ -786,7 +797,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           <div>
             <h1 className="font-display text-xl font-bold">{t('contrib.nutritionTitle')}</h1>
             {(photos.nutrition || readingLabel) && (
-              <p className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-primary">
+              <p className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-brand-ink">
                 {readingLabel ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
                 {t('contrib.nutritionRead')}
               </p>
@@ -801,7 +812,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                   key={key}
                   className={
                     bad
-                      ? 'relative flex flex-col rounded-2xl border-2 border-[var(--color-score-mediocre)] bg-card px-4 py-3'
+                      ? 'relative flex flex-col rounded-2xl border-2 border-score-mediocre! bg-card px-4 py-3'
                       : 'relative flex flex-col rounded-2xl border bg-card px-4 py-3'
                   }
                 >
@@ -822,7 +833,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                     <span className="flex-shrink-0 text-xs font-semibold text-muted-foreground">{unit}</span>
                   </span>
                   {bad && (
-                    <span className="absolute right-3 top-2.5 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--color-score-mediocre)]">
+                    <span className="absolute right-3 top-2.5 text-[10.5px] font-extrabold uppercase tracking-wide text-score-mediocre-ink">
                       {t('contrib.check')}
                     </span>
                   )}
@@ -851,7 +862,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           <div>
             <h1 className="font-display text-xl font-bold">{t('contrib.inciTitle')}</h1>
             {(photos.ingredients || readingInci) && (
-              <p className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-primary">
+              <p className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-brand-ink">
                 {readingInci ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
                 {readingInci ? t('inci.reading') : t('inci.read')}
               </p>
@@ -905,7 +916,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             </p>
           </div>
 
-          <div className="flex items-baseline justify-center gap-2.5 rounded-3xl border-2 border-primary bg-card px-5 py-6 shadow-[0_8px_26px_hsl(97_40%_20%/0.14)]">
+          <div className="flex items-baseline justify-center gap-2.5 rounded-3xl border-2 bg-card px-5 py-6">
             <input
               type="text"
               inputMode="decimal"
@@ -928,7 +939,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                   onClick={() => setStore(store === s ? '' : s)}
                   className={
                     store === s
-                      ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground'
+                      ? 'flex min-h-[46px] items-center rounded-full border-2 border-encre bg-menthe px-4 text-sm font-bold text-encre'
                       : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
                   }
                 >
@@ -954,14 +965,19 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             {t('points.pricePill')}
           </p>
 
-          {error && <p className="text-sm font-semibold text-destructive">{error}</p>}
+          {error && (
+            <div className="naanaa" role="alert">
+              <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="82" />
+              <p className="bubble text-sm font-semibold text-destructive">{error}</p>
+            </div>
+          )}
 
           <div className="mt-auto pt-4">
             <button
               type="button"
               onClick={() => void submit(true)}
               disabled={submitting}
-              className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-full bg-primary text-[17px] font-bold text-primary-foreground shadow-[0_8px_24px_hsl(97_40%_20%/0.3)] disabled:opacity-60"
+              className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-full border-2 border-encre bg-menthe text-[17px] font-bold text-encre shadow-[var(--shadow-card)] transition-transform active:translate-x-[2px] active:translate-y-[2px] disabled:opacity-60"
             >
               {submitting ? <Loader2 size={19} className="animate-spin" /> : <Check size={19} />}
               {submitting ? t('contrib.sending') : t('contrib.publish')}

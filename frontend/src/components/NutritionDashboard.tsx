@@ -111,13 +111,15 @@ export default function NutritionDashboard() {
   const R = 52
   const C = 2 * Math.PI * R
   const dash = (Math.min(100, pct) / 100) * C
-  const ringColor = tt.kcal > goal ? '#f97316' : '#476a32'
+  const ringColor = tt.kcal > goal ? 'var(--color-tomate)' : 'var(--color-menthe)'
 
   return (
     <section className="rounded-2xl border bg-card p-5 space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold flex items-center gap-2">
-          <Flame className="h-4 w-4 text-orange-500" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-encre bg-tomate text-encre">
+            <Flame className="h-3.5 w-3.5" />
+          </span>
           {t('nutri.todayTitle')}
         </h2>
         {editing ? (
@@ -127,18 +129,18 @@ export default function NutritionDashboard() {
               inputMode="numeric"
               value={goalDraft}
               onChange={(e) => setGoalDraft(e.target.value)}
-              className="w-20 h-8 rounded-md border border-input bg-background px-2 text-sm"
+              className="w-20 h-8 rounded-full border-2 border-line bg-background px-3 text-sm"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && saveGoal()}
             />
-            <button onClick={saveGoal} className="p-1.5 rounded-md bg-primary text-primary-foreground" aria-label="OK">
+            <button onClick={saveGoal} className="p-1.5 rounded-full border-2 border-encre bg-menthe text-encre" aria-label="OK">
               <Check className="h-4 w-4" />
             </button>
           </div>
         ) : (
           <button
             onClick={() => { setGoalDraft(String(goal)); setEditing(true) }}
-            className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1"
+            className="text-xs text-muted-foreground hover:text-brand-ink inline-flex items-center gap-1"
           >
             {t('nutri.goal')} {goal.toLocaleString('fr-FR')} <Pencil className="h-3 w-3" />
           </button>
@@ -149,14 +151,14 @@ export default function NutritionDashboard() {
       <div className="flex items-center gap-5">
         <div className="relative flex-shrink-0" style={{ width: 128, height: 128 }}>
           <svg width="128" height="128" viewBox="0 0 128 128" className="-rotate-90">
-            <circle cx="64" cy="64" r={R} fill="none" stroke="currentColor" strokeWidth="10" className="text-muted" />
+            <circle cx="64" cy="64" r={R} fill="none" stroke="currentColor" strokeWidth="12" className="text-muted" />
             <circle
-              cx="64" cy="64" r={R} fill="none" stroke={ringColor} strokeWidth="10" strokeLinecap="round"
+              cx="64" cy="64" r={R} fill="none" stroke={ringColor} strokeWidth="12" strokeLinecap="round"
               strokeDasharray={`${dash} ${C}`} className="transition-all duration-700"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-foreground leading-none">{tt.kcal.toLocaleString('fr-FR')}</span>
+            <span className="font-display text-2xl font-extrabold text-foreground leading-none">{tt.kcal.toLocaleString('fr-FR')}</span>
             <span className="text-[11px] text-muted-foreground mt-0.5">/ {goal.toLocaleString('fr-FR')} {t('meal.kcal')}</span>
           </div>
         </div>
@@ -165,7 +167,7 @@ export default function NutritionDashboard() {
           <p className="text-sm text-foreground">
             {remaining >= 0
               ? <>{t('nutri.remaining')} <span className="font-bold">{remaining.toLocaleString('fr-FR')}</span> {t('meal.kcal')}</>
-              : <span className="text-orange-600 font-medium">{t('nutri.over')} {Math.abs(remaining).toLocaleString('fr-FR')} {t('meal.kcal')}</span>}
+              : <span className="text-score-mediocre-ink font-medium">{t('nutri.over')} {Math.abs(remaining).toLocaleString('fr-FR')} {t('meal.kcal')}</span>}
           </p>
           <div className="grid grid-cols-3 gap-2">
             {([
@@ -173,8 +175,8 @@ export default function NutritionDashboard() {
               ['glucides', tt.glucides, t('meal.glucides')],
               ['lipides', tt.lipides, t('meal.lipides')],
             ] as const).map(([k, v, label]) => (
-              <div key={k} className="rounded-lg bg-muted/50 p-2 text-center">
-                <p className="text-sm font-bold text-foreground">{v}<span className="text-[11px] font-medium text-muted-foreground">g</span></p>
+              <div key={k} className="rounded-xl border-[1.5px] border-line bg-muted p-2 text-center">
+                <p className="font-display text-sm font-bold text-foreground">{v}<span className="text-[11px] font-medium text-muted-foreground">g</span></p>
                 <p className="text-[10px] text-muted-foreground">{label}</p>
               </div>
             ))}
@@ -193,7 +195,7 @@ export default function NutritionDashboard() {
           <p className="text-xs font-medium text-muted-foreground">{t('nutri.weekTitle')}</p>
           <p className="text-xs text-muted-foreground">{t('nutri.avg')} {data.week_avg_kcal.toLocaleString('fr-FR')} {t('meal.kcal')}</p>
         </div>
-        <div className="flex items-end justify-between gap-1.5 h-28">
+        <div className="flex items-end justify-between gap-1.5 h-28 border-b-2 border-line px-1">
           {week.map((d) => {
             const h = Math.round((d.kcal / maxKcal) * 100)
             const isToday = d.day === data.today
@@ -203,15 +205,14 @@ export default function NutritionDashboard() {
                 <span className="text-[9px] text-muted-foreground tabular-nums">{d.kcal > 0 ? d.kcal : ''}</span>
                 <div className="w-full flex items-end justify-center" style={{ height: '100%' }}>
                   <div
-                    className="w-full max-w-[28px] rounded-t transition-all duration-500"
+                    className={`w-full max-w-[28px] rounded-t-lg transition-all duration-500 ${d.kcal > 0 ? 'border-2 border-b-0 border-line' : ''}`}
                     style={{
                       height: `${Math.max(h, d.kcal > 0 ? 4 : 0)}%`,
-                      backgroundColor: over ? '#f97316' : isToday ? '#476a32' : '#b1cf3a',
-                      opacity: d.kcal > 0 ? 1 : 0.15,
+                      backgroundColor: over ? 'var(--color-tomate)' : isToday ? 'var(--color-menthe)' : 'var(--color-citron)',
                     }}
                   />
                 </div>
-                <span className={`text-[10px] ${isToday ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+                <span className={`text-[10px] ${isToday ? 'font-bold text-brand-ink' : 'text-muted-foreground'}`}>
                   {dayInitial(d.day, locale)}
                 </span>
               </div>

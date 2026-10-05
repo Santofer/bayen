@@ -98,10 +98,10 @@ export default function InstallPrompt() {
   // ─── iOS guide (pas de prompt natif) ─────────────────────
   if (showIosGuide) {
     return (
-      <div dir="ltr" className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 z-40 rounded-xl border bg-card p-4 shadow-lg">
+      <div dir="ltr" className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 z-40 rounded-2xl border bg-card p-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+          <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
@@ -126,10 +126,10 @@ export default function InstallPrompt() {
   if (!deferredPrompt) return null
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 z-40 rounded-xl border bg-card p-4 shadow-lg">
+    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 z-40 rounded-2xl border bg-card p-4">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
+        <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />

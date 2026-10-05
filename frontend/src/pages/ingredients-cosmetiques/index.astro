@@ -3,6 +3,7 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -28,12 +29,13 @@ try {
   }
 } catch { /* page vide mais servie */ }
 
+// Aplats Marché Pop (même échelle que InciList), texte encre posé dessus
 const LEVEL_STYLE: Record<string, string> = {
-  banned: 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200',
-  high: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
-  moderate: 'bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300',
-  low: 'bg-lime-50 text-lime-800 dark:bg-lime-950/30 dark:text-lime-200',
-  none: 'bg-muted text-foreground',
+  banned: 'border-[1.5px] border-encre bg-score-mauvais text-encre',
+  high: 'border-[1.5px] border-encre bg-score-mauvais text-encre',
+  moderate: 'border-[1.5px] border-encre bg-score-mediocre text-encre',
+  low: 'border-[1.5px] border-encre bg-citron text-encre',
+  none: 'border-[1.5px] border-encre bg-score-excellent text-encre',
   unknown: 'bg-muted text-muted-foreground',
 }
 const levelKey = (l: string) => (['banned', 'high', 'moderate', 'low', 'none'].includes(l) ? `beauty.risk.${l}` : 'beauty.risk.unknown') as Parameters<typeof t>[0]
@@ -47,10 +49,7 @@ const typeKey = (ty: string) => (['endocrine', 'cmr', 'allergen', 'irritant', 'e
   universe="beauty"
 >
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <div class="mb-6">
-      <h1 class="font-display text-2xl font-bold">{t('beauty.ingredientsTitle', locale)}</h1>
-      <p class="mt-1 text-sm text-muted-foreground">{t('beauty.ingredientsDesc', locale)}</p>
-    </div>
+    <PageHero image="/hero/beaute.jpg" tone="beauty" mascot="loupe" kicker={t('nav.beauty', locale)} title={t('beauty.ingredientsTitle', locale)} subtitle={t('beauty.ingredientsDesc', locale)} class="mb-6" />
 
     <form method="get" action="/ingredients-cosmetiques" class="search-hero mb-6">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
@@ -65,7 +64,10 @@ const typeKey = (ty: string) => (['endocrine', 'cmr', 'allergen', 'irritant', 'e
           <span class="text-sm text-muted-foreground">{results.length} {t('search.results', locale)}</span>
         </div>
         {results.length === 0 ? (
-          <div class="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t('search.noResults', locale)}</div>
+          <div class="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+            <img src="/mascotte/naanaa-loupe.webp" alt="" width="88" height="130" class="mx-auto mb-3" loading="lazy" />
+            {t('search.noResults', locale)}
+          </div>
         ) : (
           <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {results.map((r) => (

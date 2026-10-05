@@ -4,6 +4,9 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import BlogCard from '@/components/BlogCard.tsx'
+import PageHero from '@/components/PageHero.astro'
+import { withLocalCover } from '@/lib/blog-covers'
+import type { TranslationKey } from '@/lib/translations'
 import { getLocale, t } from '@/lib/i18n'
 import type { Article, ArticleCategory } from '@/lib/types'
 
@@ -29,7 +32,7 @@ try {
   const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
   if (res.ok) {
     const data = await res.json()
-    articles = (data.data ?? []) as Article[]
+    articles = ((data.data ?? []) as Article[]).map((a) => withLocalCover(a, Astro.url))
   }
 } catch {
   // Page s'affiche quand même
@@ -46,6 +49,7 @@ const FALLBACK_COVER: Record<ArticleCategory, string> = {
 }
 const featured = !selectedCategory && articles.length > 0 ? articles[0] : null
 const gridArticles = featured ? articles.slice(1) : articles
+// Couverture : visuel local Marché Pop (déjà posé par withLocalCover), sinon image Directus, sinon secours
 const featuredCover = featured
   ? (featured.cover_image
       ? (featured.cover_image.startsWith('http') ? featured.cover_image : `${CDN_URL}/${featured.cover_image}`)
@@ -53,13 +57,15 @@ const featuredCover = featured
   : null
 const featuredTitle = featured ? ((locale === 'ary' && featured.title_ar) || featured.title_fr) : null
 
-const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: string; color: string }> = [
-  { value: null,          labelKey: 'blog.allCategories',       color: '#94a3b8' },
-  { value: 'bien-etre',   labelKey: 'blog.category.bien-etre',  color: '#476a32' },
-  { value: 'habitudes',   labelKey: 'blog.category.habitudes',  color: '#b1cf3a' },
-  { value: 'guides',      labelKey: 'blog.category.guides',     color: '#0f766e' },
-  { value: 'actualites',  labelKey: 'blog.category.actualites', color: '#f97316' },
+// Catégories en aplats Marché Pop (texte encre posé dessus)
+const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: TranslationKey; color: string }> = [
+  { value: null,          labelKey: 'blog.allCategories',       color: 'var(--color-figue)' },
+  { value: 'bien-etre',   labelKey: 'blog.category.bien-etre',  color: 'var(--color-framboise)' },
+  { value: 'habitudes',   labelKey: 'blog.category.habitudes',  color: 'var(--color-menthe)' },
+  { value: 'guides',      labelKey: 'blog.category.guides',     color: 'var(--color-citron)' },
+  { value: 'actualites',  labelKey: 'blog.category.actualites', color: 'var(--color-myrtille)' },
 ]
+const featuredColor = featured ? CATEGORIES.find((c) => c.value === featured.category)?.color ?? 'var(--color-citron)' : null
 
 // JSON-LD : Blog + BreadcrumbList + ItemList (les 10 articles les plus récents)
 const SITE_URL = 'https://bayen.ma'
@@ -98,16 +104,10 @@ const blogJsonLd = [
   jsonLd={blogJsonLd}
 >
   <main class="section-v2 py-6 pb-24 md:pb-12">
-    {/* En-tête éditorial (maquette blog v2) */}
-    <header class="mb-7">
-      <p class="text-xs font-extrabold uppercase tracking-[0.08em] text-primary mb-1.5">{t('blog.kicker', locale)}</p>
-      <h1 class="blog-hero-title">
-        {t('blog.heroTitle1', locale)} <em>{t('blog.heroTitle2', locale)}</em>
-      </h1>
-      <p class="text-sm sm:text-base text-muted-foreground mt-2.5 max-w-xl">
-        {t('blog.description', locale)}
-      </p>
-    </header>
+    {/* En-tête éditorial : aplat citron (maquette Blog) */}
+    <PageHero image="/hero/journal.jpg" tone="citron" kicker={t('blog.kicker', locale)} title={`${t('blog.heroTitle1', locale)} ${t('blog.heroTitle2', locale)}`} subtitle={t('blog.description', locale)} class="mb-7">
+      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+    </PageHero>
 
     {/* Filtres par catégorie — pills cliquables */}
     <nav class="flex flex-wrap gap-2 mb-8" aria-label="Filtres catégories">
@@ -118,14 +118,14 @@ const blogJsonLd = [
           <a
             href={href}
             class:list={[
-              'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+              'px-3 py-1.5 rounded-full text-xs font-semibold border-[1.5px] transition-colors',
               isActive
-                ? 'text-white border-transparent'
-                : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30',
+                ? 'border-encre text-encre shadow-[2px_2px_0_var(--color-hard)]'
+                : 'bg-card border-line text-foreground hover:bg-muted',
             ]}
             style={isActive ? `background-color: ${cat.color}` : undefined}
           >
-            {t(cat.labelKey as any, locale)}
+            {t(cat.labelKey, locale)}
           </a>
         )
       })}
@@ -133,16 +133,17 @@ const blogJsonLd = [
 
     {/* Article vedette pleine largeur (maquette v2) */}
     {featured && featuredCover && (
-      <a href={`/blog/${featured.slug}`} class="blog-feature">
-        <img src={featuredCover} alt={featuredTitle} loading="eager" />
-        <div class="scrim">
-          <span class="cat" style={`background-color: ${CATEGORIES.find(c => c.value === featured.category)?.color ?? '#b1cf3a'}`}>
-            {t(`blog.category.${featured.category}` as any, locale)}
+      <a href={`/blog/${featured.slug}`} class="card-lift mb-8 grid overflow-hidden rounded-3xl border-2 border-line bg-card shadow-[var(--shadow-card)] md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        {/* Couverture 16:9 à contour encre */}
+        <img src={featuredCover} alt={featuredTitle ?? ''} loading="eager" class="aspect-video w-full object-cover border-b-2 border-line md:border-b-0 md:border-e-2" />
+        <div class="flex flex-col justify-center gap-3 p-5 sm:p-7">
+          <span class="self-start rounded-full border-[1.5px] border-encre px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] text-encre" style={`background-color: ${featuredColor}`}>
+            {t(`blog.category.${featured.category}`, locale)}
           </span>
-          <h2>{featuredTitle}</h2>
-          <p>
-            {featured.reading_time_min ? `${featured.reading_time_min} min de lecture` : ''}
-          </p>
+          <h2 class="leading-tight">{featuredTitle}</h2>
+          {featured.reading_time_min && (
+            <p class="text-sm text-muted-foreground">{featured.reading_time_min} {t('blog.readingTimeMin', locale)}</p>
+          )}
         </div>
       </a>
     )}
@@ -156,77 +157,9 @@ const blogJsonLd = [
       </div>
     ) : !featured ? (
       <div class="rounded-xl border bg-card p-12 text-center text-muted-foreground">
+        <img src="/mascotte/naanaa-nuit.webp" alt="" width="88" height="130" class="mx-auto mb-3" loading="lazy" />
         <p>{t('blog.empty', locale)}</p>
       </div>
     ) : null}
   </main>
 </Layout>
-
-<style>
-  /* Titre éditorial (maquette blog v2) */
-  .blog-hero-title {
-    font-size: clamp(2rem, 4.5vw, 3.2rem) !important;
-    font-weight: 780;
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-  }
-  .blog-hero-title em {
-    font-style: normal;
-    color: hsl(97 40% 42%);
-  }
-  :global(.dark) .blog-hero-title em { color: #b1cf3a; }
-
-  /* Article vedette pleine largeur */
-  .blog-feature {
-    position: relative;
-    display: block;
-    border-radius: 26px;
-    overflow: hidden;
-    margin-bottom: 28px;
-    aspect-ratio: 21 / 10;
-    min-height: 300px;
-    box-shadow: var(--shadow-card);
-    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out-soft);
-  }
-  .blog-feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
-  .blog-feature > img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .blog-feature .scrim {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 26px 28px;
-    background: linear-gradient(to top, hsl(100 35% 8% / 0.78) 0%, hsl(100 32% 12% / 0.28) 55%, transparent 100%);
-  }
-  .blog-feature .cat {
-    align-self: flex-start;
-    color: #fff;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 5px 12px;
-    border-radius: 999px;
-    margin-bottom: 12px;
-  }
-  .blog-feature h2 {
-    color: #fff;
-    font-size: clamp(1.4rem, 3vw, 2.2rem) !important;
-    font-weight: 750;
-    line-height: 1.1;
-    max-width: 24ch;
-    text-shadow: 0 1px 8px hsl(100 40% 6% / 0.45);
-  }
-  .blog-feature p {
-    color: hsl(60 40% 92% / 0.8);
-    font-size: 0.82rem;
-    margin-top: 8px;
-  }
-</style>

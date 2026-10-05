@@ -46,13 +46,11 @@ const pageDescription = `Tous les produits de la marque ${brandName} disponibles
       </div>
     ) : (
       <div class="rounded-xl border bg-card p-8 text-center">
+        <img src="/mascotte/naanaa-loupe.webp" alt="" width="88" height="130" class="mx-auto mb-3" loading="lazy" />
         <p class="text-sm text-muted-foreground">
           Aucun produit trouvé pour cette marque.
         </p>
-        <a
-          href="/scan"
-          class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-        >
+        <a href="/scan" class="btn-pop mt-4">
           {t('nav.scan', locale)}
         </a>
       </div>

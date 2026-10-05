@@ -7,19 +7,13 @@ import { useState, useEffect } from 'react'
 import { useLocale } from '@/lib/i18n'
 import { Sparkles } from 'lucide-react'
 import AddToCartButton from '@/components/AddToCartButton'
+import { ScoreSticker, productTint } from '@/components/ProductCard'
+import { cn } from '@/lib/utils'
 import type { CartItem } from '@/lib/cart'
 
 const DIRECTUS_URL = '/api/directus'
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 const FIELDS = 'barcode,name_fr,brand,image_front,scan_score,score_label'
-
-function scoreColor(s: number | null): string {
-  if (s == null) return '#9ca3af'
-  if (s >= 75) return '#476a32'
-  if (s >= 50) return '#b1cf3a'
-  if (s >= 25) return '#f97316'
-  return '#ef4444'
-}
 
 interface Reco extends CartItem { }
 
@@ -61,9 +55,9 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
   if (recos.length === 0) return null
 
   return (
-    <section className="rounded-xl border bg-card p-5 print:hidden">
+    <section className="rounded-2xl border bg-card p-5 print:hidden">
       <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
-        <Sparkles className="h-4 w-4 text-primary" />
+        <Sparkles className="h-4 w-4 text-brand-ink" />
         {t('cart.recoTitle')}
       </h3>
       {/* -mx-5/px-5 : le fondu du mask + les ombres vivent dans le padding, rien n'est rogné */}
@@ -73,17 +67,19 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
             ? (r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=160&height=160&fit=cover&format=webp`)
             : null
           return (
-            <div key={r.barcode} className="card-lift flex-shrink-0 w-[150px] rounded-xl border bg-background p-2.5">
+            <div key={r.barcode} className="card-lift w-[150px] flex-shrink-0 rounded-2xl border bg-card p-2.5">
               <a href={`/produit/${r.barcode}`} className="block">
-                <div className="relative w-full aspect-square rounded-md overflow-hidden bg-muted mb-2">
-                  {src && <img src={src} alt={r.name_fr} className="w-full h-full object-cover" loading="lazy" />}
+                <div className="relative mb-2.5">
+                  <div className={cn('grid aspect-square place-items-center overflow-hidden rounded-xl border-2 border-line', productTint(r.barcode))}>
+                    {src && <img src={src} alt={r.name_fr} className="size-[86%] object-contain mix-blend-multiply dark:mix-blend-normal" loading="lazy" />}
+                  </div>
                   {r.scan_score != null && (
-                    <div className="absolute top-1 right-1 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow" style={{ backgroundColor: scoreColor(r.scan_score) }}>
-                      {r.scan_score}
-                    </div>
+                    <span className="absolute -bottom-2 end-0">
+                      <ScoreSticker score={r.scan_score} size="sm" />
+                    </span>
                   )}
                 </div>
-                <p className="text-xs font-medium line-clamp-2 leading-tight mb-1">{r.name_fr}</p>
+                <p className="mb-1.5 line-clamp-2 pe-9 text-xs font-bold leading-tight">{r.name_fr}</p>
               </a>
               <AddToCartButton item={r} compact />
             </div>

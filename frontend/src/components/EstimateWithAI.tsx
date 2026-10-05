@@ -59,20 +59,23 @@ export default function EstimateWithAI({ barcode }: EstimateWithAIProps) {
 
   if (state === 'not_food') {
     return (
-      <div className="flex flex-col items-center gap-2 text-center">
-        <PackageX className="h-5 w-5 text-muted-foreground" />
-        <p className="max-w-xs text-sm text-muted-foreground">{t('estimate.notFood')}</p>
+      <div className="naanaa">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="82" />
+        <p className="bubble flex items-start gap-2 text-sm">
+          <PackageX className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          {t('estimate.notFood')}
+        </p>
       </div>
     )
   }
 
   if (state === 'not_estimable') {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-primary/40 p-4 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-line/40 p-4 text-center">
         <p className="max-w-xs text-sm font-semibold">{t('estimate.notEstimable')}</p>
         <a
           href={`/contribuer/${barcode}`}
-          className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground"
+          className="btn-pop min-h-[44px] text-sm"
         >
           <Camera className="h-4 w-4" />
           {t('estimate.addPhoto')}
@@ -83,12 +86,16 @@ export default function EstimateWithAI({ barcode }: EstimateWithAIProps) {
 
   return (
     <div className="flex flex-col items-center gap-2">
+      {/* Naânaa fouille pendant l'estimation IA */}
+      {state === 'loading' && (
+        <img src="/mascotte/naanaa-loupe.webp" alt="" width="56" height="82" className="naanaa-bob h-auto w-14" />
+      )}
       <Button
         onClick={handleEstimate}
         disabled={state === 'loading'}
         variant="outline"
         size="sm"
-        className="border-primary/30 text-primary hover:bg-primary/10"
+        className="border-2 border-encre bg-ai text-encre hover:bg-ai/90"
       >
         {state === 'loading' ? (
           <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t(STEPS[step])}</>

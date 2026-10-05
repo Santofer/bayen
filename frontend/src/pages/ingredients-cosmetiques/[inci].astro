@@ -35,12 +35,13 @@ try {
   }
 } catch { /* fiche introuvable */ }
 
+// Aplats Marché Pop (même échelle que InciList), texte encre posé dessus
 const LEVEL_STYLE: Record<string, string> = {
-  banned: 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200',
-  high: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
-  moderate: 'bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300',
-  low: 'bg-lime-50 text-lime-800 dark:bg-lime-950/30 dark:text-lime-200',
-  none: 'bg-muted text-foreground',
+  banned: 'border-[1.5px] border-encre bg-score-mauvais text-encre',
+  high: 'border-[1.5px] border-encre bg-score-mauvais text-encre',
+  moderate: 'border-[1.5px] border-encre bg-score-mediocre text-encre',
+  low: 'border-[1.5px] border-encre bg-citron text-encre',
+  none: 'border-[1.5px] border-encre bg-score-excellent text-encre',
   unknown: 'bg-muted text-muted-foreground',
 }
 const levelKey = (l: string) => (['banned', 'high', 'moderate', 'low', 'none'].includes(l) ? `beauty.risk.${l}` : 'beauty.risk.unknown') as Parameters<typeof t>[0]
@@ -56,8 +57,9 @@ const description = ingredient
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
     {!ingredient ? (
       <div class="text-center py-12">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="100" height="148" class="mx-auto mb-3" />
         <p class="text-muted-foreground">{t('search.noResults', locale)}</p>
-        <a href="/ingredients-cosmetiques" class="text-primary hover:underline text-sm mt-2 inline-block">← {t('beauty.ingredientsTitle', locale)}</a>
+        <a href="/ingredients-cosmetiques" class="text-brand-ink hover:underline text-sm mt-2 inline-block">← {t('beauty.ingredientsTitle', locale)}</a>
       </div>
     ) : (
       <div class="space-y-6">
@@ -94,7 +96,7 @@ const description = ingredient
             {ingredient.source_label && (
               <div class="rounded-xl bg-muted/50 p-3 sm:col-span-2"><dt class="text-xs text-muted-foreground">{t('beauty.source', locale)}</dt>
                 <dd class="mt-0.5 font-medium">
-                  {ingredient.source_url ? <a href={ingredient.source_url} rel="noopener nofollow" target="_blank" class="text-primary hover:underline">{ingredient.source_label} ↗</a> : ingredient.source_label}
+                  {ingredient.source_url ? <a href={ingredient.source_url} rel="noopener nofollow" target="_blank" class="text-brand-ink hover:underline">{ingredient.source_label} ↗</a> : ingredient.source_label}
                 </dd>
               </div>
             )}
@@ -119,7 +121,7 @@ const description = ingredient
 
         <p class="text-xs text-muted-foreground">{t('beauty.disclaimer', locale)}</p>
         <div class="text-center">
-          <a href="/ingredients-cosmetiques" class="text-sm text-muted-foreground hover:text-primary">← {t('beauty.ingredientsTitle', locale)}</a>
+          <a href="/ingredients-cosmetiques" class="text-sm text-muted-foreground hover:text-brand-ink">← {t('beauty.ingredientsTitle', locale)}</a>
         </div>
       </div>
     )}

@@ -1,7 +1,8 @@
 /**
  * Podium top 3 du leaderboard Bayen.
  * Design : avatars à initiales (pas de dépendance), 1er au centre surélevé
- * avec couronne, 2e à gauche, 3e à droite. Palette Bayen (vert/crème).
+ * avec couronne, 2e à gauche, 3e à droite. Marché Pop : or = citron,
+ * argent = gris, bronze = orange (tokens rank-1/2/3), texte encre.
  */
 
 import * as React from 'react'
@@ -18,11 +19,11 @@ interface LeaderboardPodiumProps extends React.HTMLAttributes<HTMLDivElement> {
   rankings: LeaderboardRanking[]
 }
 
-// Couleurs de médaille par position
+// Aplat de médaille par position (texte encre posé dessus)
 const MEDAL = {
-  1: { ring: '#d4af37', bg: 'linear-gradient(135deg,#f5d976,#d4af37)', label: 'text-[#8a6d1b]' },
-  2: { ring: '#9ca3af', bg: 'linear-gradient(135deg,#e5e7eb,#9ca3af)', label: 'text-[#6b7280]' },
-  3: { ring: '#cd7f32', bg: 'linear-gradient(135deg,#e0a878,#cd7f32)', label: 'text-[#8a5523]' },
+  1: 'bg-rank-1',
+  2: 'bg-rank-2',
+  3: 'bg-rank-3',
 } as const
 
 function initials(name: string): string {
@@ -56,9 +57,10 @@ function PodiumColumn({
       <div className="relative flex flex-col items-center">
         {showCrown && (
           <svg
-            className="absolute -top-5 h-6 w-6 text-[#d4af37]"
+            className="absolute -top-6 h-7 w-7 -rotate-8 fill-rank-1 stroke-encre"
             viewBox="0 0 24 24"
-            fill="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
             aria-hidden="true"
           >
             <path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z" />
@@ -66,36 +68,31 @@ function PodiumColumn({
         )}
         <div
           className={cn(
-            'flex items-center justify-center rounded-full font-bold text-white shadow-md ring-2',
+            'flex items-center justify-center rounded-full border-2 border-encre font-display font-extrabold text-encre shadow-[var(--shadow-card)]',
+            medal,
             avatarSize
           )}
-          style={{ background: medal.bg, boxShadow: `0 0 0 2px ${medal.ring}` }}
         >
           {initials(ranking.userName)}
         </div>
-        <span
-          className={cn(
-            'mt-1 flex h-5 w-5 items-center justify-center rounded-full bg-card text-[11px] font-bold shadow',
-            medal.label
-          )}
-        >
-          {ranking.rank}
-        </span>
       </div>
 
       {/* Nom + valeur */}
       <p className="max-w-[6.5rem] truncate text-center text-xs font-semibold text-foreground">
         {ranking.userName}
       </p>
-      <p className="text-center text-xs font-bold text-primary">{formatValue(ranking.value)}</p>
+      <p className="font-display text-center text-xs font-bold text-foreground">{formatValue(ranking.value)} pts</p>
 
-      {/* Socle */}
+      {/* Socle : aplat de médaille, numéro en Unbounded */}
       <div
         className={cn(
-          'w-full max-w-[5.5rem] rounded-t-lg border border-b-0 bg-gradient-to-b from-primary/15 to-primary/5',
+          'flex w-full max-w-[5.5rem] items-start justify-center rounded-t-xl border-2 border-b-0 border-encre pt-1.5 font-display text-xl font-extrabold text-encre',
+          medal,
           heightClass
         )}
-      />
+      >
+        {ranking.rank}
+      </div>
     </div>
   )
 }
@@ -110,7 +107,7 @@ const LeaderboardPodium = React.forwardRef<HTMLDivElement, LeaderboardPodiumProp
     return (
       <div
         ref={ref}
-        className={cn('flex items-end justify-center gap-2 px-2 pt-6', className)}
+        className={cn('flex items-end justify-center gap-2 border-b-2 border-line px-2 pt-8', className)}
         {...props}
       >
         <PodiumColumn ranking={second} heightClass="h-12" avatarSize="h-12 w-12 text-sm" />

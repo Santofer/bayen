@@ -33,7 +33,7 @@ export default function AddToCartButton({ item, compact = false }: AddToCartButt
         variant={added ? 'secondary' : 'outline'}
         size="sm"
         onClick={() => setAdded(toggleCart(item))}
-        className={`w-full min-w-0 px-2 ${added ? 'text-primary' : ''}`}
+        className={`w-full min-w-0 px-2 ${added ? 'text-brand-ink' : ''}`}
       >
         {added ? (
           <><Check className="mr-1 h-3.5 w-3.5 flex-shrink-0" /><span className="truncate">{t('cart.addedShort')}</span></>
@@ -49,7 +49,7 @@ export default function AddToCartButton({ item, compact = false }: AddToCartButt
       variant={added ? 'secondary' : 'outline'}
       size="sm"
       onClick={() => setAdded(toggleCart(item))}
-      className={added ? 'text-primary' : ''}
+      className={added ? 'text-brand-ink' : ''}
     >
       {added ? (
         <><Check className="mr-1.5 h-4 w-4" />{t('cart.added')}</>

@@ -91,11 +91,8 @@ export default function ShareButton({ productName, brand, score, barcode, classN
 
   return (
     <div className={cn('relative', className)} ref={dropdownRef}>
-      <Button
-        onClick={handleShare}
-        className="bg-[#476a32] hover:bg-[#3a5829] text-[#f0f2d2] dark:bg-[#b1cf3a] dark:hover:bg-[#9dba2e] dark:text-[#1c3014] gap-2 shadow-md"
-        size="sm"
-      >
+      {/* Bouton Marché Pop par défaut : aplat menthe, texte et contour encre */}
+      <Button onClick={handleShare} className="gap-2" size="sm">
         <Share2 size={16} />
         {t('share.title')}
       </Button>
@@ -104,7 +101,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
       {open && (
         <div
           className={cn(
-            'absolute top-full mt-2 z-50 min-w-[180px] rounded-lg border bg-card shadow-lg p-1',
+            'absolute top-full mt-2 z-50 min-w-[190px] rounded-2xl border bg-card p-1.5',
             isRtl ? 'left-0' : 'right-0'
           )}
         >
@@ -112,6 +109,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
           <button
             onClick={() => setOpen(false)}
             className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-foreground"
+            aria-label={t('common.close')}
           >
             <X size={14} />
           </button>
@@ -119,7 +117,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
           {/* WhatsApp */}
           <button
             onClick={handleWhatsApp}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm hover:bg-accent transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
           >
             <MessageCircle size={18} className="text-[#25D366]" />
             <span>{t('share.whatsapp')}</span>
@@ -128,12 +126,12 @@ export default function ShareButton({ productName, brand, score, barcode, classN
           {/* Copier le lien */}
           <button
             onClick={handleCopy}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm hover:bg-accent transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
           >
             {copied ? (
               <>
-                <Check size={18} className="text-primary" />
-                <span className="text-primary font-medium">{t('share.copied')}</span>
+                <Check size={18} className="text-brand-ink" />
+                <span className="text-brand-ink font-medium">{t('share.copied')}</span>
               </>
             ) : (
               <>
@@ -146,7 +144,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
           {/* Facebook */}
           <button
             onClick={handleFacebook}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm hover:bg-accent transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
           >
             <Globe size={18} className="text-[#1877F2]" />
             <span>{t('share.facebook')}</span>

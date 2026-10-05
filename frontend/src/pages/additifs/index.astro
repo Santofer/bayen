@@ -4,6 +4,9 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import AdditivesList from '@/components/AdditivesList.tsx'
+import { RISK_FILL, RISK_LABEL_KEYS } from '@/components/AdditiveTag.tsx'
+import PageHero from '@/components/PageHero.astro'
+import type { Additive } from '@/lib/types'
 import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -11,7 +14,9 @@ const locale = getLocale(localeCookie)
 
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
-let additives: Record<string, unknown>[] = []
+/** Additif avec ses traductions darija éventuelles */
+type AdditiveAr = Additive & { name_ar?: string | null; function_ar?: string | null; description_ar?: string | null }
+let additives: AdditiveAr[] = []
 
 try {
   const res = await fetch(
@@ -25,34 +30,13 @@ try {
 } catch {
   // Page s'affiche quand même sans données
 }
-const RISK_COLORS: Record<string, string> = {
-  safe: '#476a32',
-  limited: '#f97316',
-  avoid: '#ef4444',
-  banned_ma: '#7f1d1d',
-}
-
-const RISK_LABEL_KEYS: Record<string, string> = {
-  safe: 'additives.safe',
-  limited: 'additives.limited',
-  avoid: 'additives.avoid',
-  banned_ma: 'additives.banned',
-}
-
-const RISK_DOT_COLORS: Record<string, string> = {
-  safe: 'bg-[#476a32]',
-  limited: 'bg-orange-500',
-  avoid: 'bg-red-500',
-  banned_ma: 'bg-red-900',
-}
-
 // Trier par risque décroissant
 const RISK_ORDER = ['banned_ma', 'avoid', 'limited', 'safe']
-const sortedAdditives = [...additives].sort((a: any, b: any) => {
+const sortedAdditives = [...additives].sort((a, b) => {
   const rA = RISK_ORDER.indexOf(a.risk_level)
   const rB = RISK_ORDER.indexOf(b.risk_level)
   if (rA !== rB) return rA - rB
-  return (a.id as string).localeCompare(b.id as string)
+  return a.id.localeCompare(b.id)
 })
 ---
 
@@ -62,33 +46,30 @@ const sortedAdditives = [...additives].sort((a: any, b: any) => {
   path="/additifs"
 >
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-foreground">{t('additives.pageTitle', locale)}</h1>
-      <p class="text-sm text-muted-foreground mt-1">
-        {t('additives.pageDesc', locale)}
-      </p>
-    </div>
+    <PageHero image="/hero/ingredients.jpg" tone="tomate" kicker={t('nav.additives', locale)} title={t('additives.pageTitle', locale)} subtitle={t('additives.pageDesc', locale)} class="mb-6">
+      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
+    </PageHero>
 
     {additives.length > 0 ? (
       <div>
         <!-- Composant React interactif (recherche + filtres) -->
         <div id="additives-interactive">
-          <AdditivesList additives={additives as any} client:load />
+          <AdditivesList additives={additives} client:load />
         </div>
         <!-- Fallback SSR : visible si React ne charge pas -->
         <noscript>
           <div class="space-y-2">
-            {sortedAdditives.map((additive: any) => (
+            {sortedAdditives.map((additive) => (
               <a
                 href={`/additifs/${additive.id}`}
                 class="flex items-start gap-3 rounded-lg border bg-card p-3 hover:shadow-md transition-all"
               >
-                <div class={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${RISK_DOT_COLORS[additive.risk_level] ?? ''}`} />
+                <div class="w-2.5 h-2.5 rounded-full border border-encre mt-1.5 flex-shrink-0" style={`background: ${RISK_FILL[additive.risk_level]}`} />
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="font-mono font-bold text-sm text-foreground">{additive.id}</span>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded-full text-white" style={`background-color: ${RISK_COLORS[additive.risk_level]}`}>
-                      {t(RISK_LABEL_KEYS[additive.risk_level] as any, locale)}
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full border border-encre text-encre" style={`background-color: ${RISK_FILL[additive.risk_level]}`}>
+                      {t(RISK_LABEL_KEYS[additive.risk_level], locale)}
                     </span>
                   </div>
                   <p class="text-sm text-foreground mt-0.5">{additive.name_fr}</p>
@@ -101,6 +82,7 @@ const sortedAdditives = [...additives].sort((a: any, b: any) => {
       </div>
     ) : (
       <div class="text-center py-12 rounded-xl border bg-card">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="100" height="148" class="mx-auto mb-3" />
         <p class="text-muted-foreground">{t('additives.loadError', locale)}</p>
       </div>
     )}

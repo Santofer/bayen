@@ -51,15 +51,16 @@ export default function ScanHistory({ limit, compact = false, heading, seeAllLab
   if (shown.length === 0) {
     if (compact) return null
     return (
-      <div className="rounded-3xl border bg-card p-10 text-center shadow-card">
-        <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-          <History size={26} />
+      <div className="rounded-3xl border bg-card p-8 flex flex-col items-center gap-5">
+        {/* Historique vide : Naânaa attend avec son panier */}
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-courses.webp" alt="" width="72" height="106" />
+          <p className="bubble flex items-center gap-2 font-semibold">
+            <History size={16} className="flex-shrink-0 text-muted-foreground" aria-hidden="true" />
+            {t('history.empty')}
+          </p>
         </div>
-        <p className="font-semibold text-foreground mt-4">{t('history.empty')}</p>
-        <a
-          href="/scan"
-          className="inline-flex items-center gap-2 mt-4 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-        >
+        <a href="/scan" className="btn-pop">
           <ScanLine size={16} /> {t('nav.scan')}
         </a>
       </div>

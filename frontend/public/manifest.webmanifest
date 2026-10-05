@@ -1,14 +1,18 @@
 {
   "name": "Bayen — بَيَّن",
   "short_name": "Bayen",
-  "description": "Notation participative des produits alimentaires au Maroc",
+  "description": "Notation participative des produits alimentaires et cosmétiques au Maroc",
   "start_url": "/scan",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#476a32",
+  "background_color": "#FFF8EC",
+  "theme_color": "#19C08B",
   "lang": "fr",
-  "categories": ["food", "health", "lifestyle"],
+  "categories": [
+    "food",
+    "health",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -17,6 +21,11 @@
     },
     {
       "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

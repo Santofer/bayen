@@ -574,7 +574,7 @@ export default function BulkOffImporter() {
   // Pas admin
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-6 text-red-800 dark:text-red-200">
+      <div className="flex items-center justify-center gap-2 rounded-2xl border-2 border-line tint-tomate p-6 text-foreground">
         <AlertCircle className="h-5 w-5 flex-shrink-0" />
         <span>Acces reserve aux administrateurs.</span>
       </div>
@@ -600,11 +600,11 @@ export default function BulkOffImporter() {
 
       {/* Bandeau de reprise si import interrompu */}
       {resume && !isRunning && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 space-y-2">
-          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+        <div className="rounded-2xl border-2 border-line tint-citron p-4 space-y-2">
+          <p className="text-sm font-medium text-foreground">
             Import interrompu détecté
           </p>
-          <p className="text-xs text-amber-800 dark:text-amber-300">
+          <p className="text-xs text-foreground">
             Dernier arrêt : page <strong>{resume.nextPage - 1}</strong> terminée ·
             {' '}<strong>{resume.stats.imported}</strong> produits importés ·
             {' '}<strong>{resume.stats.errors}</strong> erreurs ·
@@ -722,7 +722,7 @@ export default function BulkOffImporter() {
 
       {/* Resume */}
       {isDone && (
-        <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30 p-4 text-sm text-green-800 dark:text-green-200">
+        <div className="rounded-2xl border-2 border-line tint-menthe p-4 text-sm text-foreground">
           <div className="flex items-center gap-2 font-medium">
             <CheckCircle className="h-4 w-4" />
             Import termine
@@ -754,9 +754,9 @@ function StatCard({
 }) {
   const valueColor =
     variant === 'success'
-      ? 'text-green-600'
+      ? 'text-brand-ink'
       : variant === 'error'
-        ? 'text-red-600'
+        ? 'text-destructive'
         : 'text-foreground'
 
   return (
@@ -778,7 +778,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
   switch (entry.level) {
     case 'imported':
       return (
-        <div className="flex items-start gap-1.5 text-green-700">
+        <div className="flex items-start gap-1.5 text-brand-ink">
           <CheckCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{entry.message}</span>
         </div>
@@ -792,14 +792,14 @@ function LogLine({ entry }: { entry: LogEntry }) {
       )
     case 'exists':
       return (
-        <div className="flex items-start gap-1.5 text-blue-600">
+        <div className="flex items-start gap-1.5 text-protein-ink">
           <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{entry.message}</span>
         </div>
       )
     case 'error':
       return (
-        <div className="flex items-start gap-1.5 text-red-600">
+        <div className="flex items-start gap-1.5 text-destructive">
           <XCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{entry.message}</span>
         </div>

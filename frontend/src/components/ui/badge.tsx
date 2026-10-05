@@ -3,18 +3,18 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center gap-1 rounded-full border-[1.5px] px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        destructive: 'border-transparent bg-destructive text-destructive-foreground',
-        outline: 'text-foreground',
-        safe: 'border-transparent bg-[#476a32]/15 text-[#476a32] dark:bg-[#b1cf3a]/15 dark:text-[#b1cf3a]',
-        limited: 'border-transparent bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200',
-        avoid: 'border-transparent bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-200',
-        banned: 'border-transparent bg-red-900 text-white',
+        default: 'border-encre bg-primary text-primary-foreground',
+        secondary: 'border-line bg-secondary text-secondary-foreground',
+        destructive: 'border-encre bg-tomate text-encre',
+        outline: 'border-line bg-card text-foreground',
+        safe: 'border-encre bg-score-excellent text-encre',
+        limited: 'border-encre bg-score-mediocre text-encre',
+        avoid: 'border-encre bg-score-mauvais text-encre',
+        banned: 'border-encre bg-encre text-creme dark:bg-creme dark:text-encre',
       },
     },
     defaultVariants: {

@@ -11,8 +11,9 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { SCORE_FILL, SCORE_NONE } from '@/lib/score-colors'
+import { ScoreSticker } from '@/components/ProductCard'
 import { useLocale } from '@/lib/i18n'
 import { getProfile, onProfileChange, type HealthProfile } from '@/lib/health-profile'
 import type { CosmeticRiskSummary } from '@/lib/types'
@@ -40,18 +41,31 @@ interface Props {
   className?: string
 }
 
-const LEVEL_COLOR: Record<string, string> = {
-  banned: '#ef4444',
-  high: '#ef4444',
-  moderate: '#f97316',
-  low: '#b1cf3a',
-  none: 'var(--color-score-excellent)',
-  unknown: '#a1a1aa',
+/**
+ * Aplat Marché Pop par niveau de risque INCI (texte encre posé dessus) :
+ * l'échelle de la maquette — menthe (aucun), citron (faible), orange (modéré),
+ * tomate (élevé / interdit). Le score beauté garde ses 4 niveaux.
+ */
+const LEVEL_FILL: Record<string, string> = {
+  banned: SCORE_FILL.mauvais,
+  high: SCORE_FILL.mauvais,
+  moderate: SCORE_FILL.mediocre,
+  low: 'var(--color-citron)',
+  none: SCORE_FILL.excellent,
+  unknown: SCORE_NONE,
 }
 
-const LEVEL_VARIANT: Record<string, 'safe' | 'limited' | 'avoid' | 'banned' | 'outline'> = {
-  banned: 'banned', high: 'avoid', moderate: 'limited', low: 'safe', none: 'safe', unknown: 'outline',
+/** Même échelle, lisible en TEXTE sur la surface courante (suit le thème) */
+const LEVEL_INK: Record<string, string> = {
+  banned: 'var(--color-score-mauvais-ink)',
+  high: 'var(--color-score-mauvais-ink)',
+  moderate: 'var(--color-score-mediocre-ink)',
+  low: 'var(--color-foreground)',
+  none: 'var(--color-score-excellent-ink)',
 }
+
+// Puce posée sur un aplat (.pop-chip est hors calque Tailwind → `!` ; pas de cn())
+const FILL_CHIP = 'pop-chip border-encre! text-encre!'
 
 type LevelKey = 'beauty.risk.banned' | 'beauty.risk.high' | 'beauty.risk.moderate' | 'beauty.risk.low' | 'beauty.risk.none' | 'beauty.risk.unknown'
 type TypeKey = 'beauty.type.endocrine' | 'beauty.type.cmr' | 'beauty.type.allergen' | 'beauty.type.irritant' | 'beauty.type.environment' | 'beauty.type.restricted'
@@ -64,11 +78,9 @@ function typeKey(type: string): TypeKey | null {
   return ['endocrine', 'cmr', 'allergen', 'irritant', 'environment', 'restricted'].includes(type) ? (`beauty.type.${type}` as TypeKey) : null
 }
 
-/** Anneau animé — même rendu que ScoreDisplay, sans dépendre de ses props alimentaires */
-function Ring({ score, label, color }: { score: number; label: string; color: string }) {
+/** Pastille Marché Pop : chiffre animé au montage, aplat du niveau de risque plafonnant */
+function Ring({ score, label, fill }: { score: number; label: string; fill: string }) {
   const [animated, setAnimated] = useState(0)
-  const radius = 54
-  const circumference = 2 * Math.PI * radius
   useEffect(() => {
     let frame = 0
     const start = performance.now()
@@ -81,20 +93,8 @@ function Ring({ score, label, color }: { score: number; label: string; color: st
     return () => cancelAnimationFrame(frame)
   }, [score])
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-36 h-36">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r={radius} fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/30" />
-          <circle cx="60" cy="60" r={radius} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round"
-            strokeDasharray={circumference} strokeDashoffset={circumference - (animated / 100) * circumference}
-            style={{ transition: 'stroke-dashoffset 0.1s ease-out' }} />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold" style={{ color }}>{animated}</span>
-          <span className="text-xs text-muted-foreground">/100</span>
-        </div>
-      </div>
-      <span className="text-sm font-semibold uppercase tracking-wide" style={{ color }}>{label}</span>
+    <div className="flex justify-center md:px-2">
+      <ScoreSticker score={score} value={animated} word={label} fill={fill} size="lg" />
     </div>
   )
 }
@@ -111,23 +111,24 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
   if (!hasInciText || !risk || risk.total == null || risk.label == null) {
     return (
       <div className={cn('flex flex-col items-center text-center gap-4 py-4', className)}>
-        <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M16 13H8" /><path d="M16 17H8" />
-          </svg>
+        {/* Naânaa à la loupe : pas de liste INCI à lire */}
+        <div className="naanaa text-start">
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" />
+          <div className="bubble">
+            <p className="font-display text-base font-bold text-foreground">{t('beauty.noInci')}</p>
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">{t('beauty.noInciDesc')}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-lg font-bold text-foreground">{t('beauty.noInci')}</p>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs">{t('beauty.noInciDesc')}</p>
-        </div>
-        <a href={`/contribuer/${barcode}`} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
+        <a href={`/contribuer/${barcode}`} className="btn-pop">
           {t('score.contributeData')}
         </a>
       </div>
     )
   }
 
-  const color = LEVEL_COLOR[risk.cap_reason?.risk_level ?? 'none'] ?? 'var(--color-score-excellent)'
+  const capLevel = risk.cap_reason?.risk_level ?? 'none'
+  const fill = LEVEL_FILL[capLevel] ?? SCORE_FILL.excellent
+  const ink = LEVEL_INK[capLevel] ?? LEVEL_INK.none
   const scoreLabelKeys: Record<string, 'score.excellent' | 'score.bon' | 'score.mediocre' | 'score.mauvais'> = {
     excellent: 'score.excellent', bon: 'score.bon', 'médiocre': 'score.mediocre', mauvais: 'score.mauvais',
   }
@@ -153,19 +154,17 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
   return (
     <div className={cn('flex flex-col gap-6', className)}>
       <div className="flex flex-wrap gap-2 justify-center">
-        <Badge variant="outline" className="text-beauty border-beauty/40 bg-beauty/10">{t('beauty.badge')}</Badge>
+        <span className={`${FILL_CHIP} bg-beauty!`}>{t('beauty.badge')}</span>
         {risk.incomplete && (
-          <Badge variant="outline" className="text-orange-600 dark:text-orange-300 border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-950/40">
-            {t('score.incomplete')}
-          </Badge>
+          <span className={`${FILL_CHIP} bg-citron!`}>{t('score.incomplete')}</span>
         )}
-        {risk.rinse_off && <Badge variant="outline">{t('beauty.rinseOff')}</Badge>}
+        {risk.rinse_off && <span className="pop-chip">{t('beauty.rinseOff')}</span>}
       </div>
 
       <div className="flex flex-col md:grid md:grid-cols-[auto_1fr] md:items-center gap-6 md:gap-8">
-        <Ring score={risk.total} label={label} color={color} />
+        <Ring score={risk.total} label={label} fill={fill} />
         <div className="space-y-3">
-          <p className="text-base font-bold" style={{ color }}>
+          <p className="font-display text-base font-bold" style={{ color: ink }}>
             {capKey ? t(capKey) : t('beauty.clean')}
           </p>
           {risk.cap_reason && (
@@ -175,21 +174,29 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
             </p>
           )}
           <p className="text-xs text-muted-foreground">{t('beauty.scoreHint')}</p>
-          {risk.incomplete && <p className="text-xs text-orange-600 dark:text-orange-300">{t('beauty.incompleteDesc')}</p>}
+          {risk.incomplete && <p className="text-xs font-semibold text-score-mediocre-ink">{t('beauty.incompleteDesc')}</p>}
         </div>
       </div>
 
       {/* Compteurs par niveau : la composition se lit d'un coup d'œil (maquette fiche mobile) */}
       <div className="grid grid-cols-4 gap-1.5">
         {([
-          ['banned', risk.counts.banned ?? 0, 'beauty.tile.banned', 'text-[#7f1d1d] dark:text-red-300'],
-          ['risk', (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0), 'beauty.tile.risk', 'text-[#f97316]'],
-          ['low', risk.counts.low ?? 0, 'beauty.tile.low', 'text-[#6f8a1c] dark:text-[#b1cf3a]'],
-          ['none', risk.counts.none ?? 0, 'beauty.tile.none', 'text-beauty'],
-        ] as const).map(([key, n, labelKey, cls]) => (
-          <div key={key} className="flex flex-col items-center gap-0.5 rounded-xl bg-background/70 px-1 py-2">
-            <span className={cn('font-display text-lg font-extrabold leading-none', n === 0 && key !== 'none' ? 'text-muted-foreground/60' : cls)}>{n}</span>
-            <span className="text-center text-[10px] leading-tight text-muted-foreground">{t(labelKey)}</span>
+          ['banned', risk.counts.banned ?? 0, 'beauty.tile.banned', LEVEL_FILL.banned],
+          ['risk', (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0), 'beauty.tile.risk', LEVEL_FILL.moderate],
+          ['low', risk.counts.low ?? 0, 'beauty.tile.low', LEVEL_FILL.low],
+          ['none', risk.counts.none ?? 0, 'beauty.tile.none', LEVEL_FILL.none],
+        ] as const).map(([key, n, labelKey, tileFill]) => (
+          // Tuile en aplat Marché Pop (texte encre) ; neutre quand le compteur est à zéro
+          <div
+            key={key}
+            className={cn(
+              'flex flex-col items-center gap-0.5 rounded-[14px] border-2 px-1 py-2',
+              n > 0 ? 'border-encre text-encre' : 'border-line/30 bg-muted text-muted-foreground'
+            )}
+            style={n > 0 ? { backgroundColor: tileFill } : undefined}
+          >
+            <span className="font-display text-lg font-extrabold leading-none">{n}</span>
+            <span className="text-center text-[10px] font-semibold leading-tight">{t(labelKey)}</span>
           </div>
         ))}
       </div>
@@ -199,12 +206,12 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
 
       {/* Alertes profil santé */}
       {profile && ((profile.avoidEndocrine && hasEndocrine) || (profile.avoidFragranceAllergens && hasFragranceAllergen)) && (
-        <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-4 space-y-1">
+        <div className="rounded-2xl border-2 border-encre bg-tomate p-4 space-y-1 text-encre shadow-[var(--shadow-card)]" role="alert">
           {profile.avoidEndocrine && hasEndocrine && (
-            <p className="text-sm font-semibold text-red-800 dark:text-red-200">{t('beauty.profileEndocrine')}</p>
+            <p className="text-sm font-semibold">{t('beauty.profileEndocrine')}</p>
           )}
           {profile.avoidFragranceAllergens && hasFragranceAllergen && (
-            <p className="text-sm font-semibold text-red-800 dark:text-red-200">{t('beauty.profileAllergen')}</p>
+            <p className="text-sm font-semibold">{t('beauty.profileAllergen')}</p>
           )}
         </div>
       )}
@@ -215,13 +222,13 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
           <h3 className="text-sm font-medium text-foreground">{t('beauty.worst')} ({flagged.length})</h3>
           <ul className="space-y-2">
             {detailed.map((i) => (
-              <li key={`${i.inci_name}-${i.rank}`} className="rounded-xl border bg-background/60 p-3">
+              <li key={`${i.inci_name}-${i.rank}`} className="rounded-xl border-[1.5px] border-line bg-background/60 p-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <a href={`/ingredients-cosmetiques/${encodeURIComponent(i.inci_name)}`} className="font-semibold text-sm hover:text-primary hover:underline">
+                  <a href={`/ingredients-cosmetiques/${encodeURIComponent(i.inci_name)}`} className="font-semibold text-sm hover:text-brand-ink hover:underline">
                     {i.inci_name}
                   </a>
                   {i.name_fr && <span className="text-xs text-muted-foreground">{i.name_fr}</span>}
-                  <Badge variant={LEVEL_VARIANT[i.risk_level] ?? 'outline'} className="ms-auto">{t(levelKey(i.risk_level))}</Badge>
+                  <span className={`${FILL_CHIP} ms-auto`} style={{ backgroundColor: LEVEL_FILL[i.risk_level] ?? SCORE_NONE }}>{t(levelKey(i.risk_level))}</span>
                 </div>
                 {(i.risk_types.length > 0 || i.risk_status) && (
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -243,9 +250,9 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
                   key={`${i.inci_name}-${i.rank}`}
                   href={`/ingredients-cosmetiques/${encodeURIComponent(i.inci_name)}`}
                   title={[i.name_fr, ...i.risk_types.map((ty) => { const k = typeKey(ty); return k ? t(k) : ty })].filter(Boolean).join(' · ')}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#b1cf3a]/60 bg-[#b1cf3a]/10 px-2.5 py-1 text-xs font-semibold hover:bg-[#b1cf3a]/25"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-citron/10 px-2.5 py-1 text-xs font-semibold hover:bg-citron/25"
                 >
-                  <span className="h-2 w-2 rounded-full bg-[#b1cf3a]" />
+                  <span className="h-2 w-2 rounded-full bg-citron" />
                   {i.inci_name}
                   {i.risk_types[0] && (() => { const k = typeKey(i.risk_types[0]); return k ? <span className="font-normal text-muted-foreground">{t(k)}</span> : null })()}
                 </a>
@@ -265,7 +272,7 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
 
       <a
         href={`/contribuer/${barcode}`}
-        className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-beauty px-5 text-sm font-bold text-beauty-foreground"
+        className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border-2 border-encre bg-beauty px-5 text-sm font-bold text-beauty-foreground shadow-[var(--shadow-card)]"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
         {t('beauty.completeCta')}

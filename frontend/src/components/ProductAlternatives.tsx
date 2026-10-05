@@ -3,10 +3,10 @@
  * Affiche 3 produits de la même catégorie avec un meilleur score
  */
 
-import { ArrowUpRight, Trophy, Package } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { ArrowUpRight, Package } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { ScoreSticker, productTint } from '@/components/ProductCard'
 
 interface Alternative {
   barcode: string
@@ -26,24 +26,6 @@ interface ProductAlternativesProps {
   className?: string
 }
 
-/** Couleur du score selon la valeur */
-function scoreColor(score: number | null): string {
-  if (score == null) return '#9ca3af'
-  if (score >= 75) return '#476a32'
-  if (score >= 50) return '#b1cf3a'
-  if (score >= 25) return '#f97316'
-  return '#ef4444'
-}
-
-/** Couleur de fond légère du score (adaptée dark) */
-function scoreBg(score: number | null): string {
-  if (score == null) return 'bg-gray-100 dark:bg-gray-800/50'
-  if (score >= 75) return 'bg-green-50 dark:bg-green-950/40'
-  if (score >= 50) return 'bg-lime-50 dark:bg-lime-950/40'
-  if (score >= 25) return 'bg-orange-50 dark:bg-orange-950/40'
-  return 'bg-red-50 dark:bg-red-950/40'
-}
-
 const CDN_URL = (typeof window !== 'undefined'
   ? (document.querySelector('meta[name="cdn-url"]')?.getAttribute('content') ?? '')
   : '') || 'https://api.bayen.ma/assets'
@@ -56,23 +38,18 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
       {/* Titre */}
       <div className={cn('flex items-center gap-2 mb-4', rtl && 'flex-row-reverse')}>
         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-          <ArrowUpRight size={18} className="text-primary" />
+          <ArrowUpRight size={18} className="text-brand-ink" />
         </div>
         <h3 className="text-lg font-semibold">{t('alt.title')}</h3>
       </div>
 
-      {/* Meilleur de sa catégorie */}
+      {/* Meilleur de sa catégorie : Naânaa applaudit */}
       {isBestInCategory && (
-        <div className={cn(
-          'flex items-center gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
-          rtl && 'flex-row-reverse'
-        )}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/60">
-            <Trophy size={20} className="text-amber-600 dark:text-amber-300" />
-          </div>
-          <div>
-            <p className="font-semibold text-amber-900 dark:text-amber-200">{t('alt.bestInCategory')}</p>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
+        <div className={cn('naanaa', rtl && 'flex-row-reverse')}>
+          <img src="/mascotte/naanaa-bravo.webp" alt="" width="72" height="106" />
+          <div className="bubble">
+            <p className="font-bold text-foreground">{t('alt.bestInCategory')}</p>
+            <p className="text-sm text-muted-foreground">
               {rtl ? 'هاد المنتوج عندو أحسن نتيجة فالفئة ديالو' : 'Ce produit a le meilleur score de sa catégorie'}
             </p>
           </div>
@@ -86,38 +63,31 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
             <a
               key={alt.barcode}
               href={`/produit/${alt.barcode}`}
-              className="card-lift flex-shrink-0 snap-start w-[160px] rounded-xl border bg-background p-3 group"
+              className="card-lift group relative w-[168px] flex-shrink-0 snap-start rounded-2xl border bg-card p-2.5"
             >
-              {/* Image */}
-              <div className="relative w-full aspect-square rounded-md overflow-hidden bg-muted mb-2.5">
-                {alt.image_front ? (
-                  <img
-                    src={`${CDN_URL}/${alt.image_front}?width=160&height=160&fit=cover`}
-                    alt={alt.name_fr}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package size={32} className="text-muted-foreground/30" />
-                  </div>
-                )}
-
-                {/* Badge score */}
+              {/* Vignette colorée (teinte stable par code-barres) + pastille inclinée */}
+              <div className="relative mb-2.5">
+                <div className={cn('grid h-[120px] place-items-center overflow-hidden rounded-2xl border-2 border-line', productTint(alt.barcode))}>
+                  {alt.image_front ? (
+                    <img
+                      src={`${CDN_URL}/${alt.image_front}?width=160&height=160&fit=cover`}
+                      alt={alt.name_fr}
+                      className="size-[86%] object-contain mix-blend-multiply transition-transform group-hover:scale-105 dark:mix-blend-normal"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Package size={32} className="text-foreground/30" />
+                  )}
+                </div>
                 {alt.scan_score != null && (
-                  <div
-                    className={cn(
-                      'absolute top-1.5 right-1.5 w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md',
-                    )}
-                    style={{ backgroundColor: scoreColor(alt.scan_score) }}
-                  >
-                    {alt.scan_score}
-                  </div>
+                  <span className="absolute -bottom-3 end-1">
+                    <ScoreSticker score={alt.scan_score} size="sm" />
+                  </span>
                 )}
               </div>
 
               {/* Infos */}
-              <p className="text-sm font-medium line-clamp-2 leading-tight mb-0.5">
+              <p className="mb-0.5 line-clamp-2 pe-10 text-sm font-bold leading-tight">
                 {alt.name_fr}
               </p>
               <p className="text-xs text-muted-foreground truncate mb-1.5">
@@ -138,7 +108,7 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
               {alt.reasons && alt.reasons.length > 0 && (
                 <ul className="mt-2 space-y-1">
                   {alt.reasons.map((r, i) => (
-                    <li key={i} className="flex items-start gap-1 text-[11px] leading-tight text-green-700 dark:text-green-300">
+                    <li key={i} className="flex items-start gap-1 text-[11px] leading-tight text-brand-ink">
                       <span className="mt-0.5 flex-shrink-0">✓</span>
                       <span>{r}</span>
                     </li>

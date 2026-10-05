@@ -11,14 +11,16 @@
 import type { Article, ArticleCategory } from '@/lib/types'
 import type { Locale } from '@/lib/translations'
 import { cn } from '@/lib/utils'
+import { localCover } from '@/lib/blog-covers'
 
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
+// Aplat Marché Pop par catégorie (texte encre posé dessus)
 const CATEGORY_COLORS: Record<ArticleCategory, string> = {
-  'bien-etre': '#476a32',
-  habitudes: '#b1cf3a',
-  guides: '#0f766e',
-  actualites: '#f97316',
+  'bien-etre': 'bg-menthe',
+  habitudes: 'bg-citron',
+  guides: 'bg-myrtille',
+  actualites: 'bg-framboise',
 }
 
 const CATEGORY_LABELS_FR: Record<ArticleCategory, string> = {
@@ -85,11 +87,12 @@ export default function BlogCard({
       : CATEGORY_LABELS_FR[article.category]
   const categoryColor = CATEGORY_COLORS[article.category]
 
-  const cover = article.cover_image
+  // Couverture Marché Pop locale d'abord, puis l'image Directus, puis le secours par catégorie
+  const cover = localCover(article.slug) ?? (article.cover_image
     ? article.cover_image.startsWith('http')
       ? article.cover_image
       : `${CDN_URL}/${article.cover_image}`
-    : (CATEGORY_FALLBACK_COVER[article.category] ?? null)
+    : (CATEGORY_FALLBACK_COVER[article.category] ?? null))
 
   const dateStr = formatDate(article.date_published ?? article.date_created, locale)
   const readingTime = article.reading_time_min
@@ -102,13 +105,13 @@ export default function BlogCard({
     <a
       href={`/blog/${article.slug}`}
       className={cn(
-        'group block overflow-hidden rounded-xl border bg-card transition-all hover:shadow-md hover:border-primary/20',
+        'group card-lift block overflow-hidden rounded-2xl border bg-card',
         isCompact && 'h-full',
         className
       )}
     >
       {/* Cover 4:3 — placeholder SVG visible si pas d'image */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[4/3] w-full overflow-hidden tint-creme border-b-2 border-line">
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
           <svg
             width="32"
@@ -136,8 +139,10 @@ export default function BlogCard({
 
         {/* Badge catégorie en overlay */}
         <span
-          className="absolute top-3 start-3 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white shadow"
-          style={{ backgroundColor: categoryColor }}
+          className={cn(
+            'absolute top-3 start-3 px-2.5 py-1 rounded-full border-[1.5px] border-encre text-[11px] font-bold text-encre',
+            categoryColor
+          )}
         >
           {categoryLabel}
         </span>
@@ -147,7 +152,7 @@ export default function BlogCard({
       <div className={cn('p-4', isCompact ? 'space-y-2' : 'space-y-3')}>
         <h3
           className={cn(
-            'font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors',
+            'text-foreground line-clamp-2 group-hover:underline decoration-menthe decoration-2 underline-offset-4',
             isCompact ? 'text-sm' : 'text-base sm:text-lg'
           )}
         >

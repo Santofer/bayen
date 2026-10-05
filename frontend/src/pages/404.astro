@@ -1,0 +1,22 @@
+---
+// Page 404 — Naânaa « oups » (refonte Marché Pop)
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+---
+
+<Layout title="Page introuvable — Bayen" path={Astro.url.pathname} noindex={true}>
+  <main class="mx-auto flex max-w-md flex-col items-center px-4 py-12 pb-24 text-center">
+    <img src="/mascotte/naanaa-oups.webp" alt="" width="150" height="221" class="naanaa-bob mb-5" />
+    <p class="font-display text-5xl font-extrabold text-brand-ink">404</p>
+    <h1 class="mt-2 text-2xl font-bold leading-tight">{t('error404.title', locale)}</h1>
+    <p class="mt-3 text-[15px] leading-relaxed text-muted-foreground">{t('error404.desc', locale)}</p>
+    <div class="mt-7 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+      <a href="/scan" class="btn-pop">{t('home.scanBtn', locale)}</a>
+      <a href="/" class="btn-pop ghost">{t('nav.home', locale)}</a>
+    </div>
+  </main>
+</Layout>

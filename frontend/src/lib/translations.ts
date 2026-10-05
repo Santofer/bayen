@@ -6,6 +6,8 @@
 export const translations = {
   // ── Navigation ──────────────────────────────────────────────
   'nav.home':       { fr: 'Accueil',       ary: 'الرئيسية' },
+  'nav.main':       { fr: 'Navigation principale', ary: 'التنقل الرئيسي' },
+  'nav.mealShort':  { fr: 'Repas',         ary: 'الماكلة' },
   'nav.scan':       { fr: 'Scanner',       ary: 'سكان' },
   'nav.search':     { fr: 'Recherche',     ary: 'بحث' },
   'nav.compare':    { fr: 'Comparer',      ary: 'قارن' },
@@ -139,6 +141,17 @@ export const translations = {
   'home.statCategories':    { fr: 'Rayons organisés par IA',     ary: 'فئات منظمة بالذكاء' },
   'home.statFree':          { fr: 'Gratuit, open source',        ary: 'بلا فلوس، مفتوح المصدر' },
   'home.latestProducts':    { fr: 'Derniers produits notés',     ary: 'آخر المنتجات المنقطة' },
+  // ── Refonte Marché Pop : Naânaa, 404, bulles de fiche ─────────
+  'home.tipTitle':          { fr: "L'astuce de Naânaa",          ary: 'نصيحة نعناعة' },
+  'home.tip':               { fr: "Un yaourt « aux fruits » contient souvent plus de sucre qu'un yaourt nature avec une cuillère de miel.", ary: 'ياغورط « بالفواكه » غالبا فيه سكر كثر من ياغورط طبيعي مع معلقة ديال العسل.' },
+  'error404.title':         { fr: "Oups, cette page s'est perdue au souk", ary: 'أوبس، هاد الصفحة تلفات فالسوق' },
+  'error404.desc':          { fr: "Le lien est peut-être ancien ou mal tapé. Scanne un produit ou repars de l'accueil.", ary: 'يمكن الرابط قديم ولا مكتوب غلط. سكاني منتوج ولا رجع للرئيسية.' },
+  'protein.tip':            { fr: "« Protéiné » sur l'emballage ne veut pas dire sain : regarde aussi le sucre.", ary: '« بروتيني » على العلبة ماشي معناه صحي: شوف حتى السكر.' },
+  'product.tip.sugar':      { fr: 'Très sucré : {n} g de sucres pour 100 g.', ary: 'فيه السكر بزاف: {n} غ ديال السكر ف100 غ.' },
+  'product.tip.salt':       { fr: 'Très salé : {n} g de sel pour 100 g.', ary: 'فيه الملح بزاف: {n} غ ديال الملح ف100 غ.' },
+  'product.tip.nova4':      { fr: 'Ultra-transformé (NOVA 4) : à garder pour les occasions.', ary: 'مصنّع بزاف (NOVA 4): خليه للمناسبات.' },
+  'product.tip.additives':  { fr: '{n} additifs dans la liste : le détail est plus bas.', ary: '{n} إضافات فاللائحة: التفاصيل لتحت.' },
+  'product.tip.good':       { fr: 'Bon choix : sucre, sel et transformation restent raisonnables.', ary: 'اختيار مزيان: السكر والملح والتصنيع معقولين.' },
 
   // ── Contribuer ──────────────────────────────────────────────
   'contribute.title':      { fr: 'Ajouter un produit',                                                           ary: 'زيد منتوج' },

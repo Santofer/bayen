@@ -130,11 +130,12 @@ export default function PriceSection({ barcode }: Props) {
   const hasPrices = data !== null && data.count > 0
   // Échelle depuis 0 : la longueur des barres est lisible comme le prix.
   const scaleMax = hasPrices ? Math.max(...data.by_store.map((s) => s.median)) : 0
+  const cheapest = hasPrices ? Math.min(...data.by_store.map((s) => s.median)) : 0
 
   return (
-    <section className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]">
+    <section className="rounded-2xl border bg-card p-5">
       <div className="mb-4 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-encre bg-citron text-encre">
           <Tag size={16} />
         </span>
         <div className="flex-1">
@@ -150,7 +151,7 @@ export default function PriceSection({ barcode }: Props) {
       {hasPrices ? (
         <>
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-extrabold text-primary">
+            <span className="font-display text-3xl font-extrabold text-brand-ink">
               {data.min !== null && data.max !== null && data.min !== data.max
                 ? `${formatPrice(data.min)} – ${formatPrice(data.max)}`
                 : formatPrice(data.min ?? 0)}
@@ -162,9 +163,10 @@ export default function PriceSection({ barcode }: Props) {
             {data.by_store.map((s) => (
               <div key={s.store} className="flex items-center gap-2.5">
                 <span className="w-24 flex-shrink-0 truncate text-xs font-bold">{s.store}</span>
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-primary/10">
+                {/* Barre à contour encre (maquette) ; la médiane la plus basse passe en citron */}
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">
                   <div
-                    className="h-full rounded-full bg-primary"
+                    className={s.median === cheapest ? 'h-full bg-citron' : 'h-full bg-primary'}
                     style={{ width: `${scaleMax > 0 ? Math.round((s.median / scaleMax) * 100) : 0}%` }}
                   />
                 </div>
@@ -191,7 +193,7 @@ export default function PriceSection({ barcode }: Props) {
       )}
 
       {state === 'sent' && (
-        <p className="mt-3 flex items-center gap-1.5 text-sm font-bold text-primary">
+        <p className="mt-3 flex items-center gap-1.5 text-sm font-bold text-brand-ink">
           <Check size={15} /> {message}
         </p>
       )}
@@ -200,11 +202,11 @@ export default function PriceSection({ barcode }: Props) {
         <button
           type="button"
           onClick={() => { setOpen(true); setState('idle') }}
-          className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-full border border-primary/30 bg-card text-sm font-bold text-primary"
+          className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-full border-2 border-line bg-card text-sm font-bold text-foreground shadow-[var(--shadow-card)] transition-transform hover:-translate-y-px"
         >
           <Plus size={17} className="flex-shrink-0" />
           <span className="min-w-0">{hasPrices ? t('price.addOther') : t('price.share')}</span>
-          <span className="flex-shrink-0 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-[11px] font-extrabold text-accent-foreground">
+          <span className="flex-shrink-0 whitespace-nowrap rounded-full border-[1.5px] border-encre bg-menthe px-2 py-0.5 text-[11px] font-extrabold text-encre">
             +5 pts
           </span>
         </button>
@@ -213,7 +215,7 @@ export default function PriceSection({ barcode }: Props) {
           {antibot.honeypot}
           <p className="font-bold">{t('price.howMuch')}</p>
 
-          <div className="mt-3 flex items-baseline justify-center gap-2 rounded-2xl border-2 border-primary bg-card px-4 py-5">
+          <div className="mt-3 flex items-baseline justify-center gap-2 rounded-2xl border-2 border-line bg-card px-4 py-5">
             <input
               type="text"
               inputMode="decimal"
@@ -235,8 +237,8 @@ export default function PriceSection({ barcode }: Props) {
                 onClick={() => setStore(s)}
                 className={
                   store === s
-                    ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground'
-                    : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
+                    ? 'flex min-h-[46px] items-center rounded-full border-2 border-encre bg-primary px-4 text-sm font-bold text-primary-foreground'
+                    : 'flex min-h-[46px] items-center rounded-full border-2 border-line bg-card px-4 text-sm font-semibold'
                 }
               >
                 {s}
@@ -247,8 +249,8 @@ export default function PriceSection({ barcode }: Props) {
               onClick={() => setStore('__other')}
               className={
                 store === '__other'
-                  ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground'
-                  : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold text-muted-foreground'
+                  ? 'flex min-h-[46px] items-center rounded-full border-2 border-encre bg-primary px-4 text-sm font-bold text-primary-foreground'
+                  : 'flex min-h-[46px] items-center rounded-full border-2 border-line bg-card px-4 text-sm font-semibold text-muted-foreground'
               }
             >
               {t('price.otherStore')}
@@ -262,7 +264,7 @@ export default function PriceSection({ barcode }: Props) {
               onChange={(e) => setCustomStore(e.target.value)}
               placeholder={t('price.where')}
               aria-label={t('price.where')}
-              className="mt-2 min-h-[46px] w-full rounded-2xl border bg-card px-4 text-sm outline-none focus:border-primary"
+              className="mt-2 min-h-[46px] w-full rounded-2xl border bg-card px-4 text-sm outline-none focus:border-line"
             />
           )}
 
@@ -273,7 +275,7 @@ export default function PriceSection({ barcode }: Props) {
             onChange={(e) => setCity(e.target.value)}
             placeholder="Casablanca"
             aria-label={t('price.city')}
-            className="mt-2 min-h-[46px] w-full rounded-2xl border bg-card px-4 text-sm outline-none focus:border-primary"
+            className="mt-2 min-h-[46px] w-full rounded-2xl border bg-card px-4 text-sm outline-none focus:border-line"
           />
 
           {state === 'error' && (
@@ -284,7 +286,7 @@ export default function PriceSection({ barcode }: Props) {
             type="button"
             onClick={submit}
             disabled={state === 'sending'}
-            className="mt-4 flex min-h-[52px] w-full items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground disabled:opacity-60"
+            className="mt-4 flex min-h-[52px] w-full items-center justify-center rounded-full border-2 border-encre bg-primary text-base font-bold text-primary-foreground shadow-[var(--shadow-card)] disabled:opacity-60"
           >
             {state === 'sending' ? t('contrib.sending') : t('price.send')}
           </button>

@@ -78,24 +78,24 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
   path="/ingredients"
 >
   <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 space-y-6">
-    <PageHero image="/hero/ingredients.jpg" kicker={t('nav.ingredients', locale)} title="Ce qu'il y a dedans, ingrédient par ingrédient" subtitle={`${all.length} ingrédients relevés sur les étiquettes des produits vendus au Maroc, dont ${allergenCount} allergènes à déclaration obligatoire. Clique sur un ingrédient pour voir les produits qui le contiennent.`} size="lg">
+    <PageHero image="/hero/ingredients.jpg" tone="citron" kicker={t('nav.ingredients', locale)} title="Ce qu'il y a dedans, ingrédient par ingrédient" subtitle={`${all.length} ingrédients relevés sur les étiquettes des produits vendus au Maroc, dont ${allergenCount} allergènes à déclaration obligatoire. Clique sur un ingrédient pour voir les produits qui le contiennent.`} size="lg">
       <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
       <form method="get" action="/ingredients" class="mt-2 flex w-full max-w-xl gap-2">
         {activeCat && <input type="hidden" name="cat" value={activeCat} />}
         {onlyAllergens && <input type="hidden" name="allergenes" value="1" />}
         <label class="relative flex-1">
-          <svg class="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-black/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="search" name="q" value={q} placeholder="Lécithine, huile de palme, glutamate…" aria-label="Rechercher un ingrédient" class="h-12 w-full rounded-full border border-white/30 bg-white/95 ps-11 pe-4 text-sm font-medium text-neutral-900 outline-none placeholder:text-neutral-500 focus:ring-2 focus:ring-white/60" />
+          <svg class="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-encre/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" name="q" value={q} placeholder="Lécithine, huile de palme, glutamate…" aria-label="Rechercher un ingrédient" class="h-12 w-full rounded-full border-2 border-encre bg-creme ps-11 pe-4 text-sm font-medium text-encre outline-none placeholder:text-encre/50 focus:ring-2 focus:ring-encre" />
         </label>
-        <button type="submit" class="h-12 rounded-full bg-[var(--hero-accent)] px-5 text-sm font-extrabold text-[var(--hero-accent-fg)]">Chercher</button>
+        <button type="submit" class="h-12 rounded-full border-2 border-encre bg-encre px-5 text-sm font-extrabold text-creme">Chercher</button>
       </form>
     </PageHero>
 
     <!-- Filtres : familles + allergènes -->
     <div class="flex flex-wrap items-center gap-2">
-      <a href={link({ cat: '' })} class:list={['rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors', !activeCat ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-muted']}>Toutes <span class="opacity-70">({all.length})</span></a>
+      <a href={link({ cat: '' })} class:list={['filter-pill', !activeCat && 'on']}>Toutes <span class="opacity-70">({all.length})</span></a>
       {Object.entries(CATEGORIES).filter(([k]) => countBy(k) > 0).map(([key, label]) => (
-        <a href={link({ cat: key })} class:list={['rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors', activeCat === key ? 'border-primary bg-primary text-primary-foreground' : 'bg-card hover:bg-muted']}>
+        <a href={link({ cat: key })} class:list={['filter-pill', activeCat === key && 'on']}>
           {label} <span class="opacity-70">({countBy(key)})</span>
         </a>
       ))}
@@ -110,11 +110,12 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
       <p class="text-sm text-muted-foreground">
         {hasFilter ? `${filtered.length} ingrédient${filtered.length > 1 ? 's' : ''}` : `${all.length} ingrédients`}{q && <> pour « <strong class="text-foreground">{q}</strong> »</>}
       </p>
-      {hasFilter && <a href="/ingredients" class="text-sm font-semibold text-primary hover:underline">Réinitialiser</a>}
+      {hasFilter && <a href="/ingredients" class="text-sm font-semibold text-brand-ink hover:underline">Réinitialiser</a>}
     </div>
 
     {groups.length === 0 ? (
       <div class="rounded-2xl border bg-card p-10 text-center">
+        <img src="/mascotte/naanaa-loupe.webp" alt="" width="88" height="130" class="mx-auto mb-3" loading="lazy" />
         <p class="font-semibold">Aucun ingrédient ne correspond.</p>
         <p class="mt-1 text-sm text-muted-foreground">Essaie un autre mot, ou retire un filtre.</p>
       </div>
@@ -129,13 +130,13 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {g.items.map((i) => (
                 <a href={`/ingredients/${i.id}`} class:list={['group flex items-center gap-3 rounded-2xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-card', i.is_allergen && 'border-destructive/40']}>
-                  <span class:list={['flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl', i.is_allergen ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary']}>
+                  <span class:list={['flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl', i.is_allergen ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-brand-ink']}>
                     {i.is_allergen
                       ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3ZM12 9v4M12 17h.01"/></svg>
                       : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10ZM2 21c0-3 1.9-5.5 5-6.5"/></svg>}
                   </span>
                   <span class="min-w-0">
-                    <span class="block truncate text-sm font-semibold group-hover:text-primary">{name(i)}</span>
+                    <span class="block truncate text-sm font-semibold group-hover:text-brand-ink">{name(i)}</span>
                     <span class="block truncate text-[11px] text-muted-foreground">{i.is_allergen ? `Allergène${i.allergen_type ? ` · ${i.allergen_type}` : ''}` : g.label}</span>
                   </span>
                 </a>

@@ -80,16 +80,22 @@ export default function AuthForm() {
 
   return (
     <div className="w-full max-w-md mx-auto">
+      {/* Naânaa accueille (pose « salut ») */}
+      <div className="naanaa mb-5">
+        <img src="/mascotte/naanaa-salut.webp" alt="" width="72" height="106" className="naanaa-bob" />
+        <p className="bubble"><b>Ahlan !</b> {t('contrib.anonNote')}</p>
+      </div>
+
       {/* Onglets */}
-      <div className="flex rounded-lg bg-muted p-1 mb-6">
+      <div className="flex rounded-full border-2 border-line bg-card p-1 mb-6">
         <button
           type="button"
           onClick={() => switchTab('login')}
           className={cn(
-            'flex-1 rounded-md py-2 text-sm font-medium transition-colors',
+            'flex-1 rounded-full border-2 py-2 text-sm font-bold transition-colors',
             activeTab === 'login'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'border-encre bg-citron text-encre'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           )}
         >
           {t('auth.login')}
@@ -98,10 +104,10 @@ export default function AuthForm() {
           type="button"
           onClick={() => switchTab('register')}
           className={cn(
-            'flex-1 rounded-md py-2 text-sm font-medium transition-colors',
+            'flex-1 rounded-full border-2 py-2 text-sm font-bold transition-colors',
             activeTab === 'register'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'border-encre bg-citron text-encre'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           )}
         >
           {t('auth.register')}
@@ -124,7 +130,7 @@ export default function AuthForm() {
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Votre nom"
               autoComplete="name"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
         )}
@@ -141,7 +147,7 @@ export default function AuthForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="votre@email.com"
             autoComplete="email"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
         </div>
 
@@ -157,7 +163,7 @@ export default function AuthForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Minimum 8 caractères"
             autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
         </div>
 
@@ -174,14 +180,14 @@ export default function AuthForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Retapez le mot de passe"
               autoComplete="new-password"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
         )}
 
         {/* Message d'erreur */}
         {error && (
-          <div className="rounded-md bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+          <div role="alert" className="tint-tomate rounded-2xl border-2 border-line px-4 py-3 text-sm font-medium text-foreground">
             {error}
           </div>
         )}

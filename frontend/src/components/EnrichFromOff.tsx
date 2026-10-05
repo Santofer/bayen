@@ -299,11 +299,11 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
   }
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4">
+    <div className="rounded-2xl border-2 border-line tint-menthe p-4">
       {state === 'idle' && (
         <>
           <div className="flex items-start gap-3">
-            <RefreshCw size={18} className="text-primary flex-shrink-0" />
+            <RefreshCw size={18} className="text-brand-ink flex-shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">Données incomplètes</p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -324,16 +324,20 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       )}
 
       {state === 'loading' && (
-        <div className="flex items-center gap-3 text-sm text-foreground">
-          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          Recherche sur Open Food Facts...
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="48" height="71" className="naanaa-bob" />
+          <p className="bubble flex items-center gap-2 text-sm">
+            <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            Recherche sur Open Food Facts...
+          </p>
         </div>
       )}
 
       {state === 'done' && (
         <div className="text-center">
-          <p className="text-sm font-medium text-green-800 dark:text-green-300 flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> Produit enrichi !</p>
-          <p className="text-xs text-green-700 dark:text-green-400 mt-1">{enriched.join(' · ')}</p>
+          <img src="/mascotte/naanaa-bravo.webp" alt="" width="56" height="82" className="naanaa-bob mx-auto mb-1 h-auto w-14" />
+          <p className="text-sm font-bold text-foreground flex items-center justify-center gap-1"><CheckCircle size={14} className="text-brand-ink" /> Produit enrichi !</p>
+          <p className="text-xs text-foreground mt-1">{enriched.join(' · ')}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={() => window.location.reload()}>
             Recharger la page
           </Button>
@@ -346,7 +350,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
 
       {state === 'error' && (
         <div>
-          <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
+          <p className="text-sm text-foreground">{error}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={() => setState('idle')}>Réessayer</Button>
         </div>
       )}

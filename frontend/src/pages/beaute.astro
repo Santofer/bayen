@@ -4,6 +4,7 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import SearchPage from '@/components/SearchPage'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -33,28 +34,20 @@ const jsonLd = {
 >
   <main>
     <section class="mx-auto max-w-5xl px-4 pt-8 pb-2">
-      <div class="relative overflow-hidden rounded-3xl border border-beauty/25 p-6 sm:p-8 min-h-[300px] flex flex-col justify-end">
-        <img src="/hero/beaute.jpg" alt="" class="absolute inset-0 h-full w-full object-cover" width="1920" height="1080" />
-        <div class="absolute inset-0 bg-gradient-to-t from-[hsl(190_45%_10%/.92)] via-[hsl(190_45%_10%/.55)] to-[hsl(190_45%_10%/.15)]"></div>
-        <div class="relative text-white">
-        <span class="inline-flex items-center gap-1.5 rounded-full bg-beauty px-3 py-1 text-xs font-bold text-beauty-foreground">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>
-          {t('nav.beauty', locale)}
-        </span>
-        <h1 class="font-display mt-3 text-2xl sm:text-3xl font-bold leading-tight">{t('beauty.hubTitle', locale)}</h1>
-        <p class="mt-2 max-w-2xl text-[15px] leading-relaxed text-white/80">{t('beauty.hubDesc', locale)}</p>
-        <div class="mt-5 flex flex-wrap gap-2">
+      <PageHero image="/hero/beaute.jpg" tone="beauty" mascot="loupe" size="lg" kicker={t('nav.beauty', locale)} title={t('beauty.hubTitle', locale)} subtitle={t('beauty.hubDesc', locale)}>
+        <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+        {/* Catégories : pastilles crème sur l'aplat framboise, l'active passe à l'encre */}
+        <div class="mt-2 flex flex-wrap gap-2">
           {CATS.map((c) => (
             <a
               href={`/beaute?cat=${c}`}
-              class:list={['rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors', initialCat === c ? 'border-beauty bg-beauty text-beauty-foreground' : 'border-white/30 bg-white/10 text-white hover:bg-white/20']}
+              class:list={['rounded-full border-[1.5px] border-encre px-3.5 py-1.5 text-sm font-semibold transition-colors', initialCat === c ? 'bg-encre text-creme' : 'bg-creme text-encre hover:bg-citron']}
             >
               {catLabels[c]}
             </a>
           ))}
         </div>
-        </div>
-      </div>
+      </PageHero>
     </section>
 
     <SearchPage client:load initialUniverse="cosmetic" initialCosmeticCategory={initialCat} />
@@ -63,16 +56,16 @@ const jsonLd = {
       <div class="rounded-3xl border bg-card p-6 sm:p-8">
         <h2 class="font-display text-xl font-bold">{t('beauty.howTitle', locale)}</h2>
         <ol class="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground/90">
-          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty text-sm font-bold text-beauty-foreground">1</span><span>{t('beauty.how1', locale)}</span></li>
-          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty text-sm font-bold text-beauty-foreground">2</span><span>{t('beauty.how2', locale)}</span></li>
-          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty text-sm font-bold text-beauty-foreground">3</span><span>{t('beauty.how3', locale)}</span></li>
+          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty border-2 border-encre text-sm font-bold text-encre">1</span><span>{t('beauty.how1', locale)}</span></li>
+          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty border-2 border-encre text-sm font-bold text-encre">2</span><span>{t('beauty.how2', locale)}</span></li>
+          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty border-2 border-encre text-sm font-bold text-encre">3</span><span>{t('beauty.how3', locale)}</span></li>
         </ol>
         <p class="mt-4 text-xs text-muted-foreground">{t('beauty.disclaimer', locale)}</p>
         <div class="mt-5 flex flex-wrap gap-3">
-          <a href="/ingredients-cosmetiques" class="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-beauty/40 bg-card px-5 text-sm font-bold text-beauty">
+          <a href="/ingredients-cosmetiques" class="btn-pop ghost">
             {t('beauty.ingredientsTitle', locale)} →
           </a>
-          <a href="/contribuer" class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground">
+          <a href="/contribuer" class="btn-pop">
             {t('nav.contribute', locale)}
           </a>
         </div>

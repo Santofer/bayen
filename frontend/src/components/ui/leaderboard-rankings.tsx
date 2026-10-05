@@ -38,10 +38,11 @@ interface LeaderboardRankingsProps extends React.HTMLAttributes<HTMLDivElement> 
   defaultPageSize?: 10 | 25 | 50 | 100
 }
 
+// Couronne remplie de l'aplat de médaille, contour au trait (suit le thème)
 const crownColorMap = {
-  1: 'text-rank-1',
-  2: 'text-rank-2',
-  3: 'text-rank-3',
+  1: 'fill-rank-1',
+  2: 'fill-rank-2',
+  3: 'fill-rank-3',
 } as const
 
 const pageSizeOptions = [10, 25, 50, 100] as const
@@ -142,13 +143,13 @@ const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardRankings
                 }
                 className={cn(
                   'flex items-center gap-2 px-4 py-2',
-                  isCurrentUser && 'border-primary bg-muted rounded-md border-2',
+                  isCurrentUser && 'tint-menthe rounded-xl border-2 border-line',
                   onUserClick && 'hover:bg-muted/40 cursor-pointer transition-colors'
                 )}
               >
                 <div className="flex w-12 items-center gap-1">
-                  <span className="w-4 text-sm font-semibold tabular-nums">{ranking.rank}</span>
-                  {showCrown ? <Crown className={cn('h-5 w-5', crownColor)} aria-hidden="true" /> : null}
+                  <span className="w-4 font-display text-sm font-bold tabular-nums">{ranking.rank}</span>
+                  {showCrown ? <Crown className={cn('h-5 w-5 text-line', crownColor)} aria-hidden="true" /> : null}
                 </div>
 
                 {ranking.avatarUrl ? (
@@ -156,12 +157,12 @@ const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardRankings
                   <img
                     src={ranking.avatarUrl}
                     alt={`${displayName} avatar`}
-                    className="h-10 w-10 rounded-full object-cover"
+                    className="h-10 w-10 rounded-full border-2 border-line object-cover"
                   />
                 ) : (
                   <div
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium text-white"
-                    style={{ backgroundColor: ranking.accentColor ?? 'var(--color-primary)' }}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-encre font-display text-sm font-bold text-encre"
+                    style={{ backgroundColor: ranking.accentColor ?? 'var(--color-menthe)' }}
                   >
                     {(ranking.userName ?? ranking.userId).charAt(0).toUpperCase()}
                   </div>
@@ -171,7 +172,7 @@ const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardRankings
                   <div className="flex items-center gap-2">
                     <p className="text-foreground truncate font-medium">{displayName}</p>
                     {isCurrentUser && (
-                      <span className="bg-primary text-primary-foreground flex-shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+                      <span className="flex-shrink-0 rounded-full border-[1.5px] border-encre bg-citron px-1.5 py-0.5 text-[10px] font-bold text-encre">
                         Toi
                       </span>
                     )}
@@ -186,7 +187,7 @@ const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardRankings
                     <p
                       className={cn(
                         'inline-flex items-center gap-1 text-xs font-medium',
-                        ranking.rankChange > 0 ? 'text-success-600' : 'text-red-600'
+                        ranking.rankChange > 0 ? 'text-success-600' : 'text-destructive'
                       )}
                     >
                       {ranking.rankChange > 0 ? (
@@ -197,7 +198,7 @@ const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardRankings
                       {Math.abs(ranking.rankChange)}
                     </p>
                   ) : null}
-                  <p className="leading-none font-semibold tabular-nums">
+                  <p className="font-display leading-none font-bold tabular-nums">
                     {formatLeaderboardValue(ranking.value)}
                   </p>
                 </div>
