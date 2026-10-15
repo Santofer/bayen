@@ -42,6 +42,8 @@ export default function ShareButton({ productName, brand, score, barcode, classN
   }, [open])
 
   const handleShare = async () => {
+    // Menu ouvert : le même bouton (devenu une croix) le referme
+    if (open) { setOpen(false); return }
     // Mobile : utiliser le Web Share API natif
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -56,7 +58,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
       }
     }
     // Desktop / fallback : ouvrir le dropdown
-    setOpen(!open)
+    setOpen(true)
   }
 
   const handleWhatsApp = () => {
@@ -92,28 +94,24 @@ export default function ShareButton({ productName, brand, score, barcode, classN
   return (
     <div className={cn('relative', className)} ref={dropdownRef}>
       {variant === 'icon' ? (
-        <button type="button" className="icon-btn" onClick={handleShare} aria-label={t('share.title')} aria-expanded={open}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>
+        <button type="button" className={cn('icon-btn', open && 'bg-citron text-encre')} onClick={handleShare} aria-label={open ? t('common.close') : t('share.title')} aria-expanded={open}>
+          {open ? (
+            <X strokeWidth={2.5} />
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>
+          )}
         </button>
       ) : (
         // Bouton Marché Pop par défaut : aplat menthe, texte et contour encre
         <Button onClick={handleShare} className="gap-2" size="sm">
-          <Share2 size={16} />
-          {t('share.title')}
+          {open ? <X size={16} /> : <Share2 size={16} />}
+          {open ? t('common.close') : t('share.title')}
         </Button>
       )}
 
       {/* Dropdown fallback */}
       {open && (
         <div className="absolute end-0 top-full z-50 mt-2 min-w-[190px] rounded-2xl border bg-card p-1.5">
-          {/* Fermer */}
-          <button
-            onClick={() => setOpen(false)}
-            className="absolute top-1.5 end-1.5 text-muted-foreground hover:text-foreground"
-            aria-label={t('common.close')}
-          >
-            <X size={14} />
-          </button>
 
           {/* WhatsApp */}
           <button

@@ -15,7 +15,7 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
   <main class="screen gap-5 md:gap-12">
     <header class="topbar md:p-0">
       <h1 class="disp d-m md:text-[clamp(40px,4.4vw,60px)]">{t('account.title', locale)}</h1>
-      <div class="md:hidden"><CartNavButton label={t('nav.cart', locale)} client:load /></div>
+      <div class="flex gap-2 md:hidden"><CartNavButton label={t('nav.cart', locale)} client:load /><button type="button" class="icon-btn " data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button></div>
     </header>
     <AccountDashboard client:load />
   </main>

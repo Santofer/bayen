@@ -16,6 +16,7 @@ import {
   RotateCcw, Sparkles, HelpCircle, Tag,
 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
 import { cn } from '@/lib/utils'
 import { authHeader, isAuthenticated } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
@@ -41,37 +42,38 @@ interface PhotoState {
   uploading: boolean
 }
 
-const CATEGORIES: Array<{ id: number; label: string }> = [
-  { id: 1, label: 'Biscuits' },
-  { id: 2, label: 'Céréales & petit-déjeuner' },
-  { id: 3, label: 'Produits laitiers' },
-  { id: 4, label: 'Charcuterie & viandes' },
-  { id: 5, label: 'Boissons sucrées' },
-  { id: 6, label: 'Eaux & jus' },
-  { id: 7, label: 'Conserves' },
-  { id: 8, label: 'Épices & condiments' },
-  { id: 9, label: 'Huiles & graisses' },
-  { id: 10, label: 'Snacks & chips' },
-  { id: 11, label: 'Pain & viennoiseries' },
-  { id: 12, label: 'Plats préparés' },
+const CATEGORIES: Array<{ id: number; label: TranslationKey }> = [
+  { id: 1, label: 'wizard.cat.1' },
+  { id: 2, label: 'wizard.cat.2' },
+  { id: 3, label: 'wizard.cat.3' },
+  { id: 4, label: 'wizard.cat.4' },
+  { id: 5, label: 'wizard.cat.5' },
+  { id: 6, label: 'wizard.cat.6' },
+  { id: 7, label: 'wizard.cat.7' },
+  { id: 8, label: 'wizard.cat.8' },
+  { id: 9, label: 'wizard.cat.9' },
+  { id: 10, label: 'wizard.cat.10' },
+  { id: 11, label: 'wizard.cat.11' },
+  { id: 12, label: 'wizard.cat.12' },
 ]
 
 /** Catégories beauté (C23) — mêmes clés que products.cosmetic_category */
 const COSMETIC_CATEGORIES = ['visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum', 'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles'] as const
 type CosmeticCategory = (typeof COSMETIC_CATEGORIES)[number]
 
+// Valeurs envoyées telles quelles à l'API prix : seule « Épicerie du coin » est traduite à l'affichage
 const STORES = ['Marjane', 'Carrefour', 'BIM', 'Aswak Assalam', 'Atacadao', 'Épicerie du coin']
 
 const NUTRIENTS = [
-  { key: 'energy_kcal', label: 'Énergie', unit: 'kcal', max: 950 },
-  { key: 'fat_total', label: 'Matières grasses', unit: 'g', max: 100 },
-  { key: 'fat_saturated', label: 'dont saturées', unit: 'g', max: 100 },
-  { key: 'carbs_total', label: 'Glucides', unit: 'g', max: 100 },
-  { key: 'sugars', label: 'dont sucres', unit: 'g', max: 100 },
-  { key: 'fiber', label: 'Fibres', unit: 'g', max: 100 },
-  { key: 'proteins', label: 'Protéines', unit: 'g', max: 100 },
-  { key: 'salt', label: 'Sel', unit: 'g', max: 100 },
-] as const
+  { key: 'energy_kcal', label: 'meal.energy', unit: 'kcal', max: 950 },
+  { key: 'fat_total', label: 'meal.fat', unit: 'g', max: 100 },
+  { key: 'fat_saturated', label: 'wizard.fatSat', unit: 'g', max: 100 },
+  { key: 'carbs_total', label: 'meal.carbs', unit: 'g', max: 100 },
+  { key: 'sugars', label: 'wizard.sugarsOf', unit: 'g', max: 100 },
+  { key: 'fiber', label: 'meal.fiber', unit: 'g', max: 100 },
+  { key: 'proteins', label: 'meal.proteins', unit: 'g', max: 100 },
+  { key: 'salt', label: 'meal.salt', unit: 'g', max: 100 },
+] as const satisfies ReadonlyArray<{ key: string; label: TranslationKey; unit: string; max: number }>
 
 type NutrientKey = (typeof NUTRIENTS)[number]['key']
 
@@ -398,7 +400,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
   const Header = (
     <div className="grid gap-3.5">
       <div className="flex items-center gap-3">
-        <button type="button" onClick={back} aria-label="Retour" className="icon-btn">
+        <button type="button" onClick={back} aria-label={t('nav.back')} className="icon-btn">
           <ArrowLeft className="rtl:rotate-180" />
         </button>
         <div className="min-w-0 flex-1">
@@ -656,7 +658,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           {antibot.honeypot}
           <h2 className="disp d-m">{t('contrib.stepProduct')}</h2>
           {prefilled && (
-            <span className="chip fill w-max bg-ai">
+            <span className="chip fill h-auto min-h-[26px] max-w-full justify-self-start whitespace-normal bg-ai py-1">
               <Sparkles />
               {t('contrib.prefilled')}
             </span>
@@ -664,7 +666,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
 
           <label className="grid gap-1.5">
             <span className={LABEL}>{t('contrib.name')}</span>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Confiture de fraises extra" className={FIELD} />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('wizard.namePh')} className={FIELD} />
           </label>
 
           <label className="grid gap-1.5">
@@ -710,7 +712,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                     className={cn(CHOICE, categoryId === c.id && 'fill bg-menthe')}
                   >
                     {categoryId === c.id && <Check strokeWidth={3} />}
-                    {c.label}
+                    {t(c.label)}
                   </button>
                 ))}
               </div>
@@ -755,7 +757,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           <div className="grid gap-2">
             <div className="sec-head">
               <h2 className="disp d-m">{t('contrib.nutritionTitle')}</h2>
-              <span className="eyebrow">pour 100 g</span>
+              <span className="eyebrow">{t('wizard.per100')}</span>
             </div>
             {(photos.nutrition || readingLabel) && (
               <p className="flex items-center gap-2 text-[13px] font-semibold">
@@ -776,7 +778,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                     bad ? 'border-score-mediocre' : 'border-line'
                   )}
                 >
-                  <span className="muted text-xs font-semibold">{label}</span>
+                  <span className="muted text-xs font-semibold">{t(label)}</span>
                   <span className="mt-0.5 flex items-baseline gap-1.5">
                     <input
                       type="text"
@@ -880,7 +882,7 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                   aria-pressed={store === s}
                   className={cn(CHOICE, store === s && 'fill bg-menthe')}
                 >
-                  {s}
+                  {s === 'Épicerie du coin' ? t('wizard.cornerStore') : s}
                 </button>
               ))}
             </div>

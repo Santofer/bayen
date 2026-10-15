@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getProfile } from '@/lib/health-profile'
 import type { Product, Category, NutriScoreGrade } from '@/lib/types'
+import type { Locale } from '@/lib/translations'
 
 // ────────────────────────────────────────────────────────────────
 // Configuration
@@ -214,7 +215,7 @@ interface SearchPageProps {
 }
 
 export default function SearchPage({ initialUniverse, initialCosmeticCategory, showTopbar = false }: SearchPageProps = {}) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   // État initial identique côté serveur et client (sinon l'hydratation garde
   // l'onglet rendu par le SSR) ; l'URL ?univers=beaute&cat=… est lue après montage.
   const [filters, setFilters] = useState<Filters>(() => ({
@@ -350,8 +351,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
                 .map((p: Record<string, unknown>) => ({
                   id: p.code as string,
                   barcode: p.code as string,
-                  name_fr: (p.product_name_fr || p.product_name || 'Inconnu') as string,
-                  brand: (p.brands || 'Inconnu') as string,
+                  name_fr: (p.product_name_fr || p.product_name || t('product.unknown')) as string,
+                  brand: (p.brands || t('product.unknown')) as string,
                   image_front: (p.image_front_small_url || p.image_front_url || null) as string | null,
                   scan_score: null,
                   score_label: null,
@@ -382,7 +383,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
         }
       }
     },
-    [filters, debouncedQuery]
+    [filters, debouncedQuery, t]
   )
 
   // Déclencher la recherche quand les filtres (non-texte) ou la query debounced changent
@@ -463,12 +464,15 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
 
   const hasMore = products.length < totalCount
 
+  // Nom de catégorie dans la langue courante (name_ar si présent)
+  const catName = (c: Category | undefined): string | undefined => c && ((locale === 'ary' && c.name_ar) || c.name_fr)
+
   // Titre de la barre du haut : catégorie active, sinon « Recherche »
   const heading = isBeauty
     ? (filters.cosmeticCategory
         ? t(`beauty.cat.${filters.cosmeticCategory}` as `beauty.cat.${(typeof COSMETIC_CATEGORIES)[number]}`)
         : t('search.title'))
-    : (categories.find((c) => c.id === filters.categoryId)?.name_fr ?? t('search.title'))
+    : (catName(categories.find((c) => c.id === filters.categoryId)) ?? t('search.title'))
 
   // Puces de filtres (maquette) : les filtres booléens existants, appliqués par l'API
   const toggleProfile = () => {
@@ -487,8 +491,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
         { label: t('search.halal'), active: filters.halal, onClick: () => updateFilter('halal', !filters.halal) },
       ]
     : [
-        { label: 'Sucres ≤ 5 g', active: filters.sugarMax === 5, onClick: () => updateFilter('sugarMax', filters.sugarMax === 5 ? null : 5) },
-        { label: 'Sans additif', active: filters.noAdditives, onClick: () => updateFilter('noAdditives', !filters.noAdditives) },
+        { label: t('search.chipSugar5'), active: filters.sugarMax === 5, onClick: () => updateFilter('sugarMax', filters.sugarMax === 5 ? null : 5) },
+        { label: t('product.noAdditive'), active: filters.noAdditives, onClick: () => updateFilter('noAdditives', !filters.noAdditives) },
         { label: t('search.halal'), active: filters.halal, onClick: () => updateFilter('halal', !filters.halal) },
         { label: t('search.bio'), active: filters.bio, onClick: () => updateFilter('bio', !filters.bio) },
         { label: t('search.sugarFree'), active: filters.sugarMax === 0.5, onClick: () => updateFilter('sugarMax', filters.sugarMax === 0.5 ? null : 0.5) },
@@ -529,6 +533,10 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
                 {activeCount}
               </span>
             )}
+          </button>
+          {/* Ouvre le menu du site (SiteMenu, rendu par le Layout) */}
+          <button type="button" className="icon-btn md:hidden" data-open-menu="" aria-label={t('nav.menu')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
           </button>
         </header>
       )}
@@ -627,7 +635,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.icon ? `${cat.icon} ` : ''}
-                      {cat.name_fr}
+                      {catName(cat)}
                     </option>
                   ))}
                 </select>
@@ -742,7 +750,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
             )}
           </span>
           <label className="flex items-center gap-1 font-bold">
-            Trier :
+            {t('search.sortLabel')}
             <select
               value={filters.sort}
               onChange={(e) => updateFilter('sort', e.target.value as SortValue)}
@@ -765,7 +773,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
         {loading && <LoadingSkeleton />}
 
         {/* Résultats : cartes en ligne (mobile), grille (ordinateur) */}
-        {!loading && products.length > 0 && <ProductList products={products} />}
+        {!loading && products.length > 0 && <ProductList products={products} locale={locale} />}
 
         {/* Résultats Open Food Facts (quand Directus est vide) */}
         {!loading && products.length === 0 && offResults.length > 0 && (
@@ -780,7 +788,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
                 {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {isBeauty ? t('beauty.obfResults') : t('search.offResults')}
               </p>
             </div>
-            <ProductList products={offResults} />
+            <ProductList products={offResults} locale={locale} />
           </>
         )}
 
@@ -830,7 +838,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
             <img src="/mascotte/naanaa-scan.webp" alt="" width="56" height="56" loading="lazy" />
           </div>
           <p className="bubble">
-            Ton produit n'y est pas ? <a href="/scan" className="underline underline-offset-2"><b>Scanne-le</b></a>, on l'ajoute avec toi.
+            {t('search.naanaaMissing')} <a href="/scan" className="underline underline-offset-2"><b>{t('search.naanaaScan')}</b></a>{t('search.naanaaAdd')}
           </p>
         </div>
       </section>
@@ -855,17 +863,17 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
 }
 
 /** Liste de résultats : ProductCard « row » sur mobile, « grid » sur ordinateur */
-function ProductList({ products }: { products: Product[] }) {
+function ProductList({ products, locale }: { products: Product[]; locale: Locale }) {
   return (
     <>
       <div className="grid gap-3 md:hidden">
         {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
+          <ProductCard key={p.id} product={p} locale={locale} />
         ))}
       </div>
       <div className="hidden gap-4 md:grid md:grid-cols-3 lg:grid-cols-4">
         {products.map((p) => (
-          <ProductCard key={p.id} product={p} variant="grid" />
+          <ProductCard key={p.id} product={p} variant="grid" locale={locale} />
         ))}
       </div>
     </>

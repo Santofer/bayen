@@ -63,6 +63,9 @@ await Promise.all(
 )
 
 const categoryName = (category?.name_fr as string) ?? (category?.name as string) ?? slug ?? ''
+// Titre affiché dans la langue courante ; titre et description SEO restent en français
+const displayName = (locale === 'ary' && typeof category?.name_ar === 'string' && category.name_ar) || categoryName
+const productCount = `${products.length} ${t(products.length !== 1 ? 'history.itemsPlural' : 'history.itemSingular', locale)}`
 const pageTitle = category
   ? `${categoryName} — Bayen`
   : `Catégorie introuvable — Bayen`
@@ -80,9 +83,9 @@ const pageDescription = category
 >
   {/* Catégorie non trouvée */}
   {!category && (
-    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} mascot="oups" title="Catégorie introuvable" subtitle="La catégorie demandée n'existe pas.">
+    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} mascot="oups" title={t('category.notFound', locale)} subtitle={t('category.notFoundDesc', locale)}>
       <div class="flex flex-wrap gap-3">
-        <a href="/categories" class="btn dark-btn">Voir toutes les catégories</a>
+        <a href="/categories" class="btn dark-btn">{t('category.seeAll', locale)}</a>
         <a href="/scan" class="btn">{t('nav.scan', locale)}</a>
       </div>
     </PageHero>
@@ -90,7 +93,7 @@ const pageDescription = category
 
   {/* Catégorie trouvée : bandeau puis liste comme la recherche */}
   {category && (
-    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} title={categoryName} subtitle={`${products.length} produit${products.length !== 1 ? 's' : ''}`} />
+    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} title={displayName} subtitle={productCount} />
   )}
 
   <main class="screen">
@@ -99,17 +102,17 @@ const pageDescription = category
         {products.length > 0 ? (
           <Fragment>
             <div class="grid gap-3 md:hidden">
-              {products.map((product) => <ProductCard product={product as unknown as Product} />)}
+              {products.map((product) => <ProductCard product={product as unknown as Product} locale={locale} />)}
             </div>
             <div class="hidden gap-4 md:grid md:grid-cols-3 lg:grid-cols-4">
-              {products.map((product) => <ProductCard product={product as unknown as Product} variant="grid" />)}
+              {products.map((product) => <ProductCard product={product as unknown as Product} variant="grid" locale={locale} />)}
             </div>
           </Fragment>
         ) : (
           <Fragment>
             <div class="naanaa md:max-w-xl">
               <img src="/mascotte/naanaa-scan.webp" alt="" width="72" height="106" loading="lazy" />
-              <p class="bubble">Aucun produit dans cette catégorie pour le moment.</p>
+              <p class="bubble">{t('category.empty', locale)}</p>
             </div>
             <a href="/scan" class="btn primary justify-self-start">{t('nav.scan', locale)}</a>
           </Fragment>
@@ -120,7 +123,7 @@ const pageDescription = category
     <section class="section">
       <div class="naanaa grid-cols-[56px_minmax(0,1fr)] md:max-w-xl">
         <div class="m size-14"><img src="/mascotte/naanaa-scan.webp" alt="" width="56" height="56" loading="lazy" /></div>
-        <p class="bubble">Ton produit n'y est pas ? <a href="/scan" class="underline underline-offset-2"><b>Scanne-le</b></a>, on l'ajoute avec toi.</p>
+        <p class="bubble">{t('search.naanaaMissing', locale)} <a href="/scan" class="underline underline-offset-2"><b>{t('search.naanaaScan', locale)}</b></a>{t('search.naanaaAdd', locale)}</p>
       </div>
     </section>
   </main>

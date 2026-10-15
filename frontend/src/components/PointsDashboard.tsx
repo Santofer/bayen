@@ -11,6 +11,7 @@ import {
   Plus, Camera, Pencil, Check, Tag, ScanLine, Trophy,
 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 
 const DIRECTUS_URL = '/api/directus'
@@ -42,11 +43,11 @@ const ACTIONS = [
   { type: 'scan', key: 'points.actionScan', points: 1, Icon: ScanLine },
 ] as const
 
-const RANKS = [
-  { rank: 'nouveau', min: 0, next: 100, nextLabel: 'contributeur' },
-  { rank: 'contributeur', min: 100, next: 500, nextLabel: 'expert' },
-  { rank: 'expert', min: 500, next: 2000, nextLabel: 'vérifié' },
-  { rank: 'vérifié', min: 2000, next: null, nextLabel: null },
+const RANKS: Array<{ rank: string; label: TranslationKey; min: number; next: number | null; nextLabel: TranslationKey | null }> = [
+  { rank: 'nouveau', label: 'rank.nouveau', min: 0, next: 100, nextLabel: 'rank.contributeur' },
+  { rank: 'contributeur', label: 'rank.contributeur', min: 100, next: 500, nextLabel: 'rank.expert' },
+  { rank: 'expert', label: 'rank.expert', min: 500, next: 2000, nextLabel: 'rank.verified' },
+  { rank: 'vérifié', label: 'rank.verified', min: 2000, next: null, nextLabel: null },
 ]
 
 export default function PointsDashboard() {
@@ -96,7 +97,7 @@ export default function PointsDashboard() {
             <div>
               <p className="eyebrow text-encre/75">{t('points.rank')}</p>
               <p className="disp d-l mt-1 capitalize">
-                {loggedIn === false ? '—' : currentRank}
+                {loggedIn === false ? '—' : t(rankInfo.label)}
               </p>
             </div>
             <div className="text-end">
@@ -116,7 +117,7 @@ export default function PointsDashboard() {
             <div className="mt-4">
               <div className="mb-1.5 flex justify-between text-xs font-semibold opacity-85">
                 <span className="capitalize">
-                  {rankInfo.nextLabel} — {rankInfo.next} {t('points.points')}
+                  {rankInfo.nextLabel && t(rankInfo.nextLabel)} — {rankInfo.next} {t('points.points')}
                 </span>
                 <span>
                   {Math.max(0, rankInfo.next - points)} {t('points.toNext')}
@@ -132,7 +133,7 @@ export default function PointsDashboard() {
         {/* Naânaa applaudit dès le premier point */}
         {points > 0 && (
           <div className="naanaa">
-            <div className="m"><img src="/mascotte/naanaa-bravo.webp" alt="Naânaa qui applaudit" /></div>
+            <div className="m"><img src="/mascotte/naanaa-bravo.webp" alt={t('account.naanaaBravoAlt')} /></div>
             <p className="bubble">
               <b>{t('points.earned')} : +{points}</b>
             </p>
@@ -151,7 +152,7 @@ export default function PointsDashboard() {
               </span>
               <span className="text-sm font-bold leading-tight">{t(key)}</span>
               <span className="disp d-s text-brand-ink">
-                +{pts} {pts > 1 ? 'pts' : 'pt'}
+                +{pts} {pts > 1 ? t('rank.pts') : t('points.ptOne')}
               </span>
             </div>
           ))}

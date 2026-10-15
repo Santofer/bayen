@@ -65,10 +65,10 @@ if (featured) {
 
 // Niveaux de la maquette : mot court + aplat (texte encre posé dessus)
 const LEVELS = [
-  { key: 'banned', word: 'interdit', fill: 'bg-score-mauvais' },
-  { key: 'high', word: 'élevé', fill: 'bg-score-mauvais' },
-  { key: 'moderate', word: 'modéré', fill: 'bg-score-mediocre' },
-  { key: 'low', word: 'faible', fill: 'bg-score-excellent' },
+  { key: 'banned', word: t('beauty.level.banned', locale), fill: 'bg-score-mauvais' },
+  { key: 'high', word: t('beauty.level.high', locale), fill: 'bg-score-mauvais' },
+  { key: 'moderate', word: t('beauty.level.moderate', locale), fill: 'bg-score-mediocre' },
+  { key: 'low', word: t('beauty.level.low', locale), fill: 'bg-score-excellent' },
 ] as const
 const ORDER: string[] = LEVELS.map((l) => l.key)
 const levelOf = (k: string) => LEVELS.find((l) => l.key === k) ?? LEVELS[3]
@@ -96,7 +96,7 @@ function reason(f: Flag): string {
 const thumb = (img: string): string =>
   img.startsWith('http') ? img : `${CDN_URL}/${img}?width=200&height=200&fit=cover&quality=80&format=webp`
 const featuredMeta = featured
-  ? [featured.quantity, featured.cosmetic_risk?.token_count ? `${featured.cosmetic_risk.token_count} ingrédients` : null].filter(Boolean).join(' · ')
+  ? [featured.quantity, featured.cosmetic_risk?.token_count ? `${featured.cosmetic_risk.token_count} ${t('inci.count', locale)}` : null].filter(Boolean).join(' · ')
   : ''
 const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/>'
 
@@ -121,13 +121,13 @@ const jsonLd = {
     tone="beauty"
     mascot="loupe"
     back="/"
-    kicker="Univers beauté"
-    title="On lit l'INCI à ta place."
-    subtitle="Chaque ingrédient est vérifié contre les listes officielles (CosIng, annexes du règlement européen)."
+    kicker={t('beauty.hub.kicker', locale)}
+    title={t('beauty.hub.title', locale)}
+    subtitle={t('beauty.hub.subtitle', locale)}
   >
     <a href="/scan" class="btn dark-btn w-full md:w-auto">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={SCAN_ICON} />
-      Scanner une crème, un shampoing…
+      {t('beauty.hub.cta', locale)}
     </a>
   </PageHero>
 
@@ -146,7 +146,7 @@ const jsonLd = {
       </nav>
       <a href={href(cat, !noPe)} class:list={['chip w-max', noPe && 'fill bg-beauty']} aria-current={noPe ? 'true' : undefined}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
-        Sans perturbateur endocrinien suspecté
+        {t('beauty.hub.noPe', locale)}
       </a>
     </section>
 
@@ -162,7 +162,7 @@ const jsonLd = {
               <a href={`/produit/${featured.barcode}`} class="disp d-s mt-[3px] block hover:underline">{featured.name_fr}</a>
               {featuredMeta && <p class="muted text-[12.5px]">{featuredMeta}</p>}
             </div>
-            <ScoreSticker score={featured.scan_score} />
+            <ScoreSticker score={featured.scan_score} locale={locale} />
           </div>
           <div class="grid content-start gap-3.5">
             <div class="grid grid-cols-4 gap-2 text-center">
@@ -184,7 +184,7 @@ const jsonLd = {
                       <a href={`/ingredients-cosmetiques/${encodeURIComponent(f.inci_name)}`} class="font-bold hover:underline">{f.inci_name}</a>
                       {reason(f) && <> · {reason(f)}</>}
                       {isPe(f) && f.source_url && (
-                        <> · <a href={f.source_url} target="_blank" rel="noopener nofollow" class="muted text-xs underline">source ↗</a></>
+                        <> · <a href={f.source_url} target="_blank" rel="noopener nofollow" class="muted text-xs underline">{t('beauty.hub.sourceLink', locale)}</a></>
                       )}
                     </span>
                     <span class:list={['chip fill h-[22px] flex-none', levelOf(f.risk_level).fill]}>{levelOf(f.risk_level).word}</span>
@@ -199,14 +199,14 @@ const jsonLd = {
 
     <section class="section">
       <div class="sec-head">
-        <h2 class="disp d-m">Les plus sûrs</h2>
-        <a href={`/recherche?univers=beaute${cat ? `&cat=${cat}` : ''}`}>Tout voir</a>
+        <h2 class="disp d-m">{t('beauty.hub.safest', locale)}</h2>
+        <a href={`/recherche?univers=beaute${cat ? `&cat=${cat}` : ''}`}>{t('history.seeAll', locale)}</a>
       </div>
       {safest.length === 0 ? (
         <p class="card p-6 text-center text-sm muted">{t('search.noResults', locale)}</p>
       ) : (
         <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {safest.map((p) => <ProductCard product={p} />)}
+          {safest.map((p) => <ProductCard product={p} locale={locale} />)}
         </div>
       )}
     </section>

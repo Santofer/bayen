@@ -46,6 +46,7 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
   isWinner?: boolean
   crownLabel?: string
 }) {
+  const { t, locale } = useLocale()
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Product[]>([])
   const [open, setOpen] = useState(false)
@@ -84,12 +85,12 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
               <img src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}?width=400&height=400&fit=cover&format=webp`} alt={product.name_fr} />
             )}
           </div>
-          <button type="button" onClick={onClear} className="icon-btn absolute end-1.5 top-1.5 size-8" aria-label="Retirer">
+          <button type="button" onClick={onClear} className="icon-btn absolute end-1.5 top-1.5 size-8" aria-label={t('cart.remove')}>
             <X aria-hidden="true" />
           </button>
           {product.scan_score != null && (
             <span className="absolute -bottom-4 end-0.5">
-              <ScoreSticker score={product.scan_score} />
+              <ScoreSticker score={product.scan_score} locale={locale} />
             </span>
           )}
         </div>
@@ -102,8 +103,9 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
   }
 
   return (
-    <div className="relative grid min-h-[210px] content-start gap-2 rounded-[20px] border-2 border-dashed border-line/45 p-2.5 sm:p-3 md:min-h-[290px]">
-      <label className="card flex h-11 items-center gap-2 rounded-full px-3 shadow-[2px_2px_0_var(--color-hard)]">
+    <div className="grid min-h-[210px] content-start gap-2 rounded-[20px] border-2 border-dashed border-line/45 p-2.5 sm:p-3 md:relative md:min-h-[290px]">
+      {/* min-w-0 + w-0 : sinon la largeur intrinsèque du champ déborde de l'emplacement sur mobile */}
+      <label className="card flex h-11 min-w-0 items-center gap-2 rounded-full px-3 shadow-[2px_2px_0_var(--color-hard)]">
         <Search className="size-4 flex-none" aria-hidden="true" />
         <input
           value={q}
@@ -111,11 +113,12 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
           onFocus={() => results.length && setOpen(true)}
           placeholder={placeholder}
           aria-label={placeholder}
-          className="min-w-0 flex-1 border-0 bg-transparent text-[13.5px] font-medium outline-none"
+          className="w-0 min-w-0 flex-1 border-0 bg-transparent text-[13.5px] font-medium outline-none"
         />
       </label>
       {open && results.length > 0 && (
-        <ul className="card absolute inset-x-1.5 top-[60px] z-20 max-h-72 overflow-y-auto p-1">
+        // Mobile : la liste prend toute la largeur du duel (l'emplacement fait ~150 px)
+        <ul className="card absolute inset-x-0 top-[78px] z-20 max-h-72 overflow-y-auto p-1 md:inset-x-1.5 md:top-[60px]">
           {results.map((r) => (
             <li key={r.barcode}>
               <button
@@ -123,11 +126,12 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
                 onClick={() => { onPick(r); setQ(''); setResults([]); setOpen(false) }}
                 className="flex w-full items-center gap-2 rounded-[14px] p-1.5 text-start hover:bg-muted"
               >
-                <span className={cn('tile size-10 flex-none rounded-[10px] border-[1.5px]', productTint(r.barcode))}>
+                {/* Pas de vignette sur mobile : la place va au nom, lisible en entier */}
+                <span className={cn('tile size-10 flex-none rounded-[10px] border-[1.5px] max-md:hidden', productTint(r.barcode))}>
                   {r.image_front && <img src={r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=80&height=80&fit=cover&format=webp`} alt="" />}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[12.5px] font-semibold">{r.name_fr}</span>
+                  <span className="block text-[13px] font-semibold leading-snug md:truncate md:text-[12.5px]">{r.name_fr}</span>
                   <span className="muted block truncate text-[11px]">{r.brand}</span>
                 </span>
                 {r.scan_score != null && (
@@ -195,7 +199,7 @@ export default function Comparator() {
   return (
     <div className="grid gap-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:items-start md:gap-[18px]">
       {/* Duel : deux cartes produit + pastille VS, couronne sur le gagnant */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 pt-4 sm:gap-3">
+      <div className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 pt-4 sm:gap-3">
         <ProductSlot
           product={a} onPick={setA} onClear={() => { setA(null); setVerdict(null) }} placeholder={t('cmp.pickA')}
           isWinner={winner === 'A'} crownLabel={t('cmp.crownLabel')}
@@ -249,7 +253,7 @@ export default function Comparator() {
       ) : (
         <div className="naanaa md:pt-4">
           <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="72" />
-          <p className="bubble">Cherche deux produits, de préférence du même rayon : le meilleur score Bayen gagne, et je t'explique pourquoi.</p>
+          <p className="bubble">{t('cmp.hint')}</p>
         </div>
       )}
     </div>

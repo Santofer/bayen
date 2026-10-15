@@ -136,11 +136,11 @@ export default function MealFeedback({
   // Carte « C'est le bon plat ? » (maquette Repas) : Oui / Corriger
   return (
     <div className="card grid gap-3 p-4">
-      <p className="font-bold">C'est le bon plat ?</p>
+      <p className="font-bold">{t('mealfb.rightDish')}</p>
       <div className="grid grid-cols-2 gap-2.5">
         <button type="button" onClick={() => void send('up', false)} disabled={busy} className="btn">
           {busy && rating === null ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Check aria-hidden="true" />}
-          Oui, c'est ça
+          {t('mealfb.yesThat')}
         </button>
         <button
           type="button"
@@ -149,10 +149,10 @@ export default function MealFeedback({
           aria-expanded={rating === 'down'}
           className={rating === 'down' ? 'btn border-encre bg-ai text-encre' : 'btn'}
         >
-          Corriger
+          {t('mealfb.fix')}
         </button>
       </div>
-      <p className="muted text-[12.5px]">Tes corrections améliorent les estimations des plats marocains.</p>
+      <p className="muted text-[12.5px]">{t('mealfb.improves')}</p>
 
       {rating === 'down' && (
         <div className="grid gap-3 rounded-[14px] border-2 border-line bg-muted p-4">

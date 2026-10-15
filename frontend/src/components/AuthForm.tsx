@@ -42,14 +42,14 @@ export default function AuthForm() {
 
   /** Validation du formulaire */
   function validate(): string | null {
-    if (!email.trim()) return 'Veuillez saisir votre email'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Adresse email invalide'
-    if (!password) return 'Veuillez saisir votre mot de passe'
-    if (password.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères'
+    if (!email.trim()) return t('auth.err.emailRequired')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return t('auth.err.emailInvalid')
+    if (!password) return t('auth.err.passwordRequired')
+    if (password.length < 8) return t('auth.err.passwordShort')
 
     if (activeTab === 'register') {
-      if (!displayName.trim()) return 'Veuillez saisir votre nom'
-      if (password !== confirmPassword) return 'Les mots de passe ne correspondent pas'
+      if (!displayName.trim()) return t('auth.err.nameRequired')
+      if (password !== confirmPassword) return t('auth.err.passwordMismatch')
     }
 
     return null
@@ -79,7 +79,7 @@ export default function AuthForm() {
       const redirectTo = params.get('redirect') || '/'
       window.location.href = redirectTo
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      setError(err instanceof Error ? err.message : t('common.error'))
     } finally {
       setLoading(false)
     }
@@ -89,8 +89,8 @@ export default function AuthForm() {
     <div className="grid gap-5">
       {/* Naânaa accueille (pose « salut ») */}
       <div className="naanaa">
-        <div className="m"><img src="/mascotte/naanaa-salut.webp" alt="Naânaa qui salue" /></div>
-        <p className="bubble"><b>Ahlan !</b> {t('contrib.anonNote')}</p>
+        <div className="m"><img src="/mascotte/naanaa-salut.webp" alt={t('auth.naanaaAlt')} /></div>
+        <p className="bubble"><b>{t('auth.hello')}</b> {t('contrib.anonNote')}</p>
       </div>
 
       {/* Onglets */}
@@ -139,7 +139,7 @@ export default function AuthForm() {
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Votre nom"
+              placeholder={t('auth.namePlaceholder')}
               autoComplete="name"
               className={FIELD}
             />
@@ -156,7 +156,7 @@ export default function AuthForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="votre@email.com"
+            placeholder={t('auth.emailPlaceholder')}
             autoComplete="email"
             className={FIELD}
           />
@@ -172,7 +172,7 @@ export default function AuthForm() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Minimum 8 caractères"
+            placeholder={t('auth.passwordPlaceholder')}
             autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
             className={FIELD}
           />
@@ -189,7 +189,7 @@ export default function AuthForm() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Retapez le mot de passe"
+              placeholder={t('auth.confirmPlaceholder')}
               autoComplete="new-password"
               className={FIELD}
             />
@@ -211,7 +211,7 @@ export default function AuthForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              {activeTab === 'login' ? 'Connexion...' : 'Inscription...'}
+              {activeTab === 'login' ? t('auth.loggingIn') : t('auth.registering')}
             </span>
           ) : (
             activeTab === 'login' ? t('auth.loginBtn') : t('auth.registerBtn')

@@ -133,7 +133,7 @@ function NovaDisplay({ group }: { group: NovaGroup | null }) {
     return (
       <div className="space-y-1.5">
         <h3 className="text-sm font-medium text-foreground">{t('nova.title')}</h3>
-        <p className="text-xs text-muted-foreground">Groupe NOVA non déterminé</p>
+        <p className="text-xs text-muted-foreground">{t('product.novaUnknown')}</p>
       </div>
     )
   }
@@ -234,7 +234,7 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
           <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-x-2.5 gap-y-1">
             <span className="text-sm font-semibold text-foreground">{item.label}</span>
             <span className="text-[13px] tabular-nums text-muted-foreground">
-              <b className="text-foreground">{item.points}</b> / {item.max} pts
+              <b className="text-foreground">{item.points}</b> / {item.max} {t('rank.pts')}
             </span>
             {/* Barre à contour encre (maquette FichePop) */}
             <div className="col-span-2 h-2.5 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">

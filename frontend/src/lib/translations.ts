@@ -3,7 +3,11 @@
  * Chaque clé doit exister dans les deux locales.
  */
 
-export const translations = {
+import { refonte1 } from '@/lib/translations-refonte-1'
+import { refonte2 } from '@/lib/translations-refonte-2'
+import { refonte3 } from '@/lib/translations-refonte-3'
+
+const base = {
   // ── Navigation ──────────────────────────────────────────────
   'nav.home':       { fr: 'Accueil',       ary: 'الرئيسية' },
   'nav.main':       { fr: 'Navigation principale', ary: 'التنقل الرئيسي' },
@@ -12,6 +16,21 @@ export const translations = {
   'nav.searchShort':{ fr: 'Chercher',      ary: 'قلّب' },
   'nav.back':       { fr: 'Retour',        ary: 'رجوع' },
   'nav.ranking':    { fr: 'Classement',    ary: 'الترتيب' },
+  'nav.menu':       { fr: 'Menu',          ary: 'القائمة' },
+  // Carte produit et pastille (ProductCard)
+  'card.score':        { fr: 'Score',                 ary: 'النقطة' },
+  'card.scoreUnknown': { fr: 'Score inconnu',         ary: 'النقطة ما معروفاش' },
+  'card.inciMissing':  { fr: 'LISTE INCI MANQUANTE',  ary: 'لائحة INCI ناقصة' },
+  'card.noKnownRisk':  { fr: 'SANS RISQUE CONNU',     ary: 'بلا خطر معروف' },
+  'card.banned':       { fr: 'INTERDIT',              ary: 'ممنوع' },
+  'card.toWatch':      { fr: 'À SURVEILLER',          ary: 'خاصو مراقبة' },
+  'card.toWatchLower': { fr: 'à surveiller',          ary: 'خاصو مراقبة' },
+  'card.additive':     { fr: 'additif',               ary: 'مضاف' },
+  'card.additives':    { fr: 'additifs',              ary: 'مضافات' },
+  'card.ingredients':  { fr: 'ingrédients',           ary: 'مكونات' },
+  'nav.more':       { fr: 'Plus',          ary: 'كثر' },
+  'nav.close':      { fr: 'Fermer',        ary: 'سد' },
+  'nav.display':    { fr: 'Affichage',     ary: 'العرض' },
   'nav.inci':       { fr: 'Ingrédients cosmétiques', ary: 'مكونات التجميل' },
   'footer.tagline': { fr: '« Bayen » : c\'est clair, ça se voit. Un projet participatif, le score est calculé par un algorithme public.', ary: '« بيّن » : واضح وباين. مشروع تشاركي، والنقطة كتحسب بخوارزمية علنية.' },
   'nav.mealShort':  { fr: 'Repas',         ary: 'الماكلة' },
@@ -30,7 +49,7 @@ export const translations = {
   // ── Score ───────────────────────────────────────────────────
   'score.excellent':  { fr: 'Excellent',        ary: 'ممتاز' },
   'score.bon':        { fr: 'Bon',              ary: 'مزيان' },
-  'score.mediocre':   { fr: 'Médiocre',         ary: 'دون المستوى' },
+  'score.mediocre':   { fr: 'Médiocre',         ary: 'ضعيف' },
   'score.mauvais':    { fr: 'Mauvais',          ary: 'خايب' },
   'score.incomplete': { fr: 'Score incomplet',  ary: 'النتيجة ناقصة' },
   'score.unverified': { fr: 'Non vérifié',      ary: 'ما مأكدش' },
@@ -906,6 +925,9 @@ export const translations = {
   'beauty.tile.none':    { fr: 'sans risque',     ary: 'بلا خطر' },
   'beauty.completeCta':  { fr: 'Compléter la fiche · +20 pts', ary: 'كمّل البطاقة · +20 نقطة' },
 } as const
+
+// Textes ajoutés par la refonte Marché Pop, un fichier par lot d'écrans
+export const translations = { ...base, ...refonte1, ...refonte2, ...refonte3 } as const
 
 /** Clé de traduction valide */
 export type TranslationKey = keyof typeof translations

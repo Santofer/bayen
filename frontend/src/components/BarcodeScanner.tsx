@@ -17,6 +17,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Camera, Keyboard } from 'lucide-react'
+import { useLocale } from '@/lib/i18n'
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void
@@ -45,6 +46,10 @@ function hasNativeBarcodeDetector(): boolean {
 type TorchCapabilities = MediaTrackCapabilities & { torch?: boolean }
 
 export default function BarcodeScanner({ onScan, onError, disabled = false, className }: BarcodeScannerProps) {
+  const { t } = useLocale()
+  // En ref : changer de langue ne redémarre pas la caméra
+  const tRef = useRef(t)
+  tRef.current = t
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -203,10 +208,10 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
         setStarting(false)
         const message =
           err instanceof DOMException && err.name === 'NotAllowedError'
-            ? 'Accès caméra refusé. Autorisez dans les paramètres du navigateur.'
+            ? tRef.current('scan.denied')
             : err instanceof DOMException && err.name === 'NotFoundError'
-              ? 'Aucune caméra détectée.'
-              : `Erreur caméra : ${err instanceof Error ? err.message : 'inconnue'}`
+              ? tRef.current('scan.noCamera')
+              : `${tRef.current('scan.cameraError')} ${err instanceof Error ? err.message : tRef.current('scan.unknownError')}`
         setCameraError(message)
         setCameraActive(false)
         onErrorRef.current?.(message)
@@ -274,10 +279,10 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
             <div className="animate-scan absolute inset-x-[18px] h-[3px] rounded-[3px] bg-menthe shadow-[0_0_18px_var(--color-menthe)]" />
           </div>
           <div className="absolute inset-x-4 top-[calc(40%+118px)] z-10 grid justify-items-center gap-3 text-center">
-            <p className="text-[13px] opacity-80">Scan en rafale : enchaîne les produits, on garde la liste.</p>
+            <p className="text-[13px] opacity-80">{t('scan.burst')}</p>
             <button type="button" className="btn sm" onClick={() => setShowManual(true)}>
               <Keyboard aria-hidden="true" />
-              Saisir manuellement
+              {t('scan.manual')}
             </button>
           </div>
         </>
@@ -287,7 +292,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
       {starting && !cameraError && !showManual && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#120C1F]">
           <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" className="naanaa-bob mb-3 h-auto w-[72px]" />
-          <p className="text-xs opacity-70">Activation de la caméra...</p>
+          <p className="text-xs opacity-70">{t('scan.starting')}</p>
         </div>
       )}
 
@@ -298,7 +303,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
           <p className="max-w-xs text-sm">{cameraError}</p>
           <button type="button" className="btn sm" onClick={() => setShowManual(true)}>
             <Keyboard aria-hidden="true" />
-            Saisir manuellement
+            {t('scan.manual')}
           </button>
         </div>
       )}
@@ -307,7 +312,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
       {showManual && (
         <div className="absolute inset-0 z-20 grid place-items-center p-5">
           <form onSubmit={handleManualSubmit} className="card grid w-full max-w-sm gap-3 p-5">
-            <label htmlFor="manual-barcode" className="disp d-s">Code-barres</label>
+            <label htmlFor="manual-barcode" className="disp d-s">{t('product.barcodeTitle')}</label>
             <div className="flex gap-2">
               <input
                 id="manual-barcode"
@@ -321,11 +326,11 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
                 className="h-11 min-w-0 flex-1 rounded-full border-2 border-line bg-background px-4 py-2 font-display text-sm tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 autoFocus
               />
-              <button type="submit" className="btn primary min-h-11" disabled={!isValidBarcode(manualInput.trim())}>Chercher</button>
+              <button type="submit" className="btn primary min-h-11" disabled={!isValidBarcode(manualInput.trim())}>{t('scan.search')}</button>
             </div>
             <button type="button" className="btn sm flat justify-self-start" onClick={() => { setShowManual(false); setStarting(true) }}>
               <Camera aria-hidden="true" />
-              Utiliser la caméra
+              {t('scan.camera')}
             </button>
           </form>
         </div>
@@ -333,15 +338,15 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
 
       {/* Barre du haut : fermer · consigne · lampe */}
       <div className="absolute inset-x-4 top-3.5 z-30 flex items-center justify-between gap-2">
-        <a className="icon-btn md:invisible" href="/" aria-label="Fermer le scanner">
+        <a className="icon-btn md:invisible" href="/" aria-label={t('scan.close')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </a>
-        <span className="chip border-creme/40 bg-creme/15 text-creme">Vise le code-barres</span>
+        <span className="chip border-creme/40 bg-creme/15 text-creme">{t('scan.aim')}</span>
         {torchAvailable ? (
           <button
             type="button"
             className={cn('icon-btn', torchOn && 'bg-citron text-encre')}
-            aria-label={torchOn ? 'Éteindre la lampe' : 'Allumer la lampe'}
+            aria-label={torchOn ? t('scan.torchOff') : t('scan.torchOn')}
             aria-pressed={torchOn}
             onClick={toggleTorch}
           >

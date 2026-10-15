@@ -192,7 +192,7 @@ export default function ScanPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5">
-                  <button type="button" className="btn" onClick={next}>{SCAN_ICON} Suivant</button>
+                  <button type="button" className="btn" onClick={next}>{SCAN_ICON} {t('scan.next')}</button>
                   <a className="btn primary" href={`/contribuer/${sheet.barcode}`}>{t('contrib.addThis')}</a>
                 </div>
               </>
@@ -225,7 +225,7 @@ export default function ScanPage() {
 
 /** Contenu de la feuille quand le produit est trouvé (maquette Scan) */
 function FoundSheet({ sheet, onNext }: { sheet: Extract<Sheet, { kind: 'found' }>; onNext: () => void }) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const { product, barcode } = sheet
   const img = product.image_front
     ? (product.image_front.startsWith('http')
@@ -243,18 +243,18 @@ function FoundSheet({ sheet, onNext }: { sheet: Extract<Sheet, { kind: 'found' }
           {img && <img src={img} alt={product.name_fr} />}
         </div>
         <div className="min-w-0">
-          <p className="eyebrow">Trouvé en {sheet.seconds.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} s</p>
+          <p className="eyebrow">{t('scan.foundIn').replace('{n}', sheet.seconds.toLocaleString('fr-FR', { maximumFractionDigits: 1 }))}</p>
           <p className="disp d-s mt-[3px] line-clamp-2">{product.name_fr}</p>
           {meta && <p className="muted truncate text-[12.5px]">{meta}</p>}
         </div>
-        <ScoreSticker score={sheet.score} />
+        <ScoreSticker score={sheet.score} locale={locale} />
       </div>
 
       {(sugars != null || sheet.worst || product.is_halal) && (
         <div className="chips">
           {sugars != null && (
             <span className={cn('chip', sugars > 12.5 && 'fill bg-[#FFC9BC]')}>
-              {sugars.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} g de sucres / 100 g
+              {t('scan.sugarsPer100').replace('{n}', sugars.toLocaleString('fr-FR', { maximumFractionDigits: 1 }))}
             </span>
           )}
           {sheet.worst && (
@@ -262,22 +262,22 @@ function FoundSheet({ sheet, onNext }: { sheet: Extract<Sheet, { kind: 'found' }
               {sheet.worst.code} · {t(RISK_KEY[sheet.worst.risk]).toLowerCase()}
             </span>
           )}
-          {product.is_halal && <span className="chip fill bg-[#BFF0DC]">{CHECK_ICON} Halal</span>}
+          {product.is_halal && <span className="chip fill bg-[#BFF0DC]">{CHECK_ICON} {t('halal.badge')}</span>}
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-2.5">
-        <button type="button" className="btn" onClick={onNext}>{SCAN_ICON} Suivant</button>
+        <button type="button" className="btn" onClick={onNext}>{SCAN_ICON} {t('scan.next')}</button>
         <a className="btn primary" href={`/produit/${barcode}`}>
-          Voir la fiche
+          {t('scan.seeProduct')}
           <svg className="rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
         </a>
       </div>
 
       {sheet.better && (
         <a href={`/produit/${sheet.better.barcode}`} className="flex items-center gap-2.5 rounded-[14px] bg-muted px-3 py-2.5 text-[13.5px]">
-          <ScoreSticker score={sheet.better.scan_score} size="sm" className="size-[38px]" />
-          <span className="min-w-0"><b>Mieux :</b> {sheet.better.name_fr}{sheet.better.brand ? ` · ${sheet.better.brand}` : ''}</span>
+          <ScoreSticker score={sheet.better.scan_score} size="sm" className="size-[38px]" locale={locale} />
+          <span className="min-w-0"><b>{t('scan.better')}</b> {sheet.better.name_fr}{sheet.better.brand ? ` · ${sheet.better.brand}` : ''}</span>
         </a>
       )}
     </>

@@ -115,16 +115,16 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
         const data = (await res.json()) as { confirmations?: number; verified?: boolean }
         setHasConfirmed(true)
         setConfirmCount(data.confirmations ?? confirmCount + 1)
-        setFeedback(data.verified ? 'Fiche vérifiée, merci !' : 'Confirmation enregistrée !')
+        setFeedback(data.verified ? t('product.verifiedThanks') : t('product.confirmSaved'))
         setTimeout(() => setFeedback(null), 3000)
       } else if (res.status === 409) {
         setHasConfirmed(true)
-        setFeedback('Tu as déjà confirmé cette fiche.')
+        setFeedback(t('product.alreadyConfirmed'))
         setTimeout(() => setFeedback(null), 3000)
       }
     } catch { /* erreur silencieuse */ }
     setSubmitting(false)
-  }, [canAct, hasConfirmed, barcode, confirmCount])
+  }, [canAct, hasConfirmed, barcode, confirmCount, t])
 
   const handleReport = useCallback(async () => {
     if (!canAct || !reportText.trim()) return
@@ -147,12 +147,12 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       if (res.ok) {
         setShowReport(false)
         setReportText('')
-        setFeedback('Signalement envoyé ! Un modérateur l\'examinera.')
+        setFeedback(t('product.reportSent'))
         setTimeout(() => setFeedback(null), 3000)
       }
     } catch { /* erreur silencieuse */ }
     setSubmitting(false)
-  }, [canAct, reportText, productId])
+  }, [canAct, reportText, productId, t])
 
   const isAdmin = userRole === 'admin'
 
@@ -165,15 +165,15 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       if (success) {
         window.location.href = '/'
       } else {
-        setFeedback('Erreur lors de la suppression')
+        setFeedback(t('product.deleteError'))
       }
     } catch {
-      setFeedback('Erreur lors de la suppression')
+      setFeedback(t('product.deleteError'))
     } finally {
       setDeleting(false)
       setShowDeleteConfirm(false)
     }
-  }, [productId])
+  }, [productId, t])
 
   // Ne rien afficher si pas connecté ou pas le niveau requis (sauf admin)
   // — retour null sans wrapper pour éviter le bloc vide sur la page produit.
@@ -186,7 +186,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       <div className="sec-head">
         <h2 className="disp d-m">{t('product.actionsTitle')}</h2>
         {confidenceScore >= 0.8 && (
-          <span className="chip fill flex-none bg-menthe">Vérifié</span>
+          <span className="chip fill flex-none bg-menthe">{t('score.verified')}</span>
         )}
       </div>
       <div className="card p-4 md:p-5">
@@ -222,7 +222,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
             className="btn sm border-destructive text-destructive sm:ms-auto"
           >
             <Trash2 size={16} />
-            Supprimer ce produit
+            {t('product.delete')}
           </button>
         )}
       </div>
@@ -230,8 +230,8 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       {/* Confirmation suppression */}
       {showDeleteConfirm && (
         <div className="mt-3 rounded-xl border-2 border-destructive bg-tomate/15 p-4 space-y-3">
-          <p className="text-sm font-semibold text-foreground">Supprimer définitivement ce produit ?</p>
-          <p className="text-xs font-semibold text-destructive">Cette action est irréversible.</p>
+          <p className="text-sm font-semibold text-foreground">{t('product.deleteQ')}</p>
+          <p className="text-xs font-semibold text-destructive">{t('product.irreversible')}</p>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -239,10 +239,10 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? 'Suppression...' : 'Confirmer la suppression'}
+              {deleting ? t('product.deleting') : t('product.deleteConfirm')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
-              Annuler
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
@@ -251,20 +251,20 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       {/* Modale signalement */}
       {showReport && (
         <div className="mt-3 rounded-xl border-[1.5px] border-line bg-popover p-4 space-y-3">
-          <p className="text-sm font-medium">Qu'est-ce qui est incorrect ?</p>
+          <p className="text-sm font-medium">{t('product.reportQ')}</p>
           <textarea
             value={reportText}
             onChange={(e) => setReportText(e.target.value)}
-            placeholder="Décrivez l'erreur (données nutritionnelles incorrectes, mauvaise image, etc.)"
+            placeholder={t('product.reportPlaceholder')}
             className="w-full h-24 rounded-xl border-2 border-line bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             autoFocus
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleReport} disabled={!reportText.trim() || submitting}>
-              Envoyer le signalement
+              {t('product.reportSend')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => { setShowReport(false); setReportText('') }}>
-              Annuler
+              {t('common.cancel')}
             </Button>
           </div>
         </div>

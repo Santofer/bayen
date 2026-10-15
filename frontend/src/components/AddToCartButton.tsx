@@ -54,7 +54,7 @@ export default function AddToCartButton({ item, compact = false, look }: AddToCa
   if (look === 'bar') {
     return (
       <button type="button" onClick={toggle} className={added ? 'btn' : 'btn primary'}>
-        {added ? <><Check aria-hidden="true" />{t('cart.added')}</> : <>{BASKET}À mes courses</>}
+        {added ? <><Check aria-hidden="true" />{t('cart.added')}</> : <>{BASKET}{t('cart.toMyList')}</>}
       </button>
     )
   }
@@ -68,9 +68,9 @@ export default function AddToCartButton({ item, compact = false, look }: AddToCa
         className={`w-full min-w-0 px-2 ${added ? 'text-brand-ink' : ''}`}
       >
         {added ? (
-          <><Check className="mr-1 h-3.5 w-3.5 flex-shrink-0" /><span className="truncate">{t('cart.addedShort')}</span></>
+          <><Check className="me-1 h-3.5 w-3.5 flex-shrink-0" /><span className="truncate">{t('cart.addedShort')}</span></>
         ) : (
-          <><ShoppingBasket className="mr-1 h-3.5 w-3.5 flex-shrink-0" /><span className="truncate">{t('cart.addShort')}</span></>
+          <><ShoppingBasket className="me-1 h-3.5 w-3.5 flex-shrink-0" /><span className="truncate">{t('cart.addShort')}</span></>
         )}
       </Button>
     )
@@ -84,9 +84,9 @@ export default function AddToCartButton({ item, compact = false, look }: AddToCa
       className={added ? 'text-brand-ink' : ''}
     >
       {added ? (
-        <><Check className="mr-1.5 h-4 w-4" />{t('cart.added')}</>
+        <><Check className="me-1.5 h-4 w-4" />{t('cart.added')}</>
       ) : (
-        <><ShoppingBasket className="mr-1.5 h-4 w-4" />{t('cart.add')}</>
+        <><ShoppingBasket className="me-1.5 h-4 w-4" />{t('cart.add')}</>
       )}
     </Button>
   )

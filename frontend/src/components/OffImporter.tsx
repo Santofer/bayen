@@ -5,6 +5,7 @@
 
 import { useState } from 'react'
 import { getAccessToken } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { productTint } from '@/components/ProductCard'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
@@ -73,6 +74,7 @@ interface OffProduct {
 type ImportState = 'idle' | 'searching' | 'preview' | 'importing' | 'done' | 'error' | 'exists'
 
 export default function OffImporter() {
+  const { t } = useLocale()
   const [barcode, setBarcode] = useState('')
   const [barcodeList, setBarcodeList] = useState('')
   const [mode, setMode] = useState<'single' | 'batch'>('single')
@@ -164,7 +166,7 @@ export default function OffImporter() {
   // Importer un produit OFF dans Directus
   async function importProduct(offProduct: OffProduct): Promise<boolean> {
     const token = await getAccessToken()
-    if (!token) throw new Error('Non connecté')
+    if (!token) throw new Error(t('import.notLogged'))
 
     // Calculer le score
     const additiveRisks = offProduct.additives.map(code => ({ code, risk_level: 'limited' as RiskLevel }))
@@ -331,7 +333,7 @@ export default function OffImporter() {
   // Recherche single
   async function handleSearch() {
     const code = barcode.trim()
-    if (!/^\d{8,13}$/.test(code)) { setError('Code-barres invalide (8 ou 13 chiffres)'); return }
+    if (!/^\d{8,13}$/.test(code)) { setError(t('import.invalidBarcode')); return }
 
     setState('searching')
     setError('')
@@ -342,12 +344,12 @@ export default function OffImporter() {
       if (exists) { setState('exists'); return }
 
       const offProduct = await searchOff(code)
-      if (!offProduct) { setError('Produit non trouvé sur Open Food Facts'); setState('error'); return }
+      if (!offProduct) { setError(t('import.notFoundOff')); setState('error'); return }
 
       setProduct(offProduct)
       setState('preview')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur réseau')
+      setError(e instanceof Error ? e.message : t('import.networkError'))
       setState('error')
     }
   }
@@ -359,9 +361,9 @@ export default function OffImporter() {
     try {
       const ok = await importProduct(product)
       if (ok) setState('done')
-      else { setError("Erreur lors de l'import"); setState('error') }
+      else { setError(t('import.importError')); setState('error') }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur')
+      setError(e instanceof Error ? e.message : t('import.error'))
       setState('error')
     }
   }
@@ -369,7 +371,7 @@ export default function OffImporter() {
   // Import batch
   async function handleBatchImport() {
     const codes = barcodeList.split(/[\n,;\s]+/).map(c => c.trim()).filter(c => /^\d{8,13}$/.test(c))
-    if (codes.length === 0) { setError('Aucun code-barres valide'); return }
+    if (codes.length === 0) { setError(t('import.noValid')); return }
 
     setState('importing')
     setBatchResults([])
@@ -409,8 +411,8 @@ export default function OffImporter() {
   return (
     <div className="grid gap-5 md:max-w-[760px]">
       {/* Mode : puces */}
-      <div className="chips gap-2" role="group" aria-label="Mode d'import">
-        {([['single', 'Un produit'], ['batch', 'Import en masse']] as const).map(([m, label]) => (
+      <div className="chips gap-2" role="group" aria-label={t('import.modeAria')}>
+        {([['single', t('import.single')], ['batch', t('import.batch')]] as const).map(([m, label]) => (
           <button
             key={m}
             type="button"
@@ -431,8 +433,8 @@ export default function OffImporter() {
               <input
                 type="text"
                 inputMode="numeric"
-                placeholder="Code-barres (ex: 6111080016394)"
-                aria-label="Code-barres"
+                placeholder={t('import.barcodePh')}
+                aria-label={t('fixForm.barcode')}
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -441,14 +443,14 @@ export default function OffImporter() {
               />
             </label>
             <button type="button" className="btn primary min-h-[50px]" onClick={handleSearch} disabled={busy}>
-              {state === 'searching' ? <Loader2 className="animate-spin" aria-label="Recherche…" /> : 'Rechercher'}
+              {state === 'searching' ? <Loader2 className="animate-spin" aria-label={t('import.searching')} /> : t('search.searchBtn')}
             </button>
           </div>
 
           {state === 'exists' && (
             <div className="card tint-citron grid gap-1 p-4">
-              <p className="text-sm font-semibold">Ce produit existe déjà dans Bayen.</p>
-              <a href={`/produit/${barcode}`} className="w-max text-sm font-bold underline underline-offset-[3px]">Voir la fiche →</a>
+              <p className="text-sm font-semibold">{t('import.exists')}</p>
+              <a href={`/produit/${barcode}`} className="w-max text-sm font-bold underline underline-offset-[3px]">{t('import.seeProduct')}</a>
             </div>
           )}
 
@@ -464,7 +466,7 @@ export default function OffImporter() {
                   <div className="chips mt-2">
                     {product.nutriscore && <span className="chip">Nutri-Score {product.nutriscore}</span>}
                     {product.nova && <span className="chip">NOVA {product.nova}</span>}
-                    {product.additives.length > 0 && <span className="chip">{product.additives.length} additifs</span>}
+                    {product.additives.length > 0 && <span className="chip">{product.additives.length} {t('card.additives')}</span>}
                   </div>
                 </div>
               </div>
@@ -472,10 +474,10 @@ export default function OffImporter() {
               {/* Aperçu nutritionnel (données OFF pour 100 g) */}
               <div className="grid grid-cols-4 gap-2 text-center">
                 {[
-                  { label: 'Énergie', value: product.energy, unit: 'kcal' },
-                  { label: 'Lipides', value: product.fat, unit: 'g' },
-                  { label: 'Sucres', value: product.sugars, unit: 'g' },
-                  { label: 'Sel', value: product.salt, unit: 'g' },
+                  { label: t('product.energy'), value: product.energy, unit: 'kcal' },
+                  { label: t('product.fat'), value: product.fat, unit: 'g' },
+                  { label: t('import.sugars'), value: product.sugars, unit: 'g' },
+                  { label: t('product.salt'), value: product.salt, unit: 'g' },
                 ].map(({ label, value, unit }) => (
                   <div key={label} className="rounded-[14px] border-2 border-line px-1 py-2">
                     <b className="num block font-display text-[15px]">{value != null ? value : '—'}</b>
@@ -486,18 +488,18 @@ export default function OffImporter() {
 
               <button type="button" className="btn primary w-full" onClick={handleImport} disabled={state === 'importing'}>
                 {state === 'importing' ? (
-                  <><Loader2 className="animate-spin" aria-hidden="true" /> Import en cours...</>
-                ) : 'Importer dans Bayen'}
+                  <><Loader2 className="animate-spin" aria-hidden="true" /> {t('import.importing')}</>
+                ) : t('import.importBtn')}
               </button>
             </div>
           )}
 
           {state === 'done' && product && (
             <div className="card tint-menthe grid justify-items-center gap-2 p-4 text-center">
-              <p className="flex items-center gap-1.5 text-sm font-semibold"><CheckCircle size={16} /> {product.name} importé avec succès !</p>
-              <a href={`/produit/${product.barcode}`} className="text-sm font-bold underline underline-offset-[3px]">Voir la fiche →</a>
+              <p className="flex items-center gap-1.5 text-sm font-semibold"><CheckCircle size={16} /> {t('import.success').replace('{name}', product.name)}</p>
+              <a href={`/produit/${product.barcode}`} className="text-sm font-bold underline underline-offset-[3px]">{t('import.seeProduct')}</a>
               <button type="button" className="btn sm mt-1" onClick={() => { setState('idle'); setBarcode(''); setProduct(null) }}>
-                Importer un autre
+                {t('import.another')}
               </button>
             </div>
           )}
@@ -507,7 +509,7 @@ export default function OffImporter() {
               <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="56" className="size-14" />
               <div className="bubble grid justify-items-start gap-2">
                 <p className="text-sm">{error}</p>
-                <button type="button" className="btn sm" onClick={() => setState('idle')}>Réessayer</button>
+                <button type="button" className="btn sm" onClick={() => setState('idle')}>{t('common.retry')}</button>
               </div>
             </div>
           )}
@@ -519,16 +521,16 @@ export default function OffImporter() {
         <div className="grid gap-4">
           <textarea
             rows={6}
-            placeholder={"Collez une liste de codes-barres (un par ligne) :\n6111080016394\n3017620422003\n5449000131812"}
-            aria-label="Liste de codes-barres"
+            placeholder={`${t('import.batchPh')}\n6111080016394\n3017620422003\n5449000131812`}
+            aria-label={t('import.batchAria')}
             value={barcodeList}
             onChange={(e) => setBarcodeList(e.target.value)}
             className="w-full resize-none rounded-2xl border-2 border-line bg-background px-4 py-3 font-mono text-sm outline-none focus:border-brand-ink"
           />
           <button type="button" className="btn primary w-full" onClick={handleBatchImport} disabled={state === 'importing'}>
             {state === 'importing' ? (
-              <><Loader2 className="animate-spin" aria-hidden="true" /> Import en cours... {batchProgress}%</>
-            ) : `Importer ${batchCount} produits`}
+              <><Loader2 className="animate-spin" aria-hidden="true" /> {t('import.importing')} {batchProgress}%</>
+            ) : t('import.importN').replace('{n}', String(batchCount))}
           </button>
 
           {error && state !== 'importing' && batchResults.length === 0 && (
@@ -549,9 +551,9 @@ export default function OffImporter() {
                 <li key={i} className="flex items-center gap-3 border-b-[1.5px] border-line px-4 py-2 text-xs last:border-b-0">
                   <span className="num w-28 flex-none font-mono">{r.barcode}</span>
                   {r.status === 'imported' && <span className="flex min-w-0 items-center gap-1 truncate font-semibold"><CheckCircle size={14} className="flex-none text-brand-ink" /> {r.name}</span>}
-                  {r.status === 'exists' && <span className="chip fill bg-citron"><AlertTriangle /> Déjà existant</span>}
-                  {r.status === 'not_found' && <span className="muted flex items-center gap-1"><XCircle size={14} /> Non trouvé sur OFF</span>}
-                  {r.status === 'error' && <span className="flex items-center gap-1 text-destructive"><XCircle size={14} /> Erreur</span>}
+                  {r.status === 'exists' && <span className="chip fill bg-citron"><AlertTriangle /> {t('import.alreadyExists')}</span>}
+                  {r.status === 'not_found' && <span className="muted flex items-center gap-1"><XCircle size={14} /> {t('import.notOnOff')}</span>}
+                  {r.status === 'error' && <span className="flex items-center gap-1 text-destructive"><XCircle size={14} /> {t('import.error')}</span>}
                 </li>
               ))}
             </ul>

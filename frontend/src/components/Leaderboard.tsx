@@ -8,6 +8,8 @@
 
 import { useState, useEffect } from 'react'
 import { getAccessToken } from '@/lib/auth'
+import { t } from '@/lib/i18n'
+import type { Locale } from '@/lib/translations'
 import { cn } from '@/lib/utils'
 
 const DIRECTUS_URL = '/api/directus'
@@ -28,6 +30,8 @@ interface LeaderboardProps {
   tierLabels?: Record<string, string>
   contributionsLabel?: string
   pointsSuffix?: string
+  /** Langue des textes (rendu serveur : locale du cookie, passée par la page) */
+  locale?: Locale
 }
 
 // Aplat d'avatar par rang (mêmes couleurs que le compte ; texte encre dessus)
@@ -64,7 +68,7 @@ interface Row {
 const fmt = (n: number) => n.toLocaleString('fr-FR')
 
 /** Pastille ronde : rang (médaille pour le top 3) */
-function RankDot({ rank, className }: { rank: number; className?: string }) {
+function RankDot({ rank, className, locale }: { rank: number; className?: string; locale?: Locale }) {
   return (
     <span
       className={cn(
@@ -72,7 +76,7 @@ function RankDot({ rank, className }: { rank: number; className?: string }) {
         rank <= 3 ? `${MEDAL[rank - 1]} border-encre text-encre` : 'border-line bg-muted',
         className
       )}
-      aria-label={`Rang ${rank}`}
+      aria-label={t('rankPage.rankAria', locale).replace('{n}', String(rank))}
     >
       {rank}
     </span>
@@ -97,6 +101,7 @@ export default function Leaderboard({
   tierLabels,
   contributionsLabel = 'contributions',
   pointsSuffix = 'pts',
+  locale,
 }: LeaderboardProps) {
   const [me, setMe] = useState<MyStats['profile'] | null>(null)
   const [showAll, setShowAll] = useState(false)
@@ -139,7 +144,7 @@ export default function Leaderboard({
     rows.push({
       userId: me.id,
       rank: me.position,
-      userName: me.display_name ?? 'Toi',
+      userName: me.display_name ?? t('rankPage.you', locale),
       tier: me.rank,
       contributions: me.contributions_count,
       points: me.points,
@@ -163,10 +168,10 @@ export default function Leaderboard({
         )}
         aria-current={isMe ? 'true' : undefined}
       >
-        <RankDot rank={r.rank} />
+        <RankDot rank={r.rank} locale={locale} />
         <Avatar name={r.userName} tier={r.tier} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-bold">{r.userName}{isMe && ' · toi'}</span>
+          <span className="block truncate font-bold">{r.userName}{isMe && ` · ${t('rankPage.youTag', locale)}`}</span>
           <span className="muted block truncate text-[12px]">
             {tierLabel(r.tier)} · {fmt(r.contributions)} {contributionsLabel}
           </span>
@@ -182,7 +187,7 @@ export default function Leaderboard({
     <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] md:items-start md:gap-[18px]">
       {/* Podium : 2 · 1 · 3, le premier plus haut */}
       {podium.length > 0 && (
-        <ol className="grid grid-cols-3 items-end gap-2.5" aria-label="Podium">
+        <ol className="grid grid-cols-3 items-end gap-2.5" aria-label={t('rankPage.podium', locale)}>
           {podium.map((r) => (
             <li
               key={r.userId}
@@ -193,7 +198,7 @@ export default function Leaderboard({
                 r.rank === 3 && 'order-3'
               )}
             >
-              <RankDot rank={r.rank} className="-rotate-8" />
+              <RankDot rank={r.rank} className="-rotate-8" locale={locale} />
               <Avatar name={r.userName} tier={r.tier} size={r.rank === 1 ? 'size-14 text-xl' : 'size-11'} />
               <span className="w-full truncate text-[13px] font-bold">{r.userName}</span>
               <b className="num font-display text-[15px]">
@@ -206,7 +211,7 @@ export default function Leaderboard({
 
       {/* Lignes du classement */}
       <div className="grid gap-3">
-        <ol className="card overflow-hidden" aria-label="Classement">
+        <ol className="card overflow-hidden" aria-label={t('nav.ranking', locale)}>
           {visible.map(line)}
           {meHidden && (
             <>
@@ -217,7 +222,7 @@ export default function Leaderboard({
         </ol>
         {rows.length > PAGE && (
           <button type="button" className="btn sm w-max" onClick={() => setShowAll((v) => !v)}>
-            {showAll ? 'Réduire' : `Voir tout le classement (${rows.length})`}
+            {showAll ? t('inci.hide', locale) : t('rankPage.seeAll', locale).replace('{n}', String(rows.length))}
           </button>
         )}
       </div>

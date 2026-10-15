@@ -5,6 +5,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { getAccessToken } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import {
@@ -182,6 +183,7 @@ function clearResume(): void {
 }
 
 export default function BulkOffImporter() {
+  const { t } = useLocale()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [isDone, setIsDone] = useState(false)
@@ -265,7 +267,7 @@ export default function BulkOffImporter() {
    */
   async function importSingleProduct(p: OffSearchProduct): Promise<boolean> {
     const token = await getAccessToken()
-    if (!token) throw new Error('Session expirée — merci de te reconnecter')
+    if (!token) throw new Error(t('import.sessionExpired'))
     const name = p.product_name_fr || p.product_name || 'Inconnu'
     const brand = (p.brands || 'Inconnu').split(',')[0].trim()
     const nutriments = p.nutriments ?? ({} as OffNutriments)
@@ -409,21 +411,21 @@ export default function BulkOffImporter() {
 
     const token = await getAccessToken()
     if (!token) {
-      addLog('error', 'Non connecte — impossible de continuer')
+      addLog('error', t('import.notLoggedStop'))
       setIsRunning(false)
       return
     }
 
     let page = resumeState?.nextPage ?? 1
     if (resumeState) {
-      addLog('skipped', `Reprise à la page ${page} (${initialStats.imported} produits déjà importés)`)
+      addLog('skipped', t('import.log.resume').replace('{p}', String(page)).replace('{n}', String(initialStats.imported)))
     }
     let totalPageCount = initialStats.pageCount
     const localStats: ImportStats = { ...initialStats }
 
     // Parcourir les pages OFF
     while (!stopRef.current) {
-      addLog('skipped', `--- Page ${page} ---`)
+      addLog('skipped', `--- ${t('import.page')} ${page} ---`)
 
       // Le proxy /bayen-api/off-search gère cache (15min), throttle 10s,
       // et backoff 20s/60s côté serveur (plafond tunnel Cloudflare). Si le
@@ -437,22 +439,22 @@ export default function BulkOffImporter() {
           const res = await fetch(buildOffUrl(page))
           if (res.ok) {
             offData = (await res.json()) as OffSearchResponse
-            if (attempt > 1) addLog('skipped', `(réussi après ${attempt} tentatives)`)
+            if (attempt > 1) addLog('skipped', t('import.log.retryOk').replace('{n}', String(attempt)))
             break
           }
           lastError = `HTTP ${res.status}`
         } catch (err) {
-          lastError = err instanceof Error ? err.message : 'inconnu'
+          lastError = err instanceof Error ? err.message : t('import.unknown')
         }
         if (attempt < 3) {
           const pauseSec = 120 // 2 min pour laisser OFF relâcher le blacklist
-          addLog('skipped', `Page ${page} : ${lastError}, pause ${pauseSec}s puis retry...`)
+          addLog('skipped', t('import.log.pause').replace('{p}', String(page)).replace('{e}', lastError).replace('{s}', String(pauseSec)))
           await new Promise((r) => setTimeout(r, pauseSec * 1000))
         }
       }
 
       if (!offData) {
-        addLog('error', `Page ${page} impossible après 3 tentatives (${lastError}) — import stoppé`)
+        addLog('error', t('import.log.pageFail').replace('{p}', String(page)).replace('{e}', lastError))
         break
       }
 
@@ -461,7 +463,7 @@ export default function BulkOffImporter() {
         localStats.pageCount = totalPageCount
         addLog(
           'skipped',
-          `${offData.count} produits sur OFF Maroc — ${totalPageCount} pages`
+          t('import.log.total').replace('{n}', String(offData.count)).replace('{p}', String(totalPageCount))
         )
       }
 
@@ -476,7 +478,7 @@ export default function BulkOffImporter() {
       if (incompleteCount > 0) {
         addLog(
           'skipped',
-          `Ignores (incomplets): ${incompleteCount} produits sur cette page`
+          t('import.log.incomplete').replace('{n}', String(incompleteCount))
         )
       }
 
@@ -492,7 +494,7 @@ export default function BulkOffImporter() {
         const exists = await checkExists(code)
         if (exists) {
           localStats.alreadyInBayen += 1
-          addLog('exists', `Existe deja: ${code}`)
+          addLog('exists', t('import.log.exists').replace('{c}', code))
           setStats({ ...localStats })
           continue
         }
@@ -501,12 +503,12 @@ export default function BulkOffImporter() {
         try {
           await importSingleProduct(product)
           localStats.imported += 1
-          addLog('imported', `Importe: ${name} (${code})`)
+          addLog('imported', t('import.log.imported').replace('{name}', name).replace('{c}', code))
         } catch (err) {
           localStats.errors += 1
           addLog(
             'error',
-            `Erreur: ${code} — ${err instanceof Error ? err.message : 'inconnu'}`
+            `${t('import.error')}: ${code} — ${err instanceof Error ? err.message : t('import.unknown')}`
           )
         }
 
@@ -543,11 +545,11 @@ export default function BulkOffImporter() {
     if (completedAll) {
       clearResume()
       setResume(null)
-      addLog('imported', '--- Import termine ---')
+      addLog('imported', t('import.log.done'))
     } else if (stopRef.current) {
-      addLog('skipped', '--- Import arrete par l\'utilisateur — reprise possible ---')
+      addLog('skipped', t('import.log.stopped'))
     } else {
-      addLog('skipped', '--- Import interrompu — reprise possible ---')
+      addLog('skipped', t('import.log.interrupted'))
     }
   }
 
@@ -565,7 +567,7 @@ export default function BulkOffImporter() {
     return (
       <div className="muted flex items-center justify-center gap-2 py-20">
         <Loader2 className="h-5 w-5 animate-spin" />
-        Verification des droits...
+        {t('import.checkingRights')}
       </div>
     )
   }
@@ -575,7 +577,7 @@ export default function BulkOffImporter() {
     return (
       <div className="naanaa grid-cols-[56px_minmax(0,1fr)]" role="alert">
         <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="56" className="size-14" />
-        <p className="bubble flex items-center gap-2"><AlertCircle className="h-5 w-5 flex-none" /> Acces reserve aux administrateurs.</p>
+        <p className="bubble flex items-center gap-2"><AlertCircle className="h-5 w-5 flex-none" /> {t('import.adminOnly')}</p>
       </div>
     )
   }
@@ -590,12 +592,12 @@ export default function BulkOffImporter() {
       {/* Bandeau de reprise si import interrompu */}
       {resume && !isRunning && (
         <div className="card tint-citron grid gap-1.5 p-4">
-          <p className="disp d-s">Import interrompu détecté</p>
+          <p className="disp d-s">{t('import.interruptedTitle')}</p>
           <p className="text-[13px]">
-            Dernier arrêt : page <strong>{resume.nextPage - 1}</strong> terminée ·
-            {' '}<strong>{resume.stats.imported}</strong> produits importés ·
-            {' '}<strong>{resume.stats.errors}</strong> erreurs ·
-            {' '}il y a {Math.round((Date.now() - resume.updatedAt) / 60000)} min
+            {t('import.lastStopPage')} <strong>{resume.nextPage - 1}</strong> {t('import.pageDone')}
+            {' '}<strong>{resume.stats.imported}</strong> {t('import.productsImported')}
+            {' '}<strong>{resume.stats.errors}</strong> {t('import.errorsSep')}
+            {' '}{t('import.agoMin').replace('{m}', String(Math.round((Date.now() - resume.updatedAt) / 60000)))}
           </p>
         </div>
       )}
@@ -606,10 +608,10 @@ export default function BulkOffImporter() {
           <>
             <button type="button" className="btn primary" onClick={() => startImport(true)}>
               <Download />
-              Reprendre à la page {resume.nextPage}
+              {t('import.resumeAt').replace('{p}', String(resume.nextPage))}
             </button>
             <button type="button" className="btn" onClick={() => startImport(false)}>
-              Recommencer depuis le début
+              {t('import.restart')}
             </button>
           </>
         ) : (
@@ -617,12 +619,12 @@ export default function BulkOffImporter() {
             {isRunning ? (
               <>
                 <Loader2 className="animate-spin" />
-                Import en cours...
+                {t('import.importing')}
               </>
             ) : (
               <>
                 <Download />
-                Lancer l&apos;import
+                {t('import.start')}
               </>
             )}
           </button>
@@ -631,7 +633,7 @@ export default function BulkOffImporter() {
         {isRunning && (
           <button type="button" className="btn dark-btn" onClick={stopImport}>
             <Square />
-            Arreter
+            {t('import.stop')}
           </button>
         )}
       </div>
@@ -640,19 +642,19 @@ export default function BulkOffImporter() {
       {(isRunning || isDone || stats.pagesScanned > 0) && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard
-            label="Pages scannees"
+            label={t('import.statPages')}
             value={stats.pagesScanned}
             extra={stats.pageCount > 0 ? `/ ${stats.pageCount}` : undefined}
           />
-          <StatCard label="Trouves sur OFF" value={stats.foundOnOff} />
-          <StatCard label="Filtres (complets)" value={stats.filtered} />
-          <StatCard label="Deja dans Bayen" value={stats.alreadyInBayen} />
+          <StatCard label={t('import.statFound')} value={stats.foundOnOff} />
+          <StatCard label={t('import.statFiltered')} value={stats.filtered} />
+          <StatCard label={t('import.statExisting')} value={stats.alreadyInBayen} />
           <StatCard
-            label="Importes"
+            label={t('import.statImported')}
             value={stats.imported}
             variant="success"
           />
-          <StatCard label="Erreurs" value={stats.errors} variant="error" />
+          <StatCard label={t('import.statErrors')} value={stats.errors} variant="error" />
         </div>
       )}
 
@@ -661,7 +663,7 @@ export default function BulkOffImporter() {
         <div className="grid gap-1">
           <div className="muted flex justify-between text-xs">
             <span>
-              {stats.imported} / {stats.filtered} importes
+              {stats.imported} / {stats.filtered} {t('import.importedSuffix')}
             </span>
             <span className="num">{progressPercent}%</span>
           </div>
@@ -678,8 +680,8 @@ export default function BulkOffImporter() {
       {logs.length > 0 && (
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between border-b-[1.5px] border-line px-4 py-2.5">
-            <span className="disp d-s">Journal d&apos;import</span>
-            <span className="chip num">{logs.length} lignes</span>
+            <span className="disp d-s">{t('import.logTitle')}</span>
+            <span className="chip num">{logs.length} {t('import.lines')}</span>
           </div>
           <div className="max-h-96 space-y-0.5 overflow-y-auto p-3 font-mono text-xs leading-relaxed">
             {logs.map((entry, i) => (
@@ -695,11 +697,10 @@ export default function BulkOffImporter() {
         <div className="card tint-menthe grid gap-1 p-4 text-sm">
           <div className="flex items-center gap-2 font-bold">
             <CheckCircle className="h-4 w-4" />
-            Import termine
+            {t('import.doneTitle')}
           </div>
           <p>
-            {stats.imported} produits importes, {stats.alreadyInBayen} deja
-            presents, {stats.errors} erreurs.
+            {t('import.summary').replace('{a}', String(stats.imported)).replace('{b}', String(stats.alreadyInBayen)).replace('{c}', String(stats.errors))}
           </p>
         </div>
       )}

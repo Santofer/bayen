@@ -7,7 +7,7 @@ import { useLocale } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 
 export default function LocaleToggle() {
-  const { locale, setLocale } = useLocale()
+  const { locale, setLocale, t } = useLocale()
 
   /** Bascule la locale et recharge la page pour tout re-rendre */
   function handleToggle() {
@@ -25,7 +25,7 @@ export default function LocaleToggle() {
       size="sm"
       onClick={handleToggle}
       className="text-sm font-semibold px-2 md:px-3"
-      aria-label={locale === 'fr' ? 'Passer en darija' : 'Passer en français'}
+      aria-label={t('locale.switch')}
     >
       {label}
     </Button>

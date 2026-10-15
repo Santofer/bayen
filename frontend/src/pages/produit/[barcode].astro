@@ -284,7 +284,7 @@ try {
   }
 } catch (e: unknown) {
   //`off-err:${e instanceof Error ? e.message : String(e)} `
-  fetchError = 'Impossible de contacter Open Food Facts'
+  fetchError = t('product.offUnreachable', locale)
 }
 
 // 2b. Open Beauty Facts — via /bayen-api/scan (import + score cosmétique déterministe).
@@ -499,11 +499,11 @@ const isBeverage = !isCosmetic && [5, 6].includes(Number(product?.category_id))
 const nutriPoints = (n: NutritionData): number => Math.abs(computeNutriScore({ ...n, is_beverage: isBeverage })?.fsaScore ?? 0)
 const NEG_MAX = nutriPoints({ sugars: 1e6 })
 const PROT_MAX = nutriPoints({ proteins: 1e6, salt: 0 })
-const LEVEL_WORD: Record<NutrientLevel, string> = { good: 'faible', moderate: 'modéré', warning: 'modéré', danger: 'élevé' }
+const LEVEL_WORD: Record<NutrientLevel, string> = { good: t('product.level.low', locale), moderate: t('product.level.moderate', locale), warning: t('product.level.moderate', locale), danger: t('product.level.high', locale) }
 interface NutRow { lab: string; val: string; note: string; pct: number; color: string }
 const nutRows: NutRow[] = []
 if (!isCosmetic && product) {
-  const limits = [['sugars', 'Sucres'], ['fat_saturated', 'Graisses saturées'], ['salt', 'Sel']] as const
+  const limits = [['sugars', t('product.bar.sugars', locale)], ['fat_saturated', t('product.bar.satFat', locale)], ['salt', t('product.salt', locale)]] as const
   for (const [key, lab] of limits) {
     const v = _n(product[key])
     if (v == null) continue
@@ -515,12 +515,12 @@ if (!isCosmetic && product) {
     // Riche / source : allégations CE 1924/2006 calculées plus haut (ou ≥ 20 g, seuil de l'Analyse santé)
     const rich = proteinClaim === 'rich' || prot >= 20
     const lv: NutrientLevel = rich || proteinClaim === 'source' ? 'good' : 'moderate'
-    nutRows.push({ lab: 'Protéines', val: `${fmtG(prot)} g`, note: rich ? 'riche' : proteinClaim === 'source' ? 'source' : 'faible', pct: (nutriPoints({ proteins: prot, salt: 0 }) / PROT_MAX) * 100, color: LEVEL_COLOR[lv] })
+    nutRows.push({ lab: t('product.proteins', locale), val: `${fmtG(prot)} g`, note: rich ? t('product.level.rich', locale) : proteinClaim === 'source' ? t('product.level.source', locale) : t('product.level.low', locale), pct: (nutriPoints({ proteins: prot, salt: 0 }) / PROT_MAX) * 100, color: LEVEL_COLOR[lv] })
   }
   const kcal = _n(product.energy_kcal)
   if (kcal != null) {
     const ratio = nutriPoints({ energy_kcal: kcal }) / NEG_MAX
-    nutRows.push({ lab: 'Énergie', val: `${Math.round(kcal)} kcal`, note: `${Math.round(kcal * 4.184)} kJ`, pct: ratio * 100, color: ratioFill(1 - ratio) })
+    nutRows.push({ lab: t('product.energy', locale), val: `${Math.round(kcal)} kcal`, note: `${Math.round(kcal * 4.184)} kJ`, pct: ratio * 100, color: ratioFill(1 - ratio) })
   }
 }
 
@@ -563,24 +563,24 @@ function altReasons(alt: Record<string, unknown>): string[] {
     const r = alt.cosmetic_risk as import('@/lib/types').CosmeticRiskSummary | null
     if (!r || !r.counts) return reasons
     const n = (r.counts.banned ?? 0) + (r.counts.high ?? 0) + (r.counts.moderate ?? 0) + (r.counts.low ?? 0)
-    if (!r.cap_reason) reasons.push('Aucun ingrédient à risque')
-    else if (n < curFlagged) reasons.push(`${curFlagged - n} ingrédient${curFlagged - n > 1 ? 's' : ''} à surveiller en moins`)
+    if (!r.cap_reason) reasons.push(t('product.alt.noRisk', locale))
+    else if (n < curFlagged) reasons.push(t(curFlagged - n > 1 ? 'product.alt.fewerFlaggedN' : 'product.alt.fewerFlagged1', locale).replace('{n}', String(curFlagged - n)))
     const curPe = cosmeticRisk?.worst?.some((w) => w.risk_types.includes('endocrine'))
-    if (curPe && !(r.worst ?? []).some((w) => w.risk_types.includes('endocrine'))) reasons.push('Sans perturbateur endocrinien suspecté ou avéré')
+    if (curPe && !(r.worst ?? []).some((w) => w.risk_types.includes('endocrine'))) reasons.push(t('product.alt.noEndocrine', locale))
     return reasons.slice(0, 3)
   }
   const addCount = Array.isArray(alt.additives) ? (alt.additives as unknown[]).length : 0
   if (curAddCount > 0 && addCount < curAddCount) {
-    reasons.push(addCount === 0 ? 'Sans additif' : `${curAddCount - addCount} additif${curAddCount - addCount > 1 ? 's' : ''} en moins`)
+    reasons.push(addCount === 0 ? t('product.noAdditive', locale) : t(curAddCount - addCount > 1 ? 'product.alt.fewerAddN' : 'product.alt.fewerAdd1', locale).replace('{n}', String(curAddCount - addCount)))
   }
   const s = _n(alt.sugars)
-  if (curSugars != null && s != null && s <= curSugars - 2) reasons.push(`−${Math.round(curSugars - s)} g de sucre`)
+  if (curSugars != null && s != null && s <= curSugars - 2) reasons.push(t('product.alt.lessSugar', locale).replace('{n}', String(Math.round(curSugars - s))))
   const nova = _n(alt.nova_group)
-  if (curNova != null && nova != null && nova < curNova) reasons.push(`Moins transformé (NOVA ${nova})`)
+  if (curNova != null && nova != null && nova < curNova) reasons.push(t('product.alt.lessProcessed', locale).replace('{n}', String(nova)))
   const sat = _n(alt.fat_saturated)
-  if (curSat != null && sat != null && sat <= curSat - 1) reasons.push(`−${Math.round(curSat - sat)} g de graisses saturées`)
+  if (curSat != null && sat != null && sat <= curSat - 1) reasons.push(t('product.alt.lessSatFat', locale).replace('{n}', String(Math.round(curSat - sat))))
   const salt = _n(alt.salt)
-  if (curSalt != null && salt != null && salt <= curSalt - 0.2) reasons.push(`−${(curSalt - salt).toFixed(1)} g de sel`)
+  if (curSalt != null && salt != null && salt <= curSalt - 0.2) reasons.push(t('product.alt.lessSalt', locale).replace('{n}', (curSalt - salt).toFixed(1)))
   return reasons.slice(0, 3)
 }
 
@@ -680,12 +680,15 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
     <a class="icon-btn" href="/recherche" data-back aria-label={t('nav.back', locale)}>
       <svg class="rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
     </a>
-    {!fetchError && scanResult.found && product && (
-      <div class="flex gap-2">
-        <ShareButton variant="icon" {...shareProps} client:load />
-        <AddToCartButton look="icon" item={cartItem} client:load />
-      </div>
-    )}
+    <div class="flex gap-2">
+      {!fetchError && scanResult.found && product && (
+        <>
+          <ShareButton variant="icon" {...shareProps} client:load />
+          <AddToCartButton look="icon" item={cartItem} client:load />
+        </>
+      )}
+      <button type="button" class="icon-btn " data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+    </div>
   </header>
 
   <main class="screen gap-[22px] md:gap-12">
@@ -715,7 +718,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
-          +50 points si tu l'ajoutes
+          {t('product.addPoints', locale)}
         </span>
 
         <div class="mt-2 grid w-full gap-3">
@@ -766,9 +769,9 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               </div>
               {/* Pastille halal sur la photo (jamais retirée automatiquement : même condition que la puce) */}
               {product.is_halal && (
-                <span class="halal-sticker" role="img" aria-label="Halal">
+                <span class="halal-sticker" role="img" aria-label={t('halal.badge', locale)}>
                   {/* Le logo porte déjà « HALAL » : pas de libellé en plus */}
-                  <span set:html={halalLogo} aria-hidden="true" class="block size-11" />
+                  <span set:html={halalLogo} aria-hidden="true" class="grid place-items-center" />
                 </span>
               )}
               {/* Pastille (chiffre + mot) — le détail reste dans ScoreDisplay / CosmeticScore (hideBadge) */}
@@ -776,7 +779,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                 class:list={['score-sticker lg absolute end-2 -bottom-[26px]', !level && 'none', String(scoreTotal ?? '').length > 2 && 'w3']}
                 style={level ? `--c: ${stickerFill}` : undefined}
                 role="img"
-                aria-label={level ? `Score ${scoreTotal} sur 100, ${stickerWord}` : stickerWord}
+                aria-label={level ? t('product.scoreAria', locale).replace('{n}', String(scoreTotal)).replace('{w}', stickerWord) : stickerWord}
               >
                 <span aria-hidden="true"><b>{scoreTotal ?? '?'}</b><i>{stickerWord}</i></span>
               </span>
@@ -805,7 +808,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                 />
                 {novaChip && <span class="chip">{novaChip}</span>}
                 {!isCosmetic && curAddCount > 0 && (
-                  <a href="#additifs" class="chip">{curAddCount} additif{curAddCount > 1 ? 's' : ''}</a>
+                  <a href="#additifs" class="chip">{curAddCount} {t(curAddCount > 1 ? 'card.additives' : 'card.additive', locale)}</a>
                 )}
                 {nsGrade && NUTRISCORE_DOT[nsGrade] && (
                   <span class="chip"><span class:list={['size-2.5 rounded-full', NUTRISCORE_DOT[nsGrade]]}></span>Nutri-Score {nsGrade}</span>
@@ -815,7 +818,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                   <span class="chip fill bg-citron">{t('score.incomplete', locale)}</span>
                 )}
                 {product.category_id && (
-                  <a href={`/categories/${product.category_slug ?? product.category_id}`} class="chip hover:bg-muted">{product.category_name ?? 'Catégorie'}</a>
+                  <a href={`/categories/${product.category_slug ?? product.category_id}`} class="chip hover:bg-muted">{product.category_name ?? t('search.category', locale)}</a>
                 )}
                 {isCosmetic && <span class="chip fill bg-beauty">{t('beauty.badge', locale)}</span>}
                 {cosmeticCategoryKey && (
@@ -824,7 +827,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                 {isCosmetic && product.period_after_opening && (
                   <span class="chip">{t('beauty.pao', locale)} : {String(product.period_after_opening)}</span>
                 )}
-                {product.is_organic && <span class="chip fill bg-score-excellent">Bio</span>}
+                {product.is_organic && <span class="chip fill bg-score-excellent">{t('product.bio', locale)}</span>}
                 {proteinClaim && (
                   <a href="/proteines" class="chip fill bg-protein" title={`${Math.round((proteinShare ?? 0) * 100)} % ${t('protein.share', locale)}`}>
                     {proteinClaim === 'rich' ? t('protein.rich', locale) : t('protein.source', locale)} · {_prot} g
@@ -865,11 +868,11 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
             {!isCosmetic && scoreTotal != null && nutRows.length > 0 && (
               <section class="section">
                 <div class="card grid gap-3.5 p-4 md:p-6">
-                  <div class="sec-head"><h2 class="disp d-m">Pourquoi {scoreTotal}&nbsp;?</h2><span class="eyebrow">pour 100 g</span></div>
+                  <div class="sec-head"><h2 class="disp d-m">{t('product.why', locale).replace('{n}', String(scoreTotal))}</h2><span class="eyebrow">{t('product.per100g', locale)}</span></div>
                   {nutRows.map((r) => (
                     <div class="nut">
                       <span class="lab">{r.lab}</span>
-                      <span class="val"><b>{r.val}</b> · {r.note}</span>
+                      <span class="val"><bdi><b>{r.val}</b></bdi> · {r.note}</span>
                       <span class="bar"><i style={`width: ${Math.max(r.pct, 4)}%; background: ${r.color}`}></i></span>
                     </div>
                   ))}
@@ -883,7 +886,7 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
               <section class="section">
                 <div class="card grid gap-4 p-4 md:p-6">
                   {scoreTotal != null && Boolean(product.inci_text) && (
-                    <div class="sec-head"><h2 class="disp d-m">Pourquoi {scoreTotal}&nbsp;?</h2><span class="eyebrow">liste INCI</span></div>
+                    <div class="sec-head"><h2 class="disp d-m">{t('product.why', locale).replace('{n}', String(scoreTotal))}</h2><span class="eyebrow">{t('product.inciListLower', locale)}</span></div>
                   )}
                   <CosmeticScore
                     risk={cosmeticRisk}
@@ -981,8 +984,8 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
         <section class="section">
           <a href={`/contribuer/${barcode}`} class="card flex items-center gap-3 bg-muted px-4 py-3.5">
             <svg class="size-[22px] flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="14" r="4" /></svg>
-            <span class="flex-1 text-sm"><b>Une info manque ?</b> Photographie l'étiquette</span>
-            <span class="chip fill bg-menthe">+20 pts</span>
+            <span class="flex-1 text-sm"><b>{t('product.missingInfo', locale)}</b> {t('product.missingInfoCta', locale)}</span>
+            <span class="chip fill bg-menthe">{t('product.pts20', locale)}</span>
           </a>
         </section>
 
@@ -1072,28 +1075,28 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
           {/* Photos de l'étiquette (lisibles en entier : ce sont des documents) */}
           {(product.image_nutrition || product.image_ingredients) && (
             <section class="section">
-              <div class="sec-head"><h2 class="disp d-m">Photos de l'étiquette</h2></div>
+              <div class="sec-head"><h2 class="disp d-m">{t('product.labelPhotos', locale)}</h2></div>
               <div class="grid grid-cols-2 gap-3">
                 {product.image_nutrition && (
                   <figure class="card grid content-start gap-2 p-3">
                     <img
                       src={`${CDN_URL}/${product.image_nutrition}?width=800&quality=85&format=webp`}
-                      alt="Tableau nutritionnel"
+                      alt={t('contrib.photoNutrition', locale)}
                       class="max-h-64 w-full rounded-xl object-contain"
                       loading="lazy"
                     />
-                    <figcaption class="muted text-xs font-semibold">Tableau nutritionnel</figcaption>
+                    <figcaption class="muted text-xs font-semibold">{t('contrib.photoNutrition', locale)}</figcaption>
                   </figure>
                 )}
                 {product.image_ingredients && (
                   <figure class="card grid content-start gap-2 p-3">
                     <img
                       src={`${CDN_URL}/${product.image_ingredients}?width=800&quality=85&format=webp`}
-                      alt="Liste des ingrédients"
+                      alt={t('contribute.photoIngredients', locale)}
                       class="max-h-64 w-full rounded-xl object-contain"
                       loading="lazy"
                     />
-                    <figcaption class="muted text-xs font-semibold">{isCosmetic ? t('inci.title', locale) : 'Liste ingrédients'}</figcaption>
+                    <figcaption class="muted text-xs font-semibold">{isCosmetic ? t('inci.title', locale) : t('contribute.photoIngredients', locale)}</figcaption>
                   </figure>
                 )}
               </div>
@@ -1133,11 +1136,11 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
                 {autoImported ? (
                   <p class="flex items-center gap-2 text-sm">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
-                    Produit importé automatiquement depuis Open Food Facts.
+                    {t('product.offImported', locale)}
                   </p>
                 ) : (
                   <p class="text-sm">
-                    Ce produit provient d'Open Food Facts. Les données seront vérifiées par la communauté.
+                    {t('product.offPending', locale)}
                   </p>
                 )}
               </div>
@@ -1146,17 +1149,17 @@ const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}
 
           {/* Code-barres : ticket imprimé (blanc et encre dans les deux thèmes) + corriger / scanner */}
           <section class="section">
-            <div class="sec-head"><h2 class="disp d-m">Code-barres</h2></div>
+            <div class="sec-head"><h2 class="disp d-m">{t('product.barcodeTitle', locale)}</h2></div>
             <div class="card flex flex-wrap items-center gap-5 p-4 md:p-5">
-              <div class="barcode-ticket" role="img" aria-label={`Code-barres ${barcode}`}>
+              <span class="barcode-ticket-wrap"><span class="barcode-ticket" role="img" aria-label={`${t('product.barcodeTitle', locale)} ${barcode}`}>
                 {barcodeBars ? (
                   <>
                     <span class="kind">{barcodeKind}</span>
                     <span class="bars"><Fragment set:html={barcodeBars} /><i class="laser" /></span>
                   </>
-                ) : <span class="kind">Code</span>}
+                ) : <span class="kind">{t('product.code', locale)}</span>}
                 <span class="digits num">{barcodeDigits.map((g) => <span>{g}</span>)}</span>
-              </div>
+              </span></span>
               <div class="flex flex-wrap gap-2.5 sm:ms-auto">
                 <a href={`/contribuer/${barcode}`} class="btn sm">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

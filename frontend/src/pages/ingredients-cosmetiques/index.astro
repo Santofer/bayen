@@ -63,10 +63,10 @@ const types = (r: Row): string =>
   universe="beauty"
   mobileTopbar={false}
 >
-  <PageHero tone="beauty" mascot="loupe" back="/beaute" kicker="Univers beauté" title={t('beauty.ingredientsTitle', locale)} subtitle={t('beauty.ingredientsDesc', locale)}>
+  <PageHero tone="beauty" mascot="loupe" back="/beaute" kicker={t('beauty.hub.kicker', locale)} title={t('beauty.ingredientsTitle', locale)} subtitle={t('beauty.ingredientsDesc', locale)}>
     <form method="get" action="/ingredients-cosmetiques" role="search" class="flex items-center gap-3 rounded-full border-2 border-encre bg-creme py-1.5 ps-5 pe-1.5 text-encre shadow-[3px_3px_0_var(--color-encre)] md:max-w-xl">
       <svg class="size-[18px] flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-      <input type="search" name="q" value={q} placeholder="PARABEN, PHENOXYETHANOL, résorcinol…" aria-label={t('beauty.ingredientsTitle', locale)} class="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-encre/55" />
+      <input type="search" name="q" value={q} placeholder={t('inci.searchPlaceholder', locale)} aria-label={t('beauty.ingredientsTitle', locale)} class="w-0 min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-encre/55" />
       <button type="submit" class="btn sm dark-btn flat">{t('search.searchBtn', locale)}</button>
     </form>
   </PageHero>

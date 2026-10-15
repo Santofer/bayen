@@ -7,6 +7,9 @@ export const prerender = false
 import Layout from '@/layouts/Layout.astro'
 import PartnerRequestsAdmin from '@/components/PartnerRequestsAdmin.tsx'
 import PageHero from '@/components/PageHero.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 ---
 
 <Layout
@@ -19,9 +22,9 @@ import PageHero from '@/components/PageHero.astro'
   <PageHero
     tone="myrtille"
     back="/compte"
-    kicker="Équipe Bayen"
-    title="Demandes de partenariat"
-    subtitle="Historique des demandes envoyées depuis la page Partenaires. Les nouvelles demandes arrivent désormais dans nBot (boîte Formulaires)."
+    kicker={t('partnerAdmin.kicker', locale)}
+    title={t('partnerAdmin.title', locale)}
+    subtitle={t('partnerAdmin.subtitle', locale)}
   />
   <main class="screen max-md:pt-5">
     <PartnerRequestsAdmin client:load />

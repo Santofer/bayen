@@ -60,9 +60,9 @@ const ar = locale === 'ary'
         <section class="section md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-x-8">
           <label for="add-q" class="card flex h-[50px] items-center gap-2.5 rounded-full px-4 shadow-[3px_3px_0_var(--color-hard)] md:max-w-[560px]">
             <svg class="size-5 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            <input id="add-q" type="search" placeholder={t('additives.search', locale)} aria-label={t('additives.search', locale)} class="min-w-0 flex-1 border-0 bg-transparent text-[14.5px] font-medium outline-none" />
+            <input id="add-q" type="search" placeholder={t('additives.search', locale)} aria-label={t('additives.search', locale)} class="w-0 min-w-0 flex-1 border-0 bg-transparent text-[14.5px] font-medium outline-none" />
           </label>
-          <div class="chips" role="group" aria-label="Filtrer par niveau de risque">
+          <div class="chips" role="group" aria-label={t('additivesPage.filterAria', locale)}>
             <button type="button" class="chip h-9 px-3.5 text-[13px] aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:text-background" data-risk-filter="all" aria-pressed="true">
               {t('additives.all', locale)} <span class="num opacity-70">{additives.length}</span>
             </button>
@@ -79,7 +79,7 @@ const ar = locale === 'ary'
         <section class="section">
           <div class="naanaa md:max-w-[760px]">
             <img src="/mascotte/naanaa-astuce.webp" alt="" width="72" height="72" loading="lazy" />
-            <p class="bubble"><b>L'astuce de Naânaa</b><br />Chaque additif retire des points au score Bayen : −2 s'il est à limiter, −5 à éviter, −10 s'il est interdit. <a href="/methodologie" class="font-bold underline underline-offset-2">Voir la méthode</a></p>
+            <p class="bubble"><b>{t('home.tipTitle', locale)}</b><br />{t('additivesPage.tip', locale)} <a href="/methodologie" class="font-bold underline underline-offset-2">{t('additivesPage.seeMethod', locale)}</a></p>
           </div>
         </section>
 

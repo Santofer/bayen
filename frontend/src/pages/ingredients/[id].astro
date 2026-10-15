@@ -4,6 +4,7 @@ import Layout from '@/layouts/Layout.astro'
 import PageHero from '@/components/PageHero.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 import type { Product } from '@/lib/types'
+import type { TranslationKey } from '@/lib/translations'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -57,18 +58,27 @@ const name = ingredient
   : `Ingrédient #${id}`
 
 const categoryLabels: Record<string, string> = {
-  cereale: 'Céréale',
-  sucre: 'Sucre & chocolat',
-  graisse: 'Huile & graisse',
-  laitier: 'Produit laitier',
-  proteine: 'Protéine',
-  fruit_legume: 'Fruit & légume',
-  sel: 'Sel & minéral',
-  eau: 'Eau',
-  arome: 'Arôme & épice',
-  additif: 'Additif',
-  autre: 'Autre',
+  cereale: t('ingPage.cat.cereale', locale),
+  sucre: t('ingPage.cat.sucre', locale),
+  graisse: t('ingPage.cat.graisse', locale),
+  laitier: t('ingPage.cat.laitier', locale),
+  proteine: t('ingPage.cat.proteine', locale),
+  fruit_legume: t('ingPage.cat.fruit_legume', locale),
+  sel: t('ingPage.cat.sel', locale),
+  eau: t('ingPage.cat.eau', locale),
+  arome: t('ingPage.cat.arome', locale),
+  additif: t('ingPage.cat.additif', locale),
+  autre: t('ingPage.cat.autre', locale),
 }
+
+// Précision affichée pour quelques allergènes majeurs
+const ALLERGEN_NOTE: Record<string, TranslationKey> = {
+  gluten: 'ingPage.allergen.gluten',
+  lait: 'ingPage.allergen.lait',
+  arachide: 'ingPage.allergen.arachide',
+  soja: 'ingPage.allergen.soja',
+}
+const allergenNote = ingredient?.allergen_type ? ALLERGEN_NOTE[ingredient.allergen_type] : undefined
 
 ---
 
@@ -84,7 +94,7 @@ const categoryLabels: Record<string, string> = {
     mascot="loupe"
     back="/ingredients"
     kicker={t('nav.ingredients', locale)}
-    title={ingredient ? ingredient.name_fr : 'Ingrédient non trouvé'}
+    title={ingredient ? ingredient.name_fr : t('ingPage.notFound', locale)}
   >
     <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
     {ingredient && (
@@ -95,7 +105,7 @@ const categoryLabels: Record<string, string> = {
           {ingredient.is_allergen && (
             <span class="chip fill border-encre! bg-tomate!">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-              Allergène{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
+              {t('ingPage.allergen', locale)}{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
             </span>
           )}
         </div>
@@ -108,9 +118,9 @@ const categoryLabels: Record<string, string> = {
       <section class="section">
         <div class="naanaa">
           <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="72" />
-          <p class="bubble">Ingrédient non trouvé.</p>
+          <p class="bubble">{t('ingPage.notFound', locale)}.</p>
         </div>
-        <a href="/ingredients" class="btn w-max">← Retour à la base</a>
+        <a href="/ingredients" class="btn w-max">{t('ingPage.backToBase', locale)}</a>
       </section>
     ) : (
       <>
@@ -120,11 +130,8 @@ const categoryLabels: Record<string, string> = {
             <div class="card grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 bg-tomate p-4 text-encre md:p-5">
               <svg class="mt-0.5 size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
               <p class="max-w-[68ch] text-[14.5px]">
-                <strong>Allergène majeur</strong> — Cet ingrédient fait partie des 14 allergènes à déclaration obligatoire selon la réglementation européenne et marocaine (ONSSA).
-                {ingredient.allergen_type === 'gluten' && ' Le gluten est une protéine présente dans le blé, l\'orge, le seigle et l\'avoine.'}
-                {ingredient.allergen_type === 'lait' && ' Les protéines de lait de vache sont l\'un des allergènes les plus courants chez les enfants.'}
-                {ingredient.allergen_type === 'arachide' && ' L\'allergie à l\'arachide peut provoquer des réactions sévères (anaphylaxie).'}
-                {ingredient.allergen_type === 'soja' && ' Le soja est présent dans de nombreux produits transformés sous forme de lécithine ou protéines.'}
+                <strong>{t('ingPage.majorAllergen', locale)}</strong> — {t('ingPage.majorAllergenDesc', locale)}
+                {allergenNote && ` ${t(allergenNote, locale)}`}
               </p>
             </div>
           </section>
@@ -141,14 +148,14 @@ const categoryLabels: Record<string, string> = {
             <div class="naanaa">
               <img src="/mascotte/naanaa-scan.webp" alt="" width="72" height="72" loading="lazy" />
               <p class="bubble">
-                Aucun produit référencé avec cet ingrédient pour le moment.<br />
-                <a href="/importer" class="font-bold underline underline-offset-2">Importer des produits →</a>
+                {t('ingPage.noProducts', locale)}<br />
+                <a href="/importer" class="font-bold underline underline-offset-2">{t('ingPage.importLink', locale)}</a>
               </p>
             </div>
           ) : (
             <div class="grid gap-3 md:grid-cols-2 md:gap-[18px] lg:grid-cols-3">
               {products.map((product) => (
-                <ProductCard product={product} />
+                <ProductCard product={product} locale={locale} />
               ))}
             </div>
           )}

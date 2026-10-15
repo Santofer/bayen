@@ -19,17 +19,17 @@ interface Ingredient {
 }
 
 const CATEGORIES: Record<string, string> = {
-  cereale: 'Céréales',
-  sucre: 'Sucres & chocolat',
-  graisse: 'Huiles & graisses',
-  laitier: 'Produits laitiers',
-  proteine: 'Protéines & noix',
-  fruit_legume: 'Fruits & légumes',
-  sel: 'Sel & minéraux',
-  eau: 'Eau',
-  arome: 'Arômes & épices',
-  additif: 'Additifs alimentaires',
-  autre: 'Autres',
+  cereale: t('ingPage.cats.cereale', locale),
+  sucre: t('ingPage.cats.sucre', locale),
+  graisse: t('ingPage.cats.graisse', locale),
+  laitier: t('ingPage.cats.laitier', locale),
+  proteine: t('ingPage.cats.proteine', locale),
+  fruit_legume: t('ingPage.cats.fruit_legume', locale),
+  sel: t('ingPage.cats.sel', locale),
+  eau: t('ingPage.cats.eau', locale),
+  arome: t('ingPage.cats.arome', locale),
+  additif: t('ingPage.cats.additif', locale),
+  autre: t('ingPage.cats.autre', locale),
 }
 
 const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 60)
@@ -78,7 +78,7 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
   path="/ingredients"
   mobileTopbar={false}
 >
-  <PageHero tone="citron" mascot="loupe" kicker={t('nav.ingredients', locale)} title="Ce qu'il y a dedans, ingrédient par ingrédient" subtitle={`${all.length} ingrédients relevés sur les étiquettes des produits vendus au Maroc, dont ${allergenCount} allergènes à déclaration obligatoire. Clique sur un ingrédient pour voir les produits qui le contiennent.`}>
+  <PageHero tone="citron" mascot="loupe" kicker={t('nav.ingredients', locale)} title={t('ingPage.heroTitle', locale)} subtitle={t('ingPage.heroDesc', locale).replace('{n}', String(all.length)).replace('{a}', String(allergenCount))}>
     <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
     <!-- Recherche (maquette Accueil : champ pilule + bouton) -->
     <form method="get" action="/ingredients" class="flex w-full max-w-xl gap-2">
@@ -86,9 +86,9 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
       {onlyAllergens && <input type="hidden" name="allergenes" value="1" />}
       <label class="card flex h-[50px] min-w-0 flex-1 items-center gap-2.5 rounded-full px-4 shadow-[3px_3px_0_var(--color-hard)]">
         <svg class="size-5 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="search" name="q" value={q} placeholder="Lécithine, huile de palme, glutamate…" aria-label="Rechercher un ingrédient" class="min-w-0 flex-1 border-0 bg-transparent text-[14.5px] font-medium outline-none" />
+        <input type="search" name="q" value={q} placeholder={t('ingPage.searchPh', locale)} aria-label={t('ingPage.searchAria', locale)} class="w-0 min-w-0 flex-1 border-0 bg-transparent text-[14.5px] font-medium outline-none" />
       </label>
-      <button type="submit" class="btn dark-btn min-h-[50px]">Chercher</button>
+      <button type="submit" class="btn dark-btn min-h-[50px]">{t('nav.searchShort', locale)}</button>
     </form>
   </PageHero>
 
@@ -96,7 +96,7 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
     <!-- Filtres : familles + allergènes (puces) -->
     <section class="section">
       <div class="chips">
-        <a href={link({ cat: '' })} class:list={['chip h-9 px-3.5 text-[13px]', !activeCat && 'fill bg-citron']}>Toutes <span class="num opacity-70">{all.length}</span></a>
+        <a href={link({ cat: '' })} class:list={['chip h-9 px-3.5 text-[13px]', !activeCat && 'fill bg-citron']}>{t('blog.allCategories', locale)} <span class="num opacity-70">{all.length}</span></a>
         {Object.entries(CATEGORIES).filter(([k]) => countBy(k) > 0).map(([key, label]) => (
           <a href={link({ cat: key })} class:list={['chip h-9 px-3.5 text-[13px]', activeCat === key && 'fill bg-citron']}>
             {label} <span class="num opacity-70">{countBy(key)}</span>
@@ -104,14 +104,14 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
         ))}
         <a href={link({ allergenes: onlyAllergens ? '' : '1' })} aria-pressed={onlyAllergens ? 'true' : 'false'} class:list={['chip h-9 px-3.5 text-[13px]', onlyAllergens && 'fill bg-tomate']}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3ZM12 9v4M12 17h.01"/></svg>
-          Allergènes seulement <span class="num opacity-70">{allergenCount}</span>
+          {t('ingPage.allergensOnly', locale)} <span class="num opacity-70">{allergenCount}</span>
         </a>
       </div>
       <div class="flex items-baseline justify-between gap-3">
         <p class="muted text-[13px]">
-          {hasFilter ? `${filtered.length} ingrédient${filtered.length > 1 ? 's' : ''}` : `${all.length} ingrédients`}{q && <> pour « <strong class="text-foreground">{q}</strong> »</>}
+          {hasFilter ? `${filtered.length} ${t(filtered.length > 1 ? 'ingPage.ingredients' : 'ingPage.ingredient', locale)}` : `${all.length} ${t('ingPage.ingredients', locale)}`}{q && <> {t('ingPage.for', locale)} « <strong class="text-foreground">{q}</strong> »</>}
         </p>
-        {hasFilter && <a href="/ingredients" class="text-[13px] font-bold underline underline-offset-[3px]">Réinitialiser</a>}
+        {hasFilter && <a href="/ingredients" class="text-[13px] font-bold underline underline-offset-[3px]">{t('ingPage.reset', locale)}</a>}
       </div>
     </section>
 
@@ -119,7 +119,7 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
       <section class="section">
         <div class="naanaa">
           <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="72" loading="lazy" />
-          <p class="bubble"><b>Aucun ingrédient ne correspond.</b><br />Essaie un autre mot, ou retire un filtre.</p>
+          <p class="bubble"><b>{t('ingPage.emptyTitle', locale)}</b><br />{t('ingPage.emptyDesc', locale)}</p>
         </div>
       </section>
     ) : (
@@ -139,7 +139,7 @@ const name = (i: Ingredient) => (locale === 'ary' && i.name_ar ? i.name_ar : i.n
                 </span>
                 <span class="min-w-0">
                   <span class="block truncate text-[14px] font-bold">{name(i)}</span>
-                  <span class="muted block truncate text-[11.5px]">{i.is_allergen ? `Allergène${i.allergen_type ? ` · ${i.allergen_type}` : ''}` : g.label}</span>
+                  <span class="muted block truncate text-[11.5px]">{i.is_allergen ? `${t('ingPage.allergen', locale)}${i.allergen_type ? ` · ${i.allergen_type}` : ''}` : g.label}</span>
                 </span>
               </a>
             ))}

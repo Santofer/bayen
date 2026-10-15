@@ -4,6 +4,9 @@ import Layout from '@/layouts/Layout.astro'
 import PageHero from '@/components/PageHero.astro'
 import OffImporter from '@/components/OffImporter'
 import AuthGuard from '@/components/AuthGuard'
+import { getLocale, t } from '@/lib/i18n'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 ---
 
 <Layout title="Importer depuis Open Food Facts — Bayen" path="/importer" noindex={true} mobileTopbar={false}>
@@ -11,8 +14,8 @@ import AuthGuard from '@/components/AuthGuard'
     tone="primary"
     mascot="courses"
     kicker="Open Food Facts"
-    title="Importer un produit"
-    subtitle="Saisissez un code-barres pour importer automatiquement le produit depuis Open Food Facts."
+    title={t('import.title', locale)}
+    subtitle={t('import.subtitle', locale)}
   />
 
   <main class="screen pt-5 md:pt-10">

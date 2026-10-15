@@ -44,15 +44,13 @@ const listArticles = featured ? articles.slice(1) : articles
 
 // Puces de catégories (maquette : « Tout » actif en menthe)
 const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: TranslationKey }> = [
-  { value: null, labelKey: 'blog.allCategories' },
+  { value: null, labelKey: 'blog.allShort' },
   { value: 'bien-etre', labelKey: 'blog.category.bien-etre' },
   { value: 'habitudes', labelKey: 'blog.category.habitudes' },
   { value: 'guides', labelKey: 'blog.category.guides' },
   { value: 'actualites', labelKey: 'blog.category.actualites' },
 ]
-const heading = locale === 'ary'
-  ? `${t('blog.heroTitle1', locale)} ${t('blog.heroTitle2', locale)}`
-  : "Lire l'étiquette, sans prise de tête."
+const heading = t('blog.listHeading', locale)
 
 // JSON-LD : Blog + BreadcrumbList + ItemList (les 10 articles les plus récents)
 const SITE_URL = 'https://bayen.ma'
@@ -96,7 +94,7 @@ const blogJsonLd = [
   <main class="screen gap-5 max-md:pt-5 md:gap-12">
     <section class="section gap-2.5 md:gap-4">
       <h1 class="disp d-xl md:max-w-[20ch] md:text-[clamp(40px,4.4vw,60px)]">{heading}</h1>
-      <nav class="chips" aria-label="Filtres catégories">
+      <nav class="chips" aria-label={t('blog.filterAria', locale)}>
         {CATEGORIES.map((cat) => {
           const isActive = cat.value === selectedCategory
           return (
@@ -105,7 +103,7 @@ const blogJsonLd = [
               class:list={['chip', isActive && 'fill bg-menthe']}
               aria-current={isActive ? 'page' : undefined}
             >
-              {cat.value === null && locale === 'fr' ? 'Tout' : t(cat.labelKey, locale)}
+              {t(cat.labelKey, locale)}
             </a>
           )
         })}

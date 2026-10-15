@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser, initAuth, isAuthenticated, logout, onAuthChange } from '@/lib/auth'
 import { useLocale } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
 import type { UserProfile } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -23,12 +24,12 @@ function getInitials(name: string | null | undefined): string {
     .toUpperCase()
 }
 
-/** Labels français pour les rangs */
-const rankLabels: Record<UserProfile['rank'], string> = {
-  nouveau: 'Nouveau',
-  contributeur: 'Contributeur',
-  expert: 'Expert',
-  vérifié: 'Vérifié',
+/** Clés de traduction des rangs */
+const RANK_KEYS: Record<UserProfile['rank'], TranslationKey> = {
+  nouveau: 'rank.nouveau',
+  contributeur: 'rank.contributeur',
+  expert: 'rank.expert',
+  vérifié: 'rank.verified',
 }
 
 export default function UserMenu() {
@@ -122,7 +123,7 @@ export default function UserMenu() {
           'flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full text-sm font-semibold transition-colors',
           'border-2 border-encre bg-menthe font-display text-encre hover:-translate-y-px'
         )}
-        aria-label="Menu utilisateur"
+        aria-label={t('userMenu.aria')}
         aria-expanded={menuOpen}
       >
         {getInitials(user.display_name)}
@@ -137,13 +138,13 @@ export default function UserMenu() {
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
               {user.role === 'admin' && (
-                <span className="pop-chip h-6 border-encre bg-tomate text-encre">Admin</span>
+                <span className="pop-chip h-6 border-encre bg-tomate text-encre">{t('userMenu.admin')}</span>
               )}
               <Badge variant="secondary" className="text-xs">
-                {rankLabels[user.rank]}
+                {t(RANK_KEYS[user.rank])}
               </Badge>
               <span className="font-display text-xs font-bold">
-                {user.points} pts
+                {user.points} {t('rank.pts')}
               </span>
             </div>
           </div>
@@ -170,7 +171,7 @@ export default function UserMenu() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                   <path d="M12 3v12" /><path d="m8 11 4 4 4-4" /><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" />
                 </svg>
-                Import OFF (admin)
+                {t('userMenu.importOff')}
               </a>
             )}
             <button

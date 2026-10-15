@@ -95,8 +95,8 @@ const rowMeta = (p: Row, price: number | null): string =>
   [
     p.quantity,
     price != null
-      ? `${n2(price)} DH / 10 g prot.`
-      : p.sugars != null ? `${fmt(p.sugars)} g de sucres / 100 g` : null,
+      ? t('protein.pricePer10', locale).replace('{n}', n2(price))
+      : p.sugars != null ? t('protein.sugarsPer100', locale).replace('{n}', fmt(p.sugars)) : null,
   ].filter(Boolean).join(' · ')
 const thumb = (img: string): string =>
   img.startsWith('http') ? img : `${CDN_URL}/${img}?width=160&height=160&fit=cover&quality=80&format=webp`
@@ -104,17 +104,17 @@ const thumb = (img: string): string =>
 const top = all.slice(0, 20)
 const clean = all.filter((p) => p.proteins >= 12 && (p.scan_score ?? 0) >= 60 && (p.sugars ?? 0) <= 5).slice(0, 15)
 const FAMILIES: Array<{ id: number; slug: string; label: string }> = [
-  { id: 3, slug: 'produits-laitiers', label: 'Laitiers & fromages' },
-  { id: 4, slug: 'charcuterie-viandes', label: 'Viandes & poissons' },
-  { id: 7, slug: 'conserves', label: 'Conserves' },
-  { id: 2, slug: 'cereales-petit-dejeuner', label: 'Céréales & barres' },
-  { id: 10, slug: 'snacks-chips', label: 'Snacks & graines' },
-  { id: 8, slug: 'epices-condiments', label: 'Compléments & poudres' },
+  { id: 3, slug: 'produits-laitiers', label: t('protein.family.dairy', locale) },
+  { id: 4, slug: 'charcuterie-viandes', label: t('protein.family.meat', locale) },
+  { id: 7, slug: 'conserves', label: t('protein.family.canned', locale) },
+  { id: 2, slug: 'cereales-petit-dejeuner', label: t('protein.family.cereals', locale) },
+  { id: 10, slug: 'snacks-chips', label: t('protein.family.snacks', locale) },
+  { id: 8, slug: 'epices-condiments', label: t('protein.family.powders', locale) },
 ]
 const byFamily = FAMILIES.map((f) => ({ ...f, items: all.filter((p) => p.category_id === f.id).slice(0, 10) })).filter((f) => f.items.length >= 3)
 
 const badge = (p: Row) => ({
-  text: `${Math.round(p.proteins)} g ${locale === 'ary' ? 'بروتين' : 'PROT.'}${share(p) != null ? ` · ${share(p)} %` : ''}`,
+  text: `${Math.round(p.proteins)} g ${t('protein.badgeProt', locale)}${share(p) != null ? ` · ${share(p)} %` : ''}`,
   color: share(p) != null && share(p)! >= 20 ? 'var(--color-aubergine)' : 'var(--color-encre)',
 })
 
@@ -138,14 +138,14 @@ const jsonLd = {
     tone="protein"
     mascot="scan"
     back="/"
-    kicker="Univers protéines"
-    title="Plus de protéines, moins de sucre."
-    subtitle="Choisis un minimum de protéines pour 100 g : on classe ensuite par score Bayen, pour ne pas se faire avoir."
+    kicker={t('protein.hub.kicker', locale)}
+    title={t('protein.hub.title', locale)}
+    subtitle={t('protein.hub.subtitle', locale)}
   />
 
   <main class="screen max-md:pt-5">
     <section class="section">
-      <p class="eyebrow">Minimum de protéines</p>
+      <p class="eyebrow">{t('protein.minLabel', locale)}</p>
       <div class="grid grid-cols-4 gap-2 md:max-w-md">
         {MINS.map((m) => (
           <a
@@ -177,7 +177,7 @@ const jsonLd = {
                 <b class="disp d-m num">{fmt(p.proteins, 0)}</b>
                 <p class="text-[11px]">g / 100 g</p>
               </div>
-              <ScoreSticker score={p.scan_score} size="sm" />
+              <ScoreSticker score={p.scan_score} size="sm" locale={locale} />
             </a>
           ))}
         </div>
@@ -197,7 +197,7 @@ const jsonLd = {
         <p class="card p-6 text-center text-sm muted">{t('search.noResults', locale)}</p>
       ) : (
         <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {top.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
+          {top.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} locale={locale} />)}
         </div>
       )}
     </section>
@@ -209,7 +209,7 @@ const jsonLd = {
         </div>
         <p class="muted -mt-1 text-xs">{t('protein.cleanDesc', locale)}</p>
         <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-          {clean.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
+          {clean.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} locale={locale} />)}
         </div>
       </section>
     )}
@@ -224,7 +224,7 @@ const jsonLd = {
               <a href={`/categories/${f.slug}`}>{t('protein.all', locale)}</a>
             </div>
             <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-              {f.items.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
+              {f.items.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} locale={locale} />)}
             </div>
           </div>
         ))}

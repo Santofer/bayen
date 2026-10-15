@@ -35,7 +35,7 @@ const pageDescription = `Tous les produits de la marque ${brandName} disponibles
   path={`/marque/${encodeURIComponent(name ?? '')}`}
   mobileTopbar={false}
 >
-  <PageHero tone="primary" back="/recherche" kicker="Marque" title={brandName} subtitle={`${products.length} produit${products.length !== 1 ? 's' : ''}`} />
+  <PageHero tone="primary" back="/recherche" kicker={t('contribute.brand', locale)} title={brandName} subtitle={`${products.length} ${t(products.length !== 1 ? 'history.itemsPlural' : 'history.itemSingular', locale)}`} />
 
   <main class="screen">
     <section class="section gap-3">
@@ -43,17 +43,17 @@ const pageDescription = `Tous les produits de la marque ${brandName} disponibles
         <Fragment>
           {/* Liste comme la recherche : cartes en ligne (mobile), grille (ordinateur) */}
           <div class="grid gap-3 md:hidden">
-            {products.map((product) => <ProductCard product={product as unknown as Product} />)}
+            {products.map((product) => <ProductCard product={product as unknown as Product} locale={locale} />)}
           </div>
           <div class="hidden gap-4 md:grid md:grid-cols-3 lg:grid-cols-4">
-            {products.map((product) => <ProductCard product={product as unknown as Product} variant="grid" />)}
+            {products.map((product) => <ProductCard product={product as unknown as Product} variant="grid" locale={locale} />)}
           </div>
         </Fragment>
       ) : (
         <Fragment>
           <div class="naanaa md:max-w-xl">
             <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" loading="lazy" />
-            <p class="bubble">Aucun produit trouvé pour cette marque.</p>
+            <p class="bubble">{t('brand.empty', locale)}</p>
           </div>
           <a href="/scan" class="btn primary justify-self-start">{t('nav.scan', locale)}</a>
         </Fragment>
@@ -61,7 +61,7 @@ const pageDescription = `Tous les produits de la marque ${brandName} disponibles
 
       <div class="naanaa mt-1.5 grid-cols-[56px_minmax(0,1fr)] md:max-w-xl">
         <div class="m size-14"><img src="/mascotte/naanaa-scan.webp" alt="" width="56" height="56" loading="lazy" /></div>
-        <p class="bubble">Ton produit n'y est pas ? <a href="/scan" class="underline underline-offset-2"><b>Scanne-le</b></a>, on l'ajoute avec toi.</p>
+        <p class="bubble">{t('search.naanaaMissing', locale)} <a href="/scan" class="underline underline-offset-2"><b>{t('search.naanaaScan', locale)}</b></a>{t('search.naanaaAdd', locale)}</p>
       </div>
     </section>
   </main>

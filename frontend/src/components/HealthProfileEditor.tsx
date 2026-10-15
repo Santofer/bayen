@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { Ban } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import {
@@ -124,23 +125,23 @@ export default function HealthProfileEditor() {
         <h2 className="disp d-m">{t('profile.beautyTitle')}</h2>
         <p className="text-sm text-muted-foreground mt-1">{t('profile.beautyHint')}</p>
         <div className="flex flex-wrap gap-2 mt-4">
+          {/* Puces courtes sur une ligne : l'icône « interdit » porte le « éviter », la phrase complète reste en aria-label */}
           {([
-            ['avoidEndocrine', t('profile.noEndocrine')],
-            ['avoidFragranceAllergens', t('profile.noFragranceAllergens')],
-          ] as const).map(([key, label]) => (
+            ['avoidEndocrine', t('profile.chipEndocrine'), t('profile.noEndocrine')],
+            ['avoidFragranceAllergens', t('profile.chipFragrance'), t('profile.noFragranceAllergens')],
+          ] as const).map(([key, label, aria]) => (
             <button
               key={key}
               type="button"
               onClick={() => update((p) => ({ ...p, [key]: !p[key] }))}
               aria-pressed={profile[key]}
+              aria-label={aria}
               className={cn(
-                'rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors',
-                profile[key]
-                  ? 'bg-tomate text-encre border-encre'
-                  : 'bg-background border-line hover:bg-muted'
+                'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-encre px-4 py-2 text-sm font-semibold transition-colors',
+                profile[key] ? 'bg-tomate text-encre' : 'bg-card hover:bg-muted'
               )}
             >
-              {profile[key] && <span aria-hidden="true" className="me-1.5">✕</span>}
+              <Ban size={15} className={cn('flex-none', !profile[key] && 'text-muted-foreground')} aria-hidden="true" />
               {label}
             </button>
           ))}

@@ -34,7 +34,7 @@ function toProduct(e: ScanHistoryEntry): Product {
 }
 
 export default function ScanHistory({ limit, compact = false, heading, seeAllLabel }: ScanHistoryProps) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [entries, setEntries] = useState<ScanHistoryEntry[] | null>(null)
 
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function ScanHistory({ limit, compact = false, heading, seeAllLab
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-6 lg:grid-cols-5">
         {shown.map((e) => (
-          <ProductCard key={e.barcode} product={toProduct(e)} variant="grid" />
+          <ProductCard key={e.barcode} product={toProduct(e)} variant="grid" locale={locale} />
         ))}
       </div>
     </div>

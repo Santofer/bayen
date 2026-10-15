@@ -5,8 +5,8 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import PageHero from '@/components/PageHero.astro'
-import { getLocale } from '@/lib/i18n'
-import { SCORE_FILL, SCORE_WORD, type ScoreLevel } from '@/lib/score-colors'
+import { getLocale, t } from '@/lib/i18n'
+import { SCORE_FILL, type ScoreLevel } from '@/lib/score-colors'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
@@ -22,16 +22,16 @@ const NUTRI = [
   { l: 'E', pts: 0, cls: 'bg-nutriscore-e' },
 ]
 const NOVA = [
-  { g: 1, pts: 30, d: 'aliments bruts ou peu transformés (légumes, fruits, viande fraîche, lait, œufs)' },
-  { g: 2, pts: 20, d: 'ingrédients culinaires extraits (sucre, sel, huile, beurre)' },
-  { g: 3, pts: 10, d: 'aliments transformés (pain, fromage, conserves de légumes)' },
-  { g: 4, pts: 0, d: 'ultra-transformés (sodas, plats préparés, nuggets, biscuits fourrés, charcuterie industrielle)' },
+  { g: 1, pts: 30, d: t('method.nova1', locale) },
+  { g: 2, pts: 20, d: t('method.nova2', locale) },
+  { g: 3, pts: 10, d: t('method.nova3', locale) },
+  { g: 4, pts: 0, d: t('method.nova4', locale) },
 ]
 const ADDITIVES = [
-  { label: 'Sûr', ex: 'E330 (acide citrique)', ded: '0 pt', fill: 'var(--color-score-excellent)' },
-  { label: 'À limiter', ex: 'E322 (lécithines)', ded: '−2 pts', fill: 'var(--color-citron)' },
-  { label: 'À éviter', ex: 'E951 (aspartame)', ded: '−5 pts', fill: 'var(--color-score-mediocre)' },
-  { label: 'Interdit Maroc/UE', ex: 'E171 (TiO₂)', ded: '−10 pts', fill: 'var(--color-score-mauvais)' },
+  { label: t('additives.safe', locale), ex: t('method.exCitric', locale), ded: t('method.zeroPt', locale), fill: 'var(--color-score-excellent)' },
+  { label: t('method.addLimit', locale), ex: t('method.exLecithin', locale), ded: `−2 ${t('rank.pts', locale)}`, fill: 'var(--color-citron)' },
+  { label: t('additives.avoid', locale), ex: t('method.exAspartame', locale), ded: `−5 ${t('rank.pts', locale)}`, fill: 'var(--color-score-mediocre)' },
+  { label: t('method.addBanned', locale), ex: 'E171 (TiO₂)', ded: `−10 ${t('rank.pts', locale)}`, fill: 'var(--color-score-mauvais)' },
 ]
 // Étiquette finale : seuils de scoreToLabel (75 / 50 / 25)
 const LABELS: Array<{ level: ScoreLevel; range: string; value: number }> = [
@@ -117,7 +117,7 @@ const jsonLd = [
   jsonLd={jsonLd}
   mobileTopbar={false}
 >
-  <PageHero tone="myrtille" mascot="loupe" kicker="Transparence totale" title="Méthodologie du score Bayen" subtitle="Comment on calcule la note 0–100 affichée pour chaque produit. Pas de boîte noire, pas d'IA dans le calcul : un algorithme déterministe, public, vérifiable.">
+  <PageHero tone="myrtille" mascot="loupe" kicker={t('method.kicker', locale)} title={t('method.heroTitle', locale)} subtitle={t('method.heroDesc', locale)}>
     <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
   </PageHero>
 
@@ -125,28 +125,28 @@ const jsonLd = [
     <!-- La formule en une ligne : trois cartes colorées -->
     <section class="section">
       <div class="sec-head">
-        <h2 class="disp d-m md:text-[26px]">La formule en une ligne</h2>
+        <h2 class="disp d-m md:text-[26px]">{t('method.formulaTitle', locale)}</h2>
         <a href="https://github.com/Santofer/bayen/blob/main/frontend/src/lib/scoring.ts" target="_blank" rel="noopener noreferrer">scoring.ts</a>
       </div>
       <div class="grid grid-cols-3 gap-2.5 md:gap-[18px]">
         <div class="card grid content-start gap-1 bg-citron p-3 text-encre md:p-[22px]"><b class="disp d-l num md:text-[40px]">50</b><span class="text-[12.5px] font-semibold md:text-[15px]">Nutri-Score</span></div>
         <div class="card grid content-start gap-1 bg-framboise p-3 text-encre md:p-[22px]"><b class="disp d-l num md:text-[40px]">30</b><span class="text-[12.5px] font-semibold md:text-[15px]">NOVA</span></div>
-        <div class="card grid content-start gap-1 bg-figue p-3 text-encre md:p-[22px]"><b class="disp d-l num md:text-[40px]">20</b><span class="text-[12.5px] font-semibold md:text-[15px]">Additifs</span></div>
+        <div class="card grid content-start gap-1 bg-figue p-3 text-encre md:p-[22px]"><b class="disp d-l num md:text-[40px]">20</b><span class="text-[12.5px] font-semibold md:text-[15px]">{t('additives.title', locale)}</span></div>
       </div>
-      <p class="muted text-[13px]">Score = Nutri-Score (50 %) + NOVA (30 %) + Additifs (20 %), sur 100 points.</p>
+      <p class="muted text-[13px]">{t('method.formula', locale)}</p>
     </section>
 
     <!-- Les trois composantes -->
     <section class="section md:grid-cols-3 md:items-start md:gap-[18px]">
       <article class="card grid gap-3 p-4 md:p-5">
-        <div class="sec-head"><h2 class="disp d-m">1. Nutri-Score</h2><span class="eyebrow">50 pts</span></div>
+        <div class="sec-head"><h2 class="disp d-m">1. Nutri-Score</h2><span class="eyebrow">50 {t('rank.pts', locale)}</span></div>
         <p class="text-[14px] leading-relaxed">
-          On utilise l'algorithme officiel européen mis au point par <strong>Santé Publique France</strong> (méthode FSA-NPS modifiée). Pour 100g du produit :
+          {t('method.nutriP1a', locale)}<strong>Santé Publique France</strong>{t('method.nutriP1b', locale)}
         </p>
         <ul class="muted grid gap-1.5 ps-4 text-[13.5px] leading-relaxed list-disc">
-          <li><strong class="text-foreground">Points négatifs</strong> (à minimiser) : énergie, sucres, acides gras saturés, sel</li>
-          <li><strong class="text-foreground">Points positifs</strong> (à maximiser) : fibres, protéines, fruits/légumes/légumineuses</li>
-          <li><strong class="text-foreground">Lettres :</strong> A (vert foncé, le meilleur) → E (rouge)</li>
+          <li><strong class="text-foreground">{t('method.negTitle', locale)}</strong>{t('method.negDesc', locale)}</li>
+          <li><strong class="text-foreground">{t('method.posTitle', locale)}</strong>{t('method.posDesc', locale)}</li>
+          <li><strong class="text-foreground">{t('method.lettersTitle', locale)}</strong>{t('method.lettersDesc', locale)}</li>
         </ul>
         <div class="grid gap-2.5">
           {NUTRI.map((n) => (
@@ -158,14 +158,14 @@ const jsonLd = [
           ))}
         </div>
         <p class="muted text-xs italic">
-          Pour les boissons, on applique des seuils plus stricts (catégorie 5 "boissons sucrées" et 6 "eaux & jus") car les calories liquides sont plus rapidement absorbées par l'organisme.
+          {t('method.drinks', locale)}
         </p>
       </article>
 
       <article class="card grid gap-3 p-4 md:p-5">
-        <div class="sec-head"><h2 class="disp d-m">2. Groupe NOVA</h2><span class="eyebrow">30 pts</span></div>
+        <div class="sec-head"><h2 class="disp d-m">{t('method.novaTitle', locale)}</h2><span class="eyebrow">30 {t('rank.pts', locale)}</span></div>
         <p class="text-[14px] leading-relaxed">
-          La classification <strong>NOVA</strong> (Pr. Carlos Monteiro, Université de São Paulo, 2009) range les aliments selon leur degré de transformation industrielle :
+          {t('method.novaP1a', locale)}<strong>NOVA</strong>{t('method.novaP1b', locale)}
         </p>
         <div class="grid gap-3">
           {NOVA.map((n) => (
@@ -178,14 +178,14 @@ const jsonLd = [
           ))}
         </div>
         <p class="muted text-[13px] italic">
-          Une consommation élevée de NOVA 4 est associée à <strong class="text-foreground">+62% de mortalité toutes causes</strong> (étude NutriNet-Santé 2019, 45 000 participants) et +31% de diabète type 2 — d'où la pondération forte dans le score Bayen.
+          {t('method.novaRiskA', locale)}<strong class="text-foreground">{t('method.novaRiskB', locale)}</strong>{t('method.novaRiskC', locale)}
         </p>
       </article>
 
       <article class="card grid gap-3 p-4 md:p-5">
-        <div class="sec-head"><h2 class="disp d-m">3. Additifs</h2><span class="eyebrow">20 pts</span></div>
+        <div class="sec-head"><h2 class="disp d-m">3. {t('additives.title', locale)}</h2><span class="eyebrow">20 {t('rank.pts', locale)}</span></div>
         <p class="text-[14px] leading-relaxed">
-          On part de 20 points et on déduit pour chaque additif détecté dans la liste d'ingrédients, selon son niveau de risque (basé sur les évaluations <strong>EFSA</strong>, <strong>CIRC/OMS</strong> et la réglementation marocaine) :
+          {t('method.addP1a', locale)}<strong>EFSA</strong>{t('method.comma', locale)}<strong>CIRC/OMS</strong>{t('method.addP1b', locale)}
         </p>
         <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5">
           {ADDITIVES.map((a) => (
@@ -196,20 +196,20 @@ const jsonLd = [
           ))}
         </div>
         <p class="muted text-xs italic">
-          Le minimum reste 0 : un produit avec beaucoup d'additifs ne descend pas dans le négatif sur cette composante.
+          {t('method.addFloor', locale)}
         </p>
-        <a href="/additifs" class="text-[13px] font-bold underline underline-offset-[3px]">Tous les additifs →</a>
+        <a href="/additifs" class="text-[13px] font-bold underline underline-offset-[3px]">{t('method.allAdditives', locale)}</a>
       </article>
     </section>
 
     <!-- Étiquette finale : les pastilles de score -->
     <section class="section">
-      <div class="sec-head"><h2 class="disp d-m md:text-[26px]">Étiquette finale</h2><span class="eyebrow">score / 100</span></div>
+      <div class="sec-head"><h2 class="disp d-m md:text-[26px]">{t('method.labelTitle', locale)}</h2><span class="eyebrow">{t('method.labelEyebrow', locale)}</span></div>
       <div class="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-[18px]">
         {LABELS.map((l) => (
           <div class="card grid justify-items-center gap-3 p-4 text-center">
-            <span class="score-sticker" style={`--c: ${SCORE_FILL[l.level]}`} role="img" aria-label={`${SCORE_WORD[l.level]}, de ${l.range}`}>
-              <span aria-hidden="true"><b>{l.value}</b><i>{SCORE_WORD[l.level]}</i></span>
+            <span class="score-sticker" style={`--c: ${SCORE_FILL[l.level]}`} role="img" aria-label={`${t(`score.${l.level}`, locale)}, ${t('method.rangeFrom', locale)} ${l.range}`}>
+              <span aria-hidden="true"><b>{l.value}</b><i>{t(`score.${l.level}`, locale)}</i></span>
             </span>
             <span class="num font-display text-[15px] font-extrabold">{l.range}</span>
           </div>
@@ -219,26 +219,26 @@ const jsonLd = [
 
     <!-- L'IA : lire et décrire, jamais noter (univers IA = figue) -->
     <section class="section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12">
-      <h2 class="disp d-m md:text-[26px]">Et l'IA dans tout ça ?</h2>
+      <h2 class="disp d-m md:text-[26px]">{t('method.aiTitle', locale)}</h2>
       <div class="card tint-figue grid max-w-[68ch] gap-3 p-4 md:p-5">
         <p class="text-[14.5px] leading-relaxed">
-          Bayen utilise un modèle d'IA auto-hébergé (Qwen3.5-9B multimodal, sur nos serveurs au Maroc) pour <strong>lire et décrire, jamais pour noter</strong> :
+          {t('method.aiP1a', locale)}<strong>{t('method.aiP1b', locale)}</strong>{t('method.aiP1c', locale)}
         </p>
         <ul class="grid gap-1.5 ps-4 text-[14px] leading-relaxed list-disc">
-          <li>Lire le tableau nutritionnel d'une photo d'étiquette (français et arabe)</li>
-          <li>Recopier la liste d'ingrédients INCI d'un cosmétique</li>
-          <li>Identifier un produit encore sans fiche et proposer des valeurs typiques, toujours affichées comme « estimation IA »</li>
-          <li>Décrire une photo de plat et estimer une fourchette de calories (« Analyser mon repas »)</li>
+          <li>{t('method.ai1', locale)}</li>
+          <li>{t('method.ai2', locale)}</li>
+          <li>{t('method.ai3', locale)}</li>
+          <li>{t('method.ai4', locale)}</li>
         </ul>
         <p class="text-[14.5px] leading-relaxed">
-          <strong>Le score final n'est JAMAIS calculé par l'IA.</strong> Une fois les valeurs nutritionnelles extraites, l'algorithme déterministe ci-dessus prend la main. C'est ce qui garantit la reproductibilité : le même produit donne le même score, à chaque scan, sans variation.
+          <strong>{t('method.aiP2a', locale)}</strong>{t('method.aiP2b', locale)}
         </p>
       </div>
     </section>
 
     <footer class="section muted justify-items-center gap-1 text-center text-xs">
-      <p>Code source : <a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="font-semibold text-brand-ink underline underline-offset-2">github.com/Santofer/bayen</a></p>
-      <p>Dernière mise à jour : 11 mai 2026</p>
+      <p>{t('method.sourceCode', locale)}<a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="font-semibold text-brand-ink underline underline-offset-2">github.com/Santofer/bayen</a></p>
+      <p>{t('method.updated', locale)}</p>
     </footer>
   </main>
 </Layout>

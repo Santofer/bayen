@@ -25,7 +25,7 @@ function imgSrc(item: CartItem): string | null {
 }
 
 export default function Cart() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [items, setItems] = useState<CartItem[]>([])
   const [ready, setReady] = useState(false)
   const [sharing, setSharing] = useState(false)
@@ -46,7 +46,7 @@ export default function Cart() {
         const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean }
         if (nav.canShare && nav.canShare({ files: [file] })) {
           try {
-            await navigator.share({ files: [file], text, title: 'Ma liste Bayen' })
+            await navigator.share({ files: [file], text, title: t('cart.shareTitle') })
             return
           } catch { /* annulé → fallback */ }
         }
@@ -98,7 +98,7 @@ export default function Cart() {
       <section className="section">
         <div className="card flex flex-wrap items-center justify-between gap-4 p-4 md:p-5">
           <div className="flex items-center gap-3.5">
-            {avg != null && <ScoreSticker score={avg} />}
+            {avg != null && <ScoreSticker score={avg} locale={locale} />}
             <div>
               <p className="disp d-m num">
                 {items.length} {items.length > 1 ? t('cart.itemsPlural') : t('cart.itemSingular')}
@@ -138,7 +138,7 @@ export default function Cart() {
                   <p className="pn">{item.name_fr}</p>
                   {item.brand && <p className="pm">{item.brand}</p>}
                 </a>
-                {item.scan_score != null ? <ScoreSticker score={item.scan_score} size="sm" /> : <span />}
+                {item.scan_score != null ? <ScoreSticker score={item.scan_score} size="sm" locale={locale} /> : <span />}
                 <button
                   type="button"
                   onClick={() => removeFromCart(item.barcode)}

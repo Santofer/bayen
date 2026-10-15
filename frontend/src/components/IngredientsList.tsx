@@ -129,7 +129,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                   ) : (
                     <span>{ing.is_allergen ? name.toUpperCase() : name}</span>
                   )}
-                  {ing.is_allergen && <span className="ml-1 inline-flex align-text-bottom"><AlertTriangle size={12} className="text-current" /></span>}
+                  {ing.is_allergen && <span className="ms-1 inline-flex align-text-bottom"><AlertTriangle size={12} className="text-current" /></span>}
                 </span>
 
                 {/* Pourcentage */}
@@ -158,7 +158,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                   'border-transparent bg-muted/60 text-foreground'
                 )}
               >
-                {isAllergen && <span className="mr-0.5 inline-flex"><AlertTriangle size={12} className="text-current" /></span>}
+                {isAllergen && <span className="me-0.5 inline-flex"><AlertTriangle size={12} className="text-current" /></span>}
                 {tag}
               </span>
             )

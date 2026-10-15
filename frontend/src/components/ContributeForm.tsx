@@ -107,7 +107,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
     try {
       const token = await getAccessToken()
       if (!token) {
-        setError('Session expirée. Veuillez vous reconnecter.')
+        setError(t('fixForm.sessionExpired'))
         setFrontPhotoUploading(false)
         return
       }
@@ -123,7 +123,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
       })
 
       if (!uploadRes.ok) {
-        throw new Error(`Erreur upload: ${uploadRes.status}`)
+        throw new Error(`${t('fixForm.uploadError')}: ${uploadRes.status}`)
       }
 
       const uploadData = await uploadRes.json() as { data: { id: string } }
@@ -141,12 +141,12 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
       })
 
       if (!patchRes.ok) {
-        throw new Error(`Erreur mise à jour: ${patchRes.status}`)
+        throw new Error(`${t('fixForm.updateError')}: ${patchRes.status}`)
       }
 
       setFrontPhotoUploaded(true)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'upload')
+      setError(err instanceof Error ? err.message : t('fixForm.uploadFailed'))
     } finally {
       setFrontPhotoUploading(false)
     }
@@ -163,7 +163,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
         // Mode édition : mettre à jour le produit existant
         const token = await getAccessToken()
         if (!token) {
-          setError('Session expirée. Veuillez vous reconnecter.')
+          setError(t('fixForm.sessionExpired'))
           setSubmitting(false)
           return
         }
@@ -256,7 +256,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
 
         if (!res.ok) {
           const errorData = await res.json().catch(() => null) as { errors?: Array<{ message: string }> } | null
-          throw new Error(errorData?.errors?.[0]?.message ?? `Erreur ${res.status}`)
+          throw new Error(errorData?.errors?.[0]?.message ?? `${t('import.error')} ${res.status}`)
         }
 
         // Créer une contribution de type fix_data
@@ -311,13 +311,13 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           const anonData = await anonRes.json().catch(() => null) as { error?: string; existed?: boolean } | null
 
           if (!anonRes.ok) {
-            if (anonRes.status === 429) throw new Error('Trop de contributions. Patiente quelques minutes.')
-            throw new Error(anonData?.error ?? `Erreur ${anonRes.status}`)
+            if (anonRes.status === 429) throw new Error(t('fixForm.tooMany'))
+            throw new Error(anonData?.error ?? `${t('import.error')} ${anonRes.status}`)
           }
 
           // Si l'utilisateur avait sélectionné des photos, on lui rappelle gentiment
           if (photos.front || photos.nutrition || photos.ingredients) {
-            setError('💡 Crée un compte pour ajouter les photos et débloquer l\'OCR auto.')
+            setError(t('fixForm.anonPhotos'))
           }
           setSubmitted(true)
           return
@@ -393,13 +393,13 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
         if (!createRes.ok) {
           const errorData = await createRes.json().catch(() => null) as { errors?: Array<{ message: string; extensions?: { code?: string } }> } | null
           const code = errorData?.errors?.[0]?.extensions?.code
-          const rawMsg = errorData?.errors?.[0]?.message ?? `Erreur ${createRes.status}`
+          const rawMsg = errorData?.errors?.[0]?.message ?? `${t('import.error')} ${createRes.status}`
           // Traduire les erreurs Directus courantes en français
           if (code === 'FORBIDDEN' || createRes.status === 403) {
-            throw new Error("Tu n'as pas encore les permissions pour contribuer. Contacte un administrateur.")
+            throw new Error(t('fixForm.forbidden'))
           }
           if (code === 'RECORD_NOT_UNIQUE' || rawMsg.toLowerCase().includes('unique')) {
-            throw new Error('Ce produit existe déjà dans la base — essaye de le scanner pour le voir.')
+            throw new Error(t('fixForm.exists'))
           }
           throw new Error(rawMsg)
         }
@@ -455,7 +455,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
         setSubmitted(true)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi. Vérifiez votre connexion.')
+      setError(err instanceof Error ? err.message : t('fixForm.sendError'))
     } finally {
       setSubmitting(false)
     }
@@ -467,15 +467,15 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
       <div className="card grid justify-items-center gap-3 p-6 text-center md:p-8">
         {/* Contribution réussie : Naânaa applaudit */}
         <img src="/mascotte/naanaa-bravo.webp" alt="" width="96" height="141" className="naanaa-bob h-auto w-24" />
-        <h2 className="disp d-l">{isEditMode ? 'Produit mis à jour !' : t('contribute.thanks')}</h2>
+        <h2 className="disp d-l">{isEditMode ? t('fixForm.updatedTitle') : t('contribute.thanks')}</h2>
         <p className="muted text-sm">
-          Le produit <span className="num font-semibold text-foreground">{barcode}</span> a été {isEditMode ? 'mis à jour' : 'soumis'}.
+          {t('fixForm.productPrefix')} <span className="num font-semibold text-foreground">{barcode}</span> {isEditMode ? t('fixForm.wasUpdated') : t('fixForm.wasSubmitted')}
         </p>
-        {!isEditMode && <p className="muted text-sm">Un modérateur vérifiera les données avant publication.</p>}
+        {!isEditMode && <p className="muted text-sm">{t('fixForm.moderation')}</p>}
         {error && <Bubble pose="astuce"><p>{error}</p></Bubble>}
         <div className="mt-3 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
           {isEditMode ? (
-            <a href={`/produit/${barcode}`} className="btn primary">Voir la fiche produit</a>
+            <a href={`/produit/${barcode}`} className="btn primary">{t('contrib.seeProduct')}</a>
           ) : (
             <button
               type="button"
@@ -485,7 +485,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               {t('contribute.addAnother')}
             </button>
           )}
-          <a href="/scan" className="btn">Scanner un produit</a>
+          <a href="/scan" className="btn">{t('home.scanBtn')}</a>
         </div>
       </div>
     )
@@ -549,7 +549,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
             />
           </label>
           {barcode && !isValidEan(barcode) && (
-            <p className="text-xs text-destructive">Format EAN-8 (8 chiffres) ou EAN-13 (13 chiffres)</p>
+            <p className="text-xs text-destructive">{t('fixForm.eanFormat')}</p>
           )}
           <button type="submit" className="btn primary w-full" disabled={!isValidEan(barcode)}>
             {t('contribute.continue')}
@@ -566,16 +566,16 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           </div>
 
           {([
-            { key: 'nutrition' as const, label: t('contribute.photoNutrition'), required: true, hint: 'Cadrez le tableau des valeurs nutritionnelles' },
-            { key: 'ingredients' as const, label: t('contribute.photoIngredients'), required: false, hint: 'Photo de la liste des ingrédients' },
-            { key: 'front' as const, label: t('contribute.photoFront'), required: false, hint: 'Photo du packaging face avant' },
+            { key: 'nutrition' as const, label: t('contribute.photoNutrition'), required: true, hint: t('fixForm.hintNutrition') },
+            { key: 'ingredients' as const, label: t('contribute.photoIngredients'), required: false, hint: t('fixForm.hintIngredients') },
+            { key: 'front' as const, label: t('contribute.photoFront'), required: false, hint: t('fixForm.hintFront') },
           ]).map(({ key, label, required, hint }) => (
             <div key={key} className="grid gap-2 rounded-2xl border-2 border-line p-3.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-bold">
                   {label} {required && <span className="text-destructive">*</span>}
                 </span>
-                {photos[key] && <span className="chip fill bg-menthe"><Check strokeWidth={3} /> Ajoutée</span>}
+                {photos[key] && <span className="chip fill bg-menthe"><Check strokeWidth={3} /> {t('fixForm.added')}</span>}
               </div>
               <p className="muted text-xs">{hint}</p>
               <input
@@ -611,7 +611,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               <span className="text-[13.5px] font-bold">{t('contribute.name')} <span className="text-destructive">*</span></span>
               <input
                 type="text"
-                placeholder="Ex: Bimo Chocolat"
+                placeholder={t('fixForm.namePh')}
                 value={productInfo.name_fr}
                 onChange={(e) => setProductInfo((p) => ({ ...p, name_fr: e.target.value }))}
                 className={FIELD}
@@ -621,7 +621,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               <span className="text-[13.5px] font-bold">{t('contribute.brand')} <span className="text-destructive">*</span></span>
               <input
                 type="text"
-                placeholder="Ex: Bimo"
+                placeholder={t('fixForm.brandPh')}
                 value={productInfo.brand}
                 onChange={(e) => setProductInfo((p) => ({ ...p, brand: e.target.value }))}
                 className={FIELD}
@@ -632,17 +632,17 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           {/* Photos (mode édition — les 3 photos) */}
           {isEditMode && (
             <div className={STEP_CARD}>
-              <h2 className="disp d-s flex items-center gap-2"><Camera size={18} /> Photos du produit</h2>
+              <h2 className="disp d-s flex items-center gap-2"><Camera size={18} /> {t('fixForm.photosTitle')}</h2>
               {[
-                { key: 'front' as const, label: 'Photo face avant', field: 'image_front' },
-                { key: 'nutrition' as const, label: 'Tableau nutritionnel', field: 'image_nutrition' },
-                { key: 'ingredients' as const, label: 'Liste des ingrédients', field: 'image_ingredients' },
+                { key: 'front' as const, label: t('contribute.photoFront'), field: 'image_front' },
+                { key: 'nutrition' as const, label: t('contribute.photoNutrition'), field: 'image_nutrition' },
+                { key: 'ingredients' as const, label: t('contribute.photoIngredients'), field: 'image_ingredients' },
               ].map(({ key, label, field }) => (
                 <div key={key} className="grid gap-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[13px] font-bold">{label}</span>
                     {Boolean(existingProduct[field]) && (
-                      <span className="chip fill bg-menthe"><Check strokeWidth={3} /> Image existante</span>
+                      <span className="chip fill bg-menthe"><Check strokeWidth={3} /> {t('fixForm.existingImage')}</span>
                     )}
                   </div>
                   <input
@@ -659,7 +659,7 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                 </div>
               ))}
               <Bubble pose="astuce">
-                <p className="flex items-start gap-1.5"><Lightbulb size={15} className="mt-0.5 flex-none" /> Uploadez le tableau nutritionnel pour remplir automatiquement les valeurs via OCR</p>
+                <p className="flex items-start gap-1.5"><Lightbulb size={15} className="mt-0.5 flex-none" /> {t('fixForm.ocrTip')}</p>
               </Bubble>
             </div>
           )}
@@ -668,19 +668,19 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           {isEditMode && (
             <div className={STEP_CARD}>
               <div className="sec-head">
-                <h2 className="disp d-s flex items-center gap-2"><UtensilsCrossed size={18} /> Valeurs nutritionnelles</h2>
-                <span className="eyebrow">pour 100 g</span>
+                <h2 className="disp d-s flex items-center gap-2"><UtensilsCrossed size={18} /> {t('fixForm.nutritionTitle')}</h2>
+                <span className="eyebrow">{t('wizard.per100')}</span>
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 {[
-                  { key: 'energy_kcal', label: 'Énergie (kcal)', placeholder: 'ex: 450' },
-                  { key: 'fat_total', label: 'Lipides (g)', placeholder: 'ex: 25' },
-                  { key: 'fat_saturated', label: 'dont AGS (g)', placeholder: 'ex: 12' },
-                  { key: 'carbs_total', label: 'Glucides (g)', placeholder: 'ex: 55' },
-                  { key: 'sugars', label: 'dont Sucres (g)', placeholder: 'ex: 30' },
-                  { key: 'fiber', label: 'Fibres (g)', placeholder: 'ex: 2' },
-                  { key: 'proteins', label: 'Protéines (g)', placeholder: 'ex: 6' },
-                  { key: 'salt', label: 'Sel (g)', placeholder: 'ex: 0.5' },
+                  { key: 'energy_kcal', label: `${t('product.energy')} (kcal)`, placeholder: `${t('fixForm.ex')} 450` },
+                  { key: 'fat_total', label: `${t('product.fat')} (g)`, placeholder: `${t('fixForm.ex')} 25` },
+                  { key: 'fat_saturated', label: `${t('product.saturatedFat')} (g)`, placeholder: `${t('fixForm.ex')} 12` },
+                  { key: 'carbs_total', label: `${t('product.carbs')} (g)`, placeholder: `${t('fixForm.ex')} 55` },
+                  { key: 'sugars', label: `${t('product.sugars')} (g)`, placeholder: `${t('fixForm.ex')} 30` },
+                  { key: 'fiber', label: `${t('product.fiber')} (g)`, placeholder: `${t('fixForm.ex')} 2` },
+                  { key: 'proteins', label: `${t('product.proteins')} (g)`, placeholder: `${t('fixForm.ex')} 6` },
+                  { key: 'salt', label: `${t('product.salt')} (g)`, placeholder: `${t('fixForm.ex')} 0.5` },
                 ].map(({ key, label, placeholder }) => (
                   <label key={key} className="grid gap-1 rounded-2xl border-2 border-line bg-background px-3.5 py-2.5">
                     <span className="muted text-[11.5px] font-semibold">{label}</span>
@@ -704,10 +704,10 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           {/* Ingrédients (mode édition) */}
           {isEditMode && (
             <label className={STEP_CARD}>
-              <span className="disp d-s flex items-center gap-2"><FileText size={18} /> Ingrédients</span>
+              <span className="disp d-s flex items-center gap-2"><FileText size={18} /> {t('product.ingredients')}</span>
               <textarea
                 rows={3}
-                placeholder="Liste des ingrédients..."
+                placeholder={t('fixForm.ingredientsPh')}
                 value={productInfo.ingredients_text}
                 onChange={(e) => setProductInfo((p) => ({ ...p, ingredients_text: e.target.value }))}
                 className={cn(FIELD, 'resize-none py-3 text-sm')}
@@ -739,13 +739,13 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
       {step === 'confirm' && (
         <div className="grid gap-4">
           <div className="card overflow-hidden">
-            <h2 className="disp d-s border-b-[1.5px] border-line px-4 py-3">Récapitulatif</h2>
+            <h2 className="disp d-s border-b-[1.5px] border-line px-4 py-3">{t('fixForm.summary')}</h2>
             {[
-              ['Code-barres', barcode],
-              ['Nom', productInfo.name_fr],
-              ['Marque', productInfo.brand],
-              ...(!isEditMode ? [['Photos', `${Object.values(photos).filter(Boolean).length}/3`]] : []),
-              ...(isEditMode && frontPhotoUploaded ? [['Photo', 'Nouvelle photo uploadée']] : []),
+              [t('fixForm.barcode'), barcode],
+              [t('fixForm.name'), productInfo.name_fr],
+              [t('contribute.brand'), productInfo.brand],
+              ...(!isEditMode ? [[t('contribute.photos'), `${Object.values(photos).filter(Boolean).length}/3`]] : []),
+              ...(isEditMode && frontPhotoUploaded ? [[t('fixForm.photo'), t('fixForm.newPhoto')]] : []),
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between gap-3 border-b-[1.5px] border-line px-4 py-3 text-sm last:border-b-0">
                 <span className="muted">{k}</span>
@@ -757,8 +757,8 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
           <Bubble pose="astuce">
             <p>
               {isEditMode
-                ? 'Les modifications seront appliquées immédiatement au produit existant.'
-                : 'Les photos seront analysées par notre IA (lecture visuelle Qwen, OCR en secours) pour extraire les données nutritionnelles et la liste des ingrédients. Un modérateur vérifiera les données avant publication.'}
+                ? t('fixForm.editNote')
+                : t('fixForm.createNote')}
             </p>
           </Bubble>
 
@@ -772,10 +772,10 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               {submitting ? (
                 <>
                   <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  {isEditMode ? 'Mise à jour...' : t('contribute.sending')}
+                  {isEditMode ? t('fixForm.updating') : t('contribute.sending')}
                 </>
               ) : (
-                isEditMode ? 'Mettre à jour le produit' : t('contribute.submit')
+                isEditMode ? t('fixForm.update') : t('contribute.submit')
               )}
             </button>
           </div>

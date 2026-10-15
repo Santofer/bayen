@@ -18,6 +18,8 @@ import { getHistory, onHistoryChange, type ScanHistoryEntry } from '@/lib/scan-h
 import { ALLERGENS, getProfile, onProfileChange, type HealthProfile } from '@/lib/health-profile'
 import { cartCount, onCartChange } from '@/lib/cart'
 import { ScoreSticker } from '@/components/ProductCard'
+import { ARY_MONTHS } from '@/components/BlogCard'
+import type { Locale, TranslationKey } from '@/lib/translations'
 import StreakWidget from '@/components/StreakWidget'
 import { LoginCard } from '@/components/AuthGuard'
 
@@ -48,24 +50,24 @@ interface Scan {
 }
 
 // Niveaux et seuils — `fill` = aplat Marché Pop (texte encre posé dessus)
-const RANK_INFO: Record<string, { label: string; fill: string; min: number; next: number | null }> = {
-  nouveau: { label: 'Nouveau', fill: 'bg-framboise', min: 0, next: 100 },
-  contributeur: { label: 'Contributeur', fill: 'bg-menthe', min: 100, next: 500 },
-  expert: { label: 'Expert', fill: 'bg-citron', min: 500, next: 2000 },
-  'vérifié': { label: 'Vérifié', fill: 'bg-myrtille', min: 2000, next: null },
+const RANK_INFO: Record<string, { label: TranslationKey; fill: string; min: number; next: number | null }> = {
+  nouveau: { label: 'rank.nouveau', fill: 'bg-framboise', min: 0, next: 100 },
+  contributeur: { label: 'rank.contributeur', fill: 'bg-menthe', min: 100, next: 500 },
+  expert: { label: 'rank.expert', fill: 'bg-citron', min: 500, next: 2000 },
+  'vérifié': { label: 'rank.verified', fill: 'bg-myrtille', min: 2000, next: null },
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  new_product: 'Nouveau produit',
-  fix_data: 'Correction',
-  add_image: 'Photo ajoutée',
-  confirm: 'Confirmation',
+const TYPE_LABELS: Record<string, TranslationKey> = {
+  new_product: 'account.type.new_product',
+  fix_data: 'account.type.fix_data',
+  add_image: 'account.type.add_image',
+  confirm: 'account.type.confirm',
 }
 
-const STATUS_CHIPS: Record<string, { label: string; fill: string }> = {
-  pending: { label: 'En attente', fill: 'bg-citron' },
-  approved: { label: 'Approuvée', fill: 'bg-menthe' },
-  rejected: { label: 'Rejetée', fill: 'bg-tomate' },
+const STATUS_CHIPS: Record<string, { label: TranslationKey; fill: string }> = {
+  pending: { label: 'account.status.pending', fill: 'bg-citron' },
+  approved: { label: 'account.status.approved', fill: 'bg-menthe' },
+  rejected: { label: 'account.status.rejected', fill: 'bg-tomate' },
 }
 
 // Ligne de carte « réglages » (maquette : 14 × 16 px, filet entre les lignes)
@@ -136,19 +138,21 @@ function monthStats(entries: ScanHistoryEntry[], now: Date): MonthStats | null {
 }
 
 /** Résumé du profil santé pour la ligne de réglages (« Sans gluten, lait +2 ») */
-function profileSummary(p: HealthProfile | null): string {
+function profileSummary(p: HealthProfile | null, t: (k: TranslationKey) => string, locale: Locale): string {
   if (!p) return ''
   const named = [
-    ...p.allergens.map((k) => ALLERGENS.find((a) => a.key === k)?.label ?? k),
-    ...(p.avoidPalmOil ? ['huile de palme'] : []),
+    ...p.allergens.map((k) => {
+      const a = ALLERGENS.find((x) => x.key === k)
+      return (locale === 'ary' ? a?.labelAr : a?.label) ?? k
+    }),
+    ...(p.avoidPalmOil ? [t('profile.palmOil')] : []),
   ]
   const others = p.avoidAdditives.length + (p.avoidEndocrine ? 1 : 0) + (p.avoidFragranceAllergens ? 1 : 0)
-  if (named.length === 0) return others ? `${others} alerte${others > 1 ? 's' : ''}` : 'À compléter'
+  if (named.length === 0) return others ? `${others} ${t(others > 1 ? 'health.alertsPlural' : 'health.alerts')}` : t('account.profileTodo')
   const extra = Math.max(0, named.length - 2) + others
-  return `Sans ${named.slice(0, 2).join(', ').toLowerCase()}${extra ? ` +${extra}` : ''}`
+  const list = named.slice(0, 2).join(locale === 'ary' ? '، ' : ', ').toLowerCase()
+  return `${t('account.profileWithout').replace('{list}', list)}${extra ? ` +${extra}` : ''}`
 }
-
-const plural = (n: number, word: string): string => `${n} ${word}${n > 1 ? 's' : ''}`
 
 export default function AccountDashboard() {
   const { t, locale, setLocale } = useLocale()
@@ -271,12 +275,17 @@ export default function AccountDashboard() {
   }
 
   const now = new Date()
-  const month = now.toLocaleDateString('fr-FR', { month: 'long' })
-  const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'long' })
+  // Mois en darija marocaine (يناير… دجنبر), pas les noms de l'arabe du Machrek
+  const monthName = (d: Date): string => (locale === 'ary' ? ARY_MONTHS[d.getMonth()] : d.toLocaleDateString('fr-FR', { month: 'long' }))
+  const month = monthName(now)
+  const prevMonth = monthName(new Date(now.getFullYear(), now.getMonth() - 1, 1))
   const courses = monthStats(history, now)
+  const dateLocale = locale === 'ary' ? 'ar-MA' : 'fr-FR'
+  const pts = (n: number): string => `${n} ${t('rank.pts')}`
 
   const rank = user ? RANK_INFO[user.rank] ?? RANK_INFO.nouveau : RANK_INFO.nouveau
-  const nextLabel = Object.values(RANK_INFO).find((r) => r.min === rank.next)?.label ?? 'le niveau suivant'
+  const nextKey = Object.values(RANK_INFO).find((r) => r.min === rank.next)?.label
+  const nextLabel = nextKey ? t(nextKey) : t('account.nextLevel')
   const progress = user && rank.next
     ? Math.max(0, Math.min(100, ((user.points - rank.min) / (rank.next - rank.min)) * 100))
     : 100
@@ -304,8 +313,8 @@ export default function AccountDashboard() {
                       className="h-9 min-w-0 flex-1 rounded-full border-2 border-line bg-background px-3 text-sm"
                       autoFocus
                     />
-                    <button type="button" className="btn sm primary" onClick={handleSaveProfile}>Enregistrer</button>
-                    <button type="button" className="btn sm flat" onClick={() => setEditing(false)}>Annuler</button>
+                    <button type="button" className="btn sm primary" onClick={handleSaveProfile}>{t('common.save')}</button>
+                    <button type="button" className="btn sm flat" onClick={() => setEditing(false)}>{t('common.cancel')}</button>
                   </div>
                 ) : (
                   <div className="flex min-w-0 items-center gap-1">
@@ -313,7 +322,7 @@ export default function AccountDashboard() {
                     <button
                       type="button"
                       onClick={() => setEditing(true)}
-                      aria-label="Modifier le nom"
+                      aria-label={t('account.editName')}
                       className="grid size-7 flex-none place-items-center rounded-full text-muted-foreground hover:bg-muted"
                     >
                       <Pencil size={14} aria-hidden="true" />
@@ -321,15 +330,17 @@ export default function AccountDashboard() {
                   </div>
                 )}
                 <div className="flex flex-wrap items-center gap-2 text-[13px]">
-                  {user.isAdmin && <span className="chip fill bg-tomate">Admin</span>}
-                  <span className={cn('chip fill', rank.fill)}><Trophy aria-hidden="true" /> {rank.label}</span>
-                  <b className="num">{user.points} pts</b>
+                  {user.isAdmin && <span className="chip fill bg-tomate">{t('account.admin')}</span>}
+                  <span className={cn('chip fill', rank.fill)}><Trophy aria-hidden="true" /> {t(rank.label)}</span>
+                  <b className="num">{pts(user.points)}</b>
                 </div>
                 <div className="h-2.5 overflow-hidden rounded-[9px] border-[1.5px] border-line bg-muted">
                   <i className="block h-full bg-menthe transition-[width] duration-500" style={{ width: `${progress}%` }} />
                 </div>
                 <p className="muted text-[11.5px]">
-                  {rank.next ? `${Math.max(0, rank.next - user.points)} pts avant « ${nextLabel} »` : 'Rang le plus haut atteint'}
+                  {rank.next
+                    ? t('account.ptsBefore').replace('{n}', String(Math.max(0, rank.next - user.points))).replace('{rank}', nextLabel)
+                    : t('account.topRank')}
                 </p>
               </div>
             </div>
@@ -340,9 +351,9 @@ export default function AccountDashboard() {
           {/* Naânaa applaudit les points gagnés */}
           {user && user.points > 0 && (
             <div className="naanaa">
-              <div className="m"><img src="/mascotte/naanaa-bravo.webp" alt="Naânaa qui applaudit" /></div>
+              <div className="m"><img src="/mascotte/naanaa-bravo.webp" alt={t('account.naanaaBravoAlt')} /></div>
               <p className="bubble">
-                <b>{user.points} pts !</b> Merci pour tes contributions, elles rendent chaque étiquette plus claire.
+                <b>{t('account.ptsBang').replace('{n}', String(user.points))}</b> {t('account.thanksBubble')}
               </p>
             </div>
           )}
@@ -350,16 +361,16 @@ export default function AccountDashboard() {
 
         {/* Mes courses du mois : historique de scans de l'appareil, jamais de chiffres inventés */}
         <section className="grid gap-3">
-          <div className="sec-head"><h2 className="disp d-m">Mes courses en {month}</h2></div>
+          <div className="sec-head"><h2 className="disp d-m">{t('account.coursesTitle').replace('{month}', month)}</h2></div>
           <div className="card grid gap-3.5 p-4">
             {courses ? (
               <>
                 <div className="flex items-center gap-3.5">
-                  <ScoreSticker score={courses.avg} />
+                  <ScoreSticker score={courses.avg} locale={locale} />
                   <p className="text-sm">
-                    Score moyen de tes {plural(courses.count, 'produit')} {courses.count > 1 ? 'scannés' : 'scanné'}
+                    {t(courses.count > 1 ? 'account.coursesAvg' : 'account.coursesAvgOne').replace('{n}', String(courses.count))}
                     {courses.delta != null && (
-                      <> : <b>{courses.delta >= 0 ? '+' : '−'}{plural(Math.abs(courses.delta), 'point')}</b> depuis {prevMonth}</>
+                      <> : <b>{courses.delta >= 0 ? '+' : '−'}{Math.abs(courses.delta)} {t(Math.abs(courses.delta) > 1 ? 'account.pointMany' : 'account.pointOne')}</b> {t('account.coursesSince')} {prevMonth}</>
                     )}.
                   </p>
                 </div>
@@ -377,19 +388,19 @@ export default function AccountDashboard() {
                   ))}
                 </div>
                 <div className="muted grid grid-cols-4 text-center text-[11.5px]">
-                  {[1, 2, 3, 4].map((n) => <span key={n}>sem. {n}</span>)}
+                  {[1, 2, 3, 4].map((n) => <span key={n}>{t('account.weekShort').replace('{n}', String(n))}</span>)}
                 </div>
                 <a href="/mes-scans" className="text-[13.5px] font-bold">
                   {courses.toReplace > 0
-                    ? `${plural(courses.toReplace, 'produit')} à remplacer en priorité →`
-                    : 'Voir mes scans →'}
+                    ? t(courses.toReplace > 1 ? 'account.toReplaceMany' : 'account.toReplaceOne').replace('{n}', String(courses.toReplace))
+                    : t('account.seeScans')}
                 </a>
               </>
             ) : (
               <>
                 <div className="naanaa">
                   <div className="m"><img src="/mascotte/naanaa-scan.webp" alt="" /></div>
-                  <p className="bubble">Aucun produit scanné en {month} pour l'instant. Ton bilan de courses s'affichera ici.</p>
+                  <p className="bubble">{t('account.coursesEmpty').replace('{month}', month)}</p>
                 </div>
                 <a href="/scan" className="btn sm primary w-max">
                   <ScanLine aria-hidden="true" /> {t('points.actionScan')}
@@ -404,7 +415,7 @@ export default function AccountDashboard() {
       <div className="section gap-5 md:grid-cols-2 md:items-start md:gap-8">
         <div className="card grid overflow-hidden">
           <button type="button" role="switch" aria-checked={dark} onClick={toggleDark} className={ROW}>
-            <RowLabel icon={<Moon {...ICON} />}>Mode sombre</RowLabel>
+            <RowLabel icon={<Moon {...ICON} />}>{t('account.darkMode')}</RowLabel>
             <span aria-hidden="true" className={cn('relative h-7 w-12 flex-none rounded-full border-2 border-line', dark ? 'bg-menthe' : 'bg-muted')}>
               <i className={cn('absolute top-0.5 size-5 rounded-full bg-encre transition-all', dark ? 'end-0.5' : 'start-0.5')} />
             </span>
@@ -413,9 +424,9 @@ export default function AccountDashboard() {
             type="button"
             onClick={toggleLocale}
             className={ROW}
-            aria-label={locale === 'fr' ? 'Langue : passer en darija' : 'Langue : passer en français'}
+            aria-label={t('account.langToggle')}
           >
-            <RowLabel icon={<Globe {...ICON} />}>Langue</RowLabel>
+            <RowLabel icon={<Globe {...ICON} />}>{t('account.language')}</RowLabel>
             <span className="font-semibold">
               <span className={cn(locale !== 'fr' && 'muted font-normal')}>Français</span>
               {' · '}
@@ -424,20 +435,20 @@ export default function AccountDashboard() {
           </button>
           <a href="/profil" className={ROW}>
             <RowLabel icon={<User {...ICON} />}>{t('nav.profile')}</RowLabel>
-            <span className="muted min-w-0 truncate">{profileSummary(profile)}</span>
+            <span className="muted min-w-0 truncate">{profileSummary(profile, t, locale)}</span>
           </a>
         </div>
 
         <div className="card grid overflow-hidden">
           <a href="/compte/points" className={ROW}>
             <RowLabel icon={<Trophy {...ICON} />}>{t('points.title')}</RowLabel>
-            <span className="muted num">{user ? `${user.points} pts` : 'Barème'}</span>
+            <span className="muted num">{user ? pts(user.points) : t('account.scale')}</span>
           </a>
           <a href="/compte/journal" className={ROW}>
             <RowLabel icon={<NotebookPen {...ICON} />}>{t('nav.journal')}</RowLabel>
           </a>
           <a href="/analyser-repas" className={ROW}>
-            <RowLabel icon={<Camera {...ICON} />}>Analyser un repas</RowLabel>
+            <RowLabel icon={<Camera {...ICON} />}>{t('meal.analyzeCta')}</RowLabel>
           </a>
           <a href="/mes-scans" className={ROW}>
             <RowLabel icon={<ScanLine {...ICON} />}>{t('nav.history')}</RowLabel>
@@ -449,8 +460,8 @@ export default function AccountDashboard() {
           </a>
           {user?.isAdmin && (
             <a href="/compte/partenariats" className={ROW}>
-              <RowLabel icon={<Handshake {...ICON} />}>Demandes de partenariat</RowLabel>
-              <span className="muted">Équipe</span>
+              <RowLabel icon={<Handshake {...ICON} />}>{t('partnerAdmin.title')}</RowLabel>
+              <span className="muted">{t('account.team')}</span>
             </a>
           )}
           {user && (
@@ -470,9 +481,9 @@ export default function AccountDashboard() {
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {([
                 [user.points, t('account.points')],
-                [user.contributions_count, 'Contributions'],
-                [scans.length, 'Scans récents'],
-                [`${approvalRate} %`, "Taux d'approbation"],
+                [user.contributions_count, t('account.statContributions')],
+                [scans.length, t('history.recent')],
+                [`${approvalRate} %`, t('account.approvalRate')],
               ] as Array<[number | string, string]>).map(([value, label]) => (
                 <div key={label} className="card p-4 text-center">
                   <p className="disp d-m num">{value}</p>
@@ -507,10 +518,10 @@ export default function AccountDashboard() {
                             {barcode ? <a href={`/produit/${barcode}`} className="hover:underline">{name}</a> : name}
                           </span>
                           <span className="muted block text-xs">
-                            {TYPE_LABELS[c.type] ?? c.type} — {new Date(c.date_created).toLocaleDateString('fr-FR')}
+                            {TYPE_LABELS[c.type] ? t(TYPE_LABELS[c.type]) : c.type} — {new Date(c.date_created).toLocaleDateString(dateLocale)}
                           </span>
                         </span>
-                        <span className={cn('chip fill', status.fill)}>{status.label}</span>
+                        <span className={cn('chip fill', status.fill)}>{t(status.label)}</span>
                       </div>
                     )
                   })
@@ -528,8 +539,8 @@ export default function AccountDashboard() {
                   <div className="naanaa">
                     <div className="m"><img src="/mascotte/naanaa-scan.webp" alt="" /></div>
                     <p className="bubble">
-                      Aucun scan pour le moment.{' '}
-                      <a href="/scan" className="font-bold underline underline-offset-2">Scanner un produit</a>
+                      {t('account.noScans')}{' '}
+                      <a href="/scan" className="font-bold underline underline-offset-2">{t('rank.scanProduct')}</a>
                     </p>
                   </div>
                 </div>
@@ -545,9 +556,9 @@ export default function AccountDashboard() {
                           ) : (
                             <span className="block truncate text-sm font-semibold">{p?.name_fr ?? '—'}</span>
                           )}
-                          <span className="muted block text-xs">{new Date(s.date_created).toLocaleDateString('fr-FR')}</span>
+                          <span className="muted block text-xs">{new Date(s.date_created).toLocaleDateString(dateLocale)}</span>
                         </span>
-                        {p?.scan_score != null && <ScoreSticker score={p.scan_score} size="sm" />}
+                        {p?.scan_score != null && <ScoreSticker score={p.scan_score} size="sm" locale={locale} />}
                       </div>
                     )
                   })}

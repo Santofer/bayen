@@ -10,6 +10,8 @@
 import { useEffect, useState } from 'react'
 import { Handshake, Mail, Check, X, Loader2, RotateCcw } from 'lucide-react'
 import { authHeader } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
+import type { Locale, TranslationKey } from '@/lib/translations'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -26,15 +28,15 @@ interface PartnerRequest {
 }
 
 // Puce de statut : aplat + texte encre (nouvelle), puce contour sinon
-const STATUS_META: Record<PartnerRequest['status'], { label: string; cls: string }> = {
-  new: { label: 'Nouvelle', cls: 'chip fill bg-citron' },
-  processed: { label: 'Traitée', cls: 'chip' },
-  dismissed: { label: 'Écartée', cls: 'chip text-muted-foreground' },
+const STATUS_META: Record<PartnerRequest['status'], { label: TranslationKey; cls: string }> = {
+  new: { label: 'partnerAdmin.status.new', cls: 'chip fill bg-citron' },
+  processed: { label: 'partnerAdmin.status.processed', cls: 'chip' },
+  dismissed: { label: 'partnerAdmin.status.dismissed', cls: 'chip text-muted-foreground' },
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: Locale): string {
   try {
-    return new Date(iso).toLocaleDateString('fr-MA', {
+    return new Date(iso).toLocaleDateString(locale === 'ary' ? 'ar-MA' : 'fr-MA', {
       day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
     })
   } catch {
@@ -43,6 +45,7 @@ function formatDate(iso: string): string {
 }
 
 export default function PartnerRequestsAdmin() {
+  const { t, locale } = useLocale()
   const [requests, setRequests] = useState<PartnerRequest[] | null>(null)
   const [forbidden, setForbidden] = useState(false)
   const [error, setError] = useState(false)
@@ -92,7 +95,7 @@ export default function PartnerRequestsAdmin() {
         <div className="card p-4">
           <div className="naanaa">
             <div className="m"><img src="/mascotte/naanaa-oups.webp" alt="" /></div>
-            <p className="bubble">Cette page est réservée à l'équipe Bayen.</p>
+            <p className="bubble">{t('partnerAdmin.forbidden')}</p>
           </div>
         </div>
       </section>
@@ -103,7 +106,7 @@ export default function PartnerRequestsAdmin() {
     return (
       <section className="section">
         <div className="card p-6 text-center">
-          <p className="text-sm text-muted-foreground">Chargement impossible. Recharge la page.</p>
+          <p className="text-sm text-muted-foreground">{t('partnerAdmin.loadError')}</p>
         </div>
       </section>
     )
@@ -123,10 +126,7 @@ export default function PartnerRequestsAdmin() {
       <section className="section">
         <div className="card p-8 text-center">
           <Handshake size={28} className="mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">
-            Aucune demande de partenariat pour le moment. Elles apparaîtront ici dès
-            qu'une marque remplira le formulaire de la page Partenaires.
-          </p>
+          <p className="text-sm text-muted-foreground">{t('partnerAdmin.empty')}</p>
         </div>
       </section>
     )
@@ -147,7 +147,7 @@ export default function PartnerRequestsAdmin() {
                 </p>
               </div>
               <span className={`flex-shrink-0 ${meta.cls}`}>
-                {meta.label}
+                {t(meta.label)}
               </span>
             </div>
 
@@ -157,7 +157,7 @@ export default function PartnerRequestsAdmin() {
               </p>
             )}
 
-            <p className="mt-3 text-xs text-muted-foreground">{formatDate(r.date_created)}</p>
+            <p className="mt-3 text-xs text-muted-foreground">{formatDate(r.date_created, locale)}</p>
 
             <div className="mt-3.5 flex flex-wrap items-center gap-2.5 border-t-[1.5px] border-line pt-3.5">
               <a
@@ -165,7 +165,7 @@ export default function PartnerRequestsAdmin() {
                 className="btn sm primary"
               >
                 <Mail size={15} />
-                Répondre à {r.email}
+                {t('partnerAdmin.reply').replace('{email}', r.email)}
               </a>
               {r.status !== 'processed' && (
                 <button
@@ -175,7 +175,7 @@ export default function PartnerRequestsAdmin() {
                   className="btn sm"
                 >
                   {busyId === r.id ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                  Marquer traitée
+                  {t('partnerAdmin.markDone')}
                 </button>
               )}
               {r.status === 'new' && (
@@ -186,7 +186,7 @@ export default function PartnerRequestsAdmin() {
                   className="btn sm flat"
                 >
                   <X size={15} />
-                  Écarter
+                  {t('partnerAdmin.dismiss')}
                 </button>
               )}
               {r.status !== 'new' && (
@@ -197,7 +197,7 @@ export default function PartnerRequestsAdmin() {
                   className="btn sm flat"
                 >
                   <RotateCcw size={15} />
-                  Rouvrir
+                  {t('partnerAdmin.reopen')}
                 </button>
               )}
             </div>

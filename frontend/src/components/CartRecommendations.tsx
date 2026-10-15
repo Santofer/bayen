@@ -18,7 +18,7 @@ const FIELDS = 'barcode,name_fr,brand,image_front,scan_score,score_label'
 interface Reco extends CartItem { }
 
 export default function CartRecommendations({ items }: { items: CartItem[] }) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [recos, setRecos] = useState<Reco[]>([])
 
   const barcodes = items.map((i) => i.barcode).sort().join(',')
@@ -77,7 +77,7 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
                   </div>
                   {r.scan_score != null && (
                     <span className="absolute -bottom-2 end-0">
-                      <ScoreSticker score={r.scan_score} size="sm" />
+                      <ScoreSticker score={r.scan_score} size="sm" locale={locale} />
                     </span>
                   )}
                 </div>

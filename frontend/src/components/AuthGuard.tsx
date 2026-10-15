@@ -29,9 +29,9 @@ export function LoginCard({ redirectPath }: { redirectPath: string }) {
   return (
     <div className="card grid gap-4 p-4">
       <div className="naanaa">
-        <div className="m"><img src="/mascotte/naanaa-salut.webp" alt="Naânaa qui salue" /></div>
+        <div className="m"><img src="/mascotte/naanaa-salut.webp" alt={t('auth.naanaaAlt')} /></div>
         <p className="bubble">
-          <b>Ahlan !</b> Connecte-toi pour cumuler des points, suivre tes contributions et retrouver ton journal.
+          <b>{t('auth.hello')}</b> {t('auth.loginCardBubble')}
         </p>
       </div>
       <div className="flex flex-wrap gap-2.5">
@@ -43,6 +43,7 @@ export function LoginCard({ redirectPath }: { redirectPath: string }) {
 }
 
 export default function AuthGuard({ children, redirectPath = '/compte' }: AuthGuardProps) {
+  const { t } = useLocale()
   const [state, setState] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
 
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function AuthGuard({ children, redirectPath = '/compte' }: AuthGu
     return (
       <div className="flex items-center justify-center gap-3 py-20 text-sm text-muted-foreground">
         <span className="size-6 animate-spin rounded-full border-[3px] border-line border-t-transparent" aria-hidden="true" />
-        Vérification…
+        {t('auth.checking')}
       </div>
     )
   }

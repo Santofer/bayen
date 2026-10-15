@@ -22,7 +22,10 @@ const locale = getLocale(localeCookie)
     <a class="icon-btn" href="/" aria-label={t('nav.back', locale)}>
       <svg class="rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
     </a>
-    <span class="chip fill bg-ai">Analyse de repas</span>
+    <div class="flex items-center gap-2">
+      <span class="chip fill bg-ai">{t('meal.chip', locale)}</span>
+      <button type="button" class="icon-btn " data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+    </div>
   </header>
 
   <main class="screen max-md:pt-5">

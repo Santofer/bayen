@@ -15,7 +15,9 @@
 
 import type { CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
-import { scoreFill, scoreLevel, SCORE_WORD } from '@/lib/score-colors'
+import { scoreFill, scoreLevel } from '@/lib/score-colors'
+import { getLocale, t } from '@/lib/i18n'
+import type { Locale } from '@/lib/translations'
 import type { Product } from '@/lib/types'
 
 interface ProductCardProps {
@@ -25,6 +27,8 @@ interface ProductCardProps {
   variant?: 'row' | 'grid'
   /** Pastille imposée à la place du Nutri-Score (galerie protéines : « 33 g prot. ») */
   badge?: { text: string; color: string }
+  /** Langue des textes ; en rendu serveur (Astro), passer la locale du cookie */
+  locale?: Locale
 }
 
 // Pastille Nutri-Score : couleurs officielles via les tokens (classes complètes pour Tailwind)
@@ -56,8 +60,10 @@ export function productTint(key: string | number | null | undefined): string {
  * sur l'aplat du score. `value` remplace le chiffre affiché (animation) sans
  * changer la couleur, calculée sur `score` (ou imposée par `fill`).
  */
-export function ScoreSticker({ score, word, size, value, fill, className }: {
+export function ScoreSticker({ score, word, size, value, fill, className, locale }: {
   score: number | null | undefined
+  /** Langue du mot (rendu serveur : passer la locale du cookie ; sinon celle du navigateur) */
+  locale?: Locale
   word?: string
   size?: 'sm' | 'lg'
   value?: number
@@ -66,7 +72,8 @@ export function ScoreSticker({ score, word, size, value, fill, className }: {
   className?: string
 }) {
   const level = scoreLevel(score)
-  const label = word ?? (level ? SCORE_WORD[level] : '')
+  const lang = locale ?? getLocale()
+  const label = word ?? (level ? t(`score.${level}`, lang) : '')
   const shown = value ?? score ?? '?'
   return (
     <span
@@ -74,7 +81,7 @@ export function ScoreSticker({ score, word, size, value, fill, className }: {
       className={cn('score-sticker', size, level == null && 'none', String(shown).length > 2 && 'w3', className)}
       style={level ? ({ '--c': fill ?? scoreFill(score) } as CSSProperties) : undefined}
       role="img"
-      aria-label={score == null ? 'Score inconnu' : `Score ${score} sur 100${label ? `, ${label}` : ''}`}
+      aria-label={score == null ? t('card.scoreUnknown', lang) : `${t('card.score', lang)} ${score}/100${label ? `, ${label}` : ''}`}
     >
       {/* Enveloppe : chiffre et mot restent groupés au centre du rond */}
       <span aria-hidden="true">
@@ -95,23 +102,23 @@ interface Chip { text: string; fill: string }
 
 /**
  * Pastille beauté (C23) : remplace le Nutri-Score sur une fiche cosmétique.
- * Texte en français dur, comme le reste de la carte (rendu SSR sans hook).
+ * Textes via t() avec la locale passée par la page (rendu SSR sans hook).
  */
-function cosmeticBadge(product: Product): Chip | null {
+function cosmeticBadge(product: Product, lang: Locale): Chip | null {
   if (product.product_type !== 'cosmetic') return null
   const risk = product.cosmetic_risk
-  if (!risk || risk.total == null) return { text: 'LISTE INCI MANQUANTE', fill: 'bg-muted' }
+  if (!risk || risk.total == null) return { text: t('card.inciMissing', lang), fill: 'bg-muted' }
   const cap = risk.cap_reason?.risk_level
-  if (!cap) return { text: 'SANS RISQUE CONNU', fill: 'bg-score-excellent' }
+  if (!cap) return { text: t('card.noKnownRisk', lang), fill: 'bg-score-excellent' }
   const n = (risk.counts.banned ?? 0) + (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0) + (risk.counts.low ?? 0)
   const fill = cap === 'banned' || cap === 'high' ? 'bg-score-mauvais' : cap === 'moderate' ? 'bg-score-mediocre' : 'bg-score-bon'
-  const word = cap === 'banned' ? 'INTERDIT' : n > 1 ? `${n} À SURVEILLER` : '1 À SURVEILLER'
+  const word = cap === 'banned' ? t('card.banned', lang) : `${Math.max(n, 1)} ${t('card.toWatch', lang)}`
   return { text: word, fill }
 }
 
 /** Puces Marché Pop communes aux deux variantes (cosmétique, badge imposé, Nutri-Score, NOVA, additifs) */
-function ProductChips({ product, badge }: { product: Product; badge?: { text: string; color: string } }) {
-  const cosmetic = cosmeticBadge(product)
+function ProductChips({ product, badge, lang }: { product: Product; badge?: { text: string; color: string }; lang: Locale }) {
+  const cosmetic = cosmeticBadge(product, lang)
   const grade = product.nutriscore_grade?.toLowerCase()
   const additives = product.additives?.length ?? 0
   return (
@@ -135,7 +142,7 @@ function ProductChips({ product, badge }: { product: Product; badge?: { text: st
       )}
       {product.product_type !== 'cosmetic' && additives > 0 && (
         <span className={CHIP}>
-          {additives} additif{additives > 1 ? 's' : ''}
+          {additives} {t(additives > 1 ? 'card.additives' : 'card.additive', lang)}
         </span>
       )}
     </span>
@@ -151,7 +158,8 @@ const PHOTO_PH = (
   </svg>
 )
 
-export default function ProductCard({ product, className, variant = 'row', badge }: ProductCardProps) {
+export default function ProductCard({ product, className, variant = 'row', badge, locale }: ProductCardProps) {
+  const lang = locale ?? getLocale()
   // image_front peut être une URL externe (héritage OFF) ou un UUID Directus.
   // Pour les UUID : vignette transformée côté Directus (WebP recadré).
   const thumbSize = variant === 'grid' ? 480 : 160
@@ -181,15 +189,15 @@ export default function ProductCard({ product, className, variant = 'row', badge
         <div className="relative min-w-0 pe-16">
           {product.scan_score != null && (
             <span className="absolute -top-9 end-0">
-              <ScoreSticker score={product.scan_score} />
+              <ScoreSticker score={product.scan_score} locale={lang} />
             </span>
           )}
           <p className="line-clamp-2 font-bold leading-tight">{product.name_fr}</p>
           {meta && <p className="muted mt-1 truncate text-[13px]">{meta}</p>}
           {isBeauty && risk && risk.token_count > 0 && (
-            <p className="muted mt-0.5 text-xs">{risk.token_count} ingrédients · {flagged} à surveiller</p>
+            <p className="muted mt-0.5 text-xs">{risk.token_count} {t('card.ingredients', lang)} · {flagged} {t('card.toWatchLower', lang)}</p>
           )}
-          <ProductChips product={product} badge={badge} />
+          <ProductChips product={product} badge={badge} lang={lang} />
         </div>
       </a>
     )
@@ -205,9 +213,9 @@ export default function ProductCard({ product, className, variant = 'row', badge
       <div className="min-w-0">
         <p className="pn">{product.name_fr}</p>
         {meta && <p className="pm">{meta}</p>}
-        <ProductChips product={product} badge={badge} />
+        <ProductChips product={product} badge={badge} lang={lang} />
       </div>
-      {product.scan_score != null ? <ScoreSticker score={product.scan_score} /> : <span />}
+      {product.scan_score != null ? <ScoreSticker score={product.scan_score} locale={lang} /> : <span />}
     </a>
   )
 }

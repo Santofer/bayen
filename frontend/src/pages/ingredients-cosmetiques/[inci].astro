@@ -133,7 +133,7 @@ const description = ingredient
             <p class="card p-6 text-center text-sm muted">{t('search.noResults', locale)}</p>
           ) : (
             <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-              {products.map((product) => <ProductCard product={product} variant="grid" />)}
+              {products.map((product) => <ProductCard product={product} variant="grid" locale={locale} />)}
             </div>
           )}
         </section>

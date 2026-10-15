@@ -79,13 +79,14 @@ function formatKcalRange(cal: { min: number | null; max: number | null }): strin
 
 /** Vignette 300 px de la photo de l'utilisateur, puce « Ta photo » (maquette Repas) */
 function PhotoTile({ src, alt }: { src: string; alt: string }) {
+  const { t } = useLocale()
   return (
     <div className="relative">
       <div className="tile tint-figue h-[300px] rounded-[28px] shadow-[5px_5px_0_var(--color-hard)] md:h-[420px]">
         <img src={src} alt={alt} />
       </div>
       <span className="chip absolute start-3.5 top-3.5 border-encre bg-creme text-encre">
-        <Camera aria-hidden="true" /> Ta photo
+        <Camera aria-hidden="true" /> {t('meal.yourPhoto')}
       </span>
     </div>
   )
@@ -205,7 +206,7 @@ export default function MealPhotoAnalyzer() {
   const handleSaveLocal = () => {
     if (!analysis) return
     addMealToHistory({
-      plat: analysis.plat ?? 'Repas',
+      plat: analysis.plat ?? t('meal.fallbackName'),
       kcal_min: analysis.calories_kcal?.min ?? null,
       kcal_max: analysis.calories_kcal?.max ?? null,
       proteines_g: analysis.macros_g?.proteines ?? null,
@@ -265,7 +266,7 @@ export default function MealPhotoAnalyzer() {
   if (screen === 'analyzing') {
     return (
       <section className="section gap-3.5 md:grid-cols-2 md:items-center md:gap-10">
-        {previewUrl && <PhotoTile src={previewUrl} alt="Aperçu de ta photo" />}
+        {previewUrl && <PhotoTile src={previewUrl} alt={t('meal.previewAlt')} />}
         <div className="card grid justify-items-center gap-3 p-6 text-center" role="status">
           {/* Naânaa inspecte l'assiette pendant l'analyse IA */}
           <img src="/mascotte/naanaa-loupe.webp" alt="" width="80" height="118" className="naanaa-bob h-auto w-20" />
@@ -301,7 +302,7 @@ export default function MealPhotoAnalyzer() {
   }
 
   if (screen === 'result' && analysis) {
-    const plat = analysis.plat ?? 'Repas'
+    const plat = analysis.plat ?? t('meal.fallbackName')
     const kcalRange = formatKcalRange(analysis.calories_kcal)
     const ingredients = analysis.ingredients ?? []
     const m = analysis.macros_g
@@ -318,11 +319,11 @@ export default function MealPhotoAnalyzer() {
           <section className="section gap-3.5">
             {previewUrl && <PhotoTile src={previewUrl} alt={plat} />}
             <div className="grid gap-1.5">
-              <p className="eyebrow">On pense que c'est</p>
+              <p className="eyebrow">{t('meal.weThink')}</p>
               <h1 className="disp d-l md:text-[40px]">{plat}</h1>
               <div className="chips">
                 <span className={`chip fill ${CONFIANCE_FILL[confiance]}`}>
-                  <Check aria-hidden="true" /> Confiance {t(`meal.confiance.${confiance}`).toLowerCase()}
+                  <Check aria-hidden="true" /> {t('meal.confidence')} {t(`meal.confiance.${confiance}`).toLowerCase()}
                 </span>
                 {analysis.portion_estimee_g != null && <span className="chip num">≈ {analysis.portion_estimee_g} g</span>}
               </div>
@@ -333,7 +334,7 @@ export default function MealPhotoAnalyzer() {
             {/* Carte d'estimation : aplat figue, fourchette en Unbounded 40 px */}
             <section className="section">
               <div className="card grid gap-3.5 border-encre bg-ai p-[18px] text-encre">
-                <p className="font-semibold">Estimation pour l'assiette</p>
+                <p className="font-semibold">{t('meal.plateEstimate')}</p>
                 <p className="disp num text-[40px] leading-none">
                   {kcalRange ?? '—'} {kcalRange && <span className="text-lg">{t('meal.kcal')}</span>}
                 </p>
@@ -439,7 +440,7 @@ export default function MealPhotoAnalyzer() {
                   <ul className="grid gap-2">
                     {alternatives.map((alt, i) => (
                       <li key={i} className="flex gap-2 text-sm">
-                        <span className="flex-none font-bold text-brand-ink" aria-hidden="true">→</span>
+                        <span className="flex-none font-bold text-brand-ink rtl:rotate-180" aria-hidden="true">→</span>
                         <span>{alt}</span>
                       </li>
                     ))}
@@ -500,7 +501,7 @@ export default function MealPhotoAnalyzer() {
       <section className="section gap-3.5 md:max-w-2xl">
         {screen === 'preview' && previewUrl ? (
           <>
-            <PhotoTile src={previewUrl} alt="Aperçu de ta photo" />
+            <PhotoTile src={previewUrl} alt={t('meal.previewAlt')} />
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5">
               <button type="button" onClick={() => void handleAnalyze()} className="btn primary">
                 <Camera aria-hidden="true" />

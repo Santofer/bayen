@@ -98,9 +98,9 @@ export default function EstimateWithAI({ barcode }: EstimateWithAIProps) {
         className="border-2 border-encre bg-ai text-encre hover:bg-ai/90"
       >
         {state === 'loading' ? (
-          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t(STEPS[step])}</>
+          <><Loader2 className="me-2 h-4 w-4 animate-spin" />{t(STEPS[step])}</>
         ) : (
-          <><Sparkles className="mr-2 h-4 w-4" />{t('estimate.button')}</>
+          <><Sparkles className="me-2 h-4 w-4" />{t('estimate.button')}</>
         )}
       </Button>
       {state === 'error' && (

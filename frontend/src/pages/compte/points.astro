@@ -17,7 +17,7 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
   noindex={true}
   mobileTopbar={false}
 >
-  <PageHero tone="citron" mascot="bravo" back="/compte" kicker={t('nav.community', locale)} title={t('points.title', locale)} subtitle="Chaque contribution rend la base plus fiable pour tout le monde." />
+  <PageHero tone="citron" mascot="bravo" back="/compte" kicker={t('nav.community', locale)} title={t('points.title', locale)} subtitle={t('points.subtitle', locale)} />
   <main class="screen max-md:pt-5">
     <PointsDashboard client:load />
   </main>

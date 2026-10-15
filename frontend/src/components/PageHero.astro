@@ -43,7 +43,10 @@ const BG: Record<Tone, string> = {
           <svg class="rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
         </a>
       ) : <span />}
-      {kicker && <span class="chip"><slot name="icon" />{kicker}</span>}
+      <div class="flex items-center gap-2">
+        {kicker && <span class="chip"><slot name="icon" />{kicker}</span>}
+        <button type="button" class="icon-btn md:hidden" data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+      </div>
     </header>
     <div class="grid gap-2.5 px-[18px] md:max-w-[62%] md:px-0">
       <h1 class="disp d-xl md:text-[clamp(40px,4.4vw,60px)]">{title}</h1>

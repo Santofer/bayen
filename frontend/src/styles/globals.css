@@ -170,7 +170,7 @@
    mobile + barre d'onglets). Le logo texte « bayen• » est celui des
    maquettes, en attendant le sigle B définitif.
    ════════════════════════════════════════════════════════════════ */
-.logo { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -.04em; line-height: 1; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--color-foreground); }
+.logo { direction: ltr; unicode-bidi: isolate; font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -.04em; line-height: 1; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--color-foreground); }
 .logo i { width: 12px; height: 12px; border-radius: 50%; background: var(--color-menthe); border: 2px solid var(--color-line); display: inline-block; transform: translateY(-6px); }
 
 /* En-tête ordinateur : barre pleine largeur, filet encre en bas */
@@ -180,6 +180,29 @@
 .site-header nav { display: flex; flex-wrap: wrap; gap: 22px; font-weight: 600; flex: 1; }
 .site-header nav a { text-decoration: none; text-underline-offset: 7px; text-decoration-thickness: 3px; text-decoration-color: var(--color-menthe); }
 .site-header nav a:hover, .site-header nav a[aria-current] { text-decoration-line: underline; }
+
+/* Lien « Plus » de l'en-tête : ouvre le menu complet */
+.nav-more { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: inherit; cursor: pointer; }
+.nav-more svg { width: 14px; height: 14px; }
+.nav-more:hover { text-decoration: underline; text-decoration-color: var(--color-menthe); text-decoration-thickness: 3px; text-underline-offset: 7px; }
+
+/* Menu complet (<dialog>) : feuille du bas sur mobile, fenêtre centrée sur ordinateur */
+.site-menu { width: 100%; max-width: 100%; max-height: 88dvh; margin: auto auto 0; padding: 0; border: 0; background: transparent; color: var(--color-foreground); overflow: visible; }
+.site-menu::backdrop { background: rgb(29 20 48 / .45); }
+.site-menu .sheet { display: grid; gap: 18px; max-height: 88dvh; overflow-y: auto; padding: 18px 18px calc(22px + env(safe-area-inset-bottom, 0px)); background: var(--color-background); border: 2px solid var(--color-line); border-bottom: 0; border-radius: 28px 28px 0 0; }
+.site-menu[open] .sheet { animation: menu-up .25s var(--ease-out-soft); }
+@keyframes menu-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (min-width: 768px) {
+  .site-menu { max-width: 720px; margin: auto; }
+  .site-menu .sheet { border-bottom: 2px solid var(--color-line); border-radius: 28px; box-shadow: 6px 6px 0 var(--color-hard); padding: 22px 24px; }
+}
+.menu-item { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 10px; border: 2px solid var(--color-line); border-radius: 16px; background: var(--color-card); font-weight: 600; font-size: 13.5px; line-height: 1.2; text-decoration: none; color: inherit; }
+.menu-item[aria-current] { box-shadow: 3px 3px 0 var(--color-hard); }
+.menu-item .ico { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--ico-bg); color: var(--color-encre); border: 1.5px solid var(--color-encre); }
+.menu-item .ico svg { width: 17px; height: 17px; }
+/* Puce du bandeau : jamais plus large que la place restante */
+.band .topbar > div { min-width: 0; }
+.band .chip { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 /* Barre d'onglets mobile : îlot flottant, bouton scan central en relief */
 .tabbar {
@@ -250,7 +273,7 @@ a.card:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--color-ha
 .card .card { box-shadow: none; }
 
 /* Boutons pilule */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 2px solid var(--color-line); background: var(--color-card); color: var(--color-foreground); font-weight: 700; font-size: 15px; text-decoration: none; box-shadow: 3px 3px 0 var(--color-hard); cursor: pointer; transition: transform .15s var(--ease-out-soft), box-shadow .15s var(--ease-out-soft); }
+.btn { max-width: 100%; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 2px solid var(--color-line); background: var(--color-card); color: var(--color-foreground); font-weight: 700; font-size: 15px; text-decoration: none; box-shadow: 3px 3px 0 var(--color-hard); cursor: pointer; transition: transform .15s var(--ease-out-soft), box-shadow .15s var(--ease-out-soft); }
 .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--color-hard); }
 .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--color-hard); }
 .btn:disabled { opacity: .55; pointer-events: none; }
@@ -298,13 +321,25 @@ button.chip { cursor: pointer; font-family: inherit; }
    une teinte de l'échelle de score), logo halal en encre */
 .halal-sticker { position: absolute; top: -10px; inset-inline-start: -8px; z-index: 2; width: 64px; height: 64px; border-radius: 50%; background: #BFF0DC; color: var(--color-encre); border: 2px solid var(--color-encre); box-shadow: 3px 3px 0 var(--color-hard); display: grid; place-items: center; transform: rotate(8deg); }
 .halal-sticker::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 1.5px dashed rgb(27 27 27 / 0.4); }
-.halal-sticker svg { width: 44px; height: 44px; }
+.halal-sticker svg { width: 37px; height: 31px; }
 /* Code-barres : ticket imprimé (blanc et encre dans les deux thèmes), encoches
-   latérales, légère inclinaison, ligne laser tomate qui balaie les barres */
-.barcode-ticket { --notch: var(--color-card); position: relative; display: inline-grid; justify-items: center; gap: 6px; padding: 12px 26px 12px; background: #fff; color: var(--color-encre); border: 2px solid var(--color-encre); border-radius: 16px; box-shadow: 3px 3px 0 var(--color-hard); transform: rotate(-2deg); }
-.barcode-ticket::before, .barcode-ticket::after { content: ''; position: absolute; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: var(--notch); border: 2px solid var(--color-encre); }
-.barcode-ticket::before { left: -10px; clip-path: inset(0 0 0 50%); }
-.barcode-ticket::after { right: -10px; clip-path: inset(0 50% 0 0); }
+   rondes VRAIMENT découpées (masque), légère inclinaison, ligne laser tomate.
+   L'ombre est portée par l'enveloppe (drop-shadow) : sur le ticket même, le
+   masque la couperait. */
+.barcode-ticket-wrap { display: inline-block; filter: drop-shadow(3px 3px 0 var(--color-hard)); transform: rotate(-2deg); }
+.barcode-ticket {
+  --r: 9px;
+  position: relative; display: inline-grid; justify-items: center; gap: 6px; padding: 12px 28px;
+  background: #fff; color: var(--color-encre); border: 2px solid var(--color-encre); border-radius: 16px;
+  -webkit-mask: radial-gradient(circle at 0 50%, #0000 var(--r), #000 calc(var(--r) + .5px)) left / 51% 100% no-repeat,
+                radial-gradient(circle at 100% 50%, #0000 var(--r), #000 calc(var(--r) + .5px)) right / 51% 100% no-repeat;
+          mask: radial-gradient(circle at 0 50%, #0000 var(--r), #000 calc(var(--r) + .5px)) left / 51% 100% no-repeat,
+                radial-gradient(circle at 100% 50%, #0000 var(--r), #000 calc(var(--r) + .5px)) right / 51% 100% no-repeat;
+}
+/* Contour de l'encoche : anneau centré sur le bord, seule sa moitié intérieure est dans le ticket */
+.barcode-ticket::before, .barcode-ticket::after { content: ''; position: absolute; top: 50%; width: calc(var(--r) * 2 + 4px); height: calc(var(--r) * 2 + 4px); margin-top: calc(var(--r) * -1 - 2px); border-radius: 50%; border: 2px solid var(--color-encre); }
+.barcode-ticket::before { left: calc(var(--r) * -1 - 4px); }
+.barcode-ticket::after { right: calc(var(--r) * -1 - 4px); }
 .barcode-ticket .kind { font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .6; }
 .barcode-ticket .bars { position: relative; display: block; width: 196px; height: 62px; }
 .barcode-ticket .laser { position: absolute; left: -8px; right: -8px; top: 50%; height: 2px; border-radius: 2px; background: var(--color-tomate); box-shadow: 0 0 6px 1px color-mix(in srgb, var(--color-tomate) 70%, transparent); animation: barcode-laser 2.6s ease-in-out infinite; }
@@ -368,11 +403,14 @@ button.chip { cursor: pointer; font-family: inherit; }
 
 /* Bandeau d'univers / de page : aplat pleine largeur, contenu encre */
 .band { background: var(--band, var(--color-menthe)); color: var(--color-encre); border-bottom: 2px solid var(--color-encre); padding-bottom: 22px; }
-.band .in { display: grid; gap: 14px; }
+/* minmax(0,1fr) : un enfant à largeur intrinsèque (champ de recherche) ne fait jamais déborder le bandeau */
+.band .in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .band .topbar { padding-bottom: 0; }
 
 /* Conteneur des écrans : colonne mobile, élargie sur ordinateur */
-.screen { display: flex; flex-direction: column; gap: 26px; padding-bottom: 40px; }
+/* 20 px sous le bandeau ou la barre du haut, comme l'écart des maquettes */
+.screen > * { min-width: 0; }
+.screen { display: flex; flex-direction: column; gap: 26px; padding-top: 20px; padding-bottom: 40px; }
 @media (min-width: 768px) {
   .screen { max-width: 1240px; margin: 0 auto; width: 100%; padding: 40px 32px 64px; gap: 48px; }
   .screen .section { padding: 0; }

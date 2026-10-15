@@ -112,7 +112,7 @@ export default function InstallPrompt() {
             <p className="text-xs text-muted-foreground mt-1">{t('install.ios.step1')}</p>
             <p className="text-xs text-muted-foreground">{t('install.ios.step2')}</p>
           </div>
-          <button onClick={handleDismiss} aria-label="Fermer" className="text-muted-foreground hover:text-foreground flex-shrink-0">
+          <button onClick={handleDismiss} aria-label={t('common.close')} className="text-muted-foreground hover:text-foreground flex-shrink-0">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>

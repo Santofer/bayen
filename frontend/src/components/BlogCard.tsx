@@ -33,9 +33,12 @@ export function blogCategoryLabel(category: ArticleCategory, locale: Locale): st
   return CATEGORY_LABELS[locale][category] ?? category
 }
 
+/** Mois en darija (calendrier marocain), aussi utilisés par le compte (« Mes courses en <mois> ») */
+export const ARY_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو', 'يوليوز', 'غشت', 'شتنبر', 'أكتوبر', 'نونبر', 'دجنبر']
+
 const MONTHS: Record<Locale, string[]> = {
   fr: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
-  ary: ['يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو', 'يوليوز', 'غشت', 'شتنبر', 'أكتوبر', 'نونبر', 'دجنبر'],
+  ary: ARY_MONTHS,
 }
 
 export function formatBlogDate(iso: string | null | undefined, locale: Locale): string {

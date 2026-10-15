@@ -31,7 +31,7 @@ const CDN_URL = (typeof window !== 'undefined'
   : '') || 'https://api.bayen.ma/assets'
 
 export default function ProductAlternatives({ alternatives, isBestInCategory, className }: ProductAlternativesProps) {
-  const { t, isRtl: rtl } = useLocale()
+  const { t, locale } = useLocale()
 
   // Rien à proposer et pas « meilleur de sa catégorie » : pas de section vide
   if (alternatives.length === 0 && !isBestInCategory) return null
@@ -39,7 +39,7 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
   return (
     <section className={cn('grid gap-3', className)}>
       <div className="sec-head px-[18px] md:px-0">
-        <h2 className="disp d-m">Mieux, dans le même rayon</h2>
+        <h2 className="disp d-m">{t('product.altTitle')}</h2>
       </div>
 
       {/* Meilleur de sa catégorie : Naânaa applaudit */}
@@ -49,7 +49,7 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
           <div className="bubble">
             <p className="font-bold text-foreground">{t('alt.bestInCategory')}</p>
             <p className="text-sm text-muted-foreground">
-              {rtl ? 'هاد المنتوج عندو أحسن نتيجة فالفئة ديالو' : 'Ce produit a le meilleur score de sa catégorie'}
+              {t('alt.bestInCategoryDesc')}
             </p>
           </div>
         </div>
@@ -76,7 +76,7 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
               </div>
               {alt.scan_score != null && (
                 <span className="absolute end-1 top-[96px] md:top-[136px]">
-                  <ScoreSticker score={alt.scan_score} size="sm" />
+                  <ScoreSticker score={alt.scan_score} size="sm" locale={locale} />
                 </span>
               )}
               <p className="line-clamp-2 pe-8 text-sm font-bold leading-tight">{alt.name_fr}</p>

@@ -41,7 +41,7 @@ try {
     productsCount = pd.count ?? products.length
   }
 } catch {
-  fetchError = 'Impossible de contacter le serveur'
+  fetchError = t('additivesPage.serverError', locale)
 }
 
 const RISK_LABEL_KEYS: Record<RiskLevel, TranslationKey> = {
@@ -178,7 +178,7 @@ const pageDescription = additive
             </div>
             <div class="grid gap-3 md:grid-cols-2 md:gap-[18px] lg:grid-cols-3">
               {products.map((product) => (
-                <ProductCard product={product} />
+                <ProductCard product={product} locale={locale} />
               ))}
             </div>
           </section>

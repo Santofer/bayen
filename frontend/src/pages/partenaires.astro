@@ -18,20 +18,20 @@ const field = 'min-h-[52px] w-full rounded-2xl border-2 border-line bg-backgroun
 
 const args = [
   {
-    title: 'Une audience engagée',
-    desc: 'Des milliers de Marocains scannent chaque semaine pour mieux choisir. Vos produits bien notés gagnent en visibilité.',
+    title: t('partners.arg1Title', locale),
+    desc: t('partners.arg1Desc', locale),
     path: 'M22 7 13.5 15.5 8.5 10.5 2 17 M16 7h6v6',
     color: 'citron',
   },
   {
-    title: 'Vos données, correctes',
-    desc: 'Corrigez ou complétez la fiche de vos produits : nutrition, ingrédients, photos officielles.',
+    title: t('partners.arg2Title', locale),
+    desc: t('partners.arg2Desc', locale),
     path: 'M20 6 9 17l-5-5',
     color: 'menthe',
   },
   {
-    title: 'Valorisez vos efforts',
-    desc: 'Reformulation, réduction du sucre, retrait d’additifs : le score déterministe récompense les vrais progrès.',
+    title: t('partners.arg3Title', locale),
+    desc: t('partners.arg3Desc', locale),
     path: 'M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z',
     color: 'framboise',
   },
@@ -48,10 +48,10 @@ const args = [
     tone="myrtille"
     mascot="salut"
     kicker={t('nav.partners', locale)}
-    title="Marques & producteurs, rejoignez Bayen"
-    subtitle="Bayen est une initiative citoyenne de transparence alimentaire au Maroc. Valorisez vos produits, corrigez vos données et touchez une communauté qui veut mieux manger."
+    title={t('partners.heroTitle', locale)}
+    subtitle={t('partners.heroDesc', locale)}
   >
-    <a href="#partner-form" class="btn dark-btn">Parlons de votre marque</a>
+    <a href="#partner-form" class="btn dark-btn">{t('partners.talk', locale)}</a>
   </PageHero>
 
   <main class="screen pt-5 md:pt-10">
@@ -75,42 +75,43 @@ const args = [
     <!-- Formulaire -->
     <section class="section md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] md:items-start md:gap-x-12">
       <div class="grid content-start gap-4">
-        <h2 class="disp d-m md:text-[26px]">Parlons de votre marque</h2>
+        <h2 class="disp d-m md:text-[26px]">{t('partners.talk', locale)}</h2>
         <div class="naanaa">
           <img src="/mascotte/naanaa-salut.webp" alt="" width="72" height="72" loading="lazy" />
-          <p class="bubble">Remplissez ce formulaire, notre équipe revient vers vous sous 48 h.</p>
+          <p class="bubble">{t('partners.bubble', locale)}</p>
         </div>
       </div>
 
-      <form id="partner-form" class="card grid gap-4 p-4 md:p-6">
+      <form id="partner-form" class="card grid gap-4 p-4 md:p-6" data-sent={t('partners.sent', locale)} data-err={locale === 'ary' ? t('partners.error', locale) : undefined}>
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="grid gap-1.5" for="pf-company">
-            <span class="text-[13.5px] font-bold">Entreprise / marque</span>
-            <input id="pf-company" name="societe" required class={field} placeholder="Ex : Jaouda" />
+            <span class="text-[13.5px] font-bold">{t('partners.company', locale)}</span>
+            <input id="pf-company" name="societe" required class={field} placeholder={t('partners.companyPh', locale)} />
           </label>
           <label class="grid gap-1.5" for="pf-role">
-            <span class="text-[13.5px] font-bold">Vous êtes</span>
+            <span class="text-[13.5px] font-bold">{t('partners.role', locale)}</span>
             <select id="pf-role" name="profil" class={field}>
-              <option>Marque / fabricant</option>
-              <option>Producteur</option>
-              <option>Distributeur</option>
-              <option>Autre</option>
+              <!-- value en français : c'est ce que reçoit nBot, quelle que soit la langue -->
+              <option value="Marque / fabricant">{t('partners.roleBrand', locale)}</option>
+              <option value="Producteur">{t('partners.roleProducer', locale)}</option>
+              <option value="Distributeur">{t('partners.roleDistributor', locale)}</option>
+              <option value="Autre">{t('partners.roleOther', locale)}</option>
             </select>
           </label>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="grid gap-1.5" for="pf-name">
-            <span class="text-[13.5px] font-bold">Nom complet</span>
-            <input id="pf-name" name="name" required class={field} placeholder="Votre nom" />
+            <span class="text-[13.5px] font-bold">{t('partners.name', locale)}</span>
+            <input id="pf-name" name="name" required class={field} placeholder={t('partners.namePh', locale)} />
           </label>
           <label class="grid gap-1.5" for="pf-email">
-            <span class="text-[13.5px] font-bold">Email professionnel</span>
+            <span class="text-[13.5px] font-bold">{t('partners.email', locale)}</span>
             <input id="pf-email" name="email" type="email" required class={field} placeholder="vous@marque.ma" />
           </label>
         </div>
         <label class="grid gap-1.5" for="pf-msg">
-          <span class="text-[13.5px] font-bold">Votre message</span>
-          <textarea id="pf-msg" name="message" rows="4" class={`${field} py-3`} placeholder="Parlez-nous de vos produits et de votre besoin…"></textarea>
+          <span class="text-[13.5px] font-bold">{t('partners.message', locale)}</span>
+          <textarea id="pf-msg" name="message" rows="4" class={`${field} py-3`} placeholder={t('partners.messagePh', locale)}></textarea>
         </label>
         <!-- Honeypot anti-bots : invisible pour un humain -->
         <div aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden">
@@ -119,7 +120,7 @@ const args = [
         </div>
         <button type="submit" class="btn primary w-full">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
-          Envoyer
+          {t('partners.send', locale)}
         </button>
         <p id="pf-status" class="hidden text-center text-sm"></p>
       </form>
@@ -150,11 +151,12 @@ const args = [
       })
       if (btn) btn.disabled = false
       if (error) {
-        show(error, false)
+        // nBot répond en français : en darija, message générique traduit
+        show(form.dataset.err || error, false)
         return
       }
       form.reset()
-      show('Merci ! Votre demande a bien été envoyée. Nous revenons vers vous sous 48 h.', true)
+      show(form.dataset.sent ?? '', true)
     })
   </script>
 </Layout>

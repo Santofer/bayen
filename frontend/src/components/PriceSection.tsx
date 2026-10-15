@@ -14,7 +14,9 @@ import { useAntibot } from '@/lib/antibot'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
-const STORES = ['Marjane', 'Carrefour', 'BIM', 'Aswak Assalam', 'Atacadao', 'Épicerie du coin']
+// Valeurs enregistrées telles quelles (agrégation par enseigne) ; seul le libellé est traduit
+const CORNER_STORE = 'Épicerie du coin'
+const STORES = ['Marjane', 'Carrefour', 'BIM', 'Aswak Assalam', 'Atacadao', CORNER_STORE]
 
 interface StorePrice {
   store: string
@@ -57,6 +59,7 @@ function formatPrice(n: number): string {
 export default function PriceSection({ barcode }: Props) {
   const antibot = useAntibot('price-gotcha')
   const { t } = useLocale()
+  const storeLabel = (s: string): string => (s === CORNER_STORE ? t('price.storeCorner') : s)
   const [data, setData] = useState<Aggregate | null>(null)
   const [open, setOpen] = useState(false)
   const [price, setPrice] = useState('')
@@ -135,8 +138,8 @@ export default function PriceSection({ barcode }: Props) {
   return (
     <section className="section">
       <div className="sec-head">
-        <h2 className="disp d-m">Où l'acheter moins cher</h2>
-        <span className="eyebrow">prix médian</span>
+        <h2 className="disp d-m">{t('price.cheaperTitle')}</h2>
+        <span className="eyebrow">{t('price.median')}</span>
       </div>
 
       {hasPrices ? (
@@ -148,14 +151,14 @@ export default function PriceSection({ barcode }: Props) {
                 key={s.store}
                 className={s.median === cheapest ? 'card grid gap-0.5 bg-citron p-3 text-encre' : 'card grid gap-0.5 p-3'}
               >
-                <span className="truncate text-xs font-semibold">{s.store}</span>
+                <span className="truncate text-xs font-semibold">{storeLabel(s.store)}</span>
                 {/* « DH » plus petit : un prix à 2 décimales tient dans le tiers d'écran */}
                 <b className="disp d-s num whitespace-nowrap">{formatPrice(s.median)}<span className="ms-1 text-[11px]">DH</span></b>
                 {s.median === cheapest && stores.length > 1 ? (
-                  <span className="text-[11px]">le moins cher</span>
+                  <span className="text-[11px]">{t('price.cheapest')}</span>
                 ) : (
                   <span className={s.median === cheapest ? 'text-[11px]' : 'muted text-[11px]'}>
-                    {s.count} relevé{s.count > 1 ? 's' : ''}
+                    {s.count} {s.count > 1 ? t('price.records') : t('price.record')}
                   </span>
                 )}
               </div>
@@ -197,7 +200,7 @@ export default function PriceSection({ barcode }: Props) {
           <Plus size={17} className="flex-shrink-0" />
           <span className="min-w-0">{hasPrices ? t('price.addOther') : t('price.share')}</span>
           <span className="flex-shrink-0 whitespace-nowrap rounded-full border-[1.5px] border-encre bg-menthe px-2 py-0.5 text-[11px] font-extrabold text-encre">
-            +5 pts
+            {t('price.pts5')}
           </span>
         </button>
       ) : (
@@ -231,7 +234,7 @@ export default function PriceSection({ barcode }: Props) {
                     : 'flex min-h-[46px] items-center rounded-full border-2 border-line bg-card px-4 text-sm font-semibold'
                 }
               >
-                {s}
+                {storeLabel(s)}
               </button>
             ))}
             <button

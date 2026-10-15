@@ -7,6 +7,7 @@ import LocaleToggle from '@/components/LocaleToggle'
 import ThemeToggle from '@/components/ThemeToggle'
 import CartNavButton from '@/components/CartNavButton'
 import InstallPrompt from '@/components/InstallPrompt'
+import SiteMenu from '@/components/SiteMenu.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 // Lire la locale depuis le cookie SSR
@@ -107,11 +108,15 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     {!hideNav && (
       <header class="site-header hidden md:block">
         <div class="in">
-          <a class="logo" href="/" aria-label="Bayen — accueil">bayen<i></i></a>
+          <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}>bayen<i></i></a>
           <nav aria-label={t('nav.main', locale)}>
             {NAV.map((n) => (
               <a href={n.href} aria-current={currentPath.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>
             ))}
+            <button type="button" class="nav-more" data-open-menu aria-haspopup="dialog">
+              {t('nav.more', locale)}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
           </nav>
           <CartNavButton label={t('nav.cart', locale)} client:load />
           <UserMenu client:load />
@@ -126,27 +131,30 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     {!hideNav && mobileTopbar && (
       <!-- Barre du haut mobile (maquette « Accueil ») : logo + un bouton rond -->
       <header class="topbar md:hidden">
-        <a class="logo" href="/" aria-label="Bayen — accueil">bayen<i></i></a>
+        <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}>bayen<i></i></a>
         <div class="flex gap-2">
           <slot name="topbar-end"><CartNavButton label={t('nav.cart', locale)} client:load /></slot>
+          <button type="button" class="icon-btn " data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
         </div>
       </header>
     )}
 
     <slot />
 
+    {!hideNav && <SiteMenu />}
+
     {!hideNav && (
       <footer class="site-footer mt-12 pb-28 md:pb-0">
         <div class="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-6 px-[18px] py-10 md:px-8">
           <div class="grid max-w-[360px] content-start gap-2">
-            <a class="logo" href="/" aria-label="Bayen — accueil">bayen<i></i></a>
+            <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}>bayen<i></i></a>
             <p class="text-sm opacity-85">{t('footer.tagline', locale)}</p>
             <div class="mt-2 flex items-center gap-3">
               <ThemeToggle client:load />
               <LocaleToggle client:load />
             </div>
           </div>
-          <nav aria-label="Pied de page" class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
+          <nav aria-label={t('layout.footerNav', locale)} class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
             {FOOTER_LINKS.map((l) => <a href={l.href}>{l.label}</a>)}
           </nav>
         </div>
@@ -156,7 +164,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
             <a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="font-medium">N0</a>
             &
             <a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="font-medium">Netspace</a>
-            · <a href="mailto:contact@n0.ma">Contact</a>
+            · <a href="mailto:contact@n0.ma">{t('layout.contact', locale)}</a>
           </p>
           <p>
             {t('footer.dataFrom', locale)}

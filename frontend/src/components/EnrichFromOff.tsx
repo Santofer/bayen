@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getAccessToken } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import { RefreshCw, CheckCircle } from 'lucide-react'
 
@@ -51,6 +52,7 @@ interface EnrichFromOffProps {
 type EnrichState = 'idle' | 'loading' | 'done' | 'not_found' | 'error'
 
 export default function EnrichFromOff({ productId, barcode, existing }: EnrichFromOffProps) {
+  const { t } = useLocale()
   const [state, setState] = useState<EnrichState>('idle')
   const [enriched, setEnriched] = useState<string[]>([])
   const [error, setError] = useState('')
@@ -65,7 +67,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
 
     try {
       const token = await getAccessToken()
-      if (!token) { setError('Connectez-vous d\'abord'); setState('error'); return }
+      if (!token) { setError(t('enrich.loginFirst')); setState('error'); return }
 
       // Fetch OFF
       const offRes = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}`, {
@@ -94,13 +96,13 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
         for (const [local, off] of fields) {
           if (p.nutriments[off] != null) patchData[local] = p.nutriments[off]
         }
-        if (Object.keys(patchData).length > 0) enrichedFields.push('Valeurs nutritionnelles')
+        if (Object.keys(patchData).length > 0) enrichedFields.push(t('enrich.nutrition'))
       }
 
       // Ingrédients
       if (!existing.hasIngredients) {
         const text = p.ingredients_text_fr || p.ingredients_text
-        if (text) { patchData.ingredients_text = text; enrichedFields.push('Ingrédients') }
+        if (text) { patchData.ingredients_text = text; enrichedFields.push(t('product.ingredients')) }
       }
 
       // Additifs — toujours mettre à jour depuis OFF (plus complet)
@@ -108,7 +110,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       const additives = additiveTags
         .map((t: string) => { const m = t.match(/e(\d+[a-z]?)/i); return m ? `E${m[1].toUpperCase()}` : null })
         .filter(Boolean) as string[]
-      if (additives.length > 0) { patchData.additives = additives; enrichedFields.push(`${additives.length} additifs`) }
+      if (additives.length > 0) { patchData.additives = additives; enrichedFields.push(`${additives.length} ${t('card.additives')}`) }
 
       // Allergènes
       const allergenTags: string[] = p.allergens_tags ?? []
@@ -149,7 +151,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
         patchData.score_label = scoreResult.label
         patchData.nutriscore_grade = scoreResult.nutriscore_grade
         patchData.nova_group = scoreResult.nova_group
-        enrichedFields.push('Score Bayen')
+        enrichedFields.push(t('enrich.scoreBayen'))
       }
 
       // Images (front, nutrition, ingrédients)
@@ -183,7 +185,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
           }
         } catch { /* image individuelle optionnelle */ }
       }
-      if (imagesUploaded > 0) enrichedFields.push(`${imagesUploaded} photo${imagesUploaded > 1 ? 's' : ''}`)
+      if (imagesUploaded > 0) enrichedFields.push(`${imagesUploaded} ${imagesUploaded > 1 ? t('enrich.photos') : t('enrich.photo')}`)
 
       if (Object.keys(patchData).length === 0) {
         setState('not_found')
@@ -198,7 +200,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
         body: JSON.stringify(patchData),
       })
 
-      if (!patchRes.ok) throw new Error(`Erreur ${patchRes.status}`)
+      if (!patchRes.ok) throw new Error(`${t('common.error')} (${patchRes.status})`)
 
       // Créer les liens M2M ingrédients structurés (seulement si aucun lien n'existe déjà)
       const structuredIngredients: Array<{ id: string; text: string; percent?: number; percent_estimate?: number }> = p.ingredients ?? []
@@ -286,14 +288,14 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
             } catch { /* lien M2M optionnel */ }
           }
         }
-        if (linkedCount > 0) enrichedFields.push(`${linkedCount} ingrédient${linkedCount > 1 ? 's' : ''} lié${linkedCount > 1 ? 's' : ''}`)
+        if (linkedCount > 0) enrichedFields.push(`${linkedCount} ${linkedCount > 1 ? t('enrich.linkedN') : t('enrich.linked1')}`)
         } // fin du if existingLinks === 0
       }
 
       setEnriched(enrichedFields)
       setState('done')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur')
+      setError(e instanceof Error ? e.message : t('common.error'))
       setState('error')
     }
   }
@@ -307,20 +309,20 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
           <div className="flex items-start gap-3">
             <RefreshCw size={18} className="text-brand-ink flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">Données incomplètes</p>
+              <p className="text-sm font-medium text-foreground">{t('enrich.incomplete')}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {[
-                  !existing.hasNutrition && 'Valeurs nutritionnelles',
-                  !existing.hasIngredients && 'Ingrédients',
-                  !existing.hasAdditives && 'Additifs',
-                  !existing.hasImage && 'Photo',
-                  !existing.hasScore && 'Score',
-                ].filter(Boolean).join(' · ')} — manquant{missingCount > 1 ? 's' : ''}
+                  !existing.hasNutrition && t('enrich.nutrition'),
+                  !existing.hasIngredients && t('product.ingredients'),
+                  !existing.hasAdditives && t('additives.title'),
+                  !existing.hasImage && t('enrich.missingPhoto'),
+                  !existing.hasScore && t('card.score'),
+                ].filter(Boolean).join(' · ')} — {missingCount > 1 ? t('enrich.missingN') : t('enrich.missing1')}
               </p>
             </div>
           </div>
           <Button size="sm" className="mt-3 w-full" onClick={handleEnrich}>
-            Enrichir depuis Open Food Facts
+            {t('enrich.button')}
           </Button>
         </>
       )}
@@ -330,7 +332,7 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
           <img src="/mascotte/naanaa-loupe.webp" alt="" width="48" height="71" className="naanaa-bob" />
           <p className="bubble flex items-center gap-2 text-sm">
             <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            Recherche sur Open Food Facts...
+            {t('search.searchingOff')}
           </p>
         </div>
       )}
@@ -338,22 +340,22 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
       {state === 'done' && (
         <div className="text-center">
           <img src="/mascotte/naanaa-bravo.webp" alt="" width="56" height="82" className="naanaa-bob mx-auto mb-1 h-auto w-14" />
-          <p className="text-sm font-bold text-foreground flex items-center justify-center gap-1"><CheckCircle size={14} className="text-brand-ink" /> Produit enrichi !</p>
+          <p className="text-sm font-bold text-foreground flex items-center justify-center gap-1"><CheckCircle size={14} className="text-brand-ink" /> {t('enrich.done')}</p>
           <p className="text-xs text-foreground mt-1">{enriched.join(' · ')}</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={() => window.location.reload()}>
-            Recharger la page
+            {t('enrich.reload')}
           </Button>
         </div>
       )}
 
       {state === 'not_found' && (
-        <p className="text-sm text-muted-foreground">Ce produit n'a pas été trouvé sur Open Food Facts, ou n'a pas de données supplémentaires.</p>
+        <p className="text-sm text-muted-foreground">{t('enrich.notFound')}</p>
       )}
 
       {state === 'error' && (
         <div>
           <p className="text-sm text-foreground">{error}</p>
-          <Button size="sm" variant="outline" className="mt-2" onClick={() => setState('idle')}>Réessayer</Button>
+          <Button size="sm" variant="outline" className="mt-2" onClick={() => setState('idle')}>{t('common.retry')}</Button>
         </div>
       )}
     </div>

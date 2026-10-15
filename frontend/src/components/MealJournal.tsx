@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { useLocale } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
 import { getAccessToken } from '@/lib/auth'
 import { Loader2, Camera, Trash2 } from 'lucide-react'
 import {
@@ -37,11 +38,11 @@ const CONFIANCE_DOT: Record<string, string> = {
 }
 
 // Verdict qualitatif : aplat de l'échelle de score, texte encre posé dessus
-const VERDICT_META: Record<string, { color: string; label: string }> = {
-  sain:        { color: 'var(--color-score-excellent)', label: 'Sain' },
-  equilibre:   { color: 'var(--color-score-bon)', label: 'Équilibré' },
-  a_limiter:   { color: 'var(--color-score-mediocre)', label: 'À limiter' },
-  occasionnel: { color: 'var(--color-score-mauvais)', label: 'Occasionnel' },
+const VERDICT_META: Record<string, { color: string; label: TranslationKey }> = {
+  sain:        { color: 'var(--color-score-excellent)', label: 'journal.verdict.sain' },
+  equilibre:   { color: 'var(--color-score-bon)', label: 'journal.verdict.equilibre' },
+  a_limiter:   { color: 'var(--color-score-mediocre)', label: 'journal.verdict.a_limiter' },
+  occasionnel: { color: 'var(--color-score-mauvais)', label: 'journal.verdict.occasionnel' },
 }
 
 function kcalLabel(s: MealScanRow): string | null {
@@ -119,7 +120,7 @@ export default function MealJournal() {
       <section className="section">
         <div className="naanaa">
           <div className="m"><img src="/mascotte/naanaa-oups.webp" alt="" /></div>
-          <p className="bubble">{error}</p>
+          <p className="bubble">{t('common.error')}</p>
         </div>
       </section>
     )
@@ -175,9 +176,9 @@ export default function MealJournal() {
                     </div>
                     <p className="muted text-xs">
                       {[
-                        e.proteines_g != null ? `P ${e.proteines_g} g` : null,
-                        e.lipides_g != null ? `L ${e.lipides_g} g` : null,
-                        e.glucides_g != null ? `G ${e.glucides_g} g` : null,
+                        e.proteines_g != null ? `${t('journal.macroP')} ${e.proteines_g} g` : null,
+                        e.lipides_g != null ? `${t('journal.macroL')} ${e.lipides_g} g` : null,
+                        e.glucides_g != null ? `${t('journal.macroG')} ${e.glucides_g} g` : null,
                       ].filter(Boolean).join(' · ')}
                     </p>
                     <div className="flex items-center justify-between">
@@ -199,7 +200,7 @@ export default function MealJournal() {
 
         <section className="section">
           <a href="/connexion?redirect=%2Fcompte%2Fjournal" className="btn w-full md:w-max">
-            {t('meal.loginToSave')} →
+            {t('meal.loginToSave')} <span className="inline-block rtl:rotate-180" aria-hidden="true">→</span>
           </a>
         </section>
       </>
@@ -234,11 +235,11 @@ export default function MealJournal() {
               {/* La photo du plat remplit le cadre ; la teinte figue ne se voit que sans photo */}
               <div className="tile tint-figue aspect-[4/3] rounded-none border-0 border-b-2">
                 <Camera className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
-                {s.image && <img src={`${CDN_URL}/${s.image}`} alt={s.plat ?? 'Repas'} loading="lazy" />}
+                {s.image && <img src={`${CDN_URL}/${s.image}`} alt={s.plat ?? t('meal.fallbackName')} loading="lazy" />}
                 {/* Verdict qualitatif */}
                 {vmeta && (
                   <span className="chip fill absolute start-2 top-2 z-10" style={{ backgroundColor: vmeta.color }}>
-                    {vmeta.label}
+                    {t(vmeta.label)}
                   </span>
                 )}
                 {kcal && (
