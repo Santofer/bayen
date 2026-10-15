@@ -70,8 +70,12 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 - Gabarit : bandeau de page = `PageHero` (aplat pleine largeur, posé hors conteneur, avec
   `mobileTopbar={false}`), puis `<main class="screen">`. Menu complet = `SiteMenu.astro` (`<dialog>`),
   ouvert par tout élément `[data-open-menu]`.
-- Logo : texte « bayen• » (Unbounded + point menthe, classe `.logo`, toujours LTR) ; le sigle est en
-  cours de choix (planche des 9 pistes vectorielles). Les anciens `public/logo-*.svg` (chadda) sont abandonnés.
+- Logo « b-cuillère » (validé le 15/10/2026) : wordmark « bayen » sans point ni arabe, la panse du b
+  est le cuilleron d'une cuillère dont le manche, en creux, traverse la hampe. Composant
+  `components/Logo.astro` (`variant="wordmark" | "sigle"`, couleur = currentColor). Sources régénérables :
+  `design/logo/b-cuillere.py` (contours d'Unbounded wght 800) puis `design/logo/icones.py` (favicons,
+  icônes PWA, `logo-bayen.svg`, `og-default`). Le sigle seul = icône d'app et bouton flottant `.sigle-fab`
+  (apparaît au défilement, ouvre le menu).
 - Mascotte Naânaa (brin de menthe) : `public/mascotte/naanaa-<pose>.webp` (salut, astuce, bravo, loupe,
   oups, nuit, scan, courses), en médaillon rond dans `.naanaa`. Couvertures du journal :
   `public/blog/covers/<slug>.webp` (aussi posées dans Directus par `scripts/set-blog-covers.py`).

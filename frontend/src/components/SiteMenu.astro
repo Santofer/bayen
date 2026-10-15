@@ -5,6 +5,7 @@
  * l'ouvre (barre du haut, bandeaux, lien « Plus » de l'en-tête).
  */
 import ThemeToggle from '@/components/ThemeToggle'
+import Logo from '@/components/Logo.astro'
 import LocaleToggle from '@/components/LocaleToggle'
 import { getLocale, t } from '@/lib/i18n'
 
@@ -80,7 +81,7 @@ const GROUPS = [
 <dialog id="site-menu" class="site-menu" aria-label={t('nav.menu', locale)}>
   <div class="sheet">
     <div class="flex items-center justify-between gap-3">
-      <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}>bayen<i></i></a>
+      <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
       <form method="dialog">
         <button class="icon-btn" aria-label={t('nav.close', locale)}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>

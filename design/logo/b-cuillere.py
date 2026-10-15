@@ -4,7 +4,7 @@ la graisse du logo du site) : la panse du b devient le cuilleron d'une cuillère
 manche, en creux, traverse la hampe et ressort à gauche (idée inspirée de prepd).
 
 Sortie : design/logo/bayen-b-cuillere.svg (sigle seul) et bayen-wordmark-cuillere.svg
-(« bayen » + point menthe), chemins vectoriels purs (aucune police nécessaire).
+(« bayen », sans point ni arabe), chemins vectoriels purs (aucune police nécessaire).
 
 Usage : python b-cuillere.py <Unbounded[wght].ttf>
 Dépendances : fonttools, skia-pathops
@@ -106,17 +106,12 @@ for ch in 'ayen':
     parts.append(f'<path d="{to_svg_d(p, x)}"/>')
     last_right = x + (p.bounds[2] if p.bounds else adv)
     x += adv + track
-# Point : diamètre 0,42 em, contour encre 0,075 em, centre à hauteur d'x (comme .logo i)
-d = 0.42 * UPEM; sw = 0.075 * UPEM
-dcx = last_right + 0.16 * UPEM + d / 2
-dcy = -(0.55 * UPEM)
-dot = (f'<circle cx="{dcx:.0f}" cy="{dcy:.0f}" r="{(d - sw) / 2:.0f}" fill="#19C08B" '
-       f'stroke="currentColor" stroke-width="{sw:.0f}"/>')
-xmin = left_b - pad; xmax = dcx + d / 2 + pad
+# Plus de point menthe (décision d'Amine du 15/10) : le wordmark s'arrête au n
+xmin = left_b - pad; xmax = last_right + pad
 ymin = -bb[3] - pad; ymax = DESC + pad
 (OUT / 'bayen-wordmark-cuillere.svg').write_text(
     f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{xmin:.0f} {ymin:.0f} {xmax - xmin:.0f} {ymax - ymin:.0f}" fill="currentColor">'
-    + ''.join(parts) + dot + '</svg>\n')
+    + ''.join(parts) + '</svg>\n')
 print('ok', vb, (xmin, ymin, xmax - xmin, ymax - ymin))
 
 # Données pour la planche de présentation (chemins + cuilleron) en JSON

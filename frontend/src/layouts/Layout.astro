@@ -5,6 +5,7 @@ import SeoHead from '@/components/SeoHead.astro'
 import UserMenu from '@/components/UserMenu'
 import LocaleToggle from '@/components/LocaleToggle'
 import ThemeToggle from '@/components/ThemeToggle'
+import Logo from '@/components/Logo.astro'
 import CartNavButton from '@/components/CartNavButton'
 import InstallPrompt from '@/components/InstallPrompt'
 import SiteMenu from '@/components/SiteMenu.astro'
@@ -76,9 +77,10 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     <meta name="theme-color" content="#FFF8EC" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1D1430" media="(prefers-color-scheme: dark)" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/favicon.ico?v=2" sizes="48x48" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
+    <link rel="icon" href="/favicon.ico?v=3" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.bayen.ma" crossorigin />
@@ -108,7 +110,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     {!hideNav && (
       <header class="site-header hidden md:block">
         <div class="in">
-          <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}>bayen<i></i></a>
+          <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
           <nav aria-label={t('nav.main', locale)}>
             {NAV.map((n) => (
               <a href={n.href} aria-current={currentPath.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>
@@ -131,7 +133,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     {!hideNav && mobileTopbar && (
       <!-- Barre du haut mobile (maquette « Accueil ») : logo + un bouton rond -->
       <header class="topbar md:hidden">
-        <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}>bayen<i></i></a>
+        <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
         <div class="flex gap-2">
           <slot name="topbar-end"><CartNavButton label={t('nav.cart', locale)} client:load /></slot>
           <button type="button" class="icon-btn " data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
@@ -142,12 +144,18 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     <slot />
 
     {!hideNav && <SiteMenu />}
+    {!hideNav && (
+      <!-- Le sigle reste à l'écran au défilement et ouvre le menu (voir .sigle-fab) -->
+      <button type="button" class="sigle-fab" data-open-menu aria-haspopup="dialog" aria-label={t('nav.menu', locale)}>
+        <Logo variant="sigle" label="" />
+      </button>
+    )}
 
     {!hideNav && (
       <footer class="site-footer mt-12 pb-28 md:pb-0">
         <div class="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-6 px-[18px] py-10 md:px-8">
           <div class="grid max-w-[360px] content-start gap-2">
-            <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}>bayen<i></i></a>
+            <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
             <p class="text-sm opacity-85">{t('footer.tagline', locale)}</p>
             <div class="mt-2 flex items-center gap-3">
               <ThemeToggle client:load />
@@ -264,6 +272,8 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
           scrollTimer = setTimeout(function () {
             html.classList.remove('is-scrolling');
           }, 900);
+          // Bouton au sigle : visible une fois la barre du haut sortie de l'écran
+          html.classList.toggle('scrolled', window.scrollY > 160);
         }
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
