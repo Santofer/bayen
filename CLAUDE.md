@@ -76,8 +76,10 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
   `design/logo/b-cuillere.py` (contours d'Unbounded wght 800) puis `design/logo/icones.py` (favicons,
   icônes PWA, `logo-bayen.svg`, `og-default`). Le sigle seul = icône d'app et bouton flottant `.sigle-fab`
   (apparaît au défilement, ouvre le menu).
-- Mascotte Naânaa (brin de menthe) : `public/mascotte/naanaa-<pose>.webp` (salut, astuce, bravo, loupe,
-  oups, nuit, scan, courses), en médaillon rond dans `.naanaa`. Couvertures du journal :
+- Mascotte Naânaa (brin de menthe), style « riso décalé » (refaite par Codex le 15/10/2026) :
+  `public/mascotte/naanaa-<pose>.webp` (salut, astuce, bravo, loupe, oups, nuit, scan, courses), en médaillon
+  rond dans `.naanaa`. Sources PNG transparentes 1024×1536 : `design/naanaa-v2/riso/` (référence de style :
+  `design/naanaa-v2/c-riso.png` — toute nouvelle pose part de là, via le plugin Codex). Couvertures du journal :
   `public/blog/covers/<slug>.webp` (aussi posées dans Directus par `scripts/set-blog-covers.py`).
 - Visuels : photos à plat, objets à ombre nette sur aplat de couleur, sans texte (générés sur Magnific).
 - **Darija** : tout texte visible passe par `t()` (aucun français en dur), y compris les bulles de
