@@ -173,6 +173,19 @@
 .logo { direction: ltr; display: inline-flex; align-items: center; font-size: 24px; line-height: 1; text-decoration: none; color: var(--color-foreground); }
 /* Wordmark b-cuillère (composant Logo) : la hauteur suit la taille de police du lien */
 .logo .bayen-logo { display: block; height: 1.03em; width: auto; }
+/* Logo en relief (test du 15/10) : face crème, contour encre, extrusion profonde, incliné
+   façon emballage. L'extrusion = drop-shadows de 0,025 em empilés (aucun chemin dupliqué). */
+.logo.relief { --logo-ext: var(--color-aubergine); padding: 0 .12em .14em 0; font-size: 32px; }
+.site-header .logo.relief { font-size: 40px; }
+.site-footer .logo.relief { font-size: 40px; }
+.dark .logo.relief, .site-footer .logo.relief { --logo-ext: #0B0614; }
+.logo.relief .bayen-logo {
+  overflow: visible; color: #FFF8EC; transform: rotate(-4deg) skewX(-9deg);
+  filter: drop-shadow(.025em .025em 0 var(--logo-ext)) drop-shadow(.025em .025em 0 var(--logo-ext))
+          drop-shadow(.025em .025em 0 var(--logo-ext)) drop-shadow(.025em .025em 0 var(--logo-ext))
+          drop-shadow(.025em .025em 0 var(--logo-ext)) drop-shadow(.025em .025em 0 var(--logo-ext));
+}
+.logo.relief .bayen-logo path { stroke: var(--color-encre); stroke-width: 30px; stroke-linejoin: round; paint-order: stroke; }
 
 /* En-tête ordinateur : barre pleine largeur, filet encre en bas */
 .site-header { border-bottom: 2px solid var(--color-line); background: var(--color-background); }

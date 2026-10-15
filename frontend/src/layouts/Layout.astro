@@ -110,7 +110,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     {!hideNav && (
       <header class="site-header hidden md:block">
         <div class="in">
-          <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
+          <a class="logo relief" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
           <nav aria-label={t('nav.main', locale)}>
             {NAV.map((n) => (
               <a href={n.href} aria-current={currentPath.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>
@@ -133,7 +133,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     {!hideNav && mobileTopbar && (
       <!-- Barre du haut mobile (maquette « Accueil ») : logo + un bouton rond -->
       <header class="topbar md:hidden">
-        <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
+        <a class="logo relief" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
         <div class="flex gap-2">
           <slot name="topbar-end"><CartNavButton label={t('nav.cart', locale)} client:load /></slot>
           <button type="button" class="icon-btn " data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
@@ -155,7 +155,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
       <footer class="site-footer mt-12 pb-28 md:pb-0">
         <div class="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-6 px-[18px] py-10 md:px-8">
           <div class="grid max-w-[360px] content-start gap-2">
-            <a class="logo" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
+            <a class="logo relief" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
             <p class="text-sm opacity-85">{t('footer.tagline', locale)}</p>
             <div class="mt-2 flex items-center gap-3">
               <ThemeToggle client:load />
