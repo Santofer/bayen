@@ -32,13 +32,14 @@ export default function InciList({ ingredients, inciText }: Props) {
   const shown = open ? rows : rows.slice(0, 10)
 
   return (
-    <div className="rounded-2xl border bg-card p-6">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-sm font-medium text-foreground">{t('inci.title')} <span className="text-muted-foreground">({rows.length} {t('inci.count')})</span></h2>
-        <button type="button" onClick={() => setRaw(!raw)} className="text-xs font-semibold text-muted-foreground hover:text-brand-ink">
+    <section className="section">
+      <div className="sec-head">
+        <h2 className="disp d-m">{t('inci.title')} <span className="text-sm font-semibold text-muted-foreground">({rows.length} {t('inci.count')})</span></h2>
+        <button type="button" onClick={() => setRaw(!raw)} aria-pressed={raw} className="whitespace-nowrap text-[13px] font-bold underline underline-offset-[3px]">
           {t('inci.raw')}
         </button>
       </div>
+      <div className="card p-4 md:p-5">
       {raw ? (
         <p className="text-xs leading-relaxed text-muted-foreground break-words">{inciText}</p>
       ) : (
@@ -57,6 +58,7 @@ export default function InciList({ ingredients, inciText }: Props) {
           {open ? t('inci.hide') : `${t('inci.showAll')} (${rows.length})`}
         </button>
       )}
-    </div>
+      </div>
+    </section>
   )
 }

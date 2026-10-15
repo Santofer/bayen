@@ -3,14 +3,16 @@
  * Onglets "Connexion" et "Inscription" avec validation
  */
 
-import { useState, type FormEvent } from 'react'
-import { Button } from '@/components/ui/button'
+import { useEffect, useState, type FormEvent } from 'react'
 import { login, register } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 
 type AuthTab = 'login' | 'register'
+
+// Champ pilule 46 px (maquette : même gabarit que les boutons)
+const FIELD = 'flex h-[46px] w-full rounded-full border-2 border-line bg-background px-4 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background'
 
 export default function AuthForm() {
   const { t } = useLocale()
@@ -22,6 +24,11 @@ export default function AuthForm() {
   const antibot = useAntibot('auth-gotcha')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // « Créer un compte » (carte de connexion du compte) ouvre directement l'inscription
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('mode') === 'register') setActiveTab('register')
+  }, [])
 
   /** Réinitialise le formulaire lors du changement d'onglet */
   function switchTab(tab: AuthTab): void {
@@ -79,17 +86,19 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="grid gap-5">
       {/* Naânaa accueille (pose « salut ») */}
-      <div className="naanaa mb-5">
-        <img src="/mascotte/naanaa-salut.webp" alt="" width="72" height="106" className="naanaa-bob" />
+      <div className="naanaa">
+        <div className="m"><img src="/mascotte/naanaa-salut.webp" alt="Naânaa qui salue" /></div>
         <p className="bubble"><b>Ahlan !</b> {t('contrib.anonNote')}</p>
       </div>
 
       {/* Onglets */}
-      <div className="flex rounded-full border-2 border-line bg-card p-1 mb-6">
+      <div className="flex rounded-full border-2 border-line bg-muted p-1" role="tablist">
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'login'}
           onClick={() => switchTab('login')}
           className={cn(
             'flex-1 rounded-full border-2 py-2 text-sm font-bold transition-colors',
@@ -102,6 +111,8 @@ export default function AuthForm() {
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'register'}
           onClick={() => switchTab('register')}
           className={cn(
             'flex-1 rounded-full border-2 py-2 text-sm font-bold transition-colors',
@@ -115,12 +126,12 @@ export default function AuthForm() {
       </div>
 
       {/* Formulaire */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="grid gap-4">
         {antibot.honeypot}
         {/* Nom d'affichage (inscription uniquement) */}
         {activeTab === 'register' && (
-          <div className="space-y-2">
-            <label htmlFor="displayName" className="text-sm font-medium text-foreground">
+          <div className="grid gap-1.5">
+            <label htmlFor="displayName" className="text-sm font-semibold">
               {t('auth.displayName')}
             </label>
             <input
@@ -130,14 +141,14 @@ export default function AuthForm() {
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Votre nom"
               autoComplete="name"
-              className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className={FIELD}
             />
           </div>
         )}
 
         {/* Email */}
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-foreground">
+        <div className="grid gap-1.5">
+          <label htmlFor="email" className="text-sm font-semibold">
             {t('auth.email')}
           </label>
           <input
@@ -147,13 +158,13 @@ export default function AuthForm() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="votre@email.com"
             autoComplete="email"
-            className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={FIELD}
           />
         </div>
 
         {/* Mot de passe */}
-        <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium text-foreground">
+        <div className="grid gap-1.5">
+          <label htmlFor="password" className="text-sm font-semibold">
             {t('auth.password')}
           </label>
           <input
@@ -163,14 +174,14 @@ export default function AuthForm() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Minimum 8 caractères"
             autoComplete={activeTab === 'login' ? 'current-password' : 'new-password'}
-            className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={FIELD}
           />
         </div>
 
         {/* Confirmation mot de passe (inscription uniquement) */}
         {activeTab === 'register' && (
-          <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
+          <div className="grid gap-1.5">
+            <label htmlFor="confirmPassword" className="text-sm font-semibold">
               {t('auth.confirmPassword')}
             </label>
             <input
@@ -180,7 +191,7 @@ export default function AuthForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Retapez le mot de passe"
               autoComplete="new-password"
-              className="flex h-11 w-full rounded-full border-2 border-line bg-card px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className={FIELD}
             />
           </div>
         )}
@@ -193,7 +204,7 @@ export default function AuthForm() {
         )}
 
         {/* Bouton de soumission */}
-        <Button type="submit" className="w-full" disabled={loading}>
+        <button type="submit" className="btn primary w-full" disabled={loading}>
           {loading ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -205,7 +216,7 @@ export default function AuthForm() {
           ) : (
             activeTab === 'login' ? t('auth.loginBtn') : t('auth.registerBtn')
           )}
-        </Button>
+        </button>
       </form>
     </div>
   )

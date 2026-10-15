@@ -1,11 +1,21 @@
 ---
 export const prerender = false
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import BulkOffImporter from '@/components/BulkOffImporter.tsx'
 ---
 
-<Layout title="Import OFF — Admin — Bayen" path="/admin/import-off" noindex={true}>
-  <main class="container mx-auto max-w-screen-lg px-4 py-8">
-    <BulkOffImporter client:load />
+<Layout title="Import OFF — Admin — Bayen" path="/admin/import-off" noindex={true} mobileTopbar={false}>
+  <PageHero
+    tone="primary"
+    kicker="Admin"
+    title="Import massif — Open Food Facts Maroc"
+    subtitle="Importe automatiquement les produits vendus au Maroc depuis OFF"
+  />
+
+  <main class="screen pt-5 md:pt-10">
+    <section class="section">
+      <BulkOffImporter client:load />
+    </section>
   </main>
 </Layout>

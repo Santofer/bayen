@@ -15,12 +15,10 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
   description="Vos points, votre rang et le détail de vos contributions à la base Bayen."
   path="/compte/points"
   noindex={true}
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <div class="mx-auto max-w-lg">
-      <PageHero image="/hero/classement.jpg" tone="citron" mascot="bravo" kicker={t('nav.community', locale)} title={t('points.title', locale)} subtitle="Chaque contribution rend la base plus fiable pour tout le monde." class="mb-6" />
-
-      <PointsDashboard client:load />
-    </div>
+  <PageHero tone="citron" mascot="bravo" back="/compte" kicker={t('nav.community', locale)} title={t('points.title', locale)} subtitle="Chaque contribution rend la base plus fiable pour tout le monde." />
+  <main class="screen max-md:pt-5">
+    <PointsDashboard client:load />
   </main>
 </Layout>

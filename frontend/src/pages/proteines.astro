@@ -1,19 +1,25 @@
 ---
-// Galerie protéines — sportifs, prise de masse, satiété (SSR)
+// Univers protéines (maquette « Proteines ») — sportifs, prise de masse, satiété (SSR)
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
-import ProductCard from '@/components/ProductCard.tsx'
+import ProductCard, { ScoreSticker, productTint } from '@/components/ProductCard.tsx'
 import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 import type { Product } from '@/lib/types'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
-interface Row extends Product { proteins: number; energy_kcal: number | null; sugars: number | null; salt: number | null; category_id: number | null }
+interface Row extends Product { proteins: number; energy_kcal: number | null; sugars: number | null; salt: number | null; category_id: number | null; quantity?: string | null }
 
 const FIELDS = 'id,barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,scan_count,proteins,energy_kcal,sugars,salt,category_id,product_type,status'
+
+// Filtre « Minimum de protéines » (maquette) : paramètre d'URL ?min=5|10|20|30
+const MINS = [5, 10, 20, 30] as const
+const minParam = Number(Astro.url.searchParams.get('min'))
+const min = (MINS as readonly number[]).includes(minParam) ? minParam : 10
 
 /**
  * Garde-fou : quelques fiches portent des protéines fantaisistes (« 73 g » pour des
@@ -22,22 +28,78 @@ const FIELDS = 'id,barcode,name_fr,brand,quantity,image_front,scan_score,score_l
  * Et l'énergie des protéines (4 kcal/g) ne peut pas dépasser l'énergie totale.
  */
 const POWDER_RE = /whey|prot[ée]in|collag|isolat|levure|spirulin|g[ée]latin|poudre|powder|caséine|casein|soja texturé|lentille|pois chiche|parmesan|parmigiano|grana|pecorino|comté|gruyère|emmental|thon|sardine|maquereau|anchois/i
+// Thé, café, cacao en poudre : protéines réelles sur le produit SEC, mais on n'en mange
+// jamais 100 g — et sans sucre ni gras ils prendraient la tête du classement par score
+const NOT_EATEN_RE = /(^|[^\p{L}])(th[ée]|tea|caf[ée]|coffee|nescaf\p{L}*|cacao|cocoa|infusion|tisane)(?!\p{L})/iu
 function plausible(p: Row): boolean {
   if (p.proteins == null || p.proteins <= 0 || p.proteins > 95) return false
+  if (p.category_id === 6 || NOT_EATEN_RE.test(p.name_fr ?? '')) return false
   if (p.energy_kcal != null && p.energy_kcal > 0 && p.proteins * 4 > p.energy_kcal * 1.08) return false
   if (p.proteins > 45 && !POWDER_RE.test(`${p.name_fr} ${p.brand}`)) return false
   return true
 }
 const share = (p: Row): number | null => (p.energy_kcal && p.energy_kcal > 0 ? Math.round((p.proteins * 4 / p.energy_kcal) * 100) : null)
 
-let all: Row[] = []
-try {
-  const res = await fetch(
-    `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&filter[product_type][_eq]=food&filter[proteins][_gte]=10&filter[image_front][_nnull]=true&fields=${FIELDS}&sort=-proteins&limit=300`,
+const fetchRows = (qs: string): Promise<Row[]> =>
+  fetch(
+    `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&filter[product_type][_eq]=food&filter[image_front][_nnull]=true&fields=${FIELDS}&${qs}`,
     { signal: AbortSignal.timeout(6000) }
   )
-  if (res.ok) all = ((await res.json()).data ?? []).filter(plausible)
-} catch { /* page servie vide */ }
+    .then((r) => (r.ok ? r.json() : { data: [] }))
+    .then((j: { data?: Row[] }) => (j.data ?? []).filter(plausible))
+    .catch(() => [] as Row[])
+
+// all : classement par grammes (sections du bas) · picked : liste de la maquette,
+// au moins `min` g, les mieux notés d'abord (le filtre change vraiment la liste)
+const [all, picked] = await Promise.all([
+  fetchRows('filter[proteins][_gte]=10&sort=-proteins&limit=300'),
+  fetchRows(`filter[proteins][_gte]=${min}&filter[scan_score][_nnull]=true&sort=-scan_score,-proteins&limit=40`),
+])
+const rows = picked.slice(0, 12)
+
+/** Poids net en grammes lu dans la contenance (« 125 g », « 4 x 125 g », « 1 kg ») ; null pour un volume ou un texte illisible */
+function grams(q: string | null | undefined): number | null {
+  const m = q?.match(/(?:(\d+)\s*[x×]\s*)?(\d+(?:[.,]\d+)?)\s*(kg|g)(?:rammes?|r)?\b/i)
+  if (!m) return null
+  const g = parseFloat(m[2].replace(',', '.')) * (m[3].toLowerCase() === 'kg' ? 1000 : 1) * (m[1] ? Number(m[1]) : 1)
+  return g > 0 ? g : null
+}
+
+/** Prix médian (DH) : médiane des médianes par enseigne de /bayen-api/prices ; null sans prix */
+async function medianPrice(barcode: string): Promise<number | null> {
+  try {
+    const r = await fetch(`${DIRECTUS_URL}/bayen-api/prices/${barcode}`, { signal: AbortSignal.timeout(2500) })
+    if (!r.ok) return null
+    const j = (await r.json()) as { by_store?: Array<{ median: number }> }
+    const meds = (j.by_store ?? []).map((s) => Number(s.median)).filter((n) => n > 0).sort((a, b) => a - b)
+    if (meds.length === 0) return null
+    const mid = meds.length >> 1
+    return meds.length % 2 ? meds[mid] : (meds[mid - 1] + meds[mid]) / 2
+  } catch {
+    return null
+  }
+}
+
+// « DH / 10 g prot. » seulement si un prix médian existe ET que la contenance est en grammes
+// ponytail: un appel /prices par ligne (≤ 12, en parallèle) ; un agrégat groupé si la page ralentit
+const pricePer10 = await Promise.all(rows.map(async (p) => {
+  const g = grams(p.quantity)
+  if (!g) return null
+  const price = await medianPrice(p.barcode)
+  return price != null ? (price / (g * p.proteins / 100)) * 10 : null
+}))
+
+const fmt = (n: number, digits = 1): string => n.toLocaleString('fr-FR', { maximumFractionDigits: digits })
+const n2 = (n: number): string => n.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const rowMeta = (p: Row, price: number | null): string =>
+  [
+    p.quantity,
+    price != null
+      ? `${n2(price)} DH / 10 g prot.`
+      : p.sugars != null ? `${fmt(p.sugars)} g de sucres / 100 g` : null,
+  ].filter(Boolean).join(' · ')
+const thumb = (img: string): string =>
+  img.startsWith('http') ? img : `${CDN_URL}/${img}?width=160&height=160&fit=cover&quality=80&format=webp`
 
 const top = all.slice(0, 20)
 const clean = all.filter((p) => p.proteins >= 12 && (p.scan_score ?? 0) >= 60 && (p.sugars ?? 0) <= 5).slice(0, 15)
@@ -53,7 +115,6 @@ const byFamily = FAMILIES.map((f) => ({ ...f, items: all.filter((p) => p.categor
 
 const badge = (p: Row) => ({
   text: `${Math.round(p.proteins)} g ${locale === 'ary' ? 'بروتين' : 'PROT.'}${share(p) != null ? ` · ${share(p)} %` : ''}`,
-  // Fond sombre constant : le libellé .ns est écrit en blanc (globals.css)
   color: share(p) != null && share(p)! >= 20 ? 'var(--color-aubergine)' : 'var(--color-encre)',
 })
 
@@ -71,58 +132,98 @@ const jsonLd = {
   path="/proteines"
   jsonLd={jsonLd}
   universe="protein"
+  mobileTopbar={false}
 >
-  <main class="mx-auto max-w-5xl px-4 py-6 pb-24 space-y-10">
-    <PageHero image="/hero/proteines.jpg" tone="protein" mascot="scan" size="lg" kicker={t('protein.title', locale)} title={t('protein.hubTitle', locale)} subtitle={t('protein.hubDesc', locale)}>
-      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M3 8h6M15 8h6M3 16h6M15 16h6M9 12h6"/></svg>
-      <div class="ctas">
-        <a href="/recherche?proteines=20" class="main">{t('protein.filter20', locale)}</a>
-        <a href="/recherche?proteines=12" class="ghost">{t('protein.filter12', locale)}</a>
+  <PageHero
+    tone="protein"
+    mascot="scan"
+    back="/"
+    kicker="Univers protéines"
+    title="Plus de protéines, moins de sucre."
+    subtitle="Choisis un minimum de protéines pour 100 g : on classe ensuite par score Bayen, pour ne pas se faire avoir."
+  />
+
+  <main class="screen max-md:pt-5">
+    <section class="section">
+      <p class="eyebrow">Minimum de protéines</p>
+      <div class="grid grid-cols-4 gap-2 md:max-w-md">
+        {MINS.map((m) => (
+          <a
+            href={`/proteines?min=${m}`}
+            class:list={['btn sm flat', m === min && 'border-encre bg-protein text-encre']}
+            aria-current={m === min ? 'true' : undefined}
+          >
+            {m} g
+          </a>
+        ))}
       </div>
-    </PageHero>
+    </section>
 
-    {/* L'astuce de Naânaa (maquette Protéines) */}
-    <div class="naanaa max-w-2xl">
-      <img src="/mascotte/naanaa-astuce.webp" alt="" width="72" height="106" loading="lazy" />
-      <p class="bubble">{t('protein.tip', locale)}</p>
-    </div>
+    <section class="section gap-3">
+      {rows.length === 0 ? (
+        <p class="card p-6 text-center text-sm muted">{t('search.noResults', locale)}</p>
+      ) : (
+        <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {rows.map((p, i) => (
+            <a href={`/produit/${p.barcode}`} class="card grid grid-cols-[76px_minmax(0,1fr)_auto_auto] items-center gap-3 py-2.5 ps-2.5 pe-3">
+              <div class:list={['tile size-[76px]', productTint(p.barcode)]}>
+                {p.image_front && <img src={thumb(p.image_front)} alt={p.name_fr} loading="lazy" />}
+              </div>
+              <div class="min-w-0">
+                <p class="line-clamp-2 font-bold leading-tight">{p.name_fr}</p>
+                <p class="muted truncate text-xs">{rowMeta(p, pricePer10[i])}</p>
+              </div>
+              <div class="text-end">
+                <b class="disp d-m num">{fmt(p.proteins, 0)}</b>
+                <p class="text-[11px]">g / 100 g</p>
+              </div>
+              <ScoreSticker score={p.scan_score} size="sm" />
+            </a>
+          ))}
+        </div>
+      )}
+      <div class="naanaa grid-cols-[56px_minmax(0,1fr)] md:max-w-xl">
+        <div class="m size-14"><img src="/mascotte/naanaa-astuce.webp" alt="" width="56" height="56" loading="lazy" /></div>
+        <p class="bubble">{t('protein.tip', locale)}</p>
+      </div>
+    </section>
 
-    <section>
-      <div class="sec-head-v2">
-        <h2>{t('protein.topTitle', locale)}</h2>
-        <span class="text-sm text-muted-foreground">{t('protein.per100', locale)}</span>
+    <section class="section">
+      <div class="sec-head">
+        <h2 class="disp d-m">{t('protein.topTitle', locale)}</h2>
+        <span class="muted text-xs">{t('protein.per100', locale)}</span>
       </div>
       {top.length === 0 ? (
-        <div class="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t('search.noResults', locale)}</div>
+        <p class="card p-6 text-center text-sm muted">{t('search.noResults', locale)}</p>
       ) : (
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {top.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
         </div>
       )}
     </section>
 
     {clean.length >= 3 && (
-      <section>
-        <div class="sec-head-v2">
-          <h2>{t('protein.cleanTitle', locale)}</h2>
-          <span class="text-sm text-muted-foreground">{t('protein.cleanDesc', locale)}</span>
+      <section class="section">
+        <div class="sec-head">
+          <h2 class="disp d-m">{t('protein.cleanTitle', locale)}</h2>
         </div>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <p class="muted -mt-1 text-xs">{t('protein.cleanDesc', locale)}</p>
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           {clean.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
         </div>
       </section>
     )}
 
     {byFamily.length > 0 && (
-      <section class="space-y-8">
-        <h2 class="font-display text-xl font-bold">{t('protein.byCategory', locale)}</h2>
+      <section class="section gap-6">
+        <h2 class="disp d-m">{t('protein.byCategory', locale)}</h2>
         {byFamily.map((f) => (
-          <div>
-            <div class="sec-head-v2">
-              <h3 class="font-bold">{f.label}</h3>
-              <a href={`/categories/${f.slug}`} class="text-sm text-brand-ink hover:underline">{t('protein.all', locale)} →</a>
+          <div class="grid gap-3">
+            <div class="sec-head">
+              <h3 class="disp d-s">{f.label}</h3>
+              <a href={`/categories/${f.slug}`}>{t('protein.all', locale)}</a>
             </div>
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
               {f.items.map((p) => <ProductCard product={p} variant="grid" badge={badge(p)} />)}
             </div>
           </div>
@@ -130,16 +231,19 @@ const jsonLd = {
       </section>
     )}
 
-    <section class="rounded-3xl border bg-card p-6 sm:p-8">
-      <h2 class="font-display text-xl font-bold">{t('protein.howTitle', locale)}</h2>
-      <ol class="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground/90">
-        {[t('protein.how1', locale), t('protein.how2', locale), t('protein.how3', locale)].map((txt, i) => (
-          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border-2 border-encre bg-protein text-sm font-bold text-encre">{i + 1}</span><span>{txt}</span></li>
-        ))}
-      </ol>
-      <a href="/recherche?proteines=12" class="btn-pop ghost mt-5">
-        {t('protein.searchAll', locale)} →
-      </a>
+    <section class="section">
+      <div class="card grid gap-4 p-5 md:p-8">
+        <h2 class="disp d-m">{t('protein.howTitle', locale)}</h2>
+        <ol class="grid gap-3 text-[15px] leading-relaxed">
+          {[t('protein.how1', locale), t('protein.how2', locale), t('protein.how3', locale)].map((txt, i) => (
+            <li class="flex gap-3"><span class="flex size-7 flex-none items-center justify-center rounded-full border-2 border-encre bg-protein text-sm font-bold text-encre">{i + 1}</span><span>{txt}</span></li>
+          ))}
+        </ol>
+        <div class="flex flex-wrap gap-3">
+          <a href="/recherche?proteines=20" class="btn sm">{t('protein.filter20', locale)}</a>
+          <a href="/recherche?proteines=12" class="btn sm">{t('protein.searchAll', locale)}</a>
+        </div>
+      </div>
     </section>
   </main>
 </Layout>

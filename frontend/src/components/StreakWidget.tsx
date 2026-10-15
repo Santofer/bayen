@@ -65,14 +65,17 @@ export default function StreakWidget({ labels }: StreakWidgetProps) {
   // Rien tant que pas chargé, ou si l'utilisateur n'a aucun scan
   if (!loaded || !data || data.total_scans === 0) return null
 
+  // Section d'écran (maquette Compte) : se pose directement dans <main class="screen">
   return (
-    <StreakCard
-      streak={data.active_days}
-      currentStreak={data.current}
-      longestStreak={data.longest}
-      total={data.total_scans}
-      today={data.today}
-      labels={labels}
-    />
+    <section className="section">
+      <StreakCard
+        streak={data.active_days}
+        currentStreak={data.current}
+        longestStreak={data.longest}
+        total={data.total_scans}
+        today={data.today}
+        labels={labels}
+      />
+    </section>
   )
 }

@@ -4,7 +4,6 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import BlogCard from '@/components/BlogCard.tsx'
-import PageHero from '@/components/PageHero.astro'
 import { withLocalCover } from '@/lib/blog-covers'
 import type { TranslationKey } from '@/lib/translations'
 import { getLocale, t } from '@/lib/i18n'
@@ -38,34 +37,22 @@ try {
   // Page s'affiche quand même
 }
 
-// Article vedette (maquette v2) : le plus récent, en cover pleine largeur.
-// Uniquement sur la vue non filtrée pour garder les listes par catégorie denses.
-const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
-const FALLBACK_COVER: Record<ArticleCategory, string> = {
-  'bien-etre': '/blog/fallback-bien-etre.jpg',
-  habitudes: '/blog/fallback-habitudes.jpg',
-  guides: '/blog/fallback-guides.jpg',
-  actualites: '/blog/fallback-actualites.jpg',
-}
+// Article mis en avant (maquette Blog) : le plus récent, uniquement sur la vue
+// non filtrée pour garder les listes par catégorie denses.
 const featured = !selectedCategory && articles.length > 0 ? articles[0] : null
-const gridArticles = featured ? articles.slice(1) : articles
-// Couverture : visuel local Marché Pop (déjà posé par withLocalCover), sinon image Directus, sinon secours
-const featuredCover = featured
-  ? (featured.cover_image
-      ? (featured.cover_image.startsWith('http') ? featured.cover_image : `${CDN_URL}/${featured.cover_image}`)
-      : FALLBACK_COVER[featured.category])
-  : null
-const featuredTitle = featured ? ((locale === 'ary' && featured.title_ar) || featured.title_fr) : null
+const listArticles = featured ? articles.slice(1) : articles
 
-// Catégories en aplats Marché Pop (texte encre posé dessus)
-const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: TranslationKey; color: string }> = [
-  { value: null,          labelKey: 'blog.allCategories',       color: 'var(--color-figue)' },
-  { value: 'bien-etre',   labelKey: 'blog.category.bien-etre',  color: 'var(--color-framboise)' },
-  { value: 'habitudes',   labelKey: 'blog.category.habitudes',  color: 'var(--color-menthe)' },
-  { value: 'guides',      labelKey: 'blog.category.guides',     color: 'var(--color-citron)' },
-  { value: 'actualites',  labelKey: 'blog.category.actualites', color: 'var(--color-myrtille)' },
+// Puces de catégories (maquette : « Tout » actif en menthe)
+const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: TranslationKey }> = [
+  { value: null, labelKey: 'blog.allCategories' },
+  { value: 'bien-etre', labelKey: 'blog.category.bien-etre' },
+  { value: 'habitudes', labelKey: 'blog.category.habitudes' },
+  { value: 'guides', labelKey: 'blog.category.guides' },
+  { value: 'actualites', labelKey: 'blog.category.actualites' },
 ]
-const featuredColor = featured ? CATEGORIES.find((c) => c.value === featured.category)?.color ?? 'var(--color-citron)' : null
+const heading = locale === 'ary'
+  ? `${t('blog.heroTitle1', locale)} ${t('blog.heroTitle2', locale)}`
+  : "Lire l'étiquette, sans prise de tête."
 
 // JSON-LD : Blog + BreadcrumbList + ItemList (les 10 articles les plus récents)
 const SITE_URL = 'https://bayen.ma'
@@ -103,63 +90,47 @@ const blogJsonLd = [
   path="/blog"
   jsonLd={blogJsonLd}
 >
-  <main class="section-v2 py-6 pb-24 md:pb-12">
-    {/* En-tête éditorial : aplat citron (maquette Blog) */}
-    <PageHero image="/hero/journal.jpg" tone="citron" kicker={t('blog.kicker', locale)} title={`${t('blog.heroTitle1', locale)} ${t('blog.heroTitle2', locale)}`} subtitle={t('blog.description', locale)} class="mb-7">
-      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-    </PageHero>
+  {/* Barre du haut mobile (maquette) : logo + puce « Le journal » */}
+  <span slot="topbar-end" class="chip">{t('nav.journalBlog', locale)}</span>
 
-    {/* Filtres par catégorie — pills cliquables */}
-    <nav class="flex flex-wrap gap-2 mb-8" aria-label="Filtres catégories">
-      {CATEGORIES.map((cat) => {
-        const isActive = cat.value === selectedCategory
-        const href = cat.value ? `/blog?cat=${cat.value}` : '/blog'
-        return (
-          <a
-            href={href}
-            class:list={[
-              'px-3 py-1.5 rounded-full text-xs font-semibold border-[1.5px] transition-colors',
-              isActive
-                ? 'border-encre text-encre shadow-[2px_2px_0_var(--color-hard)]'
-                : 'bg-card border-line text-foreground hover:bg-muted',
-            ]}
-            style={isActive ? `background-color: ${cat.color}` : undefined}
-          >
-            {t(cat.labelKey, locale)}
-          </a>
-        )
-      })}
-    </nav>
+  <main class="screen gap-5 max-md:pt-5 md:gap-12">
+    <section class="section gap-2.5 md:gap-4">
+      <h1 class="disp d-xl md:max-w-[20ch] md:text-[clamp(40px,4.4vw,60px)]">{heading}</h1>
+      <nav class="chips" aria-label="Filtres catégories">
+        {CATEGORIES.map((cat) => {
+          const isActive = cat.value === selectedCategory
+          return (
+            <a
+              href={cat.value ? `/blog?cat=${cat.value}` : '/blog'}
+              class:list={['chip', isActive && 'fill bg-menthe']}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {cat.value === null && locale === 'fr' ? 'Tout' : t(cat.labelKey, locale)}
+            </a>
+          )
+        })}
+      </nav>
+    </section>
 
-    {/* Article vedette pleine largeur (maquette v2) */}
-    {featured && featuredCover && (
-      <a href={`/blog/${featured.slug}`} class="card-lift mb-8 grid overflow-hidden rounded-3xl border-2 border-line bg-card shadow-[var(--shadow-card)] md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-        {/* Couverture 16:9 à contour encre */}
-        <img src={featuredCover} alt={featuredTitle ?? ''} loading="eager" class="aspect-video w-full object-cover border-b-2 border-line md:border-b-0 md:border-e-2" />
-        <div class="flex flex-col justify-center gap-3 p-5 sm:p-7">
-          <span class="self-start rounded-full border-[1.5px] border-encre px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] text-encre" style={`background-color: ${featuredColor}`}>
-            {t(`blog.category.${featured.category}`, locale)}
-          </span>
-          <h2 class="leading-tight">{featuredTitle}</h2>
-          {featured.reading_time_min && (
-            <p class="text-sm text-muted-foreground">{featured.reading_time_min} {t('blog.readingTimeMin', locale)}</p>
-          )}
-        </div>
-      </a>
+    {featured && (
+      <section class="section">
+        <BlogCard article={featured} locale={locale} variant="featured" />
+      </section>
     )}
 
-    {/* Grille des articles */}
-    {gridArticles.length > 0 ? (
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {gridArticles.map((article) => (
+    {listArticles.length > 0 ? (
+      <section class="section gap-3.5 md:grid-cols-3 md:gap-6">
+        {listArticles.map((article) => (
           <BlogCard article={article} locale={locale} />
         ))}
-      </div>
+      </section>
     ) : !featured ? (
-      <div class="rounded-xl border bg-card p-12 text-center text-muted-foreground">
-        <img src="/mascotte/naanaa-nuit.webp" alt="" width="88" height="130" class="mx-auto mb-3" loading="lazy" />
-        <p>{t('blog.empty', locale)}</p>
-      </div>
+      <section class="section">
+        <div class="card grid justify-items-center gap-3 p-10 text-center">
+          <img src="/mascotte/naanaa-nuit.webp" alt="" width="88" height="130" loading="lazy" />
+          <p class="muted">{t('blog.empty', locale)}</p>
+        </div>
+      </section>
     ) : null}
   </main>
 </Layout>

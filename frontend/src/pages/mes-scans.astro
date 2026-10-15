@@ -15,10 +15,12 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
   description="Retrouve tous les produits que tu as scannés. Gratuit, sans compte, stocké uniquement sur ton appareil."
   path="/mes-scans"
   noindex={true}
+  mobileTopbar={false}
 >
-  <main class="section-v2 py-6 pb-24 md:pb-12">
-    <PageHero image="/hero/scan.jpg" tone="citron" mascot="courses" kicker={t('history.badge', locale)} title={t('history.title', locale)} subtitle={t('history.subtitle', locale)} class="mb-8" />
-
-    <ScanHistory client:load />
+  <PageHero tone="citron" mascot="courses" back="/compte" kicker={t('history.badge', locale)} title={t('history.title', locale)} subtitle={t('history.subtitle', locale)} />
+  <main class="screen max-md:pt-5">
+    <section class="section">
+      <ScanHistory client:load />
+    </section>
   </main>
 </Layout>

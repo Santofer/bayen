@@ -90,16 +90,15 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
   if (!hasStructured && parsedTags.length === 0 && (!traces || traces.length === 0)) return null
 
   return (
-    <div className="rounded-2xl border bg-card p-6 space-y-4">
-      {/* En-tête */}
-      <div className="flex items-center gap-2">
-        <h2 className="font-display text-sm font-bold text-foreground flex items-center gap-1.5">
-          <ClipboardList size={16} className="text-current" /> {tt('ing.title')}
+    <section className="section">
+      {/* En-tête de section (maquette : titre hors de la carte) */}
+      <div className="sec-head">
+        <h2 className="disp d-m flex items-center gap-2">
+          <ClipboardList size={18} className="flex-none text-current" /> {tt('ing.title')}
         </h2>
-        <span className="rounded-full border-[1.5px] border-line px-2 py-0.5 text-[10px] font-bold text-foreground">
-          {hasStructured ? sorted.length : parsedTags.length}
-        </span>
+        <span className="chip">{hasStructured ? sorted.length : parsedTags.length}</span>
       </div>
+      <div className="card space-y-4 p-4 md:p-5">
 
       {/* Liste structurée */}
       {hasStructured ? (
@@ -183,6 +182,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </section>
   )
 }

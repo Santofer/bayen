@@ -114,9 +114,9 @@ export default function NutritionDashboard() {
   const ringColor = tt.kcal > goal ? 'var(--color-tomate)' : 'var(--color-menthe)'
 
   return (
-    <section className="rounded-2xl border bg-card p-5 space-y-5">
+    <div className="card grid gap-5 p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
+        <h2 className="disp d-s flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-encre bg-tomate text-encre">
             <Flame className="h-3.5 w-3.5" />
           </span>
@@ -130,6 +130,7 @@ export default function NutritionDashboard() {
               value={goalDraft}
               onChange={(e) => setGoalDraft(e.target.value)}
               className="w-20 h-8 rounded-full border-2 border-line bg-background px-3 text-sm"
+              aria-label={t('nutri.goal')}
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && saveGoal()}
             />
@@ -176,7 +177,7 @@ export default function NutritionDashboard() {
               ['lipides', tt.lipides, t('meal.lipides')],
             ] as const).map(([k, v, label]) => (
               <div key={k} className="rounded-xl border-[1.5px] border-line bg-muted p-2 text-center">
-                <p className="font-display text-sm font-bold text-foreground">{v}<span className="text-[11px] font-medium text-muted-foreground">g</span></p>
+                <p className="font-display text-sm font-bold text-foreground num">{v}<span className="text-[11px] font-medium text-muted-foreground">g</span></p>
                 <p className="text-[10px] text-muted-foreground">{label}</p>
               </div>
             ))}
@@ -222,6 +223,6 @@ export default function NutritionDashboard() {
       </div>
 
       <p className="text-[11px] text-muted-foreground text-center italic">{t('nutri.caveat')}</p>
-    </section>
+    </div>
   )
 }

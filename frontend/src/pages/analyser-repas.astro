@@ -1,11 +1,10 @@
 ---
-// Page publique d'analyse de photo de repas via VLM (gemma3 vision).
-// Le composant React gère tout le flux : upload → /api/meal-score → score.
+// Analyse de photo de repas (maquette « Repas ») via le serveur vision (Qwen3.5-9B).
+// Le composant React gère tout le flux : upload → /api/meal-score → estimation.
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import MealPhotoAnalyzer from '@/components/MealPhotoAnalyzer'
-import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -16,12 +15,17 @@ const locale = getLocale(localeCookie)
   title={`${t('meal.pageTitle', locale)} — Bayen`}
   description={t('meal.pageSubtitle', locale)}
   path="/analyser-repas"
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-md px-4 pt-6 pb-24">
-    <PageHero image="/home/repas.jpg" tone="ai" mascot="loupe" kicker={t('nav.meal', locale)} title={t('meal.pageTitle', locale)} subtitle={t('meal.pageSubtitle', locale)} class="mb-8">
-      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-    </PageHero>
+  <!-- Barre du haut de la maquette : retour + puce « Analyse de repas » -->
+  <header class="topbar pb-0 md:hidden">
+    <a class="icon-btn" href="/" aria-label={t('nav.back', locale)}>
+      <svg class="rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+    </a>
+    <span class="chip fill bg-ai">Analyse de repas</span>
+  </header>
 
+  <main class="screen max-md:pt-5">
     <MealPhotoAnalyzer client:load />
   </main>
 </Layout>

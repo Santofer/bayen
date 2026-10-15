@@ -70,67 +70,68 @@ function ProductSlot({ product, onPick, onClear, placeholder, isWinner = false, 
   }, [q, product])
 
   if (product) {
-    // Carte « fighter » : le gagnant passe sur vignette citron, ombre plus haute + couronne
+    // Carte « fighter » : vignette photo pleine, pastille de score ; le gagnant passe sur fond citron + couronne
     return (
-      <div
-        className={cn(
-          'relative h-full rounded-3xl border-2 p-4 sm:p-5',
-          isWinner ? 'tint-citron border-line shadow-[var(--shadow-lift)]' : 'bg-card'
-        )}
-      >
+      <div className={cn('card relative grid content-start gap-2 p-2.5 sm:p-3', isWinner && 'tint-citron')}>
         {isWinner && crownLabel && (
-          <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-encre bg-citron px-3 py-1 text-[0.66rem] font-extrabold uppercase tracking-[0.06em] text-encre">
-            <Trophy className="h-3 w-3" /> {crownLabel}
+          <span className="chip fill absolute -top-3.5 left-1/2 z-10 -translate-x-1/2 border-encre! bg-citron">
+            <Trophy aria-hidden="true" /> {crownLabel}
           </span>
         )}
-        <button onClick={onClear} className="absolute top-2 right-2 p-1 rounded-md hover:bg-muted text-muted-foreground" aria-label="Retirer">
-          <X className="h-4 w-4" />
-        </button>
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className={cn('mt-1.5 grid h-24 w-24 flex-shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-line', productTint(product.barcode))}>
-            {product.image_front ? (
-              <img src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}?width=200&height=200&fit=cover&format=webp`} alt={product.name_fr} className="size-[86%] object-contain mix-blend-multiply dark:mix-blend-normal" />
-            ) : null}
+        <div className="relative">
+          <div className={cn('tile h-[130px] sm:h-[170px] md:h-[200px]', productTint(product.barcode))}>
+            {product.image_front && (
+              <img src={product.image_front.startsWith('http') ? product.image_front : `${CDN_URL}/${product.image_front}?width=400&height=400&fit=cover&format=webp`} alt={product.name_fr} />
+            )}
           </div>
-          <p className="text-sm font-bold line-clamp-2 leading-tight">{product.name_fr}</p>
-          <p className="text-xs text-muted-foreground">{product.brand}</p>
+          <button type="button" onClick={onClear} className="icon-btn absolute end-1.5 top-1.5 size-8" aria-label="Retirer">
+            <X aria-hidden="true" />
+          </button>
           {product.scan_score != null && (
-            <ScoreSticker score={product.scan_score} className="mt-1" />
+            <span className="absolute -bottom-4 end-0.5">
+              <ScoreSticker score={product.scan_score} />
+            </span>
           )}
+        </div>
+        <div className="min-w-0 pt-4">
+          <p className="line-clamp-2 text-[13.5px] font-bold leading-tight">{product.name_fr}</p>
+          {product.brand && <p className="muted mt-0.5 truncate text-[12px]">{product.brand}</p>}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full rounded-3xl border-2 border-dashed border-line/40 p-3 relative">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div className="relative grid min-h-[210px] content-start gap-2 rounded-[20px] border-2 border-dashed border-line/45 p-2.5 sm:p-3 md:min-h-[290px]">
+      <label className="card flex h-11 items-center gap-2 rounded-full px-3 shadow-[2px_2px_0_var(--color-hard)]">
+        <Search className="size-4 flex-none" aria-hidden="true" />
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => results.length && setOpen(true)}
           placeholder={placeholder}
-          className="w-full h-10 rounded-full border-2 border-line bg-card pl-9 pr-3 text-sm"
+          aria-label={placeholder}
+          className="min-w-0 flex-1 border-0 bg-transparent text-[13.5px] font-medium outline-none"
         />
-      </div>
+      </label>
       {open && results.length > 0 && (
-        <ul className="absolute z-20 left-3 right-3 mt-1 max-h-64 overflow-y-auto rounded-2xl border-2 border-line bg-popover shadow-[var(--shadow-card)]">
+        <ul className="card absolute inset-x-1.5 top-[60px] z-20 max-h-72 overflow-y-auto p-1">
           {results.map((r) => (
             <li key={r.barcode}>
               <button
+                type="button"
                 onClick={() => { onPick(r); setQ(''); setResults([]); setOpen(false) }}
-                className="w-full flex items-center gap-2 p-2 hover:bg-muted text-left"
+                className="flex w-full items-center gap-2 rounded-[14px] p-1.5 text-start hover:bg-muted"
               >
-                <div className={cn('grid h-9 w-9 flex-shrink-0 place-items-center overflow-hidden rounded-lg border-[1.5px] border-line', productTint(r.barcode))}>
-                  {r.image_front && <img src={r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=80&height=80&fit=cover&format=webp`} alt="" className="size-[86%] object-contain mix-blend-multiply dark:mix-blend-normal" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium truncate">{r.name_fr}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{r.brand}</p>
-                </div>
+                <span className={cn('tile size-10 flex-none rounded-[10px] border-[1.5px]', productTint(r.barcode))}>
+                  {r.image_front && <img src={r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=80&height=80&fit=cover&format=webp`} alt="" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[12.5px] font-semibold">{r.name_fr}</span>
+                  <span className="muted block truncate text-[11px]">{r.brand}</span>
+                </span>
                 {r.scan_score != null && (
-                  <span className="font-display text-xs font-extrabold flex-shrink-0" style={{ color: scoreText(r.scan_score) }}>{r.scan_score}</span>
+                  <span className="flex-none font-display text-xs font-extrabold" style={{ color: scoreText(r.scan_score) }}>{r.scan_score}</span>
                 )}
               </button>
             </li>
@@ -192,61 +193,72 @@ export default function Comparator() {
   }
 
   return (
-    <div className="space-y-5">
-      {/* Duel (maquette v2) : deux fighters + VS central, couronne sur le gagnant */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2 sm:gap-4 pt-4">
+    <div className="grid gap-5 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:items-start md:gap-[18px]">
+      {/* Duel : deux cartes produit + pastille VS, couronne sur le gagnant */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 pt-4 sm:gap-3">
         <ProductSlot
           product={a} onPick={setA} onClear={() => { setA(null); setVerdict(null) }} placeholder={t('cmp.pickA')}
           isWinner={winner === 'A'} crownLabel={t('cmp.crownLabel')}
         />
-        <div className="self-center font-display font-extrabold text-muted-foreground text-lg sm:text-2xl px-0.5" aria-hidden="true">VS</div>
+        <span className="mt-16 grid size-11 -rotate-8 place-items-center rounded-full border-2 border-encre bg-citron font-display text-[13px] font-extrabold text-encre shadow-[2px_2px_0_var(--color-hard)] md:mt-24" aria-hidden="true">VS</span>
         <ProductSlot
           product={b} onPick={setB} onClear={() => { setB(null); setVerdict(null) }} placeholder={t('cmp.pickB')}
           isWinner={winner === 'B'} crownLabel={t('cmp.crownLabel')}
         />
       </div>
 
-      {a && b && (
-        <>
-          {/* Tableau comparatif */}
-          <div className="rounded-3xl border bg-card overflow-hidden">
-            <table className="w-full text-sm">
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={i} className={i % 2 ? 'bg-muted/30' : ''}>
-                    <td className={`px-3 py-2.5 text-center font-semibold ${r.better === 'A' ? 'font-extrabold text-brand-ink' : ''}`}>{r.av}</td>
-                    <td className="px-2 py-2.5 text-center text-[11px] text-muted-foreground whitespace-nowrap">{r.label}</td>
-                    <td className={`px-3 py-2.5 text-center font-semibold ${r.better === 'B' ? 'font-extrabold text-brand-ink' : ''}`}>{r.bv}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {a && b ? (
+        <div className="grid gap-4 md:pt-4">
+          {/* Comparaison ligne à ligne : la meilleure valeur passe en puce menthe */}
+          <div className="card overflow-hidden">
+            {rows.map((r) => (
+              <div key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-b-[1.5px] border-line px-3 py-2.5 text-center last:border-b-0">
+                <Cell value={r.av} better={r.better === 'A'} />
+                <span className="muted whitespace-nowrap text-[11.5px] font-semibold">{r.label}</span>
+                <Cell value={r.bv} better={r.better === 'B'} />
+              </div>
+            ))}
           </div>
 
-          {/* Verdict IA */}
-          <div className="rounded-3xl border bg-card p-5">
-            <h3 className="text-sm font-semibold flex items-center gap-2 text-ai-ink mb-2">
-              <Sparkles className="h-4 w-4" />
-              {t('cmp.verdictTitle')}
-            </h3>
-            {loadingVerdict ? (
-              <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />{t('cmp.thinking')}</p>
-            ) : verdict ? (
-              <div className="space-y-2">
-                <p className="text-sm text-foreground/90 leading-relaxed">{verdict.raison}</p>
-                {verdict.conseil && (
-                  <p className="text-sm text-foreground/80 leading-relaxed flex gap-2">
-                    <Lightbulb className="h-4 w-4 text-brand-ink flex-shrink-0 mt-0.5" />
-                    {verdict.conseil}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t('cmp.verdictUnavailable')}</p>
-            )}
+          {/* Verdict IA : bulle de Naânaa (le gagnant reste déterminé par le score) */}
+          <div className="naanaa grid-cols-[56px_minmax(0,1fr)] items-start">
+            <img src="/mascotte/naanaa-astuce.webp" alt="" width="56" height="56" className="size-14" />
+            <div className="bubble grid gap-2" aria-live="polite">
+              <p className="flex items-center gap-1.5 font-bold">
+                <Sparkles className="size-4 text-ai-ink" aria-hidden="true" />
+                {t('cmp.verdictTitle')}
+              </p>
+              {loadingVerdict ? (
+                <p className="muted flex items-center gap-2"><Loader2 className="size-4 animate-spin" aria-hidden="true" />{t('cmp.thinking')}</p>
+              ) : verdict ? (
+                <>
+                  <p className="leading-relaxed">{verdict.raison}</p>
+                  {verdict.conseil && (
+                    <p className="flex gap-2 leading-relaxed">
+                      <Lightbulb className="mt-0.5 size-4 flex-none text-brand-ink" aria-hidden="true" />
+                      {verdict.conseil}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="muted">{t('cmp.verdictUnavailable')}</p>
+              )}
+            </div>
           </div>
-        </>
+        </div>
+      ) : (
+        <div className="naanaa md:pt-4">
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="72" />
+          <p className="bubble">Cherche deux produits, de préférence du même rayon : le meilleur score Bayen gagne, et je t'explique pourquoi.</p>
+        </div>
       )}
     </div>
   )
+}
+
+/** Valeur d'une ligne : la meilleure des deux passe en puce menthe */
+function Cell({ value, better }: { value: string; better: boolean }) {
+  return better
+    ? <span className="chip fill num justify-self-center bg-menthe text-[13px] font-extrabold">{value}</span>
+    : <span className="num text-[13.5px] font-semibold">{value}</span>
 }

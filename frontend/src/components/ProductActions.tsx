@@ -181,35 +181,27 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
   if (!canAct && !isAdmin) return null
 
   return (
-    <div className="rounded-2xl border bg-card p-5">
-      {/* En-tête de carte — même anatomie que les autres sections de la fiche */}
-      <div className="mb-4 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 border-encre bg-menthe text-encre">
-          <Check size={16} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="font-display text-lg font-bold leading-tight">{t('product.actionsTitle')}</h2>
-          <p className="text-xs text-muted-foreground">
-            {confirmCount}/3 {t('product.confirmHint')}
-          </p>
-        </div>
+    <section className="section">
+      {/* En-tête de section (maquette) : titre hors de la carte */}
+      <div className="sec-head">
+        <h2 className="disp d-m">{t('product.actionsTitle')}</h2>
         {confidenceScore >= 0.8 && (
-          <span className="pop-chip flex-shrink-0 border-encre! bg-menthe! text-encre!">Vérifié</span>
+          <span className="chip fill flex-none bg-menthe">Vérifié</span>
         )}
       </div>
+      <div className="card p-4 md:p-5">
+      <p className="mb-4 text-xs text-muted-foreground">
+        {confirmCount}/3 {t('product.confirmHint')}
+      </p>
 
       {/* Une seule rangée alignée : actions communauté à gauche, admin à droite */}
       <div className="flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           onClick={handleConfirm}
+          // Confirmée : l'aplat menthe reste visible malgré l'état désactivé de .btn
           disabled={hasConfirmed || submitting}
-          className={cn(
-            'inline-flex min-h-[46px] items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors',
-            hasConfirmed
-              ? 'border-2 border-encre bg-menthe text-encre'
-              : 'border-2 border-line bg-card text-foreground hover:bg-muted disabled:opacity-60',
-          )}
+          className={cn('btn sm', hasConfirmed && 'primary opacity-100')}
         >
           <Check size={16} />
           {hasConfirmed ? t('product.confirmed') : t('product.confirm')}
@@ -218,7 +210,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           type="button"
           onClick={() => setShowReport(!showReport)}
           disabled={submitting}
-          className="inline-flex min-h-[46px] items-center gap-2 rounded-full border-2 border-line bg-card px-5 text-sm font-semibold transition-colors hover:bg-muted disabled:opacity-60"
+          className="btn sm"
         >
           <AlertTriangle size={16} />
           {t('product.report')}
@@ -227,7 +219,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
-            className="sm:ms-auto inline-flex min-h-[46px] items-center gap-2 rounded-full border-2 border-destructive bg-card px-5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+            className="btn sm border-destructive text-destructive sm:ms-auto"
           >
             <Trash2 size={16} />
             Supprimer ce produit
@@ -284,6 +276,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           {feedback}
         </div>
       )}
-    </div>
+      </div>
+    </section>
   )
 }

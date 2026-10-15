@@ -36,6 +36,8 @@ interface ScoreDisplayProps {
   className?: string
   /** La pastille est déjà affichée ailleurs (en-tête de la fiche) : ne pas la répéter */
   hideBadge?: boolean
+  /** Les additifs ont leur propre carte sur la fiche : ne pas les répéter */
+  hideAdditives?: boolean
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -45,6 +47,15 @@ interface ScoreDisplayProps {
 // Puce de statut posée sur un aplat : texte et contour encre (règle globale
 // .pop-chip hors calque → `!` ; ne pas passer dans cn())
 const STATUS_CHIP = 'pop-chip border-encre! text-encre!'
+
+/**
+ * Aplat d'une barre selon sa part « bonne » (0–1) : menthe → vert pomme →
+ * orange → tomate. Seuils du détail du score, partagés avec les barres
+ * « Pourquoi ? » de la fiche produit.
+ */
+export function ratioFill(ratio: number): string {
+  return ratio >= 0.7 ? SCORE_FILL.excellent : ratio >= 0.45 ? SCORE_FILL.bon : ratio >= 0.2 ? SCORE_FILL.mediocre : SCORE_FILL.mauvais
+}
 
 // ────────────────────────────────────────────────────────────────
 // Sous-composants
@@ -214,13 +225,11 @@ function ScoreBreakdown({ score }: { score: ScoreResult }) {
   ]
 
   return (
+    // Le titre « Détail du score » est porté par l'en-tête de section de la fiche
     <div className="space-y-3.5">
-      <h3 className="text-sm font-medium text-foreground">{t('product.scoreDetail')}</h3>
       {items.map((item) => {
         const ratio = item.points / item.max
-        // Aplat gradué (mêmes seuils qu'avant) : menthe → vert pomme → orange → tomate
-        const barColor =
-          ratio >= 0.7 ? SCORE_FILL.excellent : ratio >= 0.45 ? SCORE_FILL.bon : ratio >= 0.2 ? SCORE_FILL.mediocre : SCORE_FILL.mauvais
+        const barColor = ratioFill(ratio)
         return (
           <div key={item.label} className="grid grid-cols-[1fr_auto] items-center gap-x-2.5 gap-y-1">
             <span className="text-sm font-semibold text-foreground">{item.label}</span>
@@ -251,6 +260,7 @@ export default function ScoreDisplay({
   dataSource,
   className,
   hideBadge = false,
+  hideAdditives = false,
 }: ScoreDisplayProps) {
   const { t } = useLocale()
 
@@ -300,7 +310,8 @@ export default function ScoreDisplay({
   return (
     <div className={cn('flex flex-col gap-6', className)}>
       {/* Badges d'avertissement */}
-      <div className="flex flex-wrap gap-2 justify-center">
+      {(isAiEstimate || score.incomplete || isVerified || isCommunityUnverified) && (
+      <div className="flex flex-wrap gap-2">
         {isAiEstimate && (
           <span className={`${STATUS_CHIP} bg-ai!`}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>
@@ -317,6 +328,7 @@ export default function ScoreDisplay({
           <span className={`${STATUS_CHIP} bg-framboise!`}>{t('score.unverified')}</span>
         )}
       </div>
+      )}
 
       {/* Panneau score façon maquette : grosse pastille à gauche, barres détaillées à droite */}
       <div className={hideBadge ? 'flex flex-col gap-6' : 'flex flex-col md:grid md:grid-cols-[auto_1fr] md:items-center gap-6 md:gap-8'}>
@@ -331,7 +343,7 @@ export default function ScoreDisplay({
       </div>
 
       {/* Additifs */}
-      <AdditivesList additives={score.additives_detail ?? []} />
+      {!hideAdditives && <AdditivesList additives={score.additives_detail ?? []} />}
     </div>
   )
 }

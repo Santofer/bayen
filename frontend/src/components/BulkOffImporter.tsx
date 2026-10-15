@@ -4,9 +4,8 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { getAccessToken } from '@/lib/auth'
+import { cn } from '@/lib/utils'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import {
   Download,
@@ -564,8 +563,8 @@ export default function BulkOffImporter() {
   // Chargement de la verification admin
   if (isAdmin === null) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      <div className="muted flex items-center justify-center gap-2 py-20">
+        <Loader2 className="h-5 w-5 animate-spin" />
         Verification des droits...
       </div>
     )
@@ -574,9 +573,9 @@ export default function BulkOffImporter() {
   // Pas admin
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center gap-2 rounded-2xl border-2 border-line tint-tomate p-6 text-foreground">
-        <AlertCircle className="h-5 w-5 flex-shrink-0" />
-        <span>Acces reserve aux administrateurs.</span>
+      <div className="naanaa grid-cols-[56px_minmax(0,1fr)]" role="alert">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="56" className="size-14" />
+        <p className="bubble flex items-center gap-2"><AlertCircle className="h-5 w-5 flex-none" /> Acces reserve aux administrateurs.</p>
       </div>
     )
   }
@@ -587,24 +586,12 @@ export default function BulkOffImporter() {
       : 0
 
   return (
-    <div className="space-y-6">
-      {/* Titre */}
-      <div>
-        <h1 className="text-2xl font-bold">
-          Import massif — Open Food Facts Maroc
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Importe automatiquement les produits vendus au Maroc depuis OFF
-        </p>
-      </div>
-
+    <div className="grid gap-5">
       {/* Bandeau de reprise si import interrompu */}
       {resume && !isRunning && (
-        <div className="rounded-2xl border-2 border-line tint-citron p-4 space-y-2">
-          <p className="text-sm font-medium text-foreground">
-            Import interrompu détecté
-          </p>
-          <p className="text-xs text-foreground">
+        <div className="card tint-citron grid gap-1.5 p-4">
+          <p className="disp d-s">Import interrompu détecté</p>
+          <p className="text-[13px]">
             Dernier arrêt : page <strong>{resume.nextPage - 1}</strong> terminée ·
             {' '}<strong>{resume.stats.imported}</strong> produits importés ·
             {' '}<strong>{resume.stats.errors}</strong> erreurs ·
@@ -617,52 +604,35 @@ export default function BulkOffImporter() {
       <div className="flex flex-wrap gap-3">
         {resume && !isRunning ? (
           <>
-            <Button
-              onClick={() => startImport(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              size="lg"
-            >
-              <Download className="mr-2 h-4 w-4" />
+            <button type="button" className="btn primary" onClick={() => startImport(true)}>
+              <Download />
               Reprendre à la page {resume.nextPage}
-            </Button>
-            <Button
-              onClick={() => startImport(false)}
-              variant="outline"
-              size="lg"
-            >
+            </button>
+            <button type="button" className="btn" onClick={() => startImport(false)}>
               Recommencer depuis le début
-            </Button>
+            </button>
           </>
         ) : (
-          <Button
-            onClick={() => startImport(false)}
-            disabled={isRunning}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            size="lg"
-          >
+          <button type="button" className="btn primary" onClick={() => startImport(false)} disabled={isRunning}>
             {isRunning ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="animate-spin" />
                 Import en cours...
               </>
             ) : (
               <>
-                <Download className="mr-2 h-4 w-4" />
+                <Download />
                 Lancer l&apos;import
               </>
             )}
-          </Button>
+          </button>
         )}
 
         {isRunning && (
-          <Button
-            onClick={stopImport}
-            variant="destructive"
-            size="lg"
-          >
-            <Square className="mr-2 h-4 w-4" />
+          <button type="button" className="btn dark-btn" onClick={stopImport}>
+            <Square />
             Arreter
-          </Button>
+          </button>
         )}
       </div>
 
@@ -686,32 +656,32 @@ export default function BulkOffImporter() {
         </div>
       )}
 
-      {/* Barre de progression */}
+      {/* Barre de progression (barre de la maquette Compte) */}
       {(isRunning || isDone) && stats.filtered > 0 && (
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground">
+        <div className="grid gap-1">
+          <div className="muted flex justify-between text-xs">
             <span>
               {stats.imported} / {stats.filtered} importes
             </span>
-            <span>{progressPercent}%</span>
+            <span className="num">{progressPercent}%</span>
           </div>
-          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+          <div className="h-2.5 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">
             <div
-              className="h-full bg-primary transition-all duration-300"
+              className="h-full bg-menthe transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
       )}
 
-      {/* Log */}
+      {/* Journal */}
       {logs.length > 0 && (
-        <div className="rounded-xl border bg-card">
-          <div className="flex items-center justify-between border-b px-4 py-2">
-            <span className="text-sm font-medium">Journal d&apos;import</span>
-            <Badge variant="outline">{logs.length} lignes</Badge>
+        <div className="card overflow-hidden">
+          <div className="flex items-center justify-between border-b-[1.5px] border-line px-4 py-2.5">
+            <span className="disp d-s">Journal d&apos;import</span>
+            <span className="chip num">{logs.length} lignes</span>
           </div>
-          <div className="max-h-96 overflow-y-auto p-3 font-mono text-xs leading-relaxed space-y-0.5">
+          <div className="max-h-96 space-y-0.5 overflow-y-auto p-3 font-mono text-xs leading-relaxed">
             {logs.map((entry, i) => (
               <LogLine key={i} entry={entry} />
             ))}
@@ -720,14 +690,14 @@ export default function BulkOffImporter() {
         </div>
       )}
 
-      {/* Resume */}
+      {/* Résumé */}
       {isDone && (
-        <div className="rounded-2xl border-2 border-line tint-menthe p-4 text-sm text-foreground">
-          <div className="flex items-center gap-2 font-medium">
+        <div className="card tint-menthe grid gap-1 p-4 text-sm">
+          <div className="flex items-center gap-2 font-bold">
             <CheckCircle className="h-4 w-4" />
             Import termine
           </div>
-          <p className="mt-1">
+          <p>
             {stats.imported} produits importes, {stats.alreadyInBayen} deja
             presents, {stats.errors} erreurs.
           </p>
@@ -752,23 +722,17 @@ function StatCard({
   extra?: string
   variant?: 'success' | 'error'
 }) {
-  const valueColor =
-    variant === 'success'
-      ? 'text-brand-ink'
-      : variant === 'error'
-        ? 'text-destructive'
-        : 'text-foreground'
-
+  // Aplat : menthe (importés) / tomate (erreurs), texte encre ; sinon carte blanche
   return (
-    <div className="rounded-xl border bg-card p-3 text-center">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-xl font-bold ${valueColor}`}>
+    <div className={cn(
+      'card grid gap-1 p-3',
+      variant === 'success' && 'bg-menthe text-encre',
+      variant === 'error' && value > 0 && 'bg-tomate text-encre'
+    )}>
+      <p className="text-[11.5px] font-semibold">{label}</p>
+      <p className="num font-display text-xl font-extrabold">
         {value}
-        {extra && (
-          <span className="text-xs font-normal text-muted-foreground ml-1">
-            {extra}
-          </span>
-        )}
+        {extra && <span className="ms-1 text-xs font-normal">{extra}</span>}
       </p>
     </div>
   )

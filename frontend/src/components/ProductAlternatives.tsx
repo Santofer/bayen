@@ -3,7 +3,7 @@
  * Affiche 3 produits de la même catégorie avec un meilleur score
  */
 
-import { ArrowUpRight, Package } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { ScoreSticker, productTint } from '@/components/ProductCard'
@@ -33,19 +33,18 @@ const CDN_URL = (typeof window !== 'undefined'
 export default function ProductAlternatives({ alternatives, isBestInCategory, className }: ProductAlternativesProps) {
   const { t, isRtl: rtl } = useLocale()
 
+  // Rien à proposer et pas « meilleur de sa catégorie » : pas de section vide
+  if (alternatives.length === 0 && !isBestInCategory) return null
+
   return (
-    <section className={cn('rounded-xl border bg-card p-5', className)}>
-      {/* Titre */}
-      <div className={cn('flex items-center gap-2 mb-4', rtl && 'flex-row-reverse')}>
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-          <ArrowUpRight size={18} className="text-brand-ink" />
-        </div>
-        <h3 className="text-lg font-semibold">{t('alt.title')}</h3>
+    <section className={cn('grid gap-3', className)}>
+      <div className="sec-head px-[18px] md:px-0">
+        <h2 className="disp d-m">Mieux, dans le même rayon</h2>
       </div>
 
       {/* Meilleur de sa catégorie : Naânaa applaudit */}
       {isBestInCategory && (
-        <div className={cn('naanaa', rtl && 'flex-row-reverse')}>
+        <div className="naanaa px-[18px] md:px-0">
           <img src="/mascotte/naanaa-bravo.webp" alt="" width="72" height="106" />
           <div className="bubble">
             <p className="font-bold text-foreground">{t('alt.bestInCategory')}</p>
@@ -56,65 +55,35 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
         </div>
       )}
 
-      {/* Cards alternatives */}
+      {/* Rail horizontal de la maquette : vignette pleine, pastille, nom, raison factuelle */}
       {alternatives.length > 0 && (
-        <div className="rail-x flex gap-3 overflow-x-auto snap-x -mx-5 px-5 pt-2 pb-6 -mb-3">
+        <div className="scroller">
           {alternatives.map((alt) => (
             <a
               key={alt.barcode}
               href={`/produit/${alt.barcode}`}
-              className="card-lift group relative w-[168px] flex-shrink-0 snap-start rounded-2xl border bg-card p-2.5"
+              className="card relative grid w-[168px] content-start gap-2 p-2.5 md:w-[220px]"
             >
-              {/* Vignette colorée (teinte stable par code-barres) + pastille inclinée */}
-              <div className="relative mb-2.5">
-                <div className={cn('grid h-[120px] place-items-center overflow-hidden rounded-2xl border-2 border-line', productTint(alt.barcode))}>
-                  {alt.image_front ? (
-                    <img
-                      src={`${CDN_URL}/${alt.image_front}?width=160&height=160&fit=cover`}
-                      alt={alt.name_fr}
-                      className="size-[86%] object-contain mix-blend-multiply transition-transform group-hover:scale-105 dark:mix-blend-normal"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <Package size={32} className="text-foreground/30" />
-                  )}
-                </div>
-                {alt.scan_score != null && (
-                  <span className="absolute -bottom-3 end-1">
-                    <ScoreSticker score={alt.scan_score} size="sm" />
-                  </span>
+              <div className={cn('tile h-[120px] md:h-[160px]', productTint(alt.barcode))}>
+                <Package size={26} className="ph" aria-hidden="true" />
+                {alt.image_front && (
+                  <img
+                    src={alt.image_front.startsWith('http') ? alt.image_front : `${CDN_URL}/${alt.image_front}?width=320&height=320&fit=cover&quality=80&format=webp`}
+                    alt={alt.name_fr}
+                    loading="lazy"
+                  />
                 )}
               </div>
-
-              {/* Infos */}
-              <p className="mb-0.5 line-clamp-2 pe-10 text-sm font-bold leading-tight">
-                {alt.name_fr}
-              </p>
-              <p className="text-xs text-muted-foreground truncate mb-1.5">
-                {alt.brand}
-              </p>
-
-              {/* Nutri-Score mini */}
-              {alt.nutriscore_grade && (
-                <img
-                  src={`/badges/nutriscore-${alt.nutriscore_grade.toLowerCase()}.svg`}
-                  alt={`Nutri-Score ${alt.nutriscore_grade}`}
-                  className="h-5"
-                  loading="lazy"
-                />
+              {alt.scan_score != null && (
+                <span className="absolute end-1 top-[96px] md:top-[136px]">
+                  <ScoreSticker score={alt.scan_score} size="sm" />
+                </span>
               )}
-
-              {/* Raisons factuelles « pourquoi mieux » */}
-              {alt.reasons && alt.reasons.length > 0 && (
-                <ul className="mt-2 space-y-1">
-                  {alt.reasons.map((r, i) => (
-                    <li key={i} className="flex items-start gap-1 text-[11px] leading-tight text-brand-ink">
-                      <span className="mt-0.5 flex-shrink-0">✓</span>
-                      <span>{r}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <p className="line-clamp-2 pe-8 text-sm font-bold leading-tight">{alt.name_fr}</p>
+              {/* Raisons « pourquoi mieux » (déterministes), sinon la marque */}
+              <p className="muted line-clamp-2 text-xs">
+                {alt.reasons && alt.reasons.length > 0 ? alt.reasons.join(' · ') : alt.brand}
+              </p>
             </a>
           ))}
         </div>

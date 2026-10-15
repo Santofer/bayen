@@ -1,26 +1,19 @@
 ---
-// Page recherche produits
+// Page recherche produits (maquette « Recherche ») : la barre du haut
+// (retour, titre, filtres) est dessinée par SearchPage
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import SearchPage from '@/components/SearchPage'
-import PageHero from '@/components/PageHero.astro'
-import { getLocale, t } from '@/lib/i18n'
-
-const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 ---
 
 <Layout
   title="Recherche produits alimentaires Maroc — Bayen"
   description="Cherche parmi près de 2000 produits alimentaires vendus au Maroc. Score nutritionnel, additifs détectés, Nutri-Score, comparatifs marques marocaines."
   path="/recherche"
+  mobileTopbar={false}
 >
-  <main>
-    <div class="mx-auto max-w-5xl px-4 pt-6">
-      <PageHero image="/hero/scan.jpg" tone="primary" mascot="loupe" kicker={t('nav.search', locale)} title={t('search.title', locale)} subtitle={t('nav.d.search', locale)}>
-        <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      </PageHero>
-    </div>
-    <SearchPage client:load />
+  <main class="screen gap-4 md:gap-8">
+    <SearchPage client:load showTopbar />
   </main>
 </Layout>

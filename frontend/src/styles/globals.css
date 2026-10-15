@@ -166,151 +166,32 @@
 }
 
 /* ════════════════════════════════════════════════════════════════
-   NAVIGATION
+   NAVIGATION — maquettes « Desktop » (en-tête) et « Accueil » (topbar
+   mobile + barre d'onglets). Le logo texte « bayen• » est celui des
+   maquettes, en attendant le sigle B définitif.
    ════════════════════════════════════════════════════════════════ */
-[data-bayen-nav] {
-  background-color: color-mix(in srgb, var(--color-background) 92%, transparent);
-  color: var(--color-foreground);
-  border-color: var(--color-line);
-  -webkit-backdrop-filter: saturate(1.3) blur(12px);
-  backdrop-filter: saturate(1.3) blur(12px);
-}
+.logo { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: -.04em; line-height: 1; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--color-foreground); }
+.logo i { width: 12px; height: 12px; border-radius: 50%; background: var(--color-menthe); border: 2px solid var(--color-line); display: inline-block; transform: translateY(-6px); }
 
-/* Capsule flottante : contour encre + ombre nette */
-header[data-bayen-nav] {
-  top: 10px;
-  margin: 10px auto 0;
-  max-width: min(1080px, calc(100% - 20px));
-  border-radius: 999px;
-  border-width: 2px;
-  box-shadow: var(--shadow-card);
-}
-header[data-bayen-nav] + * { scroll-margin-top: 84px; }
-html.nav-scrolled header[data-bayen-nav] { box-shadow: var(--shadow-lift); }
-
-.brand-logo { display: block; height: 30px; width: auto; }
-.brand-logo.on-dark { display: none; }
-.dark .brand-logo.on-light { display: none; }
-.dark .brand-logo.on-dark { display: block; }
-
-.nav-link {
-  font-size: 0.88rem;
-  font-weight: 600;
-  opacity: 0.75;
-  transition: opacity 0.2s;
-}
-.nav-link:hover, .nav-link.on { opacity: 1; }
-.nav-login {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-  border: 2px solid var(--color-line);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 0.86rem;
-  font-weight: 700;
-  background: var(--color-card);
-  transition: transform 0.15s var(--ease-out-soft);
-}
-.nav-login:hover { transform: translateY(-1px); }
-.nav-scan-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-shrink: 0;
-  background: var(--color-menthe);
-  color: var(--color-encre);
-  border: 2px solid var(--color-encre);
-  border-radius: 999px;
-  height: 40px;
-  max-height: 40px;
-  padding: 0 18px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  box-shadow: 2px 2px 0 var(--color-hard);
-  transition: transform 0.15s var(--ease-out-soft), box-shadow 0.15s var(--ease-out-soft);
-}
-.nav-scan-cta:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--color-hard); }
-.nav-scan-cta:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--color-hard); }
-@media (max-width: 767px) {
-  .nav-scan-cta { width: 40px; padding: 0; gap: 0; }
-  .nav-login { padding: 6px 10px; }
-}
-
-/* Mega menus (desktop) */
-.nav-group { position: relative; }
-.nav-group-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-}
-.nav-group-btn .chev { flex-shrink: 0; transition: transform 0.25s var(--ease-out-soft); }
-.nav-group.open .nav-group-btn { opacity: 1; background: var(--color-citron); color: var(--color-encre); }
-.nav-group.open .nav-group-btn .chev { transform: rotate(180deg); }
-.nav-panel {
-  position: absolute;
-  top: calc(100% + 14px);
-  inset-inline-start: 0;
-  min-width: 290px;
-  background: var(--color-card);
-  border: 2px solid var(--color-line);
-  border-radius: 20px;
-  box-shadow: var(--shadow-lift);
-  padding: 8px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(6px);
-  transition: opacity 0.2s var(--ease-out-soft), transform 0.2s var(--ease-out-soft), visibility 0.2s;
-  z-index: 60;
-}
-.nav-panel::before { content: ''; position: absolute; top: -16px; left: 0; right: 0; height: 16px; }
-.nav-group.open .nav-panel { opacity: 1; visibility: visible; transform: translateY(0); }
-.nav-panel-item {
-  display: flex;
-  gap: 11px;
-  align-items: flex-start;
-  padding: 9px 11px;
-  border-radius: 13px;
-  text-decoration: none;
-  color: inherit;
-}
-.nav-panel-item:hover, .nav-panel-item.on { background: var(--color-muted); }
-.nav-panel-ico {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: var(--ico-bg, var(--color-menthe));
-  color: var(--color-encre);
-  border: 1.5px solid var(--color-encre);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.nav-panel-ico svg { width: 16px; height: 16px; }
-.nav-panel-item b { display: block; font-size: 0.86rem; font-weight: 700; line-height: 1.2; white-space: nowrap; }
-.nav-panel-item small { display: block; font-size: 0.72rem; color: var(--color-muted-foreground); margin-top: 1px; white-space: nowrap; }
+/* En-tête ordinateur : barre pleine largeur, filet encre en bas */
+.site-header { border-bottom: 2px solid var(--color-line); background: var(--color-background); }
+.site-header .in { max-width: 1240px; margin: 0 auto; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; }
+.site-header .logo { font-size: 30px; }
+.site-header nav { display: flex; flex-wrap: wrap; gap: 22px; font-weight: 600; flex: 1; }
+.site-header nav a { text-decoration: none; text-underline-offset: 7px; text-decoration-thickness: 3px; text-decoration-color: var(--color-menthe); }
+.site-header nav a:hover, .site-header nav a[aria-current] { text-decoration-line: underline; }
 
 /* Barre d'onglets mobile : îlot flottant, bouton scan central en relief */
 .tabbar {
   position: fixed;
-  left: 10px;
-  right: 10px;
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  left: 12px;
+  right: 12px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   z-index: 50;
-  height: 66px;
+  height: 68px;
   border-radius: 24px;
   border: 2px solid var(--color-line);
-  box-shadow: var(--shadow-lift);
+  box-shadow: 4px 4px 0 var(--color-hard);
   background: var(--color-card);
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -321,8 +202,8 @@ html.nav-scrolled header[data-bayen-nav] { box-shadow: var(--shadow-lift); }
 .tabbar a.on { color: var(--color-foreground); }
 .tabbar a.on svg { color: var(--color-brand-ink); }
 .tabbar .tab-scan {
-  width: 60px;
-  height: 60px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
   background: var(--color-menthe);
   color: var(--color-encre);
@@ -331,114 +212,112 @@ html.nav-scrolled header[data-bayen-nav] { box-shadow: var(--shadow-lift); }
   display: grid;
   place-items: center;
   justify-self: center;
-  margin-top: -28px;
+  margin-top: -26px;
 }
 .tabbar .tab-scan svg { width: 28px; height: 28px; color: var(--color-encre); }
 @media (min-width: 768px) { .tabbar { display: none; } }
 
 /* Pied de page : aubergine dans les deux thèmes */
-.site-footer { background: var(--color-aubergine); color: #FFF3DF; border-top: 2px solid var(--color-encre); }
+.site-footer { background: var(--color-aubergine); color: #FFF3DF; border-top: 2px solid var(--color-line); }
 .dark .site-footer { background: #140C24; }
-.site-footer a { color: inherit; }
+.site-footer a { color: inherit; text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.site-footer .logo { color: #FFF3DF; font-size: 30px; }
+.site-footer .logo i { border-color: #FFF3DF; }
 
 /* ════════════════════════════════════════════════════════════════
    COMPOSANTS PARTAGÉS
    ════════════════════════════════════════════════════════════════ */
 
 @layer components {
+/* ── Vocabulaire des maquettes (canevas « Marché Pop ») ──────────
+   Mêmes noms de classes que les maquettes : une section se recopie
+   telle quelle, les styles en ligne deviennent des utilitaires. ── */
+
+/* Typo */
+.disp { font-family: var(--font-display); font-weight: 800; letter-spacing: -.02em; line-height: 1.02; text-wrap: balance; }
+.d-xl { font-size: 34px; } .d-l { font-size: 26px; } .d-m { font-size: 20px; } .d-s { font-size: 16px; }
+:lang(ar) .disp, [dir='rtl'] .disp { font-family: var(--font-sans); letter-spacing: 0; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted-foreground); }
+.muted { color: var(--color-muted-foreground); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Carte : surface, contour encre, ombre nette */
+.card { background: var(--color-card); color: var(--color-card-foreground); border: 2px solid var(--color-line); border-radius: 20px; box-shadow: 4px 4px 0 var(--color-hard); }
+a.card, a.pcard { text-decoration: none; color: inherit; transition: transform .2s var(--ease-out-soft), box-shadow .2s var(--ease-out-soft); }
+@media (hover: hover) { a.card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--color-hard); } }
+a.card:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--color-hard); }
+.card .card { box-shadow: none; }
+
+/* Boutons pilule */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 2px solid var(--color-line); background: var(--color-card); color: var(--color-foreground); font-weight: 700; font-size: 15px; text-decoration: none; box-shadow: 3px 3px 0 var(--color-hard); cursor: pointer; transition: transform .15s var(--ease-out-soft), box-shadow .15s var(--ease-out-soft); }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--color-hard); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--color-hard); }
+.btn:disabled { opacity: .55; pointer-events: none; }
+.btn.primary { background: var(--color-primary); color: var(--color-encre); border-color: var(--color-encre); }
+.btn.dark-btn { background: var(--color-encre); color: var(--color-creme); border-color: var(--color-encre); }
+.btn.sm { min-height: 36px; padding: 0 14px; font-size: 13px; box-shadow: 2px 2px 0 var(--color-hard); }
+.btn.flat { box-shadow: none; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.icon-btn { position: relative; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--color-line); background: var(--color-card); display: inline-grid; place-items: center; color: var(--color-foreground); box-shadow: 2px 2px 0 var(--color-hard); flex: none; cursor: pointer; }
+.icon-btn svg { width: 20px; height: 20px; }
+/* Sur un aplat de couleur (bandeau d'univers) : crème et encre, dans les deux thèmes */
+.on-fill .icon-btn, .on-fill .chip { background: var(--color-creme); color: var(--color-encre); border-color: var(--color-encre); }
+
+/* Puces */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip, .pop-chip { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--color-line); font-size: 12px; font-weight: 600; background: var(--color-card); color: var(--color-foreground); white-space: nowrap; }
+.chip.fill { border-color: var(--color-encre); color: var(--color-encre); }
+.chip svg { width: 14px; height: 14px; flex: none; }
+button.chip { cursor: pointer; font-family: inherit; }
+
 /* Pastille de score : l'emblème (chiffre + mot, texte encre) */
-.score-sticker {
+.score-sticker, .sticker {
   --c: var(--color-score-excellent);
-  position: relative;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--c);
-  color: var(--color-encre);
-  border: 2px solid var(--color-encre);
+  position: relative; width: 64px; height: 64px; border-radius: 50%;
+  background: var(--c); color: var(--color-encre); border: 2px solid var(--color-encre);
   box-shadow: 3px 3px 0 var(--color-hard);
-  display: grid;
-  place-items: center;
-  text-align: center;
-  transform: rotate(-8deg);
-  flex: none;
-  line-height: 1;
-  align-content: center;
+  display: grid; place-items: center; align-content: center; text-align: center;
+  transform: rotate(-8deg); flex: none; line-height: 1;
 }
-.score-sticker::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; border: 1.5px dashed rgb(27 27 27 / 0.4); }
-.score-sticker b { font-family: var(--font-display); font-weight: 800; font-size: 20px; display: block; }
-.score-sticker i { font-style: normal; font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 2px; }
-.score-sticker.sm { width: 42px; height: 42px; box-shadow: 2px 2px 0 var(--color-hard); }
-.score-sticker.sm b { font-size: 15px; }
+.score-sticker::before, .sticker::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; border: 1.5px dashed rgb(27 27 27 / 0.4); }
+.score-sticker b, .sticker b { font-family: var(--font-display); font-weight: 800; font-size: 22px; display: block; }
+.score-sticker i, .sticker i { font-style: normal; font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; display: block; margin-top: 1px; }
+.score-sticker.sm { width: 46px; height: 46px; box-shadow: 2px 2px 0 var(--color-hard); }
+.score-sticker.sm b { font-size: 16px; }
 .score-sticker.sm i { display: none; }
-.score-sticker.sm::before { inset: 3px; }
+.score-sticker.sm::before { inset: 4px; }
 .score-sticker.lg { width: 112px; height: 112px; border-width: 3px; box-shadow: 5px 5px 0 var(--color-hard); }
 .score-sticker.lg::before { inset: 8px; border-width: 2px; }
-.score-sticker.lg b { font-size: 38px; }
+.score-sticker.lg b { font-size: 40px; }
 .score-sticker.lg i { font-size: 11px; }
 .score-sticker.none { --c: var(--color-muted); color: var(--color-muted-foreground); }
+.score-sticker.w3 b { font-size: 17px; letter-spacing: -.04em; }
+/* Pastille halal : sticker rond posé sur la photo produit, même famille que la
+   pastille de score mais inclinée dans l'autre sens, aplat menthe clair (jamais
+   une teinte de l'échelle de score), logo halal en encre */
+.halal-sticker { position: absolute; top: -10px; inset-inline-start: -8px; z-index: 2; width: 64px; height: 64px; border-radius: 50%; background: #BFF0DC; color: var(--color-encre); border: 2px solid var(--color-encre); box-shadow: 3px 3px 0 var(--color-hard); display: grid; place-items: center; transform: rotate(8deg); }
+.halal-sticker::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 1.5px dashed rgb(27 27 27 / 0.4); }
+.halal-sticker svg { width: 44px; height: 44px; }
+/* Code-barres : ticket imprimé (blanc et encre dans les deux thèmes), encoches
+   latérales, légère inclinaison, ligne laser tomate qui balaie les barres */
+.barcode-ticket { --notch: var(--color-card); position: relative; display: inline-grid; justify-items: center; gap: 6px; padding: 12px 26px 12px; background: #fff; color: var(--color-encre); border: 2px solid var(--color-encre); border-radius: 16px; box-shadow: 3px 3px 0 var(--color-hard); transform: rotate(-2deg); }
+.barcode-ticket::before, .barcode-ticket::after { content: ''; position: absolute; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: var(--notch); border: 2px solid var(--color-encre); }
+.barcode-ticket::before { left: -10px; clip-path: inset(0 0 0 50%); }
+.barcode-ticket::after { right: -10px; clip-path: inset(0 50% 0 0); }
+.barcode-ticket .kind { font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .6; }
+.barcode-ticket .bars { position: relative; display: block; width: 196px; height: 62px; }
+.barcode-ticket .laser { position: absolute; left: -8px; right: -8px; top: 50%; height: 2px; border-radius: 2px; background: var(--color-tomate); box-shadow: 0 0 6px 1px color-mix(in srgb, var(--color-tomate) 70%, transparent); animation: barcode-laser 2.6s ease-in-out infinite; }
+@keyframes barcode-laser { 0%, 100% { top: 12%; } 50% { top: 88%; } }
+.barcode-ticket .digits { display: flex; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+.score-sticker.sm.w3 b { font-size: 13px; }
+.score-sticker.lg.w3 b { font-size: 32px; }
 
-/* Pastille de chiffre générique (bouton rond, badge) */
-.pop-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1.5px solid var(--color-line);
-  font-size: 12px;
-  font-weight: 600;
-  background: var(--color-card);
-  color: var(--color-foreground);
-  white-space: nowrap;
-}
-}
-
-@layer components {
-/* Bouton Marché Pop (pour les <a> hors composant Button) */
-.btn-pop {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 46px;
-  padding: 0 20px;
-  border-radius: 999px;
-  border: 2px solid var(--color-encre);
-  background: var(--color-menthe);
-  color: var(--color-encre);
-  font-weight: 700;
-  font-size: 15px;
-  box-shadow: 3px 3px 0 var(--color-hard);
-  text-decoration: none;
-  transition: transform 0.15s var(--ease-out-soft), box-shadow 0.15s var(--ease-out-soft);
-}
-.btn-pop:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--color-hard); }
-.btn-pop:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--color-hard); }
-.btn-pop.ghost { background: var(--color-card); color: var(--color-foreground); border-color: var(--color-line); }
-.btn-pop.ink { background: var(--color-encre); color: var(--color-creme); }
-.dark .btn-pop.ink { background: var(--color-creme); color: var(--color-encre); }
-}
-
-/* Mascotte Naânaa + bulle */
-.naanaa { display: flex; align-items: center; gap: 12px; }
-.naanaa > img { width: 72px; height: auto; flex: none; }
-.naanaa .bubble {
-  position: relative;
-  background: var(--color-card);
-  color: var(--color-card-foreground);
-  border: 2px solid var(--color-line);
-  border-radius: 18px 18px 18px 4px;
-  padding: 10px 14px;
-  font-size: 0.9rem;
-  box-shadow: var(--shadow-card);
-  min-width: 0;
-}
-[dir='rtl'] .naanaa .bubble { border-radius: 18px 18px 4px 18px; }
-
-@layer components {
-/* Vignettes de couleur (fond des photos produit) */
+/* Vignette : la photo REMPLIT le cadre (pas de détourage) ; la teinte
+   ne se voit que si la photo manque */
+.tile { position: relative; border-radius: 16px; display: grid; place-items: center; overflow: hidden; border: 2px solid var(--color-line); }
+.tile > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tile > .ph { width: 26px; height: 26px; color: color-mix(in srgb, var(--color-foreground) 30%, transparent); }
 .tint-menthe { background: #BFF0DC; }
 .tint-citron { background: #FFEC9E; }
 .tint-framboise { background: #FFD3E1; }
@@ -453,6 +332,62 @@ html.nav-scrolled header[data-bayen-nav] { box-shadow: var(--shadow-lift); }
 .dark .tint-figue { background: #45306B; }
 .dark .tint-tomate { background: #5E2A20; }
 .dark .tint-creme { background: #4A3D2A; }
+
+/* Carte produit (liste) : vignette | nom + puces | pastille */
+.pcard { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px 10px 10px; }
+.pcard .tile { width: 76px; height: 76px; border-radius: 14px; }
+.pcard .pn { font-weight: 700; font-size: 14.5px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard .pm { font-size: 12px; color: var(--color-muted-foreground); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcard .chips { margin-top: 6px; }
+.pcard .chip { height: 22px; font-size: 11px; padding: 0 8px; }
+@media (hover: hover) { a.pcard:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--color-hard); } }
+
+/* Mise en page des écrans */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; }
+.section { padding: 0 18px; display: grid; gap: 12px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sec-head a { font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; color: inherit; white-space: nowrap; }
+.scroller { display: flex; gap: 12px; overflow-x: auto; padding: 2px 18px 8px; scroll-snap-type: x proximity; scrollbar-width: none; }
+.scroller::-webkit-scrollbar { display: none; }
+.scroller > * { scroll-snap-align: start; flex: none; }
+.u-ico svg { width: 32px; height: 32px; }
+
+/* Mascotte Naânaa : médaillon rond + bulle */
+.naanaa { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; }
+.naanaa > img, .naanaa .m { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 2px solid var(--color-encre); box-shadow: 2px 2px 0 var(--color-hard); background: #BFF0DC; object-fit: cover; object-position: 50% 30%; }
+.naanaa .m img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.bubble { background: var(--color-card); color: var(--color-card-foreground); border: 2px solid var(--color-line); border-radius: 18px 18px 18px 4px; padding: 10px 14px; font-size: 13.5px; box-shadow: 3px 3px 0 var(--color-hard); min-width: 0; }
+[dir='rtl'] .bubble { border-radius: 18px 18px 4px 18px; }
+
+/* Barres de nutriments */
+.nut { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+.nut .bar { grid-column: 1 / -1; height: 10px; border-radius: 99px; background: var(--color-muted); border: 1.5px solid var(--color-line); overflow: hidden; }
+.nut .bar i { display: block; height: 100%; }
+.nut .lab { font-weight: 600; font-size: 14px; }
+.nut .val { font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Bandeau d'univers / de page : aplat pleine largeur, contenu encre */
+.band { background: var(--band, var(--color-menthe)); color: var(--color-encre); border-bottom: 2px solid var(--color-encre); padding-bottom: 22px; }
+.band .in { display: grid; gap: 14px; }
+.band .topbar { padding-bottom: 0; }
+
+/* Conteneur des écrans : colonne mobile, élargie sur ordinateur */
+.screen { display: flex; flex-direction: column; gap: 26px; padding-bottom: 40px; }
+@media (min-width: 768px) {
+  .screen { max-width: 1240px; margin: 0 auto; width: 100%; padding: 40px 32px 64px; gap: 48px; }
+  .screen .section { padding: 0; }
+  .screen .scroller { padding-inline: 0; }
+  .band .in { max-width: 1240px; margin: 0 auto; padding: 32px 32px 8px; }
+  .band .in > .topbar { padding-inline: 0; }
+}
+
+/* Bouton Marché Pop historique (alias de .btn.primary) */
+.btn-pop { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 2px solid var(--color-encre); background: var(--color-menthe); color: var(--color-encre); font-weight: 700; font-size: 15px; box-shadow: 3px 3px 0 var(--color-hard); text-decoration: none; transition: transform 0.15s var(--ease-out-soft), box-shadow 0.15s var(--ease-out-soft); }
+.btn-pop:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--color-hard); }
+.btn-pop:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--color-hard); }
+.btn-pop.ghost { background: var(--color-card); color: var(--color-foreground); border-color: var(--color-line); }
+.btn-pop.ink { background: var(--color-encre); color: var(--color-creme); }
+.dark .btn-pop.ink { background: var(--color-creme); color: var(--color-encre); }
 }
 
 /* Hero d'accueil (carrousel) */

@@ -1,20 +1,104 @@
 ---
-// Univers beauté (C23) — page d'entrée : recherche cosmétiques + méthode
+// Univers beauté (C23) — maquette « Beaute » : bandeau, catégories, produit vedette, les plus sûrs
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
-import SearchPage from '@/components/SearchPage'
+import ProductCard, { ScoreSticker } from '@/components/ProductCard.tsx'
 import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
+import type { Product } from '@/lib/types'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
+
 const CATS = ['visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum', 'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles'] as const
-const cat = Astro.url.searchParams.get('cat') ?? ''
-const initialCat = (CATS as readonly string[]).includes(cat) ? cat : ''
+const catParam = Astro.url.searchParams.get('cat') ?? ''
+const cat = (CATS as readonly string[]).includes(catParam) ? catParam : ''
+// Filtre réel de /bayen-api/search-products (no_endocrine)
+const noPe = Astro.url.searchParams.get('sans_pe') === '1'
 // Libellés calculés ici : un cast générique dans le JSX Astro fait trébucher le parseur
 const catLabels: Record<string, string> = Object.fromEntries(
   CATS.map((c) => [c, t(`beauty.cat.${c}` as Parameters<typeof t>[0], locale)])
 )
+const href = (c: string, pe: boolean): string => {
+  const qs = new URLSearchParams()
+  if (c) qs.set('cat', c)
+  if (pe) qs.set('sans_pe', '1')
+  const s = qs.toString()
+  return s ? `/beaute?${s}` : '/beaute'
+}
+
+type Cosmetic = Product & { quantity?: string | null }
+const filters = new URLSearchParams({ type: 'cosmetic' })
+if (cat) filters.set('cosmetic_category', cat)
+if (noPe) filters.set('no_endocrine', 'true')
+const search = (sort: string, limit: number): Promise<Cosmetic[]> =>
+  fetch(`${DIRECTUS_URL}/bayen-api/search-products?${filters}&sort=${sort}&limit=${limit}`, { signal: AbortSignal.timeout(6000) })
+    .then((r) => (r.ok ? r.json() : { data: [] }))
+    .then((j: { data?: Cosmetic[] }) => j.data ?? [])
+    .catch(() => [] as Cosmetic[])
+
+const [popular, ranked] = await Promise.all([search('-scan_count', 12), search('-scan_score', 12)])
+// Produit vedette : le plus scanné dont la liste INCI est notée
+const featured = popular.find((p) => p.cosmetic_risk?.total != null) ?? null
+// Les plus sûrs : seulement des produits notés (un produit sans score n'est pas « sûr »)
+const safest = ranked.filter((p) => p.scan_score != null).slice(0, 6)
+
+// Ingrédients signalés du produit vedette (jointure : source_url requise pour la règle « perturbateur endocrinien »)
+interface Flag { inci_name: string; name_fr: string | null; risk_level: string; risk_types: string[]; risk_status: string | null; restriction_fr: string | null; source_url: string | null }
+type JoinRow = { ingredient_id?: (Omit<Flag, 'risk_types'> & { risk_types: string[] | null }) | null }
+let flags: Flag[] = []
+if (featured) {
+  try {
+    const r = await fetch(
+      `${DIRECTUS_URL}/items/products_cosmetic_ingredients?filter[products_id][_eq]=${featured.id}&filter[ingredient_id][risk_level][_in]=banned,high,moderate,low&fields=rank,ingredient_id.inci_name,ingredient_id.name_fr,ingredient_id.risk_level,ingredient_id.risk_types,ingredient_id.risk_status,ingredient_id.restriction_fr,ingredient_id.source_url&sort=rank&limit=-1`,
+      { signal: AbortSignal.timeout(4000) }
+    )
+    if (r.ok) {
+      const j = (await r.json()) as { data?: JoinRow[] }
+      flags = (j.data ?? []).flatMap((x) => (x.ingredient_id ? [{ ...x.ingredient_id, risk_types: Array.isArray(x.ingredient_id.risk_types) ? x.ingredient_id.risk_types : [] }] : []))
+    }
+  } catch { /* repli sur le résumé persisté */ }
+  if (flags.length === 0) flags = (featured.cosmetic_risk?.worst ?? []).map((w) => ({ ...w, restriction_fr: null, source_url: null }))
+}
+
+// Niveaux de la maquette : mot court + aplat (texte encre posé dessus)
+const LEVELS = [
+  { key: 'banned', word: 'interdit', fill: 'bg-score-mauvais' },
+  { key: 'high', word: 'élevé', fill: 'bg-score-mauvais' },
+  { key: 'moderate', word: 'modéré', fill: 'bg-score-mediocre' },
+  { key: 'low', word: 'faible', fill: 'bg-score-excellent' },
+] as const
+const ORDER: string[] = LEVELS.map((l) => l.key)
+const levelOf = (k: string) => LEVELS.find((l) => l.key === k) ?? LEVELS[3]
+const shown = flags
+  .filter((f) => ORDER.includes(f.risk_level))
+  .sort((a, b) => ORDER.indexOf(a.risk_level) - ORDER.indexOf(b.risk_level))
+  .slice(0, 4)
+
+/**
+ * Raison affichée sur une ligne INCI. Règle C23 : « perturbateur endocrinien »
+ * seulement qualifié (suspecté / avéré) ET sourcé (source_url), sinon omis.
+ */
+const typeKey = (ty: string) => (['cmr', 'allergen', 'irritant', 'environment', 'restricted'].includes(ty) ? `beauty.type.${ty}` as Parameters<typeof t>[0] : null)
+const isPe = (f: Flag): boolean =>
+  f.risk_types.includes('endocrine') && (f.risk_status === 'suspected' || f.risk_status === 'confirmed') && Boolean(f.source_url)
+function reason(f: Flag): string {
+  const parts = f.risk_types.flatMap((ty) => {
+    if (ty === 'endocrine') return isPe(f) ? [`${t('beauty.type.endocrine', locale)} ${t(`beauty.status.${f.risk_status}` as Parameters<typeof t>[0], locale)}`] : []
+    const k = typeKey(ty)
+    return k ? [t(k, locale)] : []
+  })
+  return parts.join(', ') || f.restriction_fr || f.name_fr || ''
+}
+
+const thumb = (img: string): string =>
+  img.startsWith('http') ? img : `${CDN_URL}/${img}?width=200&height=200&fit=cover&quality=80&format=webp`
+const featuredMeta = featured
+  ? [featured.quantity, featured.cosmetic_risk?.token_count ? `${featured.cosmetic_risk.token_count} ingrédients` : null].filter(Boolean).join(' · ')
+  : ''
+const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/>'
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -31,43 +115,114 @@ const jsonLd = {
   path="/beaute"
   jsonLd={jsonLd}
   universe="beauty"
+  mobileTopbar={false}
 >
-  <main>
-    <section class="mx-auto max-w-5xl px-4 pt-8 pb-2">
-      <PageHero image="/hero/beaute.jpg" tone="beauty" mascot="loupe" size="lg" kicker={t('nav.beauty', locale)} title={t('beauty.hubTitle', locale)} subtitle={t('beauty.hubDesc', locale)}>
-        <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
-        {/* Catégories : pastilles crème sur l'aplat framboise, l'active passe à l'encre */}
-        <div class="mt-2 flex flex-wrap gap-2">
-          {CATS.map((c) => (
-            <a
-              href={`/beaute?cat=${c}`}
-              class:list={['rounded-full border-[1.5px] border-encre px-3.5 py-1.5 text-sm font-semibold transition-colors', initialCat === c ? 'bg-encre text-creme' : 'bg-creme text-encre hover:bg-citron']}
-            >
-              {catLabels[c]}
-            </a>
-          ))}
-        </div>
-      </PageHero>
+  <PageHero
+    tone="beauty"
+    mascot="loupe"
+    back="/"
+    kicker="Univers beauté"
+    title="On lit l'INCI à ta place."
+    subtitle="Chaque ingrédient est vérifié contre les listes officielles (CosIng, annexes du règlement européen)."
+  >
+    <a href="/scan" class="btn dark-btn w-full md:w-auto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={SCAN_ICON} />
+      Scanner une crème, un shampoing…
+    </a>
+  </PageHero>
+
+  <main class="screen max-md:pt-5">
+    <section class="section">
+      <nav class="chips" aria-label={t('beauty.category', locale)}>
+        {CATS.map((c) => (
+          <a
+            href={href(c === cat ? '' : c, noPe)}
+            class:list={['chip', c === cat && 'fill bg-beauty']}
+            aria-current={c === cat ? 'true' : undefined}
+          >
+            {catLabels[c]}
+          </a>
+        ))}
+      </nav>
+      <a href={href(cat, !noPe)} class:list={['chip w-max', noPe && 'fill bg-beauty']} aria-current={noPe ? 'true' : undefined}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
+        Sans perturbateur endocrinien suspecté
+      </a>
     </section>
 
-    <SearchPage client:load initialUniverse="cosmetic" initialCosmeticCategory={initialCat} />
+    {featured && featured.cosmetic_risk && (
+      <section class="section">
+        <div class="card grid gap-3.5 p-3.5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-x-8 md:p-6">
+          <div class="grid grid-cols-[92px_minmax(0,1fr)_auto] items-center gap-3">
+            <a href={`/produit/${featured.barcode}`} class="tile tint-framboise size-[92px]" aria-label={featured.name_fr}>
+              {featured.image_front && <img src={thumb(featured.image_front)} alt="" loading="lazy" />}
+            </a>
+            <div class="min-w-0">
+              {featured.cosmetic_category && catLabels[featured.cosmetic_category] && <p class="eyebrow">{catLabels[featured.cosmetic_category]}</p>}
+              <a href={`/produit/${featured.barcode}`} class="disp d-s mt-[3px] block hover:underline">{featured.name_fr}</a>
+              {featuredMeta && <p class="muted text-[12.5px]">{featuredMeta}</p>}
+            </div>
+            <ScoreSticker score={featured.scan_score} />
+          </div>
+          <div class="grid content-start gap-3.5">
+            <div class="grid grid-cols-4 gap-2 text-center">
+              {LEVELS.map((l) => {
+                const n = featured.cosmetic_risk?.counts[l.key] ?? 0
+                return (
+                  <div class:list={['rounded-[14px] border-2 px-1 py-2', n > 0 ? `border-encre text-encre ${l.fill}` : 'border-line']}>
+                    <b class="disp d-m num">{n}</b>
+                    <p class="text-[11px]">{l.word}</p>
+                  </div>
+                )
+              })}
+            </div>
+            {shown.length > 0 && (
+              <div class="grid gap-2 text-[13.5px]">
+                {shown.map((f) => (
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="min-w-0">
+                      <a href={`/ingredients-cosmetiques/${encodeURIComponent(f.inci_name)}`} class="font-bold hover:underline">{f.inci_name}</a>
+                      {reason(f) && <> · {reason(f)}</>}
+                      {isPe(f) && f.source_url && (
+                        <> · <a href={f.source_url} target="_blank" rel="noopener nofollow" class="muted text-xs underline">source ↗</a></>
+                      )}
+                    </span>
+                    <span class:list={['chip fill h-[22px] flex-none', levelOf(f.risk_level).fill]}>{levelOf(f.risk_level).word}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    )}
 
-    <section class="mx-auto max-w-5xl px-4 pb-16">
-      <div class="rounded-3xl border bg-card p-6 sm:p-8">
-        <h2 class="font-display text-xl font-bold">{t('beauty.howTitle', locale)}</h2>
-        <ol class="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground/90">
-          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty border-2 border-encre text-sm font-bold text-encre">1</span><span>{t('beauty.how1', locale)}</span></li>
-          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty border-2 border-encre text-sm font-bold text-encre">2</span><span>{t('beauty.how2', locale)}</span></li>
-          <li class="flex gap-3"><span class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-beauty border-2 border-encre text-sm font-bold text-encre">3</span><span>{t('beauty.how3', locale)}</span></li>
+    <section class="section">
+      <div class="sec-head">
+        <h2 class="disp d-m">Les plus sûrs</h2>
+        <a href={`/recherche?univers=beaute${cat ? `&cat=${cat}` : ''}`}>Tout voir</a>
+      </div>
+      {safest.length === 0 ? (
+        <p class="card p-6 text-center text-sm muted">{t('search.noResults', locale)}</p>
+      ) : (
+        <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {safest.map((p) => <ProductCard product={p} />)}
+        </div>
+      )}
+    </section>
+
+    <section class="section">
+      <div class="card grid gap-4 p-5 md:p-8">
+        <h2 class="disp d-m">{t('beauty.howTitle', locale)}</h2>
+        <ol class="grid gap-3 text-[15px] leading-relaxed">
+          {[t('beauty.how1', locale), t('beauty.how2', locale), t('beauty.how3', locale)].map((txt, i) => (
+            <li class="flex gap-3"><span class="flex size-7 flex-none items-center justify-center rounded-full border-2 border-encre bg-beauty text-sm font-bold text-encre">{i + 1}</span><span>{txt}</span></li>
+          ))}
         </ol>
-        <p class="mt-4 text-xs text-muted-foreground">{t('beauty.disclaimer', locale)}</p>
-        <div class="mt-5 flex flex-wrap gap-3">
-          <a href="/ingredients-cosmetiques" class="btn-pop ghost">
-            {t('beauty.ingredientsTitle', locale)} →
-          </a>
-          <a href="/contribuer" class="btn-pop">
-            {t('nav.contribute', locale)}
-          </a>
+        <p class="muted text-xs">{t('beauty.disclaimer', locale)}</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="/ingredients-cosmetiques" class="btn sm">{t('beauty.ingredientsTitle', locale)}</a>
+          <a href="/contribuer" class="btn sm primary">{t('nav.contribute', locale)}</a>
         </div>
       </div>
     </section>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Analyse de repas</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="bayen.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&amp;family=Readex+Pro:wght@400;500;600;700&amp;family=Archivo:wdth,wght@62..100,600..900&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="bp phone {{cls}}" style="height: 1360px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 110px">
+  <header class="topbar" style="padding-bottom: 0">
+    <a class="icon-btn" href="Main.dc.html" aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <span class="chip fill" style="background: var(--u-meal)">Analyse de repas</span>
+  </header>
+
+  <section class="section" style="gap: 14px">
+    <div style="position: relative">
+      <div class="tile" style="height: 300px; border-radius: 28px; box-shadow: 5px 5px 0 var(--shadow)"><img src="/_blob/84531fe7210ac43f9b058f67c37df63e" alt="Photo d'un tajine de poulet aux olives" style="width: 100%; height: 100%; object-fit: cover"></div>
+      <span class="chip" style="position: absolute; left: 14px; top: 14px; background: #FFF8EC; color: #1B1B1B; border-color: #1B1B1B"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="4"/></svg> Ta photo</span>
+    </div>
+    <div style="display: grid; gap: 6px">
+      <p class="eyebrow">On pense que c'est</p>
+      <h1 class="disp d-l">Tajine de poulet aux olives</h1>
+      <div class="chips"><span class="chip fill" style="background: var(--s-a)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg> Confiance élevée</span><span class="chip">≈ 450 g</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card" style="padding: 18px; display: grid; gap: 14px; background: var(--u-meal); color: var(--encre)">
+      <p style="font-weight: 600">Estimation pour l'assiette</p>
+      <p class="disp num" style="font-size: 40px; line-height: 1">500 – 640 <span style="font-size: 18px">kcal</span></p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="background: #FFF8EC; border: 2px solid #1B1B1B; border-radius: 14px; padding: 10px"><p style="font-size: 11px">Protéines</p><b class="num">38–46 g</b></div>
+        <div style="background: #FFF8EC; border: 2px solid #1B1B1B; border-radius: 14px; padding: 10px"><p style="font-size: 11px">Glucides</p><b class="num">22–30 g</b></div>
+        <div style="background: #FFF8EC; border: 2px solid #1B1B1B; border-radius: 14px; padding: 10px"><p style="font-size: 11px">Lipides</p><b class="num">28–36 g</b></div>
+      </div>
+      <span class="chip" style="background: #FFF8EC; color: #1B1B1B; border-color: #1B1B1B; width: max-content">Équilibré · riche en protéines</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="naanaa" style="grid-template-columns: 56px 1fr">
+      <div class="m" style="width: 56px; height: 56px"><img src="/_blob/ff2391840852cc0cac4c27ac311ec542" alt=""></div>
+      <p class="bubble">C'est une estimation, pas un avis médical. Le pain compte : un quart de khobz ajoute ≈ 150 kcal.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card" style="padding: 16px; display: grid; gap: 12px">
+      <p style="font-weight: 700">C'est le bon plat ?</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+        <button class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg> Oui, c'est ça</button>
+        <button class="btn" type="button">Corriger</button>
+      </div>
+      <p class="muted" style="font-size: 12.5px">Tes corrections améliorent les estimations des plats marocains.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <a href="Repas.dc.html" class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="4"/></svg> Analyser un autre plat</a>
+  </section>
+  <nav class="tabbar" aria-label="Navigation principale"><a href="Main.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a><a href="Recherche.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Chercher</a><a href="Scan.dc.html" class="scan" aria-label="Scanner un produit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/></svg></a><a href="Repas.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Repas</a><a href="Compte.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/></svg>Compte</a></nav>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["light", "dark"], "default": "light"}, "$preview": {"width": 390, "height": 1360}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme ?? 'light';
+    return { cls: theme === 'dark' ? 'dark' : ''  };
+  }
+}
+</script>
+</body>
+</html>

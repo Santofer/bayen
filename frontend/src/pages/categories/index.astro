@@ -99,45 +99,41 @@ const productsSuffix = (count: number) => {
 }
 ---
 
-<Layout title={pageTitle} path="/categories">
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-8">
-    <PageHero image="/categories/_fallback.jpg?v=2" tone="primary" kicker={t('search.categories', locale)} title={pageHeading} subtitle={`${pageSubtitle} · ${t('nav.d.categories', locale)}`} class="mb-8">
-      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-    </PageHero>
+<Layout title={pageTitle} path="/categories" mobileTopbar={false}>
+  <PageHero tone="primary" kicker={t('search.categories', locale)} title={pageHeading} subtitle={`${pageSubtitle} · ${t('nav.d.categories', locale)}`}>
+    <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+  </PageHero>
 
-    {categories.length > 0 ? (
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-        {categories.map((cat, i) => {
-          const name = locale === 'ary' && cat.name_ar ? cat.name_ar : cat.name_fr
-          return (
-            <a
-              href={`/categories/${cat.slug}`}
-              class:list={['group flex flex-col overflow-hidden rounded-2xl border-2 border-encre text-encre shadow-[var(--shadow-card)] card-lift', cat.product_count === 0 && 'opacity-70']}
-              style={`background: var(--color-${TILE_COLORS[i % TILE_COLORS.length]})`}
-            >
-              <div class="aspect-[4/3] overflow-hidden border-b-2 border-encre">
-                <img
-                  src={categoryImage(cat.slug)}
-                  alt={name}
-                  loading="lazy"
-                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-                />
-              </div>
-              <div class="flex flex-1 flex-col items-start gap-2 p-3 md:p-3.5">
-                <h2 class="font-display font-bold leading-tight !text-[0.95rem] md:!text-base">{name}</h2>
-                <span class="mt-auto rounded-full border-[1.5px] border-encre bg-creme px-2.5 py-0.5 text-[0.7rem] font-bold">
-                  {productsSuffix(cat.product_count)}
+  <main class="screen">
+    <section class="section">
+      {/* Cartes d'aplat (motif « Choisis ton univers ») : visuel, titre, compteur */}
+      {categories.length > 0 ? (
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
+          {categories.map((cat, i) => {
+            const name = locale === 'ary' && cat.name_ar ? cat.name_ar : cat.name_fr
+            return (
+              <a
+                href={`/categories/${cat.slug}`}
+                class:list={['card grid content-start gap-3.5 p-3.5 text-encre', cat.product_count === 0 && 'opacity-70']}
+                style={`background: var(--color-${TILE_COLORS[i % TILE_COLORS.length]})`}
+              >
+                <span class="tile aspect-[4/3]">
+                  <img src={categoryImage(cat.slug)} alt="" loading="lazy" />
                 </span>
-              </div>
-            </a>
-          )
-        })}
-      </div>
-    ) : (
-      <div class="rounded-xl border bg-card p-8 text-center">
-        <img src="/mascotte/naanaa-oups.webp" alt="" width="88" height="130" class="mx-auto mb-3" />
-        <p class="text-sm text-muted-foreground">{emptyMsg}</p>
-      </div>
-    )}
+                <span>
+                  <b class="disp d-s block">{name}</b>
+                  <span class="text-[12.5px]">{productsSuffix(cat.product_count)}</span>
+                </span>
+              </a>
+            )
+          })}
+        </div>
+      ) : (
+        <div class="naanaa md:max-w-xl">
+          <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="106" />
+          <p class="bubble">{emptyMsg}</p>
+        </div>
+      )}
+    </section>
   </main>
 </Layout>

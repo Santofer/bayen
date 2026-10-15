@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Tag, Plus, Check } from 'lucide-react'
+import { Plus, Check } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
@@ -128,72 +128,62 @@ export default function PriceSection({ barcode }: Props) {
   // aucun prix (le rendu serveur l'annoncerait à tort avant l'hydratation).
   const loading = data === null
   const hasPrices = data !== null && data.count > 0
-  // Échelle depuis 0 : la longueur des barres est lisible comme le prix.
-  const scaleMax = hasPrices ? Math.max(...data.by_store.map((s) => s.median)) : 0
-  const cheapest = hasPrices ? Math.min(...data.by_store.map((s) => s.median)) : 0
+  // Cartes d'enseigne de la maquette, de la médiane la plus basse à la plus haute
+  const stores = hasPrices ? [...data.by_store].sort((a, b) => a.median - b.median) : []
+  const cheapest = stores[0]?.median ?? 0
 
   return (
-    <section className="rounded-2xl border bg-card p-5">
-      <div className="mb-4 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-encre bg-citron text-encre">
-          <Tag size={16} />
-        </span>
-        <div className="flex-1">
-          <h2 className="font-display text-lg font-bold leading-tight">{t('price.title')}</h2>
-          {hasPrices && (
-            <p className="text-xs text-muted-foreground">
-              {data.count} {t('price.sharedCount')}
-            </p>
-          )}
-        </div>
+    <section className="section">
+      <div className="sec-head">
+        <h2 className="disp d-m">Où l'acheter moins cher</h2>
+        <span className="eyebrow">prix médian</span>
       </div>
 
       {hasPrices ? (
         <>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-3xl font-extrabold text-brand-ink">
-              {data.min !== null && data.max !== null && data.min !== data.max
-                ? `${formatPrice(data.min)} – ${formatPrice(data.max)}`
-                : formatPrice(data.min ?? 0)}
-            </span>
-            <span className="text-sm font-bold text-muted-foreground">DH</span>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-2">
-            {data.by_store.map((s) => (
-              <div key={s.store} className="flex items-center gap-2.5">
-                <span className="w-24 flex-shrink-0 truncate text-xs font-bold">{s.store}</span>
-                {/* Barre à contour encre (maquette) ; la médiane la plus basse passe en citron */}
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">
-                  <div
-                    className={s.median === cheapest ? 'h-full bg-citron' : 'h-full bg-primary'}
-                    style={{ width: `${scaleMax > 0 ? Math.round((s.median / scaleMax) * 100) : 0}%` }}
-                  />
-                </div>
-                <span className="w-20 flex-shrink-0 text-end text-xs font-extrabold">
-                  {formatPrice(s.median)} DH
-                </span>
+          <div className="grid grid-cols-3 gap-2.5">
+            {stores.map((s) => (
+              // La médiane la plus basse passe en citron (texte encre dans les deux thèmes)
+              <div
+                key={s.store}
+                className={s.median === cheapest ? 'card grid gap-0.5 bg-citron p-3 text-encre' : 'card grid gap-0.5 p-3'}
+              >
+                <span className="truncate text-xs font-semibold">{s.store}</span>
+                {/* « DH » plus petit : un prix à 2 décimales tient dans le tiers d'écran */}
+                <b className="disp d-s num whitespace-nowrap">{formatPrice(s.median)}<span className="ms-1 text-[11px]">DH</span></b>
+                {s.median === cheapest && stores.length > 1 ? (
+                  <span className="text-[11px]">le moins cher</span>
+                ) : (
+                  <span className={s.median === cheapest ? 'text-[11px]' : 'muted text-[11px]'}>
+                    {s.count} relevé{s.count > 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
             ))}
           </div>
 
-          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            {data.count} {t('price.sharedCount')}
+            {data.min !== null && data.max !== null && data.min !== data.max
+              ? ` · ${formatPrice(data.min)} – ${formatPrice(data.max)} DH`
+              : ''}
+            {'. '}
             {t('price.disclaimer')}
             {data.city ? ` ${data.city}.` : ''}
           </p>
         </>
       ) : loading ? (
-        <div className="flex flex-col gap-2" aria-hidden="true">
-          <div className="skeleton h-7 w-40" />
-          <div className="skeleton h-2.5 w-full" />
-          <div className="skeleton h-2.5 w-3/4" />
+        <div className="grid grid-cols-3 gap-2.5" aria-hidden="true">
+          <div className="skeleton h-[74px] rounded-[20px]" />
+          <div className="skeleton h-[74px] rounded-[20px]" />
+          <div className="skeleton h-[74px] rounded-[20px]" />
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">{t('price.none')}</p>
+        <p className="card p-4 text-sm text-muted-foreground">{t('price.none')}</p>
       )}
 
       {state === 'sent' && (
-        <p className="mt-3 flex items-center gap-1.5 text-sm font-bold text-brand-ink">
+        <p className="flex items-center gap-1.5 text-sm font-bold text-brand-ink">
           <Check size={15} /> {message}
         </p>
       )}
@@ -202,7 +192,7 @@ export default function PriceSection({ barcode }: Props) {
         <button
           type="button"
           onClick={() => { setOpen(true); setState('idle') }}
-          className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-full border-2 border-line bg-card text-sm font-bold text-foreground shadow-[var(--shadow-card)] transition-transform hover:-translate-y-px"
+          className="btn w-full"
         >
           <Plus size={17} className="flex-shrink-0" />
           <span className="min-w-0">{hasPrices ? t('price.addOther') : t('price.share')}</span>
@@ -211,7 +201,7 @@ export default function PriceSection({ barcode }: Props) {
           </span>
         </button>
       ) : (
-        <div className="mt-4 rounded-2xl border bg-popover p-4">
+        <div className="card p-4">
           {antibot.honeypot}
           <p className="font-bold">{t('price.howMuch')}</p>
 

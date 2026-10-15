@@ -16,9 +16,7 @@
  * Référence : SPEC.md §9
  */
 
-import { useState, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken } from '@/lib/auth'
@@ -33,6 +31,21 @@ interface ContributeFormProps {
 type Step = 'barcode' | 'photos' | 'info' | 'confirm'
 
 const DIRECTUS_URL = '/api/directus'
+
+// Langage Marché Pop : champ contour encre sur fond crème
+const FIELD = 'min-h-[48px] w-full rounded-2xl border-2 border-line bg-background px-4 text-[15px] font-medium outline-none placeholder:text-muted-foreground focus:border-brand-ink'
+const FILE = 'w-full text-sm file:me-3 file:cursor-pointer file:rounded-full file:border-2 file:border-line file:bg-card file:px-3.5 file:py-1.5 file:text-[13px] file:font-bold file:text-foreground'
+const STEP_CARD = 'card grid gap-4 p-4 md:p-5'
+
+/** Bulle de Naânaa (astuce, erreur) */
+function Bubble({ pose, children, alert }: { pose: string; children: React.ReactNode; alert?: boolean }) {
+  return (
+    <div className="naanaa grid-cols-[56px_minmax(0,1fr)]" role={alert ? 'alert' : undefined}>
+      <img src={`/mascotte/naanaa-${pose}.webp`} alt="" width="56" height="56" className="size-14" />
+      <div className="bubble text-sm">{children}</div>
+    </div>
+  )
+}
 
 function isValidEan(code: string): boolean {
   return /^\d{8}$|^\d{13}$/.test(code)
@@ -451,39 +464,28 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
   // Rendu après soumission réussie
   if (submitted) {
     return (
-      <div className="rounded-2xl border bg-card p-8 text-center">
+      <div className="card grid justify-items-center gap-3 p-6 text-center md:p-8">
         {/* Contribution réussie : Naânaa applaudit */}
-        <img
-          src="/mascotte/naanaa-bravo.webp"
-          alt=""
-          width="96"
-          height="141"
-          className="naanaa-bob mx-auto mb-4 h-auto w-24"
-        />
-        <h2 className="text-xl font-bold text-foreground mb-2">
-          {isEditMode ? 'Produit mis à jour !' : t('contribute.thanks')}
-        </h2>
-        <p className="text-sm text-muted-foreground mb-1">
-          Le produit <span className="font-mono font-medium">{barcode}</span> a été {isEditMode ? 'mis à jour' : 'soumis'}.
+        <img src="/mascotte/naanaa-bravo.webp" alt="" width="96" height="141" className="naanaa-bob h-auto w-24" />
+        <h2 className="disp d-l">{isEditMode ? 'Produit mis à jour !' : t('contribute.thanks')}</h2>
+        <p className="muted text-sm">
+          Le produit <span className="num font-semibold text-foreground">{barcode}</span> a été {isEditMode ? 'mis à jour' : 'soumis'}.
         </p>
-        {!isEditMode && (
-          <p className="text-sm text-muted-foreground mb-6">
-            Un modérateur vérifiera les données avant publication.
-          </p>
-        )}
-        <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+        {!isEditMode && <p className="muted text-sm">Un modérateur vérifiera les données avant publication.</p>}
+        {error && <Bubble pose="astuce"><p>{error}</p></Bubble>}
+        <div className="mt-3 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
           {isEditMode ? (
-            <Button asChild>
-              <a href={`/produit/${barcode}`}>Voir la fiche produit</a>
-            </Button>
+            <a href={`/produit/${barcode}`} className="btn primary">Voir la fiche produit</a>
           ) : (
-            <Button onClick={() => { setSubmitted(false); setStep('barcode'); setBarcode(''); setPhotos({}); setProductInfo({ name_fr: '', brand: '' }) }}>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => { setSubmitted(false); setStep('barcode'); setBarcode(''); setPhotos({}); setProductInfo((p) => ({ ...p, name_fr: '', brand: '' })) }}
+            >
               {t('contribute.addAnother')}
-            </Button>
+            </button>
           )}
-          <Button variant="outline" asChild>
-            <a href="/scan">Scanner un produit</a>
-          </Button>
+          <a href="/scan" className="btn">Scanner un produit</a>
         </div>
       </div>
     )
@@ -500,43 +502,40 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
     confirm: t('contribute.confirm'),
   }
 
+  const ErrorBubble = error ? <Bubble pose="oups" alert><p>{error}</p></Bubble> : null
+
   return (
-    <div className="space-y-6">
-      {/* Indicateur d'étapes */}
-      <div className="flex items-center gap-2">
+    <div className="grid gap-5">
+      {/* Indicateur d'étapes : pastilles rondes numérotées */}
+      <ol className="flex items-center gap-2">
         {visibleSteps.map((s, i) => {
           const isCurrent = s === step
           const isPast = visibleSteps.indexOf(step) > i
           return (
-            <div key={s} className="flex items-center gap-2 flex-1">
-              <div className={cn(
-                'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold',
-                isCurrent && 'bg-primary text-primary-foreground',
-                isPast && 'bg-primary/20 text-brand-ink',
-                !isCurrent && !isPast && 'bg-muted text-muted-foreground'
-              )}>
-                {isPast ? '\u2713' : i + 1}
-              </div>
+            <li key={s} className="flex flex-1 items-center gap-2" aria-current={isCurrent ? 'step' : undefined}>
               <span className={cn(
-                'text-xs hidden sm:inline',
-                isCurrent ? 'text-foreground font-medium' : 'text-muted-foreground'
+                'grid size-8 flex-none place-items-center rounded-full border-2 font-display text-xs font-extrabold',
+                isCurrent && 'border-encre bg-menthe text-encre',
+                isPast && 'border-encre bg-citron text-encre',
+                !isCurrent && !isPast && 'border-line bg-muted'
               )}>
+                {isPast ? '✓' : i + 1}
+              </span>
+              <span className={cn('hidden text-xs sm:inline', isCurrent ? 'font-bold' : 'muted')}>
                 {stepLabelsMap[s]}
               </span>
-              {i < visibleSteps.length - 1 && <div className="flex-1 h-px bg-border" />}
-            </div>
+              {i < visibleSteps.length - 1 && <span className="h-0.5 flex-1 rounded-full bg-line/30" />}
+            </li>
           )
         })}
-      </div>
+      </ol>
 
       {/* Étape 1 : Code-barres (mode création uniquement) */}
       {step === 'barcode' && !isEditMode && (
-        <form onSubmit={handleBarcodeSubmit} className="space-y-4">
+        <form onSubmit={handleBarcodeSubmit} className={STEP_CARD}>
           {antibot.honeypot}
-          <div className="rounded-xl border bg-card p-5">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              {t('contribute.barcode')}
-            </label>
+          <label className="grid gap-1.5">
+            <span className="text-[13.5px] font-bold">{t('contribute.barcode')}</span>
             <input
               type="text"
               inputMode="numeric"
@@ -545,130 +544,134 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
               placeholder="6111080016394"
               value={barcode}
               onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={cn(FIELD, 'num text-center font-display text-lg tracking-wider')}
               autoFocus
             />
-            {barcode && !isValidEan(barcode) && (
-              <p className="text-xs text-destructive mt-1">Format EAN-8 (8 chiffres) ou EAN-13 (13 chiffres)</p>
-            )}
-          </div>
-          <Button type="submit" className="w-full" disabled={!isValidEan(barcode)}>
+          </label>
+          {barcode && !isValidEan(barcode) && (
+            <p className="text-xs text-destructive">Format EAN-8 (8 chiffres) ou EAN-13 (13 chiffres)</p>
+          )}
+          <button type="submit" className="btn primary w-full" disabled={!isValidEan(barcode)}>
             {t('contribute.continue')}
-          </Button>
+          </button>
         </form>
       )}
 
       {/* Étape 2 : Photos (mode création uniquement) */}
       {step === 'photos' && !isEditMode && (
-        <div className="space-y-4">
-          <Badge variant="outline" className="font-mono">{barcode}</Badge>
-
-          <div className="space-y-3">
-            {([
-              { key: 'nutrition' as const, label: t('contribute.photoNutrition'), required: true, hint: 'Cadrez le tableau des valeurs nutritionnelles' },
-              { key: 'ingredients' as const, label: t('contribute.photoIngredients'), required: false, hint: 'Photo de la liste des ingrédients' },
-              { key: 'front' as const, label: t('contribute.photoFront'), required: false, hint: 'Photo du packaging face avant' },
-            ]).map(({ key, label, required, hint }) => (
-              <div key={key} className="rounded-xl border bg-card p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-foreground">
-                    {label} {required && <span className="text-destructive">*</span>}
-                  </label>
-                  {photos[key] && (
-                    <Badge variant="safe" className="text-xs">Ajoutée</Badge>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">{hint}</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handlePhoto(key, e.target.files?.[0] ?? null)}
-                  className="w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer"
-                />
-              </div>
-            ))}
+        <div className={STEP_CARD}>
+          <div className="sec-head">
+            <h2 className="disp d-m">{t('contribute.photos')}</h2>
+            <span className="chip num">{barcode}</span>
           </div>
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setStep('barcode')} className="flex-1">
+          {([
+            { key: 'nutrition' as const, label: t('contribute.photoNutrition'), required: true, hint: 'Cadrez le tableau des valeurs nutritionnelles' },
+            { key: 'ingredients' as const, label: t('contribute.photoIngredients'), required: false, hint: 'Photo de la liste des ingrédients' },
+            { key: 'front' as const, label: t('contribute.photoFront'), required: false, hint: 'Photo du packaging face avant' },
+          ]).map(({ key, label, required, hint }) => (
+            <div key={key} className="grid gap-2 rounded-2xl border-2 border-line p-3.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-bold">
+                  {label} {required && <span className="text-destructive">*</span>}
+                </span>
+                {photos[key] && <span className="chip fill bg-menthe"><Check strokeWidth={3} /> Ajoutée</span>}
+              </div>
+              <p className="muted text-xs">{hint}</p>
+              <input
+                type="file"
+                accept="image/*"
+                aria-label={label}
+                onChange={(e) => handlePhoto(key, e.target.files?.[0] ?? null)}
+                className={FILE}
+              />
+            </div>
+          ))}
+
+          <div className="grid grid-cols-2 gap-3">
+            <button type="button" className="btn" onClick={() => setStep('barcode')}>
               {t('contribute.back')}
-            </Button>
-            <Button onClick={() => setStep('info')} className="flex-1" disabled={!photos.nutrition}>
+            </button>
+            <button type="button" className="btn primary" onClick={() => setStep('info')} disabled={!photos.nutrition}>
               {t('contribute.continue')}
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
       {/* Étape 3 : Infos produit */}
       {step === 'info' && (
-        <div className="space-y-4">
-          <Badge variant="outline" className="font-mono">{barcode}</Badge>
-
-          <div className="rounded-xl border bg-card p-5 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                {t('contribute.name')} <span className="text-destructive">*</span>
-              </label>
+        <div className="grid gap-4">
+          <div className={STEP_CARD}>
+            <div className="sec-head">
+              <h2 className="disp d-m">{t('contribute.info')}</h2>
+              <span className="chip num">{barcode}</span>
+            </div>
+            <label className="grid gap-1.5">
+              <span className="text-[13.5px] font-bold">{t('contribute.name')} <span className="text-destructive">*</span></span>
               <input
                 type="text"
                 placeholder="Ex: Bimo Chocolat"
                 value={productInfo.name_fr}
                 onChange={(e) => setProductInfo((p) => ({ ...p, name_fr: e.target.value }))}
-                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={FIELD}
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                {t('contribute.brand')} <span className="text-destructive">*</span>
-              </label>
+            </label>
+            <label className="grid gap-1.5">
+              <span className="text-[13.5px] font-bold">{t('contribute.brand')} <span className="text-destructive">*</span></span>
               <input
                 type="text"
                 placeholder="Ex: Bimo"
                 value={productInfo.brand}
                 onChange={(e) => setProductInfo((p) => ({ ...p, brand: e.target.value }))}
-                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={FIELD}
               />
-            </div>
+            </label>
           </div>
 
           {/* Photos (mode édition — les 3 photos) */}
           {isEditMode && (
-            <div className="rounded-xl border bg-card p-5 space-y-4">
-              <h3 className="text-sm font-medium text-foreground flex items-center gap-1.5"><Camera size={16} className="text-current" /> Photos du produit</h3>
+            <div className={STEP_CARD}>
+              <h2 className="disp d-s flex items-center gap-2"><Camera size={18} /> Photos du produit</h2>
               {[
                 { key: 'front' as const, label: 'Photo face avant', field: 'image_front' },
                 { key: 'nutrition' as const, label: 'Tableau nutritionnel', field: 'image_nutrition' },
                 { key: 'ingredients' as const, label: 'Liste des ingrédients', field: 'image_ingredients' },
               ].map(({ key, label, field }) => (
-                <div key={key} className="space-y-1">
-                  <label className="block text-xs font-medium text-muted-foreground">{label}</label>
-                  {existingProduct[field] && (
-                    <p className="text-[10px] text-brand-ink flex items-center gap-0.5"><Check size={12} className="text-current" /> Image existante</p>
-                  )}
+                <div key={key} className="grid gap-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-bold">{label}</span>
+                    {Boolean(existingProduct[field]) && (
+                      <span className="chip fill bg-menthe"><Check strokeWidth={3} /> Image existante</span>
+                    )}
+                  </div>
                   <input
                     type="file"
                     accept="image/*"
-                      onChange={(e) => {
+                    aria-label={label}
+                    onChange={(e) => {
                       const file = e.target.files?.[0] ?? null
                       if (key === 'front') setFrontPhotoFile(file)
                       else if (file) setPhotos((p) => ({ ...p, [key]: file }))
                     }}
-                    className="w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-muted file:text-foreground hover:file:bg-muted/80 file:cursor-pointer"
+                    className={FILE}
                   />
                 </div>
               ))}
-              <p className="text-[10px] text-muted-foreground">
-                <Lightbulb size={14} className="text-current inline-block mr-0.5" /> Uploadez le tableau nutritionnel pour remplir automatiquement les valeurs via OCR
-              </p>
+              <Bubble pose="astuce">
+                <p className="flex items-start gap-1.5"><Lightbulb size={15} className="mt-0.5 flex-none" /> Uploadez le tableau nutritionnel pour remplir automatiquement les valeurs via OCR</p>
+              </Bubble>
             </div>
           )}
 
           {/* Valeurs nutritionnelles (mode édition) */}
           {isEditMode && (
-            <div className="rounded-xl border bg-card p-5 space-y-3">
-              <h3 className="text-sm font-medium text-foreground flex items-center gap-1.5"><UtensilsCrossed size={16} className="text-current" /> Valeurs nutritionnelles (pour 100g)</h3>
-              <div className="grid grid-cols-2 gap-3">
+            <div className={STEP_CARD}>
+              <div className="sec-head">
+                <h2 className="disp d-s flex items-center gap-2"><UtensilsCrossed size={18} /> Valeurs nutritionnelles</h2>
+                <span className="eyebrow">pour 100 g</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5">
                 {[
                   { key: 'energy_kcal', label: 'Énergie (kcal)', placeholder: 'ex: 450' },
                   { key: 'fat_total', label: 'Lipides (g)', placeholder: 'ex: 25' },
@@ -679,8 +682,8 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                   { key: 'proteins', label: 'Protéines (g)', placeholder: 'ex: 6' },
                   { key: 'salt', label: 'Sel (g)', placeholder: 'ex: 0.5' },
                 ].map(({ key, label, placeholder }) => (
-                  <div key={key}>
-                    <label className="block text-[10px] font-medium text-muted-foreground mb-0.5">{label}</label>
+                  <label key={key} className="grid gap-1 rounded-2xl border-2 border-line bg-background px-3.5 py-2.5">
+                    <span className="muted text-[11.5px] font-semibold">{label}</span>
                     <input
                       type="number"
                       step="0.01"
@@ -690,9 +693,9 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
                         ...p,
                         [key]: e.target.value ? parseFloat(e.target.value) : null,
                       }))}
-                      className="w-full h-8 rounded-md border border-input bg-background px-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="w-full min-w-0 border-0 bg-transparent p-0 font-display text-lg font-extrabold outline-none placeholder:text-sm placeholder:font-normal placeholder:text-muted-foreground"
                     />
-                  </div>
+                  </label>
                 ))}
               </div>
             </div>
@@ -700,107 +703,81 @@ export default function ContributeForm({ initialBarcode = '', existingProduct = 
 
           {/* Ingrédients (mode édition) */}
           {isEditMode && (
-            <div className="rounded-xl border bg-card p-5 space-y-2">
-              <label className="block text-sm font-medium text-foreground flex items-center gap-1.5"><FileText size={16} className="text-current" /> Ingrédients</label>
+            <label className={STEP_CARD}>
+              <span className="disp d-s flex items-center gap-2"><FileText size={18} /> Ingrédients</span>
               <textarea
                 rows={3}
                 placeholder="Liste des ingrédients..."
                 value={productInfo.ingredients_text}
                 onChange={(e) => setProductInfo((p) => ({ ...p, ingredients_text: e.target.value }))}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+                className={cn(FIELD, 'resize-none py-3 text-sm')}
               />
-            </div>
+            </label>
           )}
 
-          {error && (
-            <div className="naanaa" role="alert">
-              <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="82" />
-              <p className="bubble text-sm">{error}</p>
-            </div>
-          )}
+          {ErrorBubble}
 
-          <div className="flex gap-3">
+          <div className={cn('grid gap-3', !isEditMode && 'grid-cols-2')}>
             {!isEditMode && (
-              <Button variant="outline" onClick={() => setStep('photos')} className="flex-1">
+              <button type="button" className="btn" onClick={() => setStep('photos')}>
                 {t('contribute.back')}
-              </Button>
+              </button>
             )}
-            <Button
+            <button
+              type="button"
+              className="btn primary"
               onClick={() => setStep('confirm')}
-              className="flex-1"
               disabled={!productInfo.name_fr.trim() || !productInfo.brand.trim()}
             >
               {t('contribute.continue')}
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
       {/* Étape 4 : Confirmation */}
       {step === 'confirm' && (
-        <div className="space-y-4">
-          <div className="rounded-xl border bg-card p-5 space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Récapitulatif</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-muted-foreground">Code-barres</span>
-              <span className="font-mono font-medium">{barcode}</span>
-              <span className="text-muted-foreground">Nom</span>
-              <span>{productInfo.name_fr}</span>
-              <span className="text-muted-foreground">Marque</span>
-              <span>{productInfo.brand}</span>
-              {!isEditMode && (
-                <>
-                  <span className="text-muted-foreground">Photos</span>
-                  <span>{Object.values(photos).filter(Boolean).length}/3</span>
-                </>
-              )}
-              {isEditMode && frontPhotoUploaded && (
-                <>
-                  <span className="text-muted-foreground">Photo</span>
-                  <span className="text-foreground">Nouvelle photo uploadée</span>
-                </>
-              )}
-            </div>
+        <div className="grid gap-4">
+          <div className="card overflow-hidden">
+            <h2 className="disp d-s border-b-[1.5px] border-line px-4 py-3">Récapitulatif</h2>
+            {[
+              ['Code-barres', barcode],
+              ['Nom', productInfo.name_fr],
+              ['Marque', productInfo.brand],
+              ...(!isEditMode ? [['Photos', `${Object.values(photos).filter(Boolean).length}/3`]] : []),
+              ...(isEditMode && frontPhotoUploaded ? [['Photo', 'Nouvelle photo uploadée']] : []),
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3 border-b-[1.5px] border-line px-4 py-3 text-sm last:border-b-0">
+                <span className="muted">{k}</span>
+                <span className="min-w-0 truncate font-semibold">{v}</span>
+              </div>
+            ))}
           </div>
 
-          {!isEditMode && (
-            <div className="rounded-2xl border-2 border-line tint-citron p-4">
-              <p className="text-xs text-foreground">
-                Les photos seront analysées par notre IA (lecture visuelle Qwen, OCR en secours) pour extraire les données nutritionnelles
-                et la liste des ingrédients. Un modérateur vérifiera les données avant publication.
-              </p>
-            </div>
-          )}
+          <Bubble pose="astuce">
+            <p>
+              {isEditMode
+                ? 'Les modifications seront appliquées immédiatement au produit existant.'
+                : 'Les photos seront analysées par notre IA (lecture visuelle Qwen, OCR en secours) pour extraire les données nutritionnelles et la liste des ingrédients. Un modérateur vérifiera les données avant publication.'}
+            </p>
+          </Bubble>
 
-          {isEditMode && (
-            <div className="rounded-2xl border-2 border-line tint-myrtille p-4">
-              <p className="text-xs text-foreground">
-                Les modifications seront appliquées immédiatement au produit existant.
-              </p>
-            </div>
-          )}
+          {ErrorBubble}
 
-          {error && (
-            <div className="naanaa" role="alert">
-              <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="82" />
-              <p className="bubble text-sm">{error}</p>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setStep('info')} className="flex-1">
+          <div className="grid grid-cols-2 gap-3">
+            <button type="button" className="btn" onClick={() => setStep('info')}>
               {t('contribute.back')}
-            </Button>
-            <Button onClick={handleSubmit} className="flex-1" disabled={submitting}>
+            </button>
+            <button type="button" className="btn primary" onClick={handleSubmit} disabled={submitting}>
               {submitting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                   {isEditMode ? 'Mise à jour...' : t('contribute.sending')}
                 </>
               ) : (
                 isEditMode ? 'Mettre à jour le produit' : t('contribute.submit')
               )}
-            </Button>
+            </button>
           </div>
         </div>
       )}

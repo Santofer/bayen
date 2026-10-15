@@ -84,14 +84,14 @@ export default function UserMenu() {
   // État de chargement
   if (loading) {
     return (
-      <div className="md:ml-3 w-9 h-9 md:w-10 md:h-10 rounded-full bg-muted animate-pulse" />
+      <div className="h-9 w-24 rounded-full bg-muted animate-pulse" />
     )
   }
 
   // Non connecté — pilule outline « Se connecter » (maquette v2)
   if (!user) {
     return (
-      <a href="/connexion" className="nav-login">
+      <a href="/connexion" className="btn sm">
         <svg
           width="15"
           height="15"
@@ -106,14 +106,14 @@ export default function UserMenu() {
           <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
         </svg>
-        <span className="hidden lg:inline">{t('nav.login')}</span>
+        {t('nav.login')}
       </a>
     )
   }
 
   // Connecté — avatar + dropdown
   return (
-    <div className="relative md:ml-3" ref={menuRef}>
+    <div className="relative" ref={menuRef}>
       {/* Bouton avatar */}
       <button
         type="button"

@@ -1,5 +1,7 @@
 ---
-// Page scanner code-barres
+// Page scanner code-barres (maquette « Scan ») : vue caméra plein écran sur
+// mobile — la barre d'onglets reste là pour la navigation —, carte centrée
+// avec la feuille de résultat à côté sur ordinateur
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
@@ -14,12 +16,13 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
   title="Scanner un code-barres alimentaire — Bayen Maroc"
   description="Scanne un produit alimentaire au Maroc et obtiens son score nutritionnel 0-100, son Nutri-Score, ses additifs et son groupe NOVA en 3 secondes. 100% gratuit."
   path="/scan"
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg pb-24 md:pb-10">
+  <main class="screen">
     <ScanPage client:load />
 
     {/* Scans récents (C14) — le composant masque tout si l'historique est vide */}
-    <section class="px-4 mt-8">
+    <section class="section">
       <ScanHistory
         limit={5}
         compact

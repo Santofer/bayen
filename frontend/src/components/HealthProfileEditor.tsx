@@ -71,10 +71,10 @@ export default function HealthProfileEditor() {
     + (profile.avoidEndocrine ? 1 : 0) + (profile.avoidFragranceAllergens ? 1 : 0)
 
   return (
-    <div className="space-y-6">
+    <section className="section gap-5 md:grid-cols-2 md:items-start md:gap-8">
       {/* Allergènes */}
-      <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-card">
-        <h2 className="font-display font-bold text-lg">{t('profile.allergensTitle')}</h2>
+      <div className="card p-5 sm:p-6">
+        <h2 className="disp d-m">{t('profile.allergensTitle')}</h2>
         <p className="text-sm text-muted-foreground mt-1">{t('profile.allergensHint')}</p>
         <div className="flex flex-wrap gap-2 mt-4">
           {ALLERGENS.map((a) => {
@@ -98,11 +98,11 @@ export default function HealthProfileEditor() {
             )
           })}
         </div>
-      </section>
+      </div>
 
       {/* Huile de palme */}
-      <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-card">
-        <h2 className="font-display font-bold text-lg">{t('profile.otherTitle')}</h2>
+      <div className="card p-5 sm:p-6">
+        <h2 className="disp d-m">{t('profile.otherTitle')}</h2>
         <button
           type="button"
           onClick={() => update((p) => ({ ...p, avoidPalmOil: !p.avoidPalmOil }))}
@@ -117,11 +117,11 @@ export default function HealthProfileEditor() {
           {profile.avoidPalmOil && <span aria-hidden="true" className="me-1.5">✕</span>}
           {t('profile.palmOil')}
         </button>
-      </section>
+      </div>
 
       {/* Beauté (C23) : alertes sur les fiches cosmétiques */}
-      <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-card">
-        <h2 className="font-display font-bold text-lg">{t('profile.beautyTitle')}</h2>
+      <div className="card p-5 sm:p-6">
+        <h2 className="disp d-m">{t('profile.beautyTitle')}</h2>
         <p className="text-sm text-muted-foreground mt-1">{t('profile.beautyHint')}</p>
         <div className="flex flex-wrap gap-2 mt-4">
           {([
@@ -145,11 +145,11 @@ export default function HealthProfileEditor() {
             </button>
           ))}
         </div>
-      </section>
+      </div>
 
       {/* Additifs */}
-      <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-card">
-        <h2 className="font-display font-bold text-lg">{t('profile.additivesTitle')}</h2>
+      <div className="card p-5 sm:p-6">
+        <h2 className="disp d-m">{t('profile.additivesTitle')}</h2>
         <p className="text-sm text-muted-foreground mt-1">{t('profile.additivesHint')}</p>
         {additives.length === 0 ? (
           <p className="text-sm text-muted-foreground mt-4">…</p>
@@ -181,10 +181,10 @@ export default function HealthProfileEditor() {
             })}
           </div>
         )}
-      </section>
+      </div>
 
       {/* Récap + reset */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-card">
+      <div className="card flex flex-wrap items-center justify-between gap-3 p-4 md:col-span-2">
         <p className="text-sm">
           {isProfileEmpty(profile) ? (
             <span className="text-muted-foreground">{t('profile.empty')}</span>
@@ -199,14 +199,14 @@ export default function HealthProfileEditor() {
           <button
             type="button"
             onClick={() => update(() => EMPTY_PROFILE)}
-            className="text-sm font-semibold text-muted-foreground hover:text-destructive"
+            className="btn sm flat"
           >
             {t('profile.reset')}
           </button>
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">{t('profile.privacy')}</p>
-    </div>
+      <p className="text-xs text-muted-foreground text-center md:col-span-2">{t('profile.privacy')}</p>
+    </section>
   )
 }

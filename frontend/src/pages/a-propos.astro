@@ -6,12 +6,26 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import PageHero from '@/components/PageHero.astro'
-import { getLocale, t } from '@/lib/i18n'
+import { getLocale } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
 
 const SITE_URL = 'https://bayen.ma'
+
+// Section éditoriale : titre à gauche, texte (≤ 68ch) à droite sur ordinateur
+const ED = 'section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12'
+const LINK = 'font-semibold text-brand-ink underline underline-offset-2'
+
+// Engagements : cartes teintées (gèrent le mode sombre)
+const ENGAGEMENTS = [
+  { t: 'Gratuit pour toujours', d: "Pas d'abonnement caché, pas de freemium déguisé.", tint: 'tint-menthe' },
+  { t: 'Sans publicité', d: "L'app ne te pousse aucun produit.", tint: 'tint-citron' },
+  { t: 'Sans pression commerciale', d: 'On ne reçoit aucune compensation des marques.', tint: 'tint-framboise' },
+  { t: 'Données personnelles minimales', d: 'Pas de tracking invasif, analytics anonymisées (Umami).', tint: 'tint-myrtille' },
+  { t: 'Open source', d: "Le code est vérifiable par n'importe qui.", tint: 'tint-figue' },
+  { t: 'Souveraineté', d: "Toute l'infrastructure tourne au Maroc, sur des serveurs qu'on contrôle.", tint: 'tint-creme' },
+]
 
 // JSON-LD AboutPage + BreadcrumbList
 const jsonLd = [
@@ -41,117 +55,100 @@ const jsonLd = [
   description="Bayen est une initiative citoyenne marocaine, gratuite et open source, qui aide à comprendre ce qu'on mange. Découvre l'équipe, la méthode et nos valeurs."
   path="/a-propos"
   jsonLd={jsonLd}
+  mobileTopbar={false}
 >
-  <!-- Bannière hero -->
-  <section class="container mx-auto max-w-screen-md px-4 pt-6">
-    <PageHero
-      image="/hero/a-propos.jpg"
-      tone="framboise"
-      mascot="salut"
-      size="lg"
-      kicker="Notre mission"
-      title="Rendre clair ce qu’on mange"
-      subtitle="Bayen (بَيَّن — « c’est clair, ça se voit ») est une initiative citoyenne marocaine pour la transparence alimentaire — gratuite, open source, sans publicité."
-    />
-  </section>
+  <PageHero
+    tone="framboise"
+    mascot="salut"
+    kicker="Notre mission"
+    title="Rendre clair ce qu’on mange"
+    subtitle="Bayen (بَيَّن — « c’est clair, ça se voit ») est une initiative citoyenne marocaine pour la transparence alimentaire — gratuite, open source, sans publicité."
+  />
 
-  <!-- Bande de chiffres : aplats citron · menthe · myrtille, texte encre -->
-  <section class="container mx-auto max-w-screen-md px-4 mt-6">
-    <div class="grid grid-cols-3 gap-3 sm:gap-4">
-      {[
-        { n: '2 000+', l: 'Produits notés', c: 'citron' },
-        { n: '100%', l: 'Gratuit & sans pub', c: 'menthe' },
-        { n: 'Open', l: 'Code source public', c: 'myrtille' },
-      ].map((s) => (
-        <div class="rounded-2xl border-2 border-encre p-4 text-center text-encre shadow-[var(--shadow-card)]" style={`background: var(--color-${s.c})`}>
-          <p class="font-display text-2xl sm:text-3xl font-extrabold">{s.n}</p>
-          <p class="text-xs mt-1 opacity-85">{s.l}</p>
-        </div>
-      ))}
-    </div>
-  </section>
-
-  <main class="container mx-auto max-w-screen-md px-4 pt-8 pb-24">
-    <article class="prose-bayen space-y-8">
-
-      <section class="rounded-2xl border bg-card p-6 space-y-3">
-        <h2 class="text-xl font-bold text-foreground">Pourquoi Bayen ?</h2>
-        <p class="text-sm text-muted-foreground leading-relaxed">
+  <main class="screen pt-5 md:pt-10">
+    <section class={ED}>
+      <h2 class="disp d-m md:text-[26px]">Pourquoi Bayen ?</h2>
+      <div class="grid max-w-[68ch] gap-3 text-[15px] leading-relaxed">
+        <p>
           Au Maroc, lire une étiquette alimentaire est devenu un parcours du combattant : ingrédients en arabe, additifs sous des codes E-xxx incompréhensibles, allégations marketing trompeuses ("naturel", "allégé", "riche en…"). Pendant ce temps, l'obésité et le diabète explosent — la prévalence du diabète chez les adultes a doublé en 15 ans selon l'OMS.
         </p>
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          Bayen (بَيَّن — "c'est clair, ça se voit" en darija) a une seule mission : <strong class="text-foreground">tu scannes un code-barres, tu obtiens en 3 secondes une note objective de 0 à 100 et tu comprends ce que tu manges</strong>. Sans frais, sans abonnement, sans pub.
+        <p>
+          Bayen (بَيَّن — "c'est clair, ça se voit" en darija) a une seule mission : <strong>tu scannes un code-barres, tu obtiens en 3 secondes une note objective de 0 à 100 et tu comprends ce que tu manges</strong>. Sans frais, sans abonnement, sans pub.
         </p>
-      </section>
+      </div>
+    </section>
 
-      <section class="rounded-2xl border bg-card p-6 space-y-3">
-        <h2 class="text-xl font-bold text-foreground">Qui est derrière</h2>
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          Bayen est porté par <a href="https://www.n0.ma" class="text-brand-ink hover:underline">N0</a>, le studio créatif d'Amine Benboubker basé à Casablanca, en partenariat technique avec <a href="https://netspace.ma" class="text-brand-ink hover:underline">Netspace</a>. C'est un projet pro-bono — aucun investisseur, aucune monétisation directe, aucune donnée revendue à des tiers.
+    <section class={ED}>
+      <h2 class="disp d-m md:text-[26px]">Qui est derrière</h2>
+      <div class="grid max-w-[68ch] gap-3 text-[15px] leading-relaxed">
+        <p>
+          Bayen est porté par <a href="https://www.n0.ma" class={LINK}>N0</a>, le studio créatif d'Amine Benboubker basé à Casablanca, en partenariat technique avec <a href="https://netspace.ma" class={LINK}>Netspace</a>. C'est un projet pro-bono — aucun investisseur, aucune monétisation directe, aucune donnée revendue à des tiers.
         </p>
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          Les algorithmes de scoring, le code source et la méthodologie sont <strong class="text-foreground">100% publics sur GitHub</strong> : <a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="text-brand-ink hover:underline">github.com/Santofer/bayen</a>. Tu peux vérifier toi-même comment chaque score est calculé.
+        <p>
+          Les algorithmes de scoring, le code source et la méthodologie sont <strong>100% publics sur GitHub</strong> : <a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class={LINK}>github.com/Santofer/bayen</a>. Tu peux vérifier toi-même comment chaque score est calculé.
         </p>
-      </section>
+      </div>
+    </section>
 
-      <section class="rounded-2xl border bg-card p-6 space-y-3">
-        <h2 class="text-xl font-bold text-foreground">Sources et méthodologie</h2>
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          On ne fabrique aucune donnée nutritionnelle. Toutes les valeurs viennent de :
-        </p>
-        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
-          <li><a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer" class="text-brand-ink hover:underline">Open Food Facts</a> — la base mondiale collaborative (75% de nos produits sont auto-importés)</li>
-          <li>Contributions de la communauté marocaine (photo du tableau nutritionnel + OCR + validation)</li>
-          <li>L'algorithme <strong class="text-foreground">Nutri-Score officiel européen</strong> (Santé Publique France, 2017)</li>
-          <li>La <strong class="text-foreground">classification NOVA</strong> (Université de São Paulo, 2009) sur le degré de transformation</li>
-          <li>La liste des <strong class="text-foreground">additifs à risque selon l'EFSA</strong> (Autorité européenne) et le <strong class="text-foreground">CIRC</strong> (Centre international de recherche sur le cancer / OMS)</li>
+    <section class={ED}>
+      <h2 class="disp d-m md:text-[26px]">Sources et méthodologie</h2>
+      <div class="grid max-w-[68ch] gap-3">
+        <p class="text-[15px] leading-relaxed">On ne fabrique aucune donnée nutritionnelle. Toutes les valeurs viennent de :</p>
+        <ul class="card overflow-hidden text-[14px] leading-relaxed">
+          <li class="border-b-[1.5px] border-line px-4 py-3"><a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer" class={LINK}>Open Food Facts</a> — la base mondiale collaborative (75% de nos produits sont auto-importés)</li>
+          <li class="border-b-[1.5px] border-line px-4 py-3">Contributions de la communauté marocaine (photo du tableau nutritionnel + OCR + validation)</li>
+          <li class="border-b-[1.5px] border-line px-4 py-3">L'algorithme <strong>Nutri-Score officiel européen</strong> (Santé Publique France, 2017)</li>
+          <li class="border-b-[1.5px] border-line px-4 py-3">La <strong>classification NOVA</strong> (Université de São Paulo, 2009) sur le degré de transformation</li>
+          <li class="px-4 py-3">La liste des <strong>additifs à risque selon l'EFSA</strong> (Autorité européenne) et le <strong>CIRC</strong> (Centre international de recherche sur le cancer / OMS)</li>
         </ul>
-        <p class="text-sm text-muted-foreground leading-relaxed pt-2">
-          → <a href="/methodologie" class="text-brand-ink hover:underline font-medium">Lire la méthodologie complète du score Bayen</a>
-        </p>
-      </section>
+        <a href="/methodologie" class="btn w-max">Lire la méthodologie complète du score Bayen →</a>
+      </div>
+    </section>
 
-      <section class="rounded-2xl border bg-card p-6 space-y-3">
-        <h2 class="text-xl font-bold text-foreground">Nos engagements</h2>
-        <ul class="text-sm text-muted-foreground space-y-2">
-          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Gratuit pour toujours</strong> — pas d'abonnement caché, pas de freemium déguisé</li>
-          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans publicité</strong> — l'app ne te pousse aucun produit</li>
-          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Sans pression commerciale</strong> — on ne reçoit aucune compensation des marques</li>
-          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Données personnelles minimales</strong> — pas de tracking invasif, analytics anonymisées (Umami)</li>
-          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Open source</strong> — le code est vérifiable par n'importe qui</li>
-          <li class="flex gap-2"><span class="text-brand-ink font-bold flex-shrink-0">✓</span> <strong class="text-foreground">Souveraineté</strong> — toute l'infrastructure tourne au Maroc, sur des serveurs qu'on contrôle</li>
+    <section class="section">
+      <div class="sec-head"><h2 class="disp d-m md:text-[26px]">Nos engagements</h2></div>
+      <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-[18px]">
+        {ENGAGEMENTS.map((e) => (
+          <div class:list={['card grid content-start gap-3 p-4', e.tint]}>
+            <span class="grid size-9 place-items-center rounded-full border-2 border-encre bg-menthe text-encre" aria-hidden="true">
+              <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10" /></svg>
+            </span>
+            <p class="text-[14px] leading-relaxed"><b class="disp d-s block">{e.t}</b>{e.d}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class={ED}>
+      <h2 class="disp d-m md:text-[26px]">Limites assumées</h2>
+      <div class="grid max-w-[68ch] gap-3">
+        <div class="naanaa">
+          <img src="/mascotte/naanaa-astuce.webp" alt="" width="72" height="72" loading="lazy" />
+          <p class="bubble">On préfère être honnête sur ce que Bayen <em>ne fait pas</em> :</p>
+        </div>
+        <ul class="card overflow-hidden text-[14px] leading-relaxed">
+          <li class="border-b-[1.5px] border-line px-4 py-3"><strong>On ne remplace pas un nutritionniste.</strong> Si tu as un régime spécifique (diabète, allergie sévère, grossesse), demande un avis médical.</li>
+          <li class="border-b-[1.5px] border-line px-4 py-3"><strong>Notre base n'est pas exhaustive.</strong> ~2000 produits indexés sur des dizaines de milliers en circulation au Maroc — la base grandit avec vos scans.</li>
+          <li class="border-b-[1.5px] border-line px-4 py-3"><strong>Un Nutri-Score A ne veut pas dire "sain à volonté".</strong> C'est un indicateur, pas une caution.</li>
+          <li class="px-4 py-3"><strong>Les données peuvent dater.</strong> Les recettes industrielles changent, on dépend des mises à jour OFF et des contributions.</li>
         </ul>
-      </section>
+      </div>
+    </section>
 
-      <section class="rounded-2xl border bg-card p-6 space-y-3">
-        <h2 class="text-xl font-bold text-foreground">Limites assumées</h2>
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          On préfère être honnête sur ce que Bayen <em>ne fait pas</em> :
-        </p>
-        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
-          <li><strong class="text-foreground">On ne remplace pas un nutritionniste.</strong> Si tu as un régime spécifique (diabète, allergie sévère, grossesse), demande un avis médical.</li>
-          <li><strong class="text-foreground">Notre base n'est pas exhaustive.</strong> ~2000 produits indexés sur des dizaines de milliers en circulation au Maroc — la base grandit avec vos scans.</li>
-          <li><strong class="text-foreground">Un Nutri-Score A ne veut pas dire "sain à volonté".</strong> C'est un indicateur, pas une caution.</li>
-          <li><strong class="text-foreground">Les données peuvent dater.</strong> Les recettes industrielles changent, on dépend des mises à jour OFF et des contributions.</li>
-        </ul>
-      </section>
+    <section class={ED}>
+      <h2 class="disp d-m md:text-[26px]">Contact & contribution</h2>
+      <div class="grid max-w-[68ch] gap-3">
+        <p class="text-[15px] leading-relaxed">Bayen est un projet ouvert. Tu peux :</p>
+        <div class="grid gap-3 sm:grid-cols-3">
+          <a href="/contribuer" class="card grid content-start gap-1 p-4 text-[13.5px]"><b class="disp d-s">Ajouter un produit manquant</b>Directement depuis l'app.</a>
+          <a href="https://github.com/Santofer/bayen/issues" target="_blank" rel="noopener noreferrer" class="card grid content-start gap-1 p-4 text-[13.5px]"><b class="disp d-s">Signaler un bug</b>Ou suggérer une amélioration, sur GitHub.</a>
+          <a href="mailto:contact@n0.ma" class="card grid content-start gap-1 p-4 text-[13.5px]"><b class="disp d-s">Nous écrire</b>contact@n0.ma : partenariat, presse, ONG ou association.</a>
+        </div>
+      </div>
+    </section>
 
-      <section class="rounded-2xl border bg-card p-6 space-y-3">
-        <h2 class="text-xl font-bold text-foreground">Contact & contribution</h2>
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          Bayen est un projet ouvert. Tu peux :
-        </p>
-        <ul class="text-sm text-muted-foreground space-y-1.5 ml-4 list-disc">
-          <li><a href="/contribuer" class="text-brand-ink hover:underline">Ajouter un produit manquant</a> directement depuis l'app</li>
-          <li><a href="https://github.com/Santofer/bayen/issues" target="_blank" rel="noopener noreferrer" class="text-brand-ink hover:underline">Signaler un bug ou suggérer une amélioration</a> sur GitHub</li>
-          <li>Nous écrire à <a href="mailto:contact@n0.ma" class="text-brand-ink hover:underline">contact@n0.ma</a> pour un partenariat, un retour presse, ou un partenariat ONG/association</li>
-        </ul>
-      </section>
-
-      <footer class="text-center text-xs text-muted-foreground pt-4">
-        Dernière mise à jour : mai 2026 · Site lancé en avril 2026 · Données : Open Food Facts + contributions communauté
-      </footer>
-
-    </article>
+    <p class="section muted text-center text-xs">
+      Dernière mise à jour : mai 2026 · Site lancé en avril 2026 · Données : Open Food Facts + contributions communauté
+    </p>
   </main>
 </Layout>

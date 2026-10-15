@@ -1,20 +1,25 @@
 /**
- * Dashboard compte utilisateur complet
- * - Statistiques (points, rang, contributions, taux d'approbation)
- * - Barre de progression vers le niveau suivant
- * - Scans récents (20 derniers)
- * - Contributions avec statut
- * - Modification du profil
+ * Espace compte — maquette « Compte » :
+ * carte profil (ou carte de connexion) → bulle Naânaa → « Mes courses en <mois> »
+ * → réglages en lignes → entrées du compte → statistiques, série,
+ * contributions et scans récents (compte connecté uniquement).
+ *
+ * Fonctionne aussi sans compte : réglages, bilan de courses (historique local)
+ * et raccourcis restent utiles ; la carte de connexion remplace le profil.
  */
 
-import { useState, useEffect, useCallback } from 'react'
-import type { CSSProperties } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { Moon, Globe, User, Trophy, NotebookPen, Camera, ScanLine, ShoppingBasket, Handshake, LogOut, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getAccessToken } from '@/lib/auth'
-import { scoreFill, scoreLevel, SCORE_WORD } from '@/lib/score-colors'
+import { getAccessToken, isAuthenticated, logout } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
+import { scoreFill } from '@/lib/score-colors'
+import { getHistory, onHistoryChange, type ScanHistoryEntry } from '@/lib/scan-history'
+import { ALLERGENS, getProfile, onProfileChange, type HealthProfile } from '@/lib/health-profile'
+import { cartCount, onCartChange } from '@/lib/cart'
+import { ScoreSticker } from '@/components/ProductCard'
 import StreakWidget from '@/components/StreakWidget'
+import { LoginCard } from '@/components/AuthGuard'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -57,11 +62,25 @@ const TYPE_LABELS: Record<string, string> = {
   confirm: 'Confirmation',
 }
 
-const STATUS_BADGES: Record<string, { label: string; variant: 'safe' | 'limited' | 'avoid' }> = {
-  pending: { label: 'En attente', variant: 'limited' },
-  approved: { label: 'Approuvée', variant: 'safe' },
-  rejected: { label: 'Rejetée', variant: 'avoid' },
+const STATUS_CHIPS: Record<string, { label: string; fill: string }> = {
+  pending: { label: 'En attente', fill: 'bg-citron' },
+  approved: { label: 'Approuvée', fill: 'bg-menthe' },
+  rejected: { label: 'Rejetée', fill: 'bg-tomate' },
 }
+
+// Ligne de carte « réglages » (maquette : 14 × 16 px, filet entre les lignes)
+const ROW = 'flex w-full items-center justify-between gap-3 border-b-[1.5px] border-line px-4 py-3.5 text-start last:border-b-0 hover:bg-muted/60'
+
+function RowLabel({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <span className="flex min-w-0 items-center gap-2.5">
+      {icon}
+      <span className="truncate">{children}</span>
+    </span>
+  )
+}
+
+const ICON = { size: 22, className: 'flex-none', 'aria-hidden': true } as const
 
 async function fetchWithAuth(url: string) {
   const token = await getAccessToken()
@@ -72,16 +91,98 @@ async function fetchWithAuth(url: string) {
   return res.json()
 }
 
+const mean = (xs: number[]): number => Math.round(xs.reduce((s, x) => s + x, 0) / xs.length)
+
+interface MonthStats {
+  avg: number
+  count: number
+  /** Score moyen par semaine du mois (1-7, 8-14, 15-21, 22-fin) ; null = aucun scan */
+  weeks: Array<number | null>
+  /** Produits du mois sous 50 (médiocre ou mauvais) */
+  toReplace: number
+  /** Écart avec le mois précédent ; null s'il n'y a rien à comparer */
+  delta: number | null
+}
+
+/**
+ * Bilan des courses du mois à partir de l'historique local (une entrée par
+ * produit, datée de sa dernière consultation). Aucune donnée inventée : null
+ * si aucun produit noté n'a été scanné ce mois-ci.
+ */
+function monthStats(entries: ScanHistoryEntry[], now: Date): MonthStats | null {
+  const cur: number[] = []
+  const prev: number[] = []
+  const weeks: number[][] = [[], [], [], []]
+  const before = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  for (const e of entries) {
+    if (e.scan_score == null) continue
+    const d = new Date(e.at)
+    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) {
+      cur.push(e.scan_score)
+      weeks[Math.min(3, Math.floor((d.getDate() - 1) / 7))].push(e.scan_score)
+    } else if (d.getFullYear() === before.getFullYear() && d.getMonth() === before.getMonth()) {
+      prev.push(e.scan_score)
+    }
+  }
+  if (cur.length === 0) return null
+  const avg = mean(cur)
+  return {
+    avg,
+    count: cur.length,
+    weeks: weeks.map((w) => (w.length ? mean(w) : null)),
+    toReplace: cur.filter((s) => s < 50).length,
+    delta: prev.length ? avg - mean(prev) : null,
+  }
+}
+
+/** Résumé du profil santé pour la ligne de réglages (« Sans gluten, lait +2 ») */
+function profileSummary(p: HealthProfile | null): string {
+  if (!p) return ''
+  const named = [
+    ...p.allergens.map((k) => ALLERGENS.find((a) => a.key === k)?.label ?? k),
+    ...(p.avoidPalmOil ? ['huile de palme'] : []),
+  ]
+  const others = p.avoidAdditives.length + (p.avoidEndocrine ? 1 : 0) + (p.avoidFragranceAllergens ? 1 : 0)
+  if (named.length === 0) return others ? `${others} alerte${others > 1 ? 's' : ''}` : 'À compléter'
+  const extra = Math.max(0, named.length - 2) + others
+  return `Sans ${named.slice(0, 2).join(', ').toLowerCase()}${extra ? ` +${extra}` : ''}`
+}
+
+const plural = (n: number, word: string): string => `${n} ${word}${n > 1 ? 's' : ''}`
+
 export default function AccountDashboard() {
+  const { t, locale, setLocale } = useLocale()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [scans, setScans] = useState<Scan[]>([])
   const [editing, setEditing] = useState(false)
   const [displayName, setDisplayName] = useState('')
   const [loading, setLoading] = useState(true)
+  // Données locales (appareil) : historique de scans, profil santé, liste, thème
+  const [history, setHistory] = useState<ScanHistoryEntry[]>([])
+  const [profile, setProfile] = useState<HealthProfile | null>(null)
+  const [cartN, setCartN] = useState(0)
+  const [dark, setDark] = useState(false)
+
+  useEffect(() => {
+    const sync = (): void => {
+      setHistory(getHistory())
+      setProfile(getProfile())
+      setCartN(cartCount())
+    }
+    sync()
+    // Le script du Layout a déjà posé la classe selon bayen_theme / le système
+    setDark(document.documentElement.classList.contains('dark'))
+    const offs = [onHistoryChange(sync), onProfileChange(sync), onCartChange(sync)]
+    return () => offs.forEach((off) => off())
+  }, [])
 
   useEffect(() => {
     async function load() {
+      if (!isAuthenticated()) {
+        setLoading(false)
+        return
+      }
       try {
         const userData = await fetchWithAuth(`${DIRECTUS_URL}/users/me`)
         const u = userData.data
@@ -93,7 +194,7 @@ export default function AccountDashboard() {
             isAdmin = roleData.data?.name === 'Administrator'
           } catch { /* pas critique */ }
         }
-        const profile: UserProfile = {
+        const p: UserProfile = {
           id: u.id,
           email: u.email,
           display_name: u.display_name ?? u.first_name ?? null,
@@ -102,20 +203,20 @@ export default function AccountDashboard() {
           rank: u.rank ?? 'nouveau',
           isAdmin,
         }
-        setUser(profile)
-        setDisplayName(profile.display_name ?? '')
+        setUser(p)
+        setDisplayName(p.display_name ?? '')
 
         const contribData = await fetchWithAuth(
-          `${DIRECTUS_URL}/items/contributions?filter[user_id][_eq]=${userData.data.id}&sort=-date_created&limit=20&fields=id,type,status,date_created,product_id.name_fr,product_id.barcode`
+          `${DIRECTUS_URL}/items/contributions?filter[user_id][_eq]=${u.id}&sort=-date_created&limit=20&fields=id,type,status,date_created,product_id.name_fr,product_id.barcode`
         )
         setContributions(contribData.data ?? [])
 
         const scanData = await fetchWithAuth(
-          `${DIRECTUS_URL}/items/scans?filter[user_id][_eq]=${userData.data.id}&sort=-date_created&limit=20&fields=id,date_created,product_id.name_fr,product_id.barcode,product_id.scan_score`
+          `${DIRECTUS_URL}/items/scans?filter[user_id][_eq]=${u.id}&sort=-date_created&limit=20&fields=id,date_created,product_id.name_fr,product_id.barcode,product_id.scan_score`
         )
         setScans(scanData.data ?? [])
       } catch {
-        // Erreur silencieuse
+        // Session expirée ou réseau : la carte de connexion s'affiche
       } finally {
         setLoading(false)
       }
@@ -140,269 +241,322 @@ export default function AccountDashboard() {
     } catch { /* erreur silencieuse */ }
   }, [user, displayName])
 
+  // Même logique que ThemeToggle : classe .dark sur <html> + bayen_theme
+  function toggleDark(): void {
+    const next = !dark
+    setDark(next)
+    localStorage.setItem('bayen_theme', next ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', next)
+  }
+
+  // Même logique que LocaleToggle : cookie + localStorage bayen_locale, puis rechargement
+  function toggleLocale(): void {
+    setLocale(locale === 'fr' ? 'ary' : 'fr')
+    window.location.reload()
+  }
+
+  async function handleLogout(): Promise<void> {
+    await logout()
+    window.location.href = '/'
+  }
+
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <section className="section">
+        <div className="flex justify-center py-12">
+          <span className="size-8 animate-spin rounded-full border-4 border-menthe border-t-transparent" aria-hidden="true" />
+        </div>
+      </section>
     )
   }
 
-  if (!user) {
-    return <p className="text-muted-foreground text-center py-12">Impossible de charger le profil.</p>
-  }
+  const now = new Date()
+  const month = now.toLocaleDateString('fr-FR', { month: 'long' })
+  const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString('fr-FR', { month: 'long' })
+  const courses = monthStats(history, now)
 
-  const rank = RANK_INFO[user.rank] ?? RANK_INFO.nouveau
-  const progress = rank.next
-    ? Math.min(100, ((user.points - rank.min) / (rank.next - rank.min)) * 100)
+  const rank = user ? RANK_INFO[user.rank] ?? RANK_INFO.nouveau : RANK_INFO.nouveau
+  const nextLabel = Object.values(RANK_INFO).find((r) => r.min === rank.next)?.label ?? 'le niveau suivant'
+  const progress = user && rank.next
+    ? Math.max(0, Math.min(100, ((user.points - rank.min) / (rank.next - rank.min)) * 100))
     : 100
 
   const approvedCount = contributions.filter((c) => c.status === 'approved').length
-  const approvalRate = contributions.length > 0
-    ? Math.round((approvedCount / contributions.length) * 100)
-    : 0
+  const approvalRate = contributions.length > 0 ? Math.round((approvedCount / contributions.length) * 100) : 0
 
   return (
-    <div className="space-y-6">
-      {/* En-tête profil : avatar aplat + rang + progression (maquette Compte) */}
-      <div className="rounded-2xl border bg-card p-4 flex items-center gap-4">
-        <div
-          className={cn(
-            'w-16 h-16 rounded-full border-2 border-encre flex items-center justify-center text-encre font-display text-2xl font-extrabold flex-shrink-0',
-            rank.fill,
-          )}
-        >
-          {(user.display_name ?? user.email)[0].toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0 space-y-1.5">
-          {editing ? (
-            <div className="flex gap-2">
-              <input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="flex-1 min-w-0 h-9 rounded-full border-2 border-line bg-background px-3 text-sm"
-                autoFocus
-              />
-              <Button size="sm" onClick={handleSaveProfile}>Enregistrer</Button>
-              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Annuler</Button>
+    <>
+      {/* Profil + Naânaa | bilan de courses (côte à côte sur ordinateur) */}
+      <div className="section gap-5 md:grid-cols-2 md:items-start md:gap-8">
+        <div className="grid gap-5">
+          {user ? (
+            <div className="card grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3.5 p-4">
+              <span className="grid size-16 place-items-center rounded-full border-2 border-encre bg-figue font-display text-[26px] font-extrabold text-encre" aria-hidden="true">
+                {(user.display_name || user.email || '?')[0].toUpperCase()}
+              </span>
+              <div className="grid min-w-0 gap-1.5">
+                {editing ? (
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      aria-label={t('auth.displayName')}
+                      className="h-9 min-w-0 flex-1 rounded-full border-2 border-line bg-background px-3 text-sm"
+                      autoFocus
+                    />
+                    <button type="button" className="btn sm primary" onClick={handleSaveProfile}>Enregistrer</button>
+                    <button type="button" className="btn sm flat" onClick={() => setEditing(false)}>Annuler</button>
+                  </div>
+                ) : (
+                  <div className="flex min-w-0 items-center gap-1">
+                    <p className="disp d-s truncate">{user.display_name || user.email}</p>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(true)}
+                      aria-label="Modifier le nom"
+                      className="grid size-7 flex-none place-items-center rounded-full text-muted-foreground hover:bg-muted"
+                    >
+                      <Pencil size={14} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-wrap items-center gap-2 text-[13px]">
+                  {user.isAdmin && <span className="chip fill bg-tomate">Admin</span>}
+                  <span className={cn('chip fill', rank.fill)}><Trophy aria-hidden="true" /> {rank.label}</span>
+                  <b className="num">{user.points} pts</b>
+                </div>
+                <div className="h-2.5 overflow-hidden rounded-[9px] border-[1.5px] border-line bg-muted">
+                  <i className="block h-full bg-menthe transition-[width] duration-500" style={{ width: `${progress}%` }} />
+                </div>
+                <p className="muted text-[11.5px]">
+                  {rank.next ? `${Math.max(0, rank.next - user.points)} pts avant « ${nextLabel} »` : 'Rang le plus haut atteint'}
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="flex items-center gap-1">
-              <h2 className="text-lg font-bold truncate">{user.display_name ?? user.email}</h2>
-              <Button size="sm" variant="ghost" onClick={() => setEditing(true)} aria-label="Modifier le nom">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838.838-2.872a2 2 0 0 1 .506-.855z"/></svg>
-              </Button>
-            </div>
+            <LoginCard redirectPath="/compte" />
           )}
-          <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {user.isAdmin && (
-              <span className="pop-chip bg-tomate text-encre border-encre">Admin</span>
-            )}
-            <span className={cn('pop-chip text-encre border-encre', rank.fill)}>{rank.label}</span>
-            <b className="font-display text-sm">{user.points} pts</b>
-          </div>
-          {/* Barre de progression vers le prochain niveau */}
-          {rank.next && (
-            <>
-              <div className="h-2.5 rounded-full border-[1.5px] border-line bg-muted overflow-hidden">
-                <div
-                  className="h-full bg-menthe transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Encore {rank.next - user.points} points pour atteindre{' '}
-                {RANK_INFO[Object.keys(RANK_INFO).find((k) => RANK_INFO[k].min === rank.next) ?? '']?.label ?? 'le niveau suivant'}
+
+          {/* Naânaa applaudit les points gagnés */}
+          {user && user.points > 0 && (
+            <div className="naanaa">
+              <div className="m"><img src="/mascotte/naanaa-bravo.webp" alt="Naânaa qui applaudit" /></div>
+              <p className="bubble">
+                <b>{user.points} pts !</b> Merci pour tes contributions, elles rendent chaque étiquette plus claire.
               </p>
-            </>
+            </div>
+          )}
+        </div>
+
+        {/* Mes courses du mois : historique de scans de l'appareil, jamais de chiffres inventés */}
+        <section className="grid gap-3">
+          <div className="sec-head"><h2 className="disp d-m">Mes courses en {month}</h2></div>
+          <div className="card grid gap-3.5 p-4">
+            {courses ? (
+              <>
+                <div className="flex items-center gap-3.5">
+                  <ScoreSticker score={courses.avg} />
+                  <p className="text-sm">
+                    Score moyen de tes {plural(courses.count, 'produit')} {courses.count > 1 ? 'scannés' : 'scanné'}
+                    {courses.delta != null && (
+                      <> : <b>{courses.delta >= 0 ? '+' : '−'}{plural(Math.abs(courses.delta), 'point')}</b> depuis {prevMonth}</>
+                    )}.
+                  </p>
+                </div>
+                <div className="grid h-[110px] grid-cols-4 items-end gap-2.5 border-b-2 border-line px-1.5">
+                  {courses.weeks.map((w, i) => (
+                    <div key={i} className="grid justify-items-center gap-1">
+                      <b className={cn('num text-xs', w == null && 'muted')}>{w ?? '–'}</b>
+                      {w != null && (
+                        <i
+                          className="block w-full rounded-t-lg border-2 border-b-0 border-line"
+                          style={{ height: `${Math.max(8, Math.round(w * 0.85))}px`, background: scoreFill(w) }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="muted grid grid-cols-4 text-center text-[11.5px]">
+                  {[1, 2, 3, 4].map((n) => <span key={n}>sem. {n}</span>)}
+                </div>
+                <a href="/mes-scans" className="text-[13.5px] font-bold">
+                  {courses.toReplace > 0
+                    ? `${plural(courses.toReplace, 'produit')} à remplacer en priorité →`
+                    : 'Voir mes scans →'}
+                </a>
+              </>
+            ) : (
+              <>
+                <div className="naanaa">
+                  <div className="m"><img src="/mascotte/naanaa-scan.webp" alt="" /></div>
+                  <p className="bubble">Aucun produit scanné en {month} pour l'instant. Ton bilan de courses s'affichera ici.</p>
+                </div>
+                <a href="/scan" className="btn sm primary w-max">
+                  <ScanLine aria-hidden="true" /> {t('points.actionScan')}
+                </a>
+              </>
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* Réglages | entrées du compte */}
+      <div className="section gap-5 md:grid-cols-2 md:items-start md:gap-8">
+        <div className="card grid overflow-hidden">
+          <button type="button" role="switch" aria-checked={dark} onClick={toggleDark} className={ROW}>
+            <RowLabel icon={<Moon {...ICON} />}>Mode sombre</RowLabel>
+            <span aria-hidden="true" className={cn('relative h-7 w-12 flex-none rounded-full border-2 border-line', dark ? 'bg-menthe' : 'bg-muted')}>
+              <i className={cn('absolute top-0.5 size-5 rounded-full bg-encre transition-all', dark ? 'end-0.5' : 'start-0.5')} />
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className={ROW}
+            aria-label={locale === 'fr' ? 'Langue : passer en darija' : 'Langue : passer en français'}
+          >
+            <RowLabel icon={<Globe {...ICON} />}>Langue</RowLabel>
+            <span className="font-semibold">
+              <span className={cn(locale !== 'fr' && 'muted font-normal')}>Français</span>
+              {' · '}
+              <span lang="ar" className={cn(locale !== 'ary' && 'muted font-normal')}>العربية</span>
+            </span>
+          </button>
+          <a href="/profil" className={ROW}>
+            <RowLabel icon={<User {...ICON} />}>{t('nav.profile')}</RowLabel>
+            <span className="muted min-w-0 truncate">{profileSummary(profile)}</span>
+          </a>
+        </div>
+
+        <div className="card grid overflow-hidden">
+          <a href="/compte/points" className={ROW}>
+            <RowLabel icon={<Trophy {...ICON} />}>{t('points.title')}</RowLabel>
+            <span className="muted num">{user ? `${user.points} pts` : 'Barème'}</span>
+          </a>
+          <a href="/compte/journal" className={ROW}>
+            <RowLabel icon={<NotebookPen {...ICON} />}>{t('nav.journal')}</RowLabel>
+          </a>
+          <a href="/analyser-repas" className={ROW}>
+            <RowLabel icon={<Camera {...ICON} />}>Analyser un repas</RowLabel>
+          </a>
+          <a href="/mes-scans" className={ROW}>
+            <RowLabel icon={<ScanLine {...ICON} />}>{t('nav.history')}</RowLabel>
+            <span className="muted num">{history.length}</span>
+          </a>
+          <a href="/panier" className={ROW}>
+            <RowLabel icon={<ShoppingBasket {...ICON} />}>{t('nav.cart')}</RowLabel>
+            <span className="muted num">{cartN}</span>
+          </a>
+          {user?.isAdmin && (
+            <a href="/compte/partenariats" className={ROW}>
+              <RowLabel icon={<Handshake {...ICON} />}>Demandes de partenariat</RowLabel>
+              <span className="muted">Équipe</span>
+            </a>
+          )}
+          {user && (
+            <button type="button" onClick={() => void handleLogout()} className={cn(ROW, 'text-destructive')}>
+              <RowLabel icon={<LogOut {...ICON} />}>{t('nav.logout')}</RowLabel>
+              <span className="muted min-w-0 truncate text-sm">{user.email}</span>
+            </button>
           )}
         </div>
       </div>
 
-      {/* Naânaa applaudit les points gagnés */}
-      {user.points > 0 && (
-        <div className="naanaa">
-          <img src="/mascotte/naanaa-bravo.webp" alt="" width="72" height="106" className="naanaa-bob" />
-          <p className="bubble">
-            <b>{user.points} pts !</b> Merci pour tes contributions, elles rendent chaque étiquette plus claire.
-          </p>
-        </div>
+      {user && (
+        <>
+          {/* Statistiques */}
+          <section className="section">
+            <div className="sec-head"><h2 className="disp d-m">{t('account.stats')}</h2></div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {([
+                [user.points, t('account.points')],
+                [user.contributions_count, 'Contributions'],
+                [scans.length, 'Scans récents'],
+                [`${approvalRate} %`, "Taux d'approbation"],
+              ] as Array<[number | string, string]>).map(([value, label]) => (
+                <div key={label} className="card p-4 text-center">
+                  <p className="disp d-m num">{value}</p>
+                  <p className="muted mt-1 text-xs">{label}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Série de scans quotidiens (masquée si aucun scan) */}
+          <StreakWidget />
+
+          {/* Contributions | scans récents */}
+          <div className="section gap-5 md:grid-cols-2 md:items-start md:gap-8">
+            <section className="grid gap-3">
+              <div className="sec-head">
+                <h2 className="disp d-m">{t('account.contributions')}</h2>
+                <a href="/compte/points">{t('history.seeAll')}</a>
+              </div>
+              <div className="card grid overflow-hidden">
+                {contributions.length === 0 ? (
+                  <p className="muted p-4 text-sm">{t('points.noActivity')}</p>
+                ) : (
+                  contributions.map((c) => {
+                    const name = typeof c.product_id === 'object' ? c.product_id.name_fr : c.product_id
+                    const barcode = typeof c.product_id === 'object' ? c.product_id.barcode : ''
+                    const status = STATUS_CHIPS[c.status] ?? STATUS_CHIPS.pending
+                    return (
+                      <div key={c.id} className={ROW}>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold">
+                            {barcode ? <a href={`/produit/${barcode}`} className="hover:underline">{name}</a> : name}
+                          </span>
+                          <span className="muted block text-xs">
+                            {TYPE_LABELS[c.type] ?? c.type} — {new Date(c.date_created).toLocaleDateString('fr-FR')}
+                          </span>
+                        </span>
+                        <span className={cn('chip fill', status.fill)}>{status.label}</span>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </section>
+
+            <section className="grid gap-3">
+              <div className="sec-head">
+                <h2 className="disp d-m">{t('account.recentScans')}</h2>
+                <a href="/mes-scans">{t('history.seeAll')}</a>
+              </div>
+              {scans.length === 0 ? (
+                <div className="card p-4">
+                  <div className="naanaa">
+                    <div className="m"><img src="/mascotte/naanaa-scan.webp" alt="" /></div>
+                    <p className="bubble">
+                      Aucun scan pour le moment.{' '}
+                      <a href="/scan" className="font-bold underline underline-offset-2">Scanner un produit</a>
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="card grid overflow-hidden">
+                  {scans.map((s) => {
+                    const p = typeof s.product_id === 'object' ? s.product_id : null
+                    return (
+                      <div key={s.id} className={ROW}>
+                        <span className="min-w-0">
+                          {p?.barcode ? (
+                            <a href={`/produit/${p.barcode}`} className="block truncate text-sm font-semibold hover:underline">{p.name_fr}</a>
+                          ) : (
+                            <span className="block truncate text-sm font-semibold">{p?.name_fr ?? '—'}</span>
+                          )}
+                          <span className="muted block text-xs">{new Date(s.date_created).toLocaleDateString('fr-FR')}</span>
+                        </span>
+                        {p?.scan_score != null && <ScoreSticker score={p.scan_score} size="sm" />}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
+        </>
       )}
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-2xl border bg-card p-4 text-center">
-          <p className="font-display text-2xl font-extrabold text-brand-ink">{user.points}</p>
-          <p className="text-xs text-muted-foreground">Points</p>
-        </div>
-        <div className="rounded-2xl border bg-card p-4 text-center">
-          <p className="font-display text-2xl font-extrabold text-foreground">{user.contributions_count}</p>
-          <p className="text-xs text-muted-foreground">Contributions</p>
-        </div>
-        <div className="rounded-2xl border bg-card p-4 text-center">
-          <p className="font-display text-2xl font-extrabold text-foreground">{scans.length}</p>
-          <p className="text-xs text-muted-foreground">Scans récents</p>
-        </div>
-        <div className="rounded-2xl border bg-card p-4 text-center">
-          <p className="font-display text-2xl font-extrabold text-foreground">{approvalRate}%</p>
-          <p className="text-xs text-muted-foreground">Taux d'approbation</p>
-        </div>
-      </div>
-
-      {/* Série de scans quotidiens (streak) — masqué si aucun scan */}
-      <StreakWidget />
-
-      {/* Raccourcis vers les features connectées */}
-      <div className="grid sm:grid-cols-2 gap-3">
-        <a
-          href="/analyser-repas"
-          className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
-        >
-          <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Analyser un repas</p>
-            <p className="text-xs text-muted-foreground">Photo → description + calories</p>
-          </div>
-        </a>
-        <a
-          href="/compte/journal"
-          className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
-        >
-          <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Mon journal</p>
-            <p className="text-xs text-muted-foreground">Historique des analyses de repas</p>
-          </div>
-        </a>
-        <a
-          href="/compte/points"
-          className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
-        >
-          <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-              <path d="M4 22h16" />
-              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Mes contributions</p>
-            <p className="text-xs text-muted-foreground">Points, rang et barème</p>
-          </div>
-        </a>
-        {user.isAdmin && (
-          <a
-            href="/compte/partenariats"
-            className="group card-lift flex items-center gap-3 rounded-2xl border bg-card p-4"
-          >
-            <div className="w-10 h-10 rounded-xl tint-menthe border-[1.5px] border-line flex items-center justify-center flex-shrink-0 text-foreground">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m11 17 2 2a1 1 0 1 0 3-3" />
-                <path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4" />
-                <path d="m21 3 1 11h-2" />
-                <path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3" />
-                <path d="M3 4h8" />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground group-hover:text-brand-ink transition-colors">Demandes de partenariat</p>
-              <p className="text-xs text-muted-foreground">Réservé à l'équipe — marques et producteurs</p>
-            </div>
-          </a>
-        )}
-      </div>
-
-      {/* Contributions */}
-      <div className="rounded-2xl border bg-card p-4">
-        <h3 className="text-sm font-semibold mb-3">Mes contributions</h3>
-        {contributions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aucune contribution pour le moment.</p>
-        ) : (
-          <div className="space-y-2">
-            {contributions.map((c) => {
-              const productName = typeof c.product_id === 'object' ? c.product_id.name_fr : c.product_id
-              const productBarcode = typeof c.product_id === 'object' ? c.product_id.barcode : ''
-              const status = STATUS_BADGES[c.status] ?? STATUS_BADGES.pending
-              return (
-                <div key={c.id} className="flex items-center gap-3 py-2 border-b last:border-0">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {productBarcode ? (
-                        <a href={`/produit/${productBarcode}`} className="hover:text-brand-ink">{productName}</a>
-                      ) : productName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {TYPE_LABELS[c.type] ?? c.type} — {new Date(c.date_created).toLocaleDateString('fr-FR')}
-                    </p>
-                  </div>
-                  <Badge variant={status.variant}>{status.label}</Badge>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Scans récents */}
-      <div className="rounded-2xl border bg-card p-4">
-        <h3 className="text-sm font-semibold mb-3">Mes scans récents</h3>
-        {scans.length === 0 ? (
-          <div className="naanaa">
-            <img src="/mascotte/naanaa-scan.webp" alt="" width="64" height="94" />
-            <p className="bubble">
-              Aucun scan pour le moment.{' '}
-              <a href="/scan" className="font-bold underline underline-offset-2">Scanner un produit</a>
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {scans.map((s) => {
-              const productName = typeof s.product_id === 'object' ? s.product_id.name_fr : '—'
-              const productBarcode = typeof s.product_id === 'object' ? s.product_id.barcode : ''
-              const productScore = typeof s.product_id === 'object' ? s.product_id.scan_score : null
-              return (
-                <div key={s.id} className="flex items-center gap-3 py-2 border-b last:border-0">
-                  <div className="flex-1 min-w-0">
-                    {productBarcode ? (
-                      <a href={`/produit/${productBarcode}`} className="text-sm font-medium hover:text-brand-ink truncate block">{productName}</a>
-                    ) : (
-                      <p className="text-sm font-medium truncate">{productName}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground">{new Date(s.date_created).toLocaleDateString('fr-FR')}</p>
-                  </div>
-                  {productScore != null && (
-                    <span
-                      className="score-sticker sm"
-                      style={{ '--c': scoreFill(productScore) } as CSSProperties}
-                      role="img"
-                      aria-label={`Score ${productScore}/100 — ${SCORE_WORD[scoreLevel(productScore) ?? 'mauvais']}`}
-                    >
-                      <b>{productScore}</b>
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    </div>
+    </>
   )
 }

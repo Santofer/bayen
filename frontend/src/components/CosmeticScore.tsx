@@ -39,6 +39,8 @@ interface Props {
   hasInciText: boolean
   barcode: string
   className?: string
+  /** La pastille est déjà affichée dans l'en-tête de la fiche : ne pas la répéter */
+  hideBadge?: boolean
 }
 
 /**
@@ -70,6 +72,11 @@ const FILL_CHIP = 'pop-chip border-encre! text-encre!'
 type LevelKey = 'beauty.risk.banned' | 'beauty.risk.high' | 'beauty.risk.moderate' | 'beauty.risk.low' | 'beauty.risk.none' | 'beauty.risk.unknown'
 type TypeKey = 'beauty.type.endocrine' | 'beauty.type.cmr' | 'beauty.type.allergen' | 'beauty.type.irritant' | 'beauty.type.environment' | 'beauty.type.restricted'
 
+/** Aplat de la pastille beauté : couleur du niveau de risque qui plafonne le score */
+export function cosmeticFill(risk: CosmeticRiskSummary | null): string {
+  return LEVEL_FILL[risk?.cap_reason?.risk_level ?? 'none'] ?? SCORE_FILL.excellent
+}
+
 export function levelKey(level: string): LevelKey {
   return (['banned', 'high', 'moderate', 'low', 'none'].includes(level) ? `beauty.risk.${level}` : 'beauty.risk.unknown') as LevelKey
 }
@@ -99,7 +106,7 @@ function Ring({ score, label, fill }: { score: number; label: string; fill: stri
   )
 }
 
-export default function CosmeticScore({ risk, ingredients, hasInciText, barcode, className }: Props) {
+export default function CosmeticScore({ risk, ingredients, hasInciText, barcode, className, hideBadge = false }: Props) {
   const { t } = useLocale()
   const [profile, setProfile] = useState<HealthProfile | null>(null)
   useEffect(() => {
@@ -127,7 +134,7 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
   }
 
   const capLevel = risk.cap_reason?.risk_level ?? 'none'
-  const fill = LEVEL_FILL[capLevel] ?? SCORE_FILL.excellent
+  const fill = cosmeticFill(risk)
   const ink = LEVEL_INK[capLevel] ?? LEVEL_INK.none
   const scoreLabelKeys: Record<string, 'score.excellent' | 'score.bon' | 'score.mediocre' | 'score.mauvais'> = {
     excellent: 'score.excellent', bon: 'score.bon', 'médiocre': 'score.mediocre', mauvais: 'score.mauvais',
@@ -153,7 +160,7 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-2">
         <span className={`${FILL_CHIP} bg-beauty!`}>{t('beauty.badge')}</span>
         {risk.incomplete && (
           <span className={`${FILL_CHIP} bg-citron!`}>{t('score.incomplete')}</span>
@@ -161,8 +168,8 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
         {risk.rinse_off && <span className="pop-chip">{t('beauty.rinseOff')}</span>}
       </div>
 
-      <div className="flex flex-col md:grid md:grid-cols-[auto_1fr] md:items-center gap-6 md:gap-8">
-        <Ring score={risk.total} label={label} fill={fill} />
+      <div className={hideBadge ? 'flex flex-col gap-6' : 'flex flex-col md:grid md:grid-cols-[auto_1fr] md:items-center gap-6 md:gap-8'}>
+        {!hideBadge && <Ring score={risk.total} label={label} fill={fill} />}
         <div className="space-y-3">
           <p className="font-display text-base font-bold" style={{ color: ink }}>
             {capKey ? t(capKey) : t('beauty.clean')}

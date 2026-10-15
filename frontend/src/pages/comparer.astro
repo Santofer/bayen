@@ -14,12 +14,15 @@ const locale = getLocale(localeCookie)
   title={`${t('cmp.pageTitle', locale)} — Bayen`}
   description="Compare deux produits alimentaires côte à côte : score, Nutri-Score, additifs, et un verdict clair sur lequel choisir."
   path="/comparer"
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-md px-4 pt-6 pb-24">
-    <PageHero image="/hero/comparer.jpg" tone="myrtille" mascot="loupe" kicker={t('nav.compare', locale)} title={t('cmp.pageTitle', locale)} subtitle={t('cmp.pageSubtitle', locale)} class="mb-8">
-      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
-    </PageHero>
+  <PageHero tone="myrtille" mascot="loupe" kicker={t('nav.compare', locale)} title={t('cmp.pageTitle', locale)} subtitle={t('cmp.pageSubtitle', locale)}>
+    <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+  </PageHero>
 
-    <Comparator client:load />
+  <main class="screen pt-5 md:pt-10">
+    <section class="section">
+      <Comparator client:load />
+    </section>
   </main>
 </Layout>

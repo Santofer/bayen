@@ -1,22 +1,28 @@
 ---
 /**
- * Hero de page « Marché Pop » : aplat de couleur, titre encre, visuel encadré
- * à droite (dessous sur mobile) et Naânaa en option.
+ * Bandeau de page « Marché Pop » (maquettes Beauté / Protéines) : aplat de
+ * couleur pleine largeur, barre du haut (retour + puce), titre encre, texte
+ * et actions en slot. Se pose HORS du conteneur de la page, juste sous l'en-tête,
+ * avec `mobileTopbar={false}` sur le Layout (le bandeau porte sa propre barre).
  */
+import { getLocale, t } from '@/lib/i18n'
+
 type Tone = 'primary' | 'citron' | 'tomate' | 'myrtille' | 'figue' | 'framboise' | 'beauty' | 'protein' | 'ai'
 type Pose = 'salut' | 'astuce' | 'bravo' | 'loupe' | 'oups' | 'nuit' | 'scan' | 'courses'
 interface Props {
-  image: string
   title: string
   subtitle?: string
+  /** Texte de la puce à droite du bouton retour (« Univers beauté ») */
   kicker?: string
   tone?: Tone
-  /** Pose de la mascotte Naânaa posée sur le hero (aucune par défaut) */
+  /** Cible du bouton retour (accueil par défaut) ; false = pas de bouton */
+  back?: string | false
+  /** Naânaa posée sur le bandeau, ordinateur uniquement */
   mascot?: Pose
-  size?: 'md' | 'lg'
   class?: string
 }
-const { image, title, subtitle, kicker, tone = 'primary', mascot, size = 'md', class: cls } = Astro.props
+const { title, subtitle, kicker, tone = 'primary', back = '/', mascot, class: cls } = Astro.props
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 const BG: Record<Tone, string> = {
   primary: 'var(--color-menthe)',
   citron: 'var(--color-citron)',
@@ -24,18 +30,28 @@ const BG: Record<Tone, string> = {
   myrtille: 'var(--color-myrtille)',
   figue: 'var(--color-figue)',
   framboise: 'var(--color-framboise)',
-  beauty: 'var(--color-framboise)',
-  protein: 'var(--color-myrtille)',
-  ai: 'var(--color-figue)',
+  beauty: 'var(--color-beauty)',
+  protein: 'var(--color-protein)',
+  ai: 'var(--color-ai)',
 }
 ---
-<section class:list={['page-hero', size === 'lg' && 'lg', cls]} style={`--hero-bg: ${BG[tone]}`}>
-  <img src={image} alt="" width="1280" height="720" fetchpriority="high" />
-  <div class="inner">
-    {kicker && <span class="kicker"><slot name="icon" />{kicker}</span>}
-    <h1>{title}</h1>
-    {subtitle && <p>{subtitle}</p>}
-    <slot />
+<section class:list={['band on-fill relative overflow-hidden', cls]} style={`--band: ${BG[tone]}`}>
+  <div class="in relative">
+    <header class="topbar">
+      {back !== false ? (
+        <a class="icon-btn" href={back} aria-label={t('nav.back', locale)}>
+          <svg class="rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+        </a>
+      ) : <span />}
+      {kicker && <span class="chip"><slot name="icon" />{kicker}</span>}
+    </header>
+    <div class="grid gap-2.5 px-[18px] md:max-w-[62%] md:px-0">
+      <h1 class="disp d-xl md:text-[clamp(40px,4.4vw,60px)]">{title}</h1>
+      {subtitle && <p class="text-[15px] md:text-lg">{subtitle}</p>}
+    </div>
+    {Astro.slots.has('default') && <div class="px-[18px] md:px-0"><slot /></div>}
+    {mascot && (
+      <img class="naanaa-bob absolute bottom-0 end-8 hidden h-[200px] w-auto md:block" src={`/mascotte/naanaa-${mascot}.webp`} alt="" width="136" height="200" loading="lazy" />
+    )}
   </div>
-  {mascot && <img class="mascot naanaa-bob" src={`/mascotte/naanaa-${mascot}.webp`} alt="" width="92" height="135" loading="lazy" />}
 </section>

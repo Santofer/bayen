@@ -67,28 +67,28 @@ export function ScoreSticker({ score, word, size, value, fill, className }: {
 }) {
   const level = scoreLevel(score)
   const label = word ?? (level ? SCORE_WORD[level] : '')
+  const shown = value ?? score ?? '?'
   return (
     <span
-      className={cn('score-sticker', size, level == null && 'none', className)}
+      // w3 : « 100 » ne tient pas dans le rond à la taille d'un nombre à 2 chiffres
+      className={cn('score-sticker', size, level == null && 'none', String(shown).length > 2 && 'w3', className)}
       style={level ? ({ '--c': fill ?? scoreFill(score) } as CSSProperties) : undefined}
       role="img"
       aria-label={score == null ? 'Score inconnu' : `Score ${score} sur 100${label ? `, ${label}` : ''}`}
     >
       {/* Enveloppe : chiffre et mot restent groupés au centre du rond */}
       <span aria-hidden="true">
-        <b>{value ?? score ?? '?'}</b>
+        <b>{shown}</b>
         {label && <i>{label}</i>}
       </span>
     </span>
   )
 }
 
-// Puce compacte de carte (maquette .pcard : 22 px). `!` car .pop-chip est une règle
-// globale hors calque Tailwind : sans lui, les utilitaires ne la surchargent pas.
-// Ne pas passer ces chaînes dans cn() : tailwind-merge 2 ne comprend pas le `!` final.
-const CHIP = 'pop-chip h-[22px]! px-2! text-[11px]!'
-// Puce posée sur un aplat de couleur : texte et contour encre dans les deux thèmes
-const CHIP_FILL = `${CHIP} border-encre! text-encre!`
+// Puce compacte de carte (maquette .pcard : 22 px)
+const CHIP = 'chip h-[22px] px-2 text-[11px]'
+// Puce posée sur un aplat de couleur : texte encre dans les deux thèmes
+const CHIP_FILL = `${CHIP} fill`
 
 /** Puce cosmétique : aplat de risque (token) + texte encre */
 interface Chip { text: string; fill: string }
@@ -100,11 +100,11 @@ interface Chip { text: string; fill: string }
 function cosmeticBadge(product: Product): Chip | null {
   if (product.product_type !== 'cosmetic') return null
   const risk = product.cosmetic_risk
-  if (!risk || risk.total == null) return { text: 'LISTE INCI MANQUANTE', fill: 'bg-muted!' }
+  if (!risk || risk.total == null) return { text: 'LISTE INCI MANQUANTE', fill: 'bg-muted' }
   const cap = risk.cap_reason?.risk_level
-  if (!cap) return { text: 'SANS RISQUE CONNU', fill: 'bg-score-excellent!' }
+  if (!cap) return { text: 'SANS RISQUE CONNU', fill: 'bg-score-excellent' }
   const n = (risk.counts.banned ?? 0) + (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0) + (risk.counts.low ?? 0)
-  const fill = cap === 'banned' || cap === 'high' ? 'bg-score-mauvais!' : cap === 'moderate' ? 'bg-score-mediocre!' : 'bg-score-bon!'
+  const fill = cap === 'banned' || cap === 'high' ? 'bg-score-mauvais' : cap === 'moderate' ? 'bg-score-mediocre' : 'bg-score-bon'
   const word = cap === 'banned' ? 'INTERDIT' : n > 1 ? `${n} À SURVEILLER` : '1 À SURVEILLER'
   return { text: word, fill }
 }
@@ -115,7 +115,7 @@ function ProductChips({ product, badge }: { product: Product; badge?: { text: st
   const grade = product.nutriscore_grade?.toLowerCase()
   const additives = product.additives?.length ?? 0
   return (
-    <span className="mt-2 flex flex-wrap gap-1">
+    <span className="chips mt-1.5">
       {badge ? (
         // Badge imposé par la page (protéines) : sa couleur devient une pastille, le texte reste lisible
         <span className={CHIP}>
@@ -142,11 +142,19 @@ function ProductChips({ product, badge }: { product: Product; badge?: { text: st
   )
 }
 
+// Pictogramme affiché sous la photo (visible si elle manque ou échoue à charger)
+const PHOTO_PH = (
+  <svg className="ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+    <circle cx="9" cy="9" r="2" />
+    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+  </svg>
+)
+
 export default function ProductCard({ product, className, variant = 'row', badge }: ProductCardProps) {
   // image_front peut être une URL externe (héritage OFF) ou un UUID Directus.
-  // Pour les UUID : thumbnail transformé côté Directus (160×160 WebP ≈ 7 Ko
-  // au lieu du fichier original parfois > 500 Ko).
-  const thumbSize = variant === 'grid' ? 320 : 160
+  // Pour les UUID : vignette transformée côté Directus (WebP recadré).
+  const thumbSize = variant === 'grid' ? 480 : 160
   const imgSrc = product.image_front
     ? (product.image_front.startsWith('http')
         ? product.image_front
@@ -156,93 +164,49 @@ export default function ProductCard({ product, className, variant = 'row', badge
   const isBeauty = product.product_type === 'cosmetic'
   // Beauté : vignette framboise (univers distinct) ; alimentaire : teinte stable par code-barres
   const tint = isBeauty ? 'tint-framboise' : productTint(product.barcode)
+  const quantity = (product as { quantity?: string }).quantity
+  const meta = [product.brand, quantity].filter(Boolean).join(' · ')
 
-  // Variante grille — carte verticale Marché Pop (recherche, catégories)
+  // Variante grille — carte de la maquette « Desktop » (les mieux notés) :
+  // grande vignette, pastille à cheval sur son bord bas, nom, marque · contenance
   if (variant === 'grid') {
     const risk = product.cosmetic_risk
     const flagged = risk ? (risk.counts.banned ?? 0) + (risk.counts.high ?? 0) + (risk.counts.moderate ?? 0) + (risk.counts.low ?? 0) : 0
     return (
-      <a href={`/produit/${product.barcode}`} className={cn('pcard-v2', isBeauty && 'pcard-beauty', className)}>
-        <div className="pi">
-          {/* Vignette de couleur sous la photo ; en clair, le fond blanc des
-              photos se fond dans la teinte (multiply) */}
-          <div className={cn('absolute inset-0 grid place-items-center', tint)}>
-            {imgSrc && (
-              <img
-                src={imgSrc}
-                alt={product.name_fr}
-                loading="lazy"
-                className="object-contain! p-[9%] mix-blend-multiply dark:mix-blend-normal"
-              />
-            )}
-          </div>
-          {isBeauty && (
-            <span className="uni" aria-label="Cosmétique">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9.9 15.5a2 2 0 0 0-1.4-1.4L2.4 12.5a.5.5 0 0 1 0-1L8.5 9.9a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0z"/></svg>
-            </span>
-          )}
-          {/* Pastille inclinée chiffre + mot, dans le coin de la vignette */}
+      <a href={`/produit/${product.barcode}`} className={cn('card relative grid content-start gap-3 p-3.5', className)}>
+        <div className={cn('tile aspect-square', tint)}>
+          {PHOTO_PH}
+          {imgSrc && <img src={imgSrc} alt={product.name_fr} loading="lazy" />}
+        </div>
+        <div className="relative min-w-0 pe-16">
           {product.scan_score != null && (
-            <span className="absolute end-2 top-2 z-[2]">
+            <span className="absolute -top-9 end-0">
               <ScoreSticker score={product.scan_score} />
             </span>
           )}
+          <p className="line-clamp-2 font-bold leading-tight">{product.name_fr}</p>
+          {meta && <p className="muted mt-1 truncate text-[13px]">{meta}</p>}
+          {isBeauty && risk && risk.token_count > 0 && (
+            <p className="muted mt-0.5 text-xs">{risk.token_count} ingrédients · {flagged} à surveiller</p>
+          )}
+          <ProductChips product={product} badge={badge} />
         </div>
-        <b>{product.name_fr}</b>
-        {/* Marque · contenance — la contenance distingue les variantes d'un
-            même produit (5 « Nutella / Ferrero » = 5 formats différents) */}
-        {(product.brand || (product as { quantity?: string }).quantity) && (
-          <span className="br">
-            {[product.brand, (product as { quantity?: string }).quantity]
-              .filter(Boolean)
-              .join(' · ')}
-          </span>
-        )}
-        {isBeauty && risk && risk.token_count > 0 && (
-          <span className="meta">{risk.token_count} ingrédients · {flagged} à surveiller</span>
-        )}
-        <ProductChips product={product} badge={badge} />
       </a>
     )
   }
 
-  // Variante liste — maquette A « Marché Pop » : vignette | nom + puces | pastille
+  // Variante liste — carte .pcard de la maquette « Accueil » : vignette | nom + puces | pastille
   return (
-    <a
-      href={`/produit/${product.barcode}`}
-      className={cn(
-        'card-lift group grid grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border bg-card py-2.5 ps-2.5 pe-3',
-        className
-      )}
-    >
-      {/* Vignette colorée + placeholder (visible si l'image échoue à charger) */}
-      <div className={cn('relative grid size-[76px] place-items-center overflow-hidden rounded-[14px] border-2 border-line', tint)}>
-        <svg className="absolute text-foreground/30" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-          <circle cx="9" cy="9" r="2" />
-          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-        </svg>
-        {imgSrc && (
-          <img
-            src={imgSrc}
-            alt={product.name_fr}
-            className="relative size-[86%] object-contain mix-blend-multiply dark:mix-blend-normal"
-            loading="lazy"
-          />
-        )}
+    <a href={`/produit/${product.barcode}`} className={cn('card pcard', className)}>
+      <div className={cn('tile', tint)}>
+        {PHOTO_PH}
+        {imgSrc && <img src={imgSrc} alt={product.name_fr} loading="lazy" />}
       </div>
-
-      {/* Infos */}
       <div className="min-w-0">
-        <h3 className="line-clamp-2 text-[14.5px] font-bold leading-tight text-foreground transition-colors group-hover:text-brand-ink">
-          {product.name_fr}
-        </h3>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {product.brand}
-        </p>
+        <p className="pn">{product.name_fr}</p>
+        {meta && <p className="pm">{meta}</p>}
         <ProductChips product={product} badge={badge} />
       </div>
-
       {product.scan_score != null ? <ScoreSticker score={product.scan_score} /> : <span />}
     </a>
   )

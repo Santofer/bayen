@@ -17,13 +17,16 @@ const barcode = Astro.url.searchParams.get('barcode') ?? ''
   title={`${t('contribute.title', locale)} — Bayen`}
   description={t('contribute.subtitle', locale)}
   path="/contribuer"
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <PageHero image="/hero/contribuer.jpg" tone="citron" mascot="bravo" kicker={t('nav.contribute', locale)} title={t('contribute.title', locale)} subtitle={t('contribute.subtitle', locale)} class="mb-8">
-      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    </PageHero>
-    <div class="max-w-lg mx-auto">
+  <PageHero tone="citron" mascot="bravo" kicker={t('nav.contribute', locale)} title={t('contribute.title', locale)} subtitle={t('contribute.subtitle', locale)}>
+    <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  </PageHero>
+
+  <main class="screen pt-5 md:pt-10">
+    <!-- Assistant : un formulaire reste une colonne de lecture, centrée sur ordinateur -->
+    <section class="section w-full md:mx-auto md:max-w-[640px]">
       <ContributeWizard initialBarcode={barcode} client:load />
-    </div>
+    </section>
   </main>
 </Layout>

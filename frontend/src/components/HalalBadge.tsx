@@ -11,7 +11,6 @@ import { useEffect, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader } from '@/lib/auth'
-import halalLogo from '@/assets/halal-logo.svg?raw'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -72,45 +71,41 @@ export default function HalalBadge({ barcode, isHalal, source, confirmations }: 
     }
   }
 
+  // Rendu DANS la rangée de puces de la fiche (maquette FichePop) : la puce Halal
+  // en tête, et la provenance + la confirmation sur une ligne à part, renvoyée en
+  // fin de rangée (`order-last basis-full`) pour ne pas couper les autres puces.
   return (
-    <div className="mt-3 border-t pt-3">
-      <div className="flex items-center gap-2">
+    <>
       <span
-        // Puce Marché Pop sur vignette menthe (gère le sombre), texte et logo à la couleur du texte
-        className="pop-chip tint-menthe"
+        // Aplat menthe clair de la maquette, gardé clair en sombre : texte et logo encre
+        className="chip fill bg-[#BFF0DC]"
         aria-label={t('halal.badge')}
       >
-        <span
-          className="block h-5 w-5 flex-shrink-0"
-          // Logo halal officiel recoloré : ses aplats utilisent currentColor
-          // et prennent donc la couleur du texte (encre en clair, crème en sombre).
-          dangerouslySetInnerHTML={{ __html: halalLogo }}
-        />
-        <span className="text-xs font-extrabold">{t('halal.badge')}</span>
+        {/* Coche de la maquette FichePop ; le logo halal est sur la pastille de la photo */}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
+        {t('halal.badge')}
       </span>
 
-      <button
-        type="button"
-        onClick={confirm}
-        disabled={busy || done}
-        className="ms-auto inline-flex min-h-[44px] flex-shrink-0 items-center px-3 -me-3 text-xs font-bold text-brand-ink disabled:text-muted-foreground"
-      >
-        {done ? t('halal.confirmed') : t('halal.confirm')}
-      </button>
-      </div>
-
-      <span className="mt-1 flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
-        <ShieldCheck size={13} className="mt-0.5 flex-shrink-0" />
+      <span className="order-last flex basis-full flex-wrap items-center gap-x-1.5 text-xs leading-relaxed text-muted-foreground">
+        <ShieldCheck size={13} className="flex-none" />
         <span>
-        {sourceLabel}
-        {count > 0 && (
-          <>
-            {' — '}
-            {t('halal.confirmedBy')} {count} {count > 1 ? t('halal.people') : t('halal.person')}
-          </>
-        )}
+          {sourceLabel}
+          {count > 0 && (
+            <>
+              {' — '}
+              {t('halal.confirmedBy')} {count} {count > 1 ? t('halal.people') : t('halal.person')}
+            </>
+          )}
         </span>
+        <button
+          type="button"
+          onClick={confirm}
+          disabled={busy || done}
+          className="-my-3 inline-flex min-h-[44px] items-center px-1 font-bold text-brand-ink disabled:text-muted-foreground"
+        >
+          {done ? t('halal.confirmed') : t('halal.confirm')}
+        </button>
       </span>
-    </div>
+    </>
   )
 }

@@ -55,23 +55,25 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
   if (recos.length === 0) return null
 
   return (
-    <section className="rounded-2xl border bg-card p-5 print:hidden">
-      <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
-        <Sparkles className="h-4 w-4 text-brand-ink" />
-        {t('cart.recoTitle')}
-      </h3>
-      {/* -mx-5/px-5 : le fondu du mask + les ombres vivent dans le padding, rien n'est rogné */}
-      <div className="rail-x flex gap-3 overflow-x-auto -mx-5 px-5 pt-2 pb-6 -mb-3">
+    <section className="section print:hidden">
+      <div className="sec-head">
+        <h2 className="disp d-m flex items-center gap-2">
+          <Sparkles className="size-5 flex-none text-brand-ink" aria-hidden="true" />
+          {t('cart.recoTitle')}
+        </h2>
+      </div>
+      {/* Rail défilant sur mobile, grille sur ordinateur */}
+      <div className="scroller -mx-[18px] md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible lg:grid-cols-6">
         {recos.map((r) => {
           const src = r.image_front
-            ? (r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=160&height=160&fit=cover&format=webp`)
+            ? (r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=320&height=320&fit=cover&format=webp`)
             : null
           return (
-            <div key={r.barcode} className="card-lift w-[150px] flex-shrink-0 rounded-2xl border bg-card p-2.5">
-              <a href={`/produit/${r.barcode}`} className="block">
-                <div className="relative mb-2.5">
-                  <div className={cn('grid aspect-square place-items-center overflow-hidden rounded-xl border-2 border-line', productTint(r.barcode))}>
-                    {src && <img src={src} alt={r.name_fr} className="size-[86%] object-contain mix-blend-multiply dark:mix-blend-normal" loading="lazy" />}
+            <div key={r.barcode} className="card grid w-[160px] content-start gap-2.5 p-2.5 md:w-auto">
+              <a href={`/produit/${r.barcode}`} className="grid gap-2.5">
+                <div className="relative">
+                  <div className={cn('tile aspect-square', productTint(r.barcode))}>
+                    {src && <img src={src} alt={r.name_fr} loading="lazy" />}
                   </div>
                   {r.scan_score != null && (
                     <span className="absolute -bottom-2 end-0">
@@ -79,7 +81,7 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
                     </span>
                   )}
                 </div>
-                <p className="mb-1.5 line-clamp-2 pe-9 text-xs font-bold leading-tight">{r.name_fr}</p>
+                <p className="line-clamp-2 pe-9 text-xs font-bold leading-tight">{r.name_fr}</p>
               </a>
               <AddToCartButton item={r} compact />
             </div>

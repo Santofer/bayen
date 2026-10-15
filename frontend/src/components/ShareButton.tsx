@@ -15,10 +15,12 @@ interface ShareButtonProps {
   score: number | null
   barcode: string
   className?: string
+  /** 'icon' = bouton rond de la barre du haut (maquette FichePop) */
+  variant?: 'button' | 'icon'
 }
 
-export default function ShareButton({ productName, brand, score, barcode, className }: ShareButtonProps) {
-  const { t, locale } = useLocale()
+export default function ShareButton({ productName, brand, score, barcode, className, variant = 'button' }: ShareButtonProps) {
+  const { t } = useLocale()
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -87,28 +89,27 @@ export default function ShareButton({ productName, brand, score, barcode, classN
     setOpen(false)
   }
 
-  const isRtl = locale === 'ary'
-
   return (
     <div className={cn('relative', className)} ref={dropdownRef}>
-      {/* Bouton Marché Pop par défaut : aplat menthe, texte et contour encre */}
-      <Button onClick={handleShare} className="gap-2" size="sm">
-        <Share2 size={16} />
-        {t('share.title')}
-      </Button>
+      {variant === 'icon' ? (
+        <button type="button" className="icon-btn" onClick={handleShare} aria-label={t('share.title')} aria-expanded={open}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>
+        </button>
+      ) : (
+        // Bouton Marché Pop par défaut : aplat menthe, texte et contour encre
+        <Button onClick={handleShare} className="gap-2" size="sm">
+          <Share2 size={16} />
+          {t('share.title')}
+        </Button>
+      )}
 
       {/* Dropdown fallback */}
       {open && (
-        <div
-          className={cn(
-            'absolute top-full mt-2 z-50 min-w-[190px] rounded-2xl border bg-card p-1.5',
-            isRtl ? 'left-0' : 'right-0'
-          )}
-        >
+        <div className="absolute end-0 top-full z-50 mt-2 min-w-[190px] rounded-2xl border bg-card p-1.5">
           {/* Fermer */}
           <button
             onClick={() => setOpen(false)}
-            className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-foreground"
+            className="absolute top-1.5 end-1.5 text-muted-foreground hover:text-foreground"
             aria-label={t('common.close')}
           >
             <X size={14} />

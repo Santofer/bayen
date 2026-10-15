@@ -1,7 +1,10 @@
 /**
- * Scanner de code-barres — capture canvas + polyfill BarcodeDetector
+ * Scanner de code-barres — vue caméra de la maquette « Scan » (plein écran
+ * sombre sur mobile, carte sur ordinateur) : coins de visée menthe, ligne de
+ * scan animée, puce « Vise le code-barres », fermer, lampe (si l'appareil l'a),
+ * saisie manuelle.
  *
- * Stratégie :
+ * Stratégie de détection :
  * 1. Android Chrome : BarcodeDetector API natif (le plus rapide)
  * 2. Autres navigateurs (iOS Safari) : polyfill barcode-detector (ZXing WASM)
  *    avec capture manuelle des frames via canvas (contourne les limitations iOS)
@@ -12,19 +15,22 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Check, Camera, Keyboard, ScanBarcode } from 'lucide-react'
+import { Camera, Keyboard } from 'lucide-react'
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void
   onError?: (error: string) => void
+  /** Met la détection en pause (feuille de résultat ouverte) sans couper la caméra */
   disabled?: boolean
   className?: string
 }
 
 // Formats EAN/UPC supportés — couvre 99% des produits au Maroc
 const BARCODE_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'] as const
+
+// Même code vu en continu : ignoré tant qu'il ne quitte pas le cadre ~3 s
+const SAME_CODE_MS = 3000
 
 function isValidBarcode(code: string): boolean {
   return /^\d{8,13}$/.test(code)
@@ -35,42 +41,58 @@ function hasNativeBarcodeDetector(): boolean {
   return typeof globalThis !== 'undefined' && 'BarcodeDetector' in globalThis
 }
 
+// Lampe torche : contrainte MediaStream non standard (Chrome Android), absente des types DOM
+type TorchCapabilities = MediaTrackCapabilities & { torch?: boolean }
+
 export default function BarcodeScanner({ onScan, onError, disabled = false, className }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const scanningRef = useRef(false)
-  const lastScannedRef = useRef<string | null>(null)
+  const lastRef = useRef<{ code: string; at: number } | null>(null)
+  const pausedRef = useRef(disabled)
+  // Rappels en ref : un nouveau rappel du parent ne redémarre pas la caméra
+  const onScanRef = useRef(onScan)
+  const onErrorRef = useRef(onError)
+  onScanRef.current = onScan
+  onErrorRef.current = onError
 
   const [cameraActive, setCameraActive] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [manualInput, setManualInput] = useState('')
   const [showManual, setShowManual] = useState(false)
-  const [lastScanned, setLastScanned] = useState<string | null>(null)
   const [starting, setStarting] = useState(true)
+  const [torchAvailable, setTorchAvailable] = useState(false)
+  const [torchOn, setTorchOn] = useState(false)
 
   const vibrate = useCallback(() => {
     if ('vibrate' in navigator) navigator.vibrate(100)
   }, [])
 
+  // Reprise après la feuille de résultat : le produit encore dans le cadre ne repart pas
+  useEffect(() => {
+    pausedRef.current = disabled
+    if (!disabled && lastRef.current) lastRef.current.at = Date.now()
+  }, [disabled])
+
   const handleDetection = useCallback(
     (barcode: string) => {
-      if (barcode === lastScannedRef.current) return
-      if (!isValidBarcode(barcode)) return
-      lastScannedRef.current = barcode
-      setLastScanned(barcode)
+      if (pausedRef.current || !isValidBarcode(barcode)) return
+      const now = Date.now()
+      const last = lastRef.current
+      if (last && last.code === barcode && now - last.at < SAME_CODE_MS) {
+        last.at = now
+        return
+      }
+      lastRef.current = { code: barcode, at: now }
       vibrate()
-      onScan(barcode)
-      setTimeout(() => {
-        lastScannedRef.current = null
-        setLastScanned(null)
-      }, 3000)
+      onScanRef.current(barcode)
     },
-    [onScan, vibrate]
+    [vibrate]
   )
 
   useEffect(() => {
-    if (disabled || showManual) return
+    if (showManual) return
 
     let mounted = true
     scanningRef.current = true
@@ -110,6 +132,11 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
         setCameraError(null)
         setStarting(false)
 
+        // Lampe : bouton affiché seulement si la piste vidéo la propose
+        const track = stream.getVideoTracks()[0]
+        const caps = track?.getCapabilities?.() as TorchCapabilities | undefined
+        setTorchAvailable(caps?.torch === true)
+
         // 2. Créer le détecteur
         // Android Chrome : API natif (pas besoin de canvas)
         // iOS Safari : polyfill WASM + canvas obligatoire
@@ -118,7 +145,6 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
         let detector: InstanceType<typeof globalThis.BarcodeDetector>
 
         if (useNative) {
-          // @ts-expect-error — BarcodeDetector natif Android
           detector = new globalThis.BarcodeDetector({ formats: [...BARCODE_FORMATS] })
         } else {
           // Charger le polyfill dynamiquement (lazy — WASM chargé ici)
@@ -131,12 +157,12 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
           canvasRef.current = document.createElement('canvas')
         }
 
-        // 4. Boucle de détection
+        // 4. Boucle de détection (en pause pendant que la feuille de résultat est ouverte)
         const scanInterval = useNative ? 150 : 250 // WASM est plus lent, espacer davantage
 
         while (mounted && scanningRef.current) {
-          if (video.readyState < 2) {
-            await new Promise(r => setTimeout(r, 100))
+          if (pausedRef.current || video.readyState < 2) {
+            await new Promise(r => setTimeout(r, 120))
             continue
           }
 
@@ -183,7 +209,7 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
               : `Erreur caméra : ${err instanceof Error ? err.message : 'inconnue'}`
         setCameraError(message)
         setCameraActive(false)
-        onError?.(message)
+        onErrorRef.current?.(message)
       }
     }
 
@@ -200,8 +226,23 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
       const video = videoRef.current
       if (video) video.srcObject = null
       setCameraActive(false)
+      setTorchAvailable(false)
+      setTorchOn(false)
     }
-  }, [disabled, showManual, handleDetection, onError])
+  }, [showManual, handleDetection])
+
+  const toggleTorch = async () => {
+    const track = streamRef.current?.getVideoTracks()[0]
+    if (!track) return
+    const next = !torchOn
+    const torch: MediaTrackConstraintSet & { torch: boolean } = { torch: next }
+    try {
+      await track.applyConstraints({ advanced: [torch] })
+      setTorchOn(next)
+    } catch {
+      setTorchAvailable(false)
+    }
+  }
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -214,100 +255,102 @@ export default function BarcodeScanner({ onScan, onError, disabled = false, clas
   }
 
   return (
-    <div className={cn('flex flex-col items-center gap-4', className)}>
-      {!showManual && (
-        <div className="relative w-full max-w-sm aspect-[3/4] rounded-[28px] overflow-hidden border-2 border-line bg-encre shadow-[var(--shadow-lift)]">
-          {/* Flux vidéo caméra */}
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            playsInline
-            autoPlay
-            muted
-          />
+    <div
+      className={cn(
+        'relative h-[100svh] min-h-[560px] overflow-hidden bg-[#120C1F] text-creme',
+        'md:h-auto md:min-h-0 md:aspect-[4/3] md:rounded-[28px] md:border-2 md:border-line md:shadow-[4px_4px_0_var(--color-hard)]',
+        className
+      )}
+    >
+      {/* Flux vidéo caméra (reste monté : la saisie manuelle le masque seulement) */}
+      <video ref={videoRef} className={cn('absolute inset-0 size-full object-cover', showManual && 'hidden')} playsInline autoPlay muted />
 
-          {/* Overlay scan */}
-          {cameraActive && (
-            <div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
-              style={{ background: 'radial-gradient(ellipse 150px 95px at 50% 50%, transparent 98%, color-mix(in srgb, var(--color-encre) 62%, transparent) 100%)' }}
-            >
-              {/* Cadre de visée menthe : équerres arrondies (maquette Scan) */}
-              <div className="relative w-64 h-36">
-                <div className="absolute top-0 left-0 w-12 h-10 border-t-4 border-l-4 border-menthe rounded-tl-[22px]" />
-                <div className="absolute top-0 right-0 w-12 h-10 border-t-4 border-r-4 border-menthe rounded-tr-[22px]" />
-                <div className="absolute bottom-0 left-0 w-12 h-10 border-b-4 border-l-4 border-menthe rounded-bl-[22px]" />
-                <div className="absolute bottom-0 right-0 w-12 h-10 border-b-4 border-r-4 border-menthe rounded-br-[22px]" />
-                {/* Faisceau de balayage menthe */}
-                <div
-                  className="absolute left-4 right-4 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-menthe animate-pulse"
-                  style={{ boxShadow: '0 0 18px var(--color-menthe)' }}
-                />
-              </div>
-            </div>
-          )}
+      {/* Visée : voile sombre autour, coins menthe, ligne de scan animée */}
+      {cameraActive && !showManual && (
+        <>
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_0_150px,rgb(18_12_31/.72)_151px)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[40%] h-[200px] w-[280px] -translate-x-1/2 -translate-y-1/2">
+            <div className="absolute inset-0 rounded-[28px] border-4 border-menthe opacity-95 [clip-path:polygon(0_0,22%_0,22%_100%,78%_100%,78%_0,100%_0,100%_100%,0_100%)]" />
+            <div className="animate-scan absolute inset-x-[18px] h-[3px] rounded-[3px] bg-menthe shadow-[0_0_18px_var(--color-menthe)]" />
+          </div>
+          <div className="absolute inset-x-4 top-[calc(40%+118px)] z-10 grid justify-items-center gap-3 text-center">
+            <p className="text-[13px] opacity-80">Scan en rafale : enchaîne les produits, on garde la liste.</p>
+            <button type="button" className="btn sm" onClick={() => setShowManual(true)}>
+              <Keyboard aria-hidden="true" />
+              Saisir manuellement
+            </button>
+          </div>
+        </>
+      )}
 
-          {/* Badge succès */}
-          {lastScanned && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-menthe text-encre border-2 border-encre px-4 py-2 rounded-full font-display text-sm font-bold shadow-[var(--shadow-card)] z-20">
-              <Check size={14} className="text-current inline-block me-1" />{lastScanned}
-            </div>
-          )}
-
-          {/* Erreur caméra */}
-          {cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-encre/90 p-6 text-center z-20">
-              <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="106" className="mb-3 h-auto w-[72px]" />
-              <p className="text-creme text-sm mb-4">{cameraError}</p>
-              <Button variant="secondary" size="sm" onClick={() => setShowManual(true)}>
-                Saisir manuellement
-              </Button>
-            </div>
-          )}
-
-          {/* Loading */}
-          {starting && !cameraError && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-encre z-20">
-              <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" className="naanaa-bob mb-3 h-auto w-[72px]" />
-              <p className="text-creme/70 text-xs">Activation de la caméra...</p>
-            </div>
-          )}
-
-          {/* Instruction */}
-          {cameraActive && !lastScanned && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 whitespace-nowrap bg-creme/15 text-creme border-[1.5px] border-creme/40 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold z-20 flex items-center gap-1.5">
-              <ScanBarcode size={14} />
-              Placez le code-barres dans le cadre
-            </div>
-          )}
+      {/* Activation de la caméra */}
+      {starting && !cameraError && !showManual && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#120C1F]">
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" className="naanaa-bob mb-3 h-auto w-[72px]" />
+          <p className="text-xs opacity-70">Activation de la caméra...</p>
         </div>
       )}
 
-      {showManual && (
-        <form onSubmit={handleManualSubmit} className="w-full max-w-sm flex flex-col gap-3">
-          <label className="text-sm font-medium text-foreground">Code-barres</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={13}
-              placeholder="6111080016394"
-              value={manualInput}
-              onChange={(e) => setManualInput(e.target.value.replace(/\D/g, ''))}
-              className="flex-1 min-w-0 h-11 rounded-full border-2 border-line bg-card px-4 py-2 font-display text-sm tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              autoFocus
-            />
-            <Button type="submit" disabled={!isValidBarcode(manualInput.trim())}>Chercher</Button>
-          </div>
-        </form>
+      {/* Erreur caméra (permission refusée, pas de caméra…) */}
+      {cameraError && !showManual && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-encre/90 p-6 text-center">
+          <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="106" className="h-auto w-[72px]" />
+          <p className="max-w-xs text-sm">{cameraError}</p>
+          <button type="button" className="btn sm" onClick={() => setShowManual(true)}>
+            <Keyboard aria-hidden="true" />
+            Saisir manuellement
+          </button>
+        </div>
       )}
 
-      <Button variant="ghost" size="sm" onClick={() => setShowManual(!showManual)} className="text-muted-foreground">
-        {showManual
-          ? <><Camera size={14} className="text-current inline-block me-1" />Utiliser la caméra</>
-          : <><Keyboard size={14} className="text-current inline-block me-1" />Saisir manuellement</>}
-      </Button>
+      {/* Saisie manuelle du code */}
+      {showManual && (
+        <div className="absolute inset-0 z-20 grid place-items-center p-5">
+          <form onSubmit={handleManualSubmit} className="card grid w-full max-w-sm gap-3 p-5">
+            <label htmlFor="manual-barcode" className="disp d-s">Code-barres</label>
+            <div className="flex gap-2">
+              <input
+                id="manual-barcode"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={13}
+                placeholder="6111080016394"
+                value={manualInput}
+                onChange={(e) => setManualInput(e.target.value.replace(/\D/g, ''))}
+                className="h-11 min-w-0 flex-1 rounded-full border-2 border-line bg-background px-4 py-2 font-display text-sm tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                autoFocus
+              />
+              <button type="submit" className="btn primary min-h-11" disabled={!isValidBarcode(manualInput.trim())}>Chercher</button>
+            </div>
+            <button type="button" className="btn sm flat justify-self-start" onClick={() => { setShowManual(false); setStarting(true) }}>
+              <Camera aria-hidden="true" />
+              Utiliser la caméra
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Barre du haut : fermer · consigne · lampe */}
+      <div className="absolute inset-x-4 top-3.5 z-30 flex items-center justify-between gap-2">
+        <a className="icon-btn md:invisible" href="/" aria-label="Fermer le scanner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </a>
+        <span className="chip border-creme/40 bg-creme/15 text-creme">Vise le code-barres</span>
+        {torchAvailable ? (
+          <button
+            type="button"
+            className={cn('icon-btn', torchOn && 'bg-citron text-encre')}
+            aria-label={torchOn ? 'Éteindre la lampe' : 'Allumer la lampe'}
+            aria-pressed={torchOn}
+            onClick={toggleTorch}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z" /></svg>
+          </button>
+        ) : (
+          <span className="size-11" aria-hidden="true" />
+        )}
+      </div>
     </div>
   )
 }

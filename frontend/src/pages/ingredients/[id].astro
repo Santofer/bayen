@@ -1,7 +1,9 @@
 ---
 export const prerender = false
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import ProductCard from '@/components/ProductCard.tsx'
+import type { Product } from '@/lib/types'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -19,7 +21,7 @@ interface Ingredient {
 }
 
 let ingredient: Ingredient | null = null
-let products: Record<string, unknown>[] = []
+let products: Product[] = []
 
 try {
   // Récupérer l'ingrédient
@@ -43,7 +45,7 @@ try {
       products = (piData.data ?? [])
         .filter((pi: Record<string, unknown>) => pi.products_id && (pi.products_id as Record<string, unknown>).status === 'published')
         .map((pi: Record<string, unknown>) => ({
-          ...(pi.products_id as Record<string, unknown>),
+          ...(pi.products_id as Product),
           _percent: pi.percent,
         }))
     }
@@ -68,8 +70,6 @@ const categoryLabels: Record<string, string> = {
   autre: 'Autre',
 }
 
-// SVG inline pour l'icône d'avertissement allergène (Lucide AlertTriangle)
-const alertSvg = '<svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
 ---
 
 <Layout
@@ -77,83 +77,83 @@ const alertSvg = '<svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="n
   description={`Tout savoir sur l'ingrédient ${name} : présence dans les produits marocains, allergènes, alternatives.`}
   path={`/ingredients/${id ?? ''}`}
   noindex={!ingredient}
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    {!ingredient ? (
-      <div class="text-center py-12">
-        <img src="/mascotte/naanaa-oups.webp" alt="" width="100" height="148" class="mx-auto mb-3" />
-        <p class="text-muted-foreground">Ingrédient non trouvé.</p>
-        <a href="/ingredients" class="text-brand-ink hover:underline text-sm mt-2 inline-block">← Retour à la base</a>
-      </div>
-    ) : (
-      <div class="space-y-6">
-        {/* En-tête */}
-        <div class="flex items-start gap-4">
-          <div class="tint-citron w-16 h-16 rounded-xl border-2 border-line flex items-center justify-center flex-shrink-0">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-foreground"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/></svg>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold">{ingredient.name_fr}</h1>
-            {ingredient.name_ar && (
-              <p class="text-lg text-muted-foreground" dir="rtl">{ingredient.name_ar}</p>
-            )}
-            <div class="flex flex-wrap gap-2 mt-2">
-              <span class="text-xs px-2 py-0.5 rounded-full bg-muted text-foreground font-medium">
-                {categoryLabels[ingredient.category] ?? ingredient.category}
-              </span>
-              {ingredient.is_allergen && (
-                <span class="text-xs px-2 py-0.5 rounded-full border-[1.5px] border-encre bg-tomate text-encre font-semibold">
-                  <svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Allergène{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
-                </span>
-              )}
-            </div>
-          </div>
+  <PageHero
+    tone="citron"
+    mascot="loupe"
+    back="/ingredients"
+    kicker={t('nav.ingredients', locale)}
+    title={ingredient ? ingredient.name_fr : 'Ingrédient non trouvé'}
+  >
+    <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
+    {ingredient && (
+      <div class="grid gap-2.5">
+        {ingredient.name_ar && <p class="text-lg font-semibold" dir="rtl" lang="ar">{ingredient.name_ar}</p>}
+        <div class="chips">
+          <span class="chip">{categoryLabels[ingredient.category] ?? ingredient.category}</span>
+          {ingredient.is_allergen && (
+            <span class="chip fill border-encre! bg-tomate!">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              Allergène{ingredient.allergen_type ? ` (${ingredient.allergen_type})` : ''}
+            </span>
+          )}
         </div>
+      </div>
+    )}
+  </PageHero>
 
-        {/* Info allergène */}
+  <main class="screen pt-5 md:pt-10">
+    {!ingredient ? (
+      <section class="section">
+        <div class="naanaa">
+          <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="72" />
+          <p class="bubble">Ingrédient non trouvé.</p>
+        </div>
+        <a href="/ingredients" class="btn w-max">← Retour à la base</a>
+      </section>
+    ) : (
+      <>
+        {/* Point clé : allergène majeur */}
         {ingredient.is_allergen && (
-          <div class="tint-tomate rounded-xl border-2 border-line p-4">
-            <p class="text-sm text-foreground">
-              <strong>⚠️ Allergène majeur</strong> — Cet ingrédient fait partie des 14 allergènes à déclaration obligatoire selon la réglementation européenne et marocaine (ONSSA).
-              {ingredient.allergen_type === 'gluten' && ' Le gluten est une protéine présente dans le blé, l\'orge, le seigle et l\'avoine.'}
-              {ingredient.allergen_type === 'lait' && ' Les protéines de lait de vache sont l\'un des allergènes les plus courants chez les enfants.'}
-              {ingredient.allergen_type === 'arachide' && ' L\'allergie à l\'arachide peut provoquer des réactions sévères (anaphylaxie).'}
-              {ingredient.allergen_type === 'soja' && ' Le soja est présent dans de nombreux produits transformés sous forme de lécithine ou protéines.'}
-            </p>
-          </div>
+          <section class="section">
+            <div class="card grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 bg-tomate p-4 text-encre md:p-5">
+              <svg class="mt-0.5 size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              <p class="max-w-[68ch] text-[14.5px]">
+                <strong>Allergène majeur</strong> — Cet ingrédient fait partie des 14 allergènes à déclaration obligatoire selon la réglementation européenne et marocaine (ONSSA).
+                {ingredient.allergen_type === 'gluten' && ' Le gluten est une protéine présente dans le blé, l\'orge, le seigle et l\'avoine.'}
+                {ingredient.allergen_type === 'lait' && ' Les protéines de lait de vache sont l\'un des allergènes les plus courants chez les enfants.'}
+                {ingredient.allergen_type === 'arachide' && ' L\'allergie à l\'arachide peut provoquer des réactions sévères (anaphylaxie).'}
+                {ingredient.allergen_type === 'soja' && ' Le soja est présent dans de nombreux produits transformés sous forme de lécithine ou protéines.'}
+              </p>
+            </div>
+          </section>
         )}
 
         {/* Produits contenant cet ingrédient */}
-        <div>
-          <div class="sec-head-v2">
-            <h2>{t('additive.productsWith', locale)} {name}</h2>
-            <span class="text-sm text-muted-foreground">{products.length} {t('search.results', locale)}</span>
+        <section class="section">
+          <div class="sec-head">
+            <h2 class="disp d-m md:text-[26px]">{t('additive.productsWith', locale)} {name}</h2>
+            <span class="muted text-[13px]">{products.length} {t('search.results', locale)}</span>
           </div>
 
           {products.length === 0 ? (
-            <div class="rounded-xl border bg-card p-8 text-center">
-              <p class="text-sm text-muted-foreground">
-                Aucun produit référencé avec cet ingrédient pour le moment.
+            <div class="naanaa">
+              <img src="/mascotte/naanaa-scan.webp" alt="" width="72" height="72" loading="lazy" />
+              <p class="bubble">
+                Aucun produit référencé avec cet ingrédient pour le moment.<br />
+                <a href="/importer" class="font-bold underline underline-offset-2">Importer des produits →</a>
               </p>
-              <a href="/importer" class="text-brand-ink hover:underline text-sm mt-2 inline-block">
-                Importer des produits →
-              </a>
             </div>
           ) : (
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div class="grid gap-3 md:grid-cols-2 md:gap-[18px] lg:grid-cols-3">
               {products.map((product) => (
-                <ProductCard product={product as any} variant="grid" />
+                <ProductCard product={product} />
               ))}
             </div>
           )}
-        </div>
-
-        <div class="text-center">
-          <a href="/ingredients" class="text-sm text-muted-foreground hover:text-brand-ink">
-            ← Retour à la base d'ingrédients
-          </a>
-        </div>
-      </div>
+        </section>
+      </>
     )}
   </main>
 </Layout>

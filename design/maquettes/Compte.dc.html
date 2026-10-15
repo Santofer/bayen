@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Compte · points</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="bayen.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&amp;family=Readex+Pro:wght@400;500;600;700&amp;family=Archivo:wdth,wght@62..100,600..900&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="bp phone {{cls}}" style="height: 1240px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 110px">
+  <header class="topbar">
+    <h1 class="disp d-m">Mon compte</h1>
+    <a class="icon-btn" href="Compte.dc.html" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></a>
+  </header>
+
+  <section class="section">
+    <div class="card" style="padding: 16px; display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center">
+      <span style="width: 64px; height: 64px; border-radius: 50%; background: var(--u-meal); border: 2px solid var(--encre); display: grid; place-items: center; font: 800 26px var(--f-disp); color: var(--encre)">S</span>
+      <div style="display: grid; gap: 6px">
+        <p class="disp d-s">Salma · exemple</p>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px"><span class="chip fill" style="background: var(--menthe)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"/></svg> Contributrice</span><b class="num">340 pts</b></div>
+        <div style="height: 10px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--soft); overflow: hidden"><i style="display: block; width: 68%; height: 100%; background: var(--menthe)"></i></div>
+        <p class="muted" style="font-size: 11.5px">160 pts avant « Experte »</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="naanaa">
+      <div class="m"><img src="/_blob/ff2391840852cc0cac4c27ac311ec542" alt="Naânaa qui applaudit"></div>
+      <p class="bubble"><b>+20 pts !</b> Merci pour la photo du tableau nutritionnel des sardines.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sec-head"><h2 class="disp d-m">Mes courses en octobre</h2></div>
+    <div class="card" style="padding: 16px; display: grid; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 14px">
+        <div class="sticker sb"><div><b>64</b><span>Bon</span></div></div>
+        <p style="font-size: 14px">Score moyen de tes 128 produits scannés : <b>+6 points</b> depuis septembre.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; height: 110px; border-bottom: 2px solid var(--line); padding: 0 6px">
+        <div style="display: grid; gap: 4px; justify-items: center"><b class="num" style="font-size: 12px">55</b><i style="display: block; width: 100%; height: 55px; background: var(--s-c); border: 2px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0"></i></div>
+        <div style="display: grid; gap: 4px; justify-items: center"><b class="num" style="font-size: 12px">59</b><i style="display: block; width: 100%; height: 62px; background: var(--s-c); border: 2px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0"></i></div>
+        <div style="display: grid; gap: 4px; justify-items: center"><b class="num" style="font-size: 12px">62</b><i style="display: block; width: 100%; height: 70px; background: var(--s-b); border: 2px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0"></i></div>
+        <div style="display: grid; gap: 4px; justify-items: center"><b class="num" style="font-size: 12px">64</b><i style="display: block; width: 100%; height: 78px; background: var(--s-b); border: 2px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0"></i></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); text-align: center; font-size: 11.5px" class="muted"><span>sem. 1</span><span>sem. 2</span><span>sem. 3</span><span>sem. 4</span></div>
+      <a href="Recherche.dc.html" style="font-size: 13.5px; font-weight: 700">3 produits à remplacer en priorité →</a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card" style="display: grid">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1.5px solid var(--line)"><span style="display: flex; gap: 10px; align-items: center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg> Mode sombre</span><span style="width: 48px; height: 28px; border-radius: 99px; border: 2px solid var(--line); background: var(--menthe); position: relative"><i style="position: absolute; right: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--encre)"></i></span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1.5px solid var(--line)"><span style="display: flex; gap: 10px; align-items: center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg> Langue</span><span style="font-weight: 600">Français · العربية</span></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px"><span style="display: flex; gap: 10px; align-items: center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/></svg> Mon profil santé</span><span class="muted">Sport, sans gluten</span></div>
+    </div>
+  </section>
+  <nav class="tabbar" aria-label="Navigation principale"><a href="Main.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a><a href="Recherche.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Chercher</a><a href="Scan.dc.html" class="scan" aria-label="Scanner un produit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/></svg></a><a href="Repas.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Repas</a><a href="Compte.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/></svg>Compte</a></nav>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["light", "dark"], "default": "light"}, "$preview": {"width": 390, "height": 1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme ?? 'light';
+    return { cls: theme === 'dark' ? 'dark' : ''  };
+  }
+}
+</script>
+</body>
+</html>

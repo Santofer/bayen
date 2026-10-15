@@ -1,5 +1,5 @@
 /**
- * Composant React : prise/upload de photo de repas → estimation IA
+ * Composant React : prise/upload de photo de repas → estimation IA (maquette « Repas »)
  *
  * Flux :
  * 1. L'utilisateur choisit ou prend une photo
@@ -10,17 +10,18 @@
  *
  * Les valeurs sont des ESTIMATIONS d'après la portion visible (fourchettes
  * + niveau de confiance). Pas de score santé, pas d'avis médical.
+ *
+ * Rendu en `<section class="section">` successives : le composant se pose
+ * directement dans `<main class="screen">` (l'îlot Astro est en display: contents).
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
 import { useLocale } from '@/lib/i18n'
 import { shrinkToFile } from '@/lib/image'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 import { addMealToHistory } from '@/lib/meal-history'
 import MealFeedback from '@/components/MealFeedback.tsx'
-import { Camera, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus, Flame, Lightbulb, Leaf, BookOpen } from 'lucide-react'
+import { Camera, Check, Loader2, CheckCircle, AlertCircle, Upload, RotateCcw, BookmarkPlus, Lightbulb, Leaf, BookOpen } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -33,7 +34,7 @@ interface MealAnalysis {
   portion_estimee_g: number | null
   calories_kcal: { min: number | null; max: number | null }
   macros_g: { proteines: number | null; glucides: number | null; lipides: number | null }
-  verdict: Verdict
+  verdict?: Verdict | null
   caracteristiques: string[]
   conseil: string
   alternatives: string[]
@@ -43,12 +44,12 @@ interface MealAnalysis {
   reference?: { dish_id: number; name_fr: string; recalibrated: boolean }
 }
 
-/** Aplat + emoji du verdict (4 niveaux qualitatifs, échelle de score, texte encre). */
-const VERDICT_META: Record<Verdict, { fill: string; emoji: string }> = {
-  sain:        { fill: 'bg-score-excellent', emoji: '🥗' },
-  equilibre:   { fill: 'bg-score-bon', emoji: '👍' },
-  a_limiter:   { fill: 'bg-score-mediocre', emoji: '⚠️' },
-  occasionnel: { fill: 'bg-score-mauvais', emoji: '🍔' },
+/** Pastille du verdict qualitatif (échelle de score, posée dans une puce crème) */
+const VERDICT_FILL: Record<Verdict, string> = {
+  sain: 'bg-score-excellent',
+  equilibre: 'bg-score-bon',
+  a_limiter: 'bg-score-mediocre',
+  occasionnel: 'bg-score-mauvais',
 }
 
 interface VlmResponse {
@@ -61,19 +62,43 @@ interface VlmResponse {
 
 type Screen = 'idle' | 'preview' | 'analyzing' | 'result' | 'error'
 
-/** Pastille de fiabilité : aplat franc, texte encre */
-const CONFIANCE_STYLE: Record<Confiance, string> = {
+/** Puce de confiance : aplat franc, texte encre */
+const CONFIANCE_FILL: Record<Confiance, string> = {
   faible: 'bg-score-mediocre',
   moyenne: 'bg-citron',
-  elevee: 'bg-menthe',
+  elevee: 'bg-score-excellent',
 }
 
 function formatKcalRange(cal: { min: number | null; max: number | null }): string | null {
   const { min, max } = cal
-  if (min != null && max != null) return min === max ? `${min}` : `${min}–${max}`
+  if (min != null && max != null) return min === max ? `${min}` : `${min} – ${max}`
   if (max != null) return `${max}`
   if (min != null) return `${min}`
   return null
+}
+
+/** Vignette 300 px de la photo de l'utilisateur, puce « Ta photo » (maquette Repas) */
+function PhotoTile({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="relative">
+      <div className="tile tint-figue h-[300px] rounded-[28px] shadow-[5px_5px_0_var(--color-hard)] md:h-[420px]">
+        <img src={src} alt={alt} />
+      </div>
+      <span className="chip absolute start-3.5 top-3.5 border-encre bg-creme text-encre">
+        <Camera aria-hidden="true" /> Ta photo
+      </span>
+    </div>
+  )
+}
+
+/** Naânaa dans son médaillon 56 px + bulle */
+function Naanaa({ pose, children }: { pose: 'astuce' | 'oups'; children: ReactNode }) {
+  return (
+    <div className="naanaa grid-cols-[56px_minmax(0,1fr)]">
+      <div className="m size-14"><img src={`/mascotte/naanaa-${pose}.webp`} alt="" width="56" height="56" /></div>
+      {children}
+    </div>
+  )
 }
 
 export default function MealPhotoAnalyzer() {
@@ -117,8 +142,8 @@ export default function MealPhotoAnalyzer() {
 
   const handleFile = async (picked: File | null | undefined) => {
     if (!picked) return
-    // Photo de téléphone (3 à 12 Mo, parfois HEIC) → JPEG ≤ 1280 px avant tout.
-    // Si le navigateur ne sait pas la décoder, on tente l'originale.
+    // Photo de téléphone (3 à 12 Mo, parfois HEIC) → JPEG ≤ 1280 px avant tout
+    // (le serveur vision redescend à 768 px). Si le navigateur ne sait pas la décoder, on tente l'originale.
     const f = await shrinkToFile(picked).catch(() => picked)
     if (f.size > 8 * 1024 * 1024) {
       setErrorMsg(t('meal.error.tooLarge'))
@@ -239,301 +264,296 @@ export default function MealPhotoAnalyzer() {
 
   if (screen === 'analyzing') {
     return (
-      <div className="rounded-2xl border bg-card p-8 text-center space-y-4">
-        {/* Naânaa inspecte l'assiette pendant l'analyse IA */}
-        <img
-          src="/mascotte/naanaa-loupe.webp"
-          alt=""
-          width="96"
-          height="141"
-          className="naanaa-bob mx-auto h-auto w-24"
-        />
-        <h2 className="text-xl font-bold flex items-center justify-center gap-2">
-          <Loader2 className="h-5 w-5 text-ai-ink animate-spin" />
-          {t('meal.analyzing')}
-        </h2>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('meal.analyzingHint')}</p>
-        <div className="pop-chip font-display">{elapsed}s</div>
-      </div>
+      <section className="section gap-3.5 md:grid-cols-2 md:items-center md:gap-10">
+        {previewUrl && <PhotoTile src={previewUrl} alt="Aperçu de ta photo" />}
+        <div className="card grid justify-items-center gap-3 p-6 text-center" role="status">
+          {/* Naânaa inspecte l'assiette pendant l'analyse IA */}
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="80" height="118" className="naanaa-bob h-auto w-20" />
+          <p className="disp d-s flex items-center gap-2">
+            <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+            {t('meal.analyzing')}
+          </p>
+          <p className="muted max-w-sm text-sm">{t('meal.analyzingHint')}</p>
+          <span className="chip num">{elapsed}s</span>
+        </div>
+      </section>
     )
   }
 
   if (screen === 'error') {
     return (
-      <div className="rounded-2xl border bg-card p-6 space-y-4">
-        <div className="naanaa items-start">
-          <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="106" />
-          <div className="bubble">
-            <h3 className="font-semibold flex items-center gap-1.5 text-destructive">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+      <section className="section gap-3.5 md:max-w-2xl">
+        <Naanaa pose="oups">
+          <div className="bubble" role="alert">
+            <p className="flex items-center gap-1.5 font-bold">
+              <AlertCircle className="size-4 flex-none text-destructive" aria-hidden="true" />
               {t('meal.error.title')}
-            </h3>
-            <p className="text-sm mt-1">{errorMsg}</p>
+            </p>
+            <p className="mt-1 text-sm">{errorMsg}</p>
           </div>
-        </div>
-        <Button onClick={handleReset} variant="outline" size="sm">
-          <RotateCcw className="mr-2 h-4 w-4" />
+        </Naanaa>
+        <button type="button" onClick={handleReset} className="btn w-max">
+          <RotateCcw aria-hidden="true" />
           {t('meal.retry')}
-        </Button>
-      </div>
+        </button>
+      </section>
     )
   }
 
   if (screen === 'result' && analysis) {
+    const plat = analysis.plat ?? 'Repas'
     const kcalRange = formatKcalRange(analysis.calories_kcal)
     const ingredients = analysis.ingredients ?? []
     const m = analysis.macros_g
     const confiance = analysis.confiance ?? 'moyenne'
-    const verdict = analysis.verdict ?? 'equilibre'
-    const vmeta = VERDICT_META[verdict]
+    const verdict = analysis.verdict && VERDICT_FILL[analysis.verdict] ? analysis.verdict : null
     const caracteristiques = analysis.caracteristiques ?? []
     const alternatives = analysis.alternatives ?? []
+    const hasMacros = m != null && (m.proteines != null || m.glucides != null || m.lipides != null)
 
     return (
-      <div className="space-y-6">
-        {/* Photo (maquette Repas : vignette arrondie, ombre nette) */}
-        <div className="relative rounded-[28px] overflow-hidden border-2 border-line tint-figue aspect-[4/3] shadow-[var(--shadow-lift)]">
-          {previewUrl && (
-            <img src={previewUrl} alt={analysis.plat ?? 'Repas'} className="w-full h-full object-cover" />
-          )}
-        </div>
-
-        {/* Titre + verdict qualitatif (remplace le score 0-100, inadapté aux plats) + fiabilité */}
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold">{analysis.plat}</h2>
-          <div className="flex flex-wrap gap-1.5">
-            <span className={`pop-chip h-8 border-encre text-sm font-bold text-encre ${vmeta.fill}`}>
-              <span aria-hidden="true">{vmeta.emoji}</span> {t(`meal.verdict.${verdict}`)}
-            </span>
-            <span className={`pop-chip h-8 border-encre text-encre ${CONFIANCE_STYLE[confiance]}`}>
-              {t('meal.confianceLabel')} : {t(`meal.confiance.${confiance}`)}
-            </span>
-          </div>
-        </div>
-
-        {/* Carte d'estimation : aplat figue, fourchettes en Unbounded */}
-        <div className="rounded-2xl border-2 border-encre bg-ai text-encre p-5 space-y-4 shadow-[var(--shadow-card)]">
-          <p className="flex items-center gap-2 font-semibold">
-            <Flame className="h-4 w-4" />
-            {t('meal.caloriesTitle')}
-          </p>
-          {kcalRange ? (
-            <p className="font-display text-4xl font-extrabold leading-none">
-              {kcalRange} <span className="text-lg">{t('meal.kcal')}</span>
-            </p>
-          ) : (
-            <p className="font-display text-2xl font-extrabold">—</p>
-          )}
-          {analysis.portion_estimee_g != null && (
-            <p className="text-xs opacity-80">
-              {t('meal.forPortion')} {analysis.portion_estimee_g} g
-            </p>
-          )}
-          {(m.proteines != null || m.glucides != null || m.lipides != null) && (
-            <div>
-              <h3 className="sr-only">{t('meal.macrosTitle')}</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  ['proteines', m.proteines, t('meal.proteines')],
-                  ['glucides', m.glucides, t('meal.glucides')],
-                  ['lipides', m.lipides, t('meal.lipides')],
-                ] as const).map(([key, val, label]) => (
-                  <div key={key} className="rounded-xl border-2 border-encre bg-creme p-2.5">
-                    <p className="text-[11px]">{label}</p>
-                    <p className="font-display text-base font-extrabold">{val != null ? `${val}` : '—'}<span className="text-xs font-medium"> g</span></p>
-                  </div>
-                ))}
+      <>
+        <div className="grid gap-[26px] md:grid-cols-2 md:items-start md:gap-10">
+          {/* Photo + plat reconnu + confiance */}
+          <section className="section gap-3.5">
+            {previewUrl && <PhotoTile src={previewUrl} alt={plat} />}
+            <div className="grid gap-1.5">
+              <p className="eyebrow">On pense que c'est</p>
+              <h1 className="disp d-l md:text-[40px]">{plat}</h1>
+              <div className="chips">
+                <span className={`chip fill ${CONFIANCE_FILL[confiance]}`}>
+                  <Check aria-hidden="true" /> Confiance {t(`meal.confiance.${confiance}`).toLowerCase()}
+                </span>
+                {analysis.portion_estimee_g != null && <span className="chip num">≈ {analysis.portion_estimee_g} g</span>}
               </div>
             </div>
-          )}
-          {caracteristiques.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {caracteristiques.map((c, i) => (
-                <span key={i} className="pop-chip border-encre bg-creme text-encre">
-                  {c}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+          </section>
 
-        {/* Conseil : c'est Naânaa qui le donne */}
-        {analysis.conseil && (
-          <div className="naanaa items-start">
-            <img src="/mascotte/naanaa-astuce.webp" alt="" width="64" height="94" />
-            <div className="bubble">
-              <h3 className="text-sm font-semibold mb-0.5 flex items-center gap-1.5">
-                <Lightbulb className="h-4 w-4 text-ai-ink" />
-                {t('meal.conseilTitle')}
-              </h3>
-              <p className="text-sm leading-relaxed">{analysis.conseil}</p>
-            </div>
-          </div>
-        )}
+          <div className="grid content-start gap-[26px]">
+            {/* Carte d'estimation : aplat figue, fourchette en Unbounded 40 px */}
+            <section className="section">
+              <div className="card grid gap-3.5 border-encre bg-ai p-[18px] text-encre">
+                <p className="font-semibold">Estimation pour l'assiette</p>
+                <p className="disp num text-[40px] leading-none">
+                  {kcalRange ?? '—'} {kcalRange && <span className="text-lg">{t('meal.kcal')}</span>}
+                </p>
+                {hasMacros && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      ['proteines', m.proteines, t('meal.proteines')],
+                      ['glucides', m.glucides, t('meal.glucides')],
+                      ['lipides', m.lipides, t('meal.lipides')],
+                    ] as const).map(([key, val, label]) => (
+                      <div key={key} className="rounded-[14px] border-2 border-encre bg-creme p-2.5">
+                        <p className="text-[11px]">{label}</p>
+                        <b className="num">{val != null ? `≈ ${val} g` : '—'}</b>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {(verdict || caracteristiques.length > 0) && (
+                  <div className="chips">
+                    {verdict && (
+                      <span className="chip border-encre bg-creme text-encre">
+                        <span className={`size-2.5 flex-none rounded-full border border-encre ${VERDICT_FILL[verdict]}`} aria-hidden="true" />
+                        {t(`meal.verdict.${verdict}`)}
+                      </span>
+                    )}
+                    {caracteristiques.map((c, i) => (
+                      <span key={i} className="chip h-auto min-h-[26px] whitespace-normal border-encre bg-creme py-1 text-encre">{c}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
 
-        {/* Alternatives plus saines */}
-        {alternatives.length > 0 && (
-          <div className="rounded-2xl border bg-card p-4">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-brand-ink" />
-              {t('meal.alternativesTitle')}
-            </h3>
-            <ul className="space-y-2">
-              {alternatives.map((alt, i) => (
-                <li key={i} className="flex gap-2 text-sm text-foreground/80">
-                  <span className="text-brand-ink font-bold flex-shrink-0">→</span>
-                  <span>{alt}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+            {/* Avertissement : estimation, pas un avis médical */}
+            <section className="section">
+              <Naanaa pose="astuce">
+                <p className="bubble">
+                  {t('meal.estimateCaveat')}
+                  {confiance === 'faible' && <> {t('meal.lowConfidence')}</>}
+                </p>
+              </Naanaa>
+            </section>
 
-        {/* Ingrédients */}
-        {ingredients.length > 0 && (
-          <div className="rounded-2xl border bg-card p-4">
-            <h3 className="text-sm font-semibold mb-3">
-              {t('meal.ingredients')}{' '}
-              <span className="text-xs font-normal text-muted-foreground">({ingredients.length})</span>
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {ingredients.map((ing, i) => (
-                <Badge key={i} variant="outline" className="text-xs">{ing}</Badge>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* « C'est le bon plat ? » (C21) */}
+            <section className="section">
+              <MealFeedback
+                photo={file}
+                plat={analysis.plat}
+                confiance={analysis.confiance}
+                portionEstimee={analysis.portion_estimee_g}
+                caloriesEstimees={
+                  analysis.calories_kcal.min != null && analysis.calories_kcal.max != null
+                    ? Math.round((analysis.calories_kcal.min + analysis.calories_kcal.max) / 2)
+                    : null
+                }
+              />
+            </section>
 
-        {/* Remarques */}
-        {analysis.remarques && (
-          <div className="rounded-2xl border bg-card p-4">
-            <h3 className="text-sm font-semibold mb-1">{t('meal.remarques')}</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">{analysis.remarques}</p>
-          </div>
-        )}
-
-        {/* Référentiel marocain : dire sur quoi l'estimation s'appuie */}
-        {analysis.reference && (
-          <p className="flex items-start gap-2 px-2 text-xs text-muted-foreground">
-            <BookOpen size={14} className="mt-0.5 flex-shrink-0" />
-            <span>
-              {t('mealfb.reference')} « {analysis.reference.name_fr} » {t('mealfb.referenceEnd')}
-            </span>
-          </p>
-        )}
-
-        {/* Retour sur la fiabilité de l'estimation (C21) */}
-        <MealFeedback
-          photo={file}
-          plat={analysis.plat}
-          confiance={analysis.confiance}
-          portionEstimee={analysis.portion_estimee_g}
-          caloriesEstimees={
-            analysis.calories_kcal.min != null && analysis.calories_kcal.max != null
-              ? Math.round((analysis.calories_kcal.min + analysis.calories_kcal.max) / 2)
-              : null
-          }
-        />
-
-        {/* Caveat estimation */}
-        <p className="text-xs text-muted-foreground text-center italic px-2">{t('meal.estimateCaveat')}</p>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          {loggedIn && !saved && (
-            <Button onClick={handleSave} disabled={saving} size="lg" className="flex-1">
-              {saving ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('meal.saving')}</>
+            <section className="section gap-2.5">
+              {saved ? (
+                <div className="card flex items-center gap-2 p-3.5 text-sm font-semibold">
+                  <CheckCircle className="size-4 flex-none text-brand-ink" aria-hidden="true" />
+                  {t('meal.savedOk')}
+                  <a href="/compte/journal" className="ms-auto font-bold underline">{t('meal.seeJournal')}</a>
+                </div>
               ) : (
-                <><BookmarkPlus className="mr-2 h-4 w-4" />{t('meal.saveToJournal')}</>
+                <button type="button" onClick={loggedIn ? () => void handleSave() : handleSaveLocal} disabled={saving} className="btn">
+                  {saving ? <Loader2 className="animate-spin" aria-hidden="true" /> : <BookmarkPlus aria-hidden="true" />}
+                  {saving ? t('meal.saving') : loggedIn ? t('meal.saveToJournal') : t('meal.saveLocal')}
+                </button>
               )}
-            </Button>
-          )}
-          {saved && (
-            <div className="flex-1 rounded-full tint-menthe border-2 border-line px-4 py-2 flex items-center gap-2 text-foreground text-sm font-semibold">
-              <CheckCircle className="h-4 w-4 text-brand-ink" />
-              {t('meal.savedOk')}{' '}
-              <a href="/compte/journal" className="ms-auto underline text-sm font-bold">{t('meal.seeJournal')}</a>
-            </div>
-          )}
-          {!loggedIn && !saved && (
-            <Button onClick={handleSaveLocal} variant="outline" size="lg" className="flex-1">
-              <BookmarkPlus className="mr-2 h-4 w-4" />
-              {t('meal.saveLocal')}
-            </Button>
-          )}
-          <Button onClick={handleReset} variant="outline" size="lg">
-            <RotateCcw className="mr-2 h-4 w-4" />
-            {t('meal.another')}
-          </Button>
+              {errorMsg && <p role="alert" className="text-sm text-destructive">{errorMsg}</p>}
+              <button type="button" onClick={handleReset} className="btn primary">
+                <Camera aria-hidden="true" />
+                {t('meal.another')}
+              </button>
+            </section>
+          </div>
         </div>
-      </div>
+
+        {/* Détails de l'analyse (hors maquette) : conseil, alternatives, ingrédients, remarques */}
+        {(analysis.conseil || alternatives.length > 0 || ingredients.length > 0 || analysis.remarques || analysis.reference) && (
+          <div className="grid gap-[26px] md:grid-cols-2 md:gap-6">
+            {analysis.conseil && (
+              <section className="section">
+                <div className="card grid gap-1.5 p-4">
+                  <h2 className="flex items-center gap-1.5 text-sm font-bold">
+                    <Lightbulb className="size-4 text-ai-ink" aria-hidden="true" />
+                    {t('meal.conseilTitle')}
+                  </h2>
+                  <p className="text-sm leading-relaxed">{analysis.conseil}</p>
+                </div>
+              </section>
+            )}
+
+            {alternatives.length > 0 && (
+              <section className="section">
+                <div className="card grid gap-3 p-4">
+                  <h2 className="flex items-center gap-2 text-sm font-bold">
+                    <Leaf className="size-4 text-brand-ink" aria-hidden="true" />
+                    {t('meal.alternativesTitle')}
+                  </h2>
+                  <ul className="grid gap-2">
+                    {alternatives.map((alt, i) => (
+                      <li key={i} className="flex gap-2 text-sm">
+                        <span className="flex-none font-bold text-brand-ink" aria-hidden="true">→</span>
+                        <span>{alt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+
+            {ingredients.length > 0 && (
+              <section className="section">
+                <div className="card grid gap-3 p-4">
+                  <h2 className="text-sm font-bold">
+                    {t('meal.ingredients')} <span className="muted text-xs font-normal">({ingredients.length})</span>
+                  </h2>
+                  <div className="chips">
+                    {ingredients.map((ing, i) => (
+                      <span key={i} className="chip">{ing}</span>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {analysis.remarques && (
+              <section className="section">
+                <div className="card grid gap-1 p-4">
+                  <h2 className="text-sm font-bold">{t('meal.remarques')}</h2>
+                  <p className="muted text-sm leading-relaxed">{analysis.remarques}</p>
+                </div>
+              </section>
+            )}
+
+            {/* Référentiel marocain : dire sur quoi l'estimation s'appuie */}
+            {analysis.reference && (
+              <section className="section">
+                <p className="muted flex items-start gap-2 text-xs">
+                  <BookOpen size={14} className="mt-0.5 flex-none" aria-hidden="true" />
+                  <span>
+                    {t('mealfb.reference')} « {analysis.reference.name_fr} » {t('mealfb.referenceEnd')}
+                  </span>
+                </p>
+              </section>
+            )}
+          </div>
+        )}
+      </>
     )
   }
 
-  // screens 'idle' et 'preview'
+  // Écrans 'idle' et 'preview'
   return (
-    <div className="space-y-4">
-      {screen === 'preview' && previewUrl ? (
-        <>
-          <div className="rounded-[28px] overflow-hidden border-2 border-line tint-figue aspect-[4/3] shadow-[var(--shadow-card)]">
-            <img src={previewUrl} alt="aperçu" className="w-full h-full object-cover" />
-          </div>
-          <div className="flex gap-3">
-            <Button onClick={handleAnalyze} size="lg" className="flex-1">
-              <Camera className="mr-2 h-4 w-4" />
-              {t('meal.analyze')}
-            </Button>
-            <Button onClick={handleReset} variant="outline" size="lg">
-              <RotateCcw className="mr-2 h-4 w-4" />
-              {t('meal.retake')}
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <button
-            onClick={() => inputCameraRef.current?.click()}
-            className="card-lift w-full rounded-[28px] border-2 border-dashed border-line tint-figue p-10 flex flex-col items-center gap-3 text-foreground"
-          >
-            <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-encre bg-ai text-encre shadow-[var(--shadow-card)]">
-              <Camera className="h-8 w-8" />
-            </span>
-            <span className="font-semibold text-lg">{t('meal.takePhoto')}</span>
-            <span className="text-xs text-foreground/75 max-w-xs text-center">{t('meal.takePhotoHint')}</span>
-          </button>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
+    <>
+      <section className="section gap-2.5">
+        <h1 className="disp d-l md:text-[44px]">{t('meal.pageTitle')}</h1>
+        <p className="muted text-[15px] md:max-w-2xl md:text-lg">{t('meal.pageSubtitle')}</p>
+      </section>
+
+      <section className="section gap-3.5 md:max-w-2xl">
+        {screen === 'preview' && previewUrl ? (
+          <>
+            <PhotoTile src={previewUrl} alt="Aperçu de ta photo" />
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5">
+              <button type="button" onClick={() => void handleAnalyze()} className="btn primary">
+                <Camera aria-hidden="true" />
+                {t('meal.analyze')}
+              </button>
+              <button type="button" onClick={handleReset} className="btn">
+                <RotateCcw aria-hidden="true" />
+                {t('meal.retake')}
+              </button>
             </div>
-            <div className="relative flex justify-center">
-              <span className="bg-background px-3 text-xs text-muted-foreground">{t('meal.or')}</span>
-            </div>
-          </div>
-          <button
-            onClick={() => inputFileRef.current?.click()}
-            className="card-lift w-full rounded-full border-2 border-line bg-card p-3.5 flex items-center justify-center gap-2 text-sm font-semibold"
-          >
-            <Upload className="h-4 w-4" />
-            {t('meal.uploadFile')}
-          </button>
-          <input
-            ref={inputCameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => void handleFile(e.target.files?.[0])}
-          />
-          <input
-            ref={inputFileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => void handleFile(e.target.files?.[0])}
-          />
-        </>
-      )}
-    </div>
+          </>
+        ) : (
+          <>
+            {/* Zone de prise de photo : tuile 300 px pointillée sur aplat figue */}
+            <button
+              type="button"
+              onClick={() => inputCameraRef.current?.click()}
+              className="tile tint-figue h-[300px] w-full content-center gap-3 rounded-[28px] border-dashed px-6 text-center shadow-[5px_5px_0_var(--color-hard)] md:h-[360px]"
+            >
+              <span className="grid size-16 place-items-center rounded-full border-2 border-encre bg-ai text-encre shadow-[3px_3px_0_var(--color-hard)]">
+                <Camera className="size-8" aria-hidden="true" />
+              </span>
+              <span className="disp d-s">{t('meal.takePhoto')}</span>
+              <span className="muted max-w-xs text-xs">{t('meal.takePhotoHint')}</span>
+            </button>
+            <button type="button" onClick={() => inputFileRef.current?.click()} className="btn">
+              <Upload aria-hidden="true" />
+              {t('meal.uploadFile')}
+            </button>
+          </>
+        )}
+        <input
+          ref={inputCameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => void handleFile(e.target.files?.[0])}
+        />
+        <input
+          ref={inputFileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => void handleFile(e.target.files?.[0])}
+        />
+      </section>
+
+      <section className="section md:max-w-2xl">
+        <Naanaa pose="astuce">
+          <p className="bubble">{t('meal.estimateCaveat')}</p>
+        </Naanaa>
+      </section>
+    </>
   )
 }

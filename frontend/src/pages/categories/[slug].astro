@@ -3,8 +3,10 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 import { getLocale, t } from '@/lib/i18n'
+import type { Product } from '@/lib/types'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
@@ -74,57 +76,52 @@ const pageDescription = category
   description={pageDescription}
   path={`/categories/${slug ?? ''}`}
   noindex={!category}
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24 md:pb-8">
-
-    {/* Catégorie non trouvée */}
-    {!category && (
-      <div class="rounded-xl border bg-card p-8 text-center max-w-md mx-auto">
-        <img src="/mascotte/naanaa-oups.webp" alt="" width="100" height="148" class="naanaa-bob mx-auto mb-4" />
-        <h1 class="text-xl font-bold text-foreground mb-2">Catégorie introuvable</h1>
-        <p class="text-sm text-muted-foreground mb-6">
-          La catégorie demandée n'existe pas.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="/categories" class="btn-pop">
-            Voir toutes les catégories
-          </a>
-          <a href="/scan" class="btn-pop ghost">
-            {t('nav.scan', locale)}
-          </a>
-        </div>
+  {/* Catégorie non trouvée */}
+  {!category && (
+    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} mascot="oups" title="Catégorie introuvable" subtitle="La catégorie demandée n'existe pas.">
+      <div class="flex flex-wrap gap-3">
+        <a href="/categories" class="btn dark-btn">Voir toutes les catégories</a>
+        <a href="/scan" class="btn">{t('nav.scan', locale)}</a>
       </div>
-    )}
+    </PageHero>
+  )}
 
-    {/* Catégorie trouvée */}
+  {/* Catégorie trouvée : bandeau puis liste comme la recherche */}
+  {category && (
+    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} title={categoryName} subtitle={`${products.length} produit${products.length !== 1 ? 's' : ''}`} />
+  )}
+
+  <main class="screen">
     {category && (
-      <div class="space-y-6">
-        <div>
-          <h1 class="text-2xl font-bold text-foreground mb-1">{categoryName}</h1>
-          <p class="text-sm text-muted-foreground">
-            {products.length} produit{products.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-
+      <section class="section gap-3">
         {products.length > 0 ? (
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {products.map((product) => (
-              <ProductCard product={product as any} variant="grid" />
-            ))}
-          </div>
+          <Fragment>
+            <div class="grid gap-3 md:hidden">
+              {products.map((product) => <ProductCard product={product as unknown as Product} />)}
+            </div>
+            <div class="hidden gap-4 md:grid md:grid-cols-3 lg:grid-cols-4">
+              {products.map((product) => <ProductCard product={product as unknown as Product} variant="grid" />)}
+            </div>
+          </Fragment>
         ) : (
-          <div class="rounded-xl border bg-card p-8 text-center">
-            <img src="/mascotte/naanaa-scan.webp" alt="" width="88" height="130" class="mx-auto mb-3" loading="lazy" />
-            <p class="text-sm text-muted-foreground">
-              Aucun produit dans cette catégorie pour le moment.
-            </p>
-            <a href="/scan" class="btn-pop mt-4">
-              {t('nav.scan', locale)}
-            </a>
-          </div>
+          <Fragment>
+            <div class="naanaa md:max-w-xl">
+              <img src="/mascotte/naanaa-scan.webp" alt="" width="72" height="106" loading="lazy" />
+              <p class="bubble">Aucun produit dans cette catégorie pour le moment.</p>
+            </div>
+            <a href="/scan" class="btn primary justify-self-start">{t('nav.scan', locale)}</a>
+          </Fragment>
         )}
-      </div>
+      </section>
     )}
 
+    <section class="section">
+      <div class="naanaa grid-cols-[56px_minmax(0,1fr)] md:max-w-xl">
+        <div class="m size-14"><img src="/mascotte/naanaa-scan.webp" alt="" width="56" height="56" loading="lazy" /></div>
+        <p class="bubble">Ton produit n'y est pas ? <a href="/scan" class="underline underline-offset-2"><b>Scanne-le</b></a>, on l'ajoute avec toi.</p>
+      </div>
+    </section>
   </main>
 </Layout>

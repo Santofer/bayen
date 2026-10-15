@@ -298,8 +298,10 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
     }
   }
 
+  // Enveloppe `.section` : rien (ni gouttière ni espace) quand la fiche est complète
   return (
-    <div className="rounded-2xl border-2 border-line tint-menthe p-4">
+    <section className="section">
+    <div className="rounded-[20px] border-2 border-line tint-menthe p-4">
       {state === 'idle' && (
         <>
           <div className="flex items-start gap-3">
@@ -355,5 +357,6 @@ export default function EnrichFromOff({ productId, barcode, existing }: EnrichFr
         </div>
       )}
     </div>
+    </section>
   )
 }

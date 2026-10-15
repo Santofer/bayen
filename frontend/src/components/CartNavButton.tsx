@@ -1,4 +1,5 @@
 /**
+ * Bouton rond « Ma liste » (en-tête), avec pastille du nombre d'articles.
  * Icône panier dans la barre de nav, avec pastille du nombre d'articles.
  * Masquée (juste l'icône) quand le panier est vide.
  */
@@ -16,8 +17,8 @@ export default function CartNavButton({ label }: { label: string }) {
   }, [])
 
   return (
-    <a href="/panier" className="relative inline-flex items-center opacity-60 hover:opacity-100 transition-opacity" aria-label={label} title={label}>
-      <ShoppingBasket className="h-5 w-5" />
+    <a href="/panier" className="icon-btn" aria-label={label} title={label}>
+      <ShoppingBasket />
       {count > 0 && (
         <span className="absolute -top-2 -right-2 min-w-[16px] h-4 px-1 rounded-full border-[1.5px] border-encre bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
           {count}

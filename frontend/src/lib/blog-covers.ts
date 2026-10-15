@@ -40,3 +40,16 @@ export function withLocalCover<T extends { slug: string; cover_image?: string | 
   const cover = localCover(article.slug)
   return cover ? { ...article, cover_image: new URL(cover, origin).href } : article
 }
+
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
+
+/**
+ * Couverture affichée d'un article : visuel local Marché Pop, sinon image
+ * Directus, sinon visuel de secours de sa catégorie (public/blog/fallback-*.jpg).
+ */
+export function articleCover(article: { slug: string; cover_image?: string | null; category: string }): string {
+  return localCover(article.slug)
+    ?? (article.cover_image
+      ? (article.cover_image.startsWith('http') ? article.cover_image : `${CDN_URL}/${article.cover_image}`)
+      : `/blog/fallback-${article.category}.jpg`)
+}

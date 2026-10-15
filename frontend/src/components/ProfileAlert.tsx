@@ -33,9 +33,11 @@ export default function ProfileAlert(product: ProductForCheck) {
   // Puce crème sur l'aplat (.pop-chip hors calque Tailwind → `!`)
   const chip = 'pop-chip border-encre! bg-creme! text-encre!'
 
+  // Enveloppe `.section` : la gouttière mobile n'existe que si l'alerte s'affiche
   return (
+    <section className="section">
     <div
-      className={`rounded-2xl border-2 border-encre p-4 text-encre shadow-[var(--shadow-card)] sm:p-5 ${severe ? 'bg-tomate' : 'bg-citron'}`}
+      className={`rounded-[20px] border-2 border-encre p-4 text-encre shadow-[4px_4px_0_var(--color-hard)] sm:p-5 ${severe ? 'bg-tomate' : 'bg-citron'}`}
       role="alert"
     >
       <div className="flex gap-3">
@@ -78,5 +80,6 @@ export default function ProfileAlert(product: ProductForCheck) {
         </div>
       </div>
     </div>
+    </section>
   )
 }

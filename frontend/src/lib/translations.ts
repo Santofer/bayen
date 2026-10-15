@@ -7,6 +7,13 @@ export const translations = {
   // ── Navigation ──────────────────────────────────────────────
   'nav.home':       { fr: 'Accueil',       ary: 'الرئيسية' },
   'nav.main':       { fr: 'Navigation principale', ary: 'التنقل الرئيسي' },
+  'nav.food':       { fr: 'Alimentation',  ary: 'الماكلة' },
+  'nav.journalBlog':{ fr: 'Le journal',    ary: 'الجريدة' },
+  'nav.searchShort':{ fr: 'Chercher',      ary: 'قلّب' },
+  'nav.back':       { fr: 'Retour',        ary: 'رجوع' },
+  'nav.ranking':    { fr: 'Classement',    ary: 'الترتيب' },
+  'nav.inci':       { fr: 'Ingrédients cosmétiques', ary: 'مكونات التجميل' },
+  'footer.tagline': { fr: '« Bayen » : c\'est clair, ça se voit. Un projet participatif, le score est calculé par un algorithme public.', ary: '« بيّن » : واضح وباين. مشروع تشاركي، والنقطة كتحسب بخوارزمية علنية.' },
   'nav.mealShort':  { fr: 'Repas',         ary: 'الماكلة' },
   'nav.scan':       { fr: 'Scanner',       ary: 'سكان' },
   'nav.search':     { fr: 'Recherche',     ary: 'بحث' },

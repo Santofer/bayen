@@ -3,6 +3,7 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 import { RISK_FILL } from '@/components/AdditiveTag.tsx'
 import type { Product, RiskLevel } from '@/lib/types'
@@ -50,7 +51,7 @@ const RISK_LABEL_KEYS: Record<RiskLevel, TranslationKey> = {
   banned_ma: 'additive.risk.banned',
 }
 
-// Vignettes teintées (classes .tint-* : gèrent le mode sombre, texte foreground)
+// Carte « niveau de risque » teintée (classes .tint-* : gèrent le mode sombre)
 const RISK_BG: Record<RiskLevel, string> = {
   safe: 'tint-menthe',
   limited: 'tint-citron',
@@ -73,6 +74,13 @@ const RISK_IMPACT_KEYS: Record<RiskLevel, TranslationKey> = {
 }
 
 const riskLevel: RiskLevel = (additive?.risk_level as RiskLevel | undefined) ?? 'limited'
+const ar = locale === 'ary'
+const displayName = additive ? String((ar && additive.name_ar) || additive.name_fr) : ''
+const fn = additive?.function ? String((ar && additive.function_ar) || additive.function) : ''
+const displayFunction = fn ? fn.charAt(0).toUpperCase() + fn.slice(1) : undefined
+const description = additive?.description_fr ? String((ar && additive.description_ar) || additive.description_fr) : null
+const sources = Array.isArray(additive?.sources) ? (additive.sources as string[]) : []
+
 const pageTitle = additive
   ? `${id} — ${additive.name_fr} | Bayen`
   : `Additif ${id} — Bayen`
@@ -87,108 +95,95 @@ const pageDescription = additive
   description={pageDescription}
   path={`/additifs/${id}`}
   noindex={!additive}
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <!-- Retour -->
-    <a href="/additifs" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-      {t('additive.back', locale)}
-    </a>
+  <PageHero
+    tone="tomate"
+    mascot="loupe"
+    back="/additifs"
+    kicker={t('nav.additives', locale)}
+    title={additive ? `${id} · ${displayName}` : String(id)}
+    subtitle={displayFunction}
+  >
+    <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
+    {additive && (
+      <span class="chip fill border-encre! text-[13px]" style={`background: ${RISK_FILL[riskLevel]}`}>{t(RISK_LABEL_KEYS[riskLevel], locale)}</span>
+    )}
+  </PageHero>
 
+  <main class="screen pt-5 md:pt-10">
     {fetchError && (
-      <div class="tint-tomate rounded-xl border-2 border-line p-6 text-center">
-        <img src="/mascotte/naanaa-oups.webp" alt="" width="88" height="130" class="mx-auto mb-3" />
-        <p class="text-foreground font-semibold">{fetchError}</p>
-      </div>
+      <section class="section">
+        <div class="naanaa" role="alert">
+          <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="72" />
+          <p class="bubble font-semibold">{fetchError}</p>
+        </div>
+      </section>
     )}
 
     {!fetchError && !additive && (
-      <div class="rounded-xl border bg-card p-8 text-center">
-        <img src="/mascotte/naanaa-oups.webp" alt="" width="100" height="148" class="mx-auto mb-3" />
-        <h1 class="text-xl font-bold text-foreground mb-2">{t('additive.notFound', locale)} ({id})</h1>
-        <p class="text-sm text-muted-foreground">{t('additive.notFoundDesc', locale)}</p>
-      </div>
+      <section class="section">
+        <div class="naanaa">
+          <img src="/mascotte/naanaa-oups.webp" alt="" width="72" height="72" />
+          <p class="bubble"><b>{t('additive.notFound', locale)} ({id})</b><br />{t('additive.notFoundDesc', locale)}</p>
+        </div>
+        <a href="/additifs" class="btn w-max">{t('additive.back', locale)}</a>
+      </section>
     )}
 
     {additive && (
-      <div class="space-y-6">
-        <!-- En-tête -->
-        <div>
-          <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-3xl font-bold font-mono text-foreground">{id}</h1>
-            <div
-              class="px-3 py-1 rounded-full border-2 border-encre text-sm font-bold text-encre shadow-[2px_2px_0_var(--color-hard)]"
-              style={`background-color: ${RISK_FILL[riskLevel]}`}
-            >
-              {t(RISK_LABEL_KEYS[riskLevel], locale)}
-            </div>
+      <>
+        <!-- Points clés : niveau de risque + effet sur le score -->
+        <section class="section md:grid-cols-2 md:gap-[18px]">
+          <div class:list={['card grid content-start gap-2 p-4 md:p-5', RISK_BG[riskLevel]]}>
+            <h2 class="disp d-m">{t(RISK_LABEL_KEYS[riskLevel], locale)}</h2>
+            <p class="max-w-[68ch] text-[14.5px]">{t(RISK_DESC_KEYS[riskLevel], locale)}</p>
           </div>
-          <h2 class="text-xl text-foreground">{(locale === 'ary' && additive.name_ar) || additive.name_fr}</h2>
-          {additive.function && (
-            <p class="text-sm text-muted-foreground capitalize mt-1">{(locale === 'ary' && additive.function_ar) || additive.function}</p>
-          )}
-        </div>
-
-        <!-- Niveau de risque -->
-        <div class:list={['rounded-xl border-2 border-line p-5', RISK_BG[riskLevel]]}>
-          <h3 class="font-semibold mb-2 text-foreground">
-            {t(RISK_LABEL_KEYS[riskLevel], locale)}
-          </h3>
-          <p class="text-sm text-foreground/80">
-            {t(RISK_DESC_KEYS[riskLevel], locale)}
-          </p>
-        </div>
-
-        <!-- Description -->
-        {additive.description_fr && (
-          <div class="rounded-xl border bg-card p-5">
-            <h3 class="font-semibold text-foreground mb-2">{t('additive.description', locale)}</h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">{(locale === 'ary' && additive.description_ar) || additive.description_fr}</p>
+          <div class="card grid content-start gap-2 p-4 md:p-5">
+            <h2 class="disp d-m">{t('additive.scoreImpact', locale)}</h2>
+            <p class="muted max-w-[68ch] text-[14.5px]">{t(RISK_IMPACT_KEYS[riskLevel], locale)}</p>
           </div>
+        </section>
+
+        {(description || sources.length > 0) && (
+          <section class="section md:grid-cols-2 md:gap-[18px]">
+            {description && (
+              <div class="card grid content-start gap-2 p-4 md:p-5">
+                <h2 class="disp d-m">{t('additive.description', locale)}</h2>
+                <p class="muted max-w-[68ch] text-[14.5px] leading-relaxed">{description}</p>
+              </div>
+            )}
+            {sources.length > 0 && (
+              <div class="card grid content-start gap-3 p-4 md:p-5">
+                <h2 class="disp d-m">{t('additive.sources', locale)}</h2>
+                <ul class="grid gap-1.5">
+                  {sources.map((source) => (
+                    <li class="flex items-start gap-2 text-[13px]">
+                      <svg class="mt-0.5 size-3.5 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+                      <span class="min-w-0 break-words">{source}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
         )}
-
-        <!-- Sources -->
-        {additive.sources && (additive.sources as string[]).length > 0 && (
-          <div class="rounded-xl border bg-card p-5">
-            <h3 class="font-semibold text-foreground mb-2">{t('additive.sources', locale)}</h3>
-            <ul class="space-y-1">
-              {(additive.sources as string[]).map((source: string) => (
-                <li class="text-xs text-muted-foreground flex items-center gap-2">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-                  </svg>
-                  {source}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <!-- Impact scoring -->
-        <div class="rounded-xl border bg-card p-5">
-          <h3 class="text-sm font-semibold text-foreground mb-2">{t('additive.scoreImpact', locale)}</h3>
-          <p class="text-sm text-muted-foreground">
-            {t(RISK_IMPACT_KEYS[riskLevel], locale)}
-          </p>
-        </div>
 
         <!-- Produits contenant cet additif (C8c) -->
         {products.length > 0 && (
-          <div>
-            <div class="sec-head-v2">
-              <h3>{t('additive.productsWith', locale)} {id}</h3>
-              <span class="text-sm text-muted-foreground">{productsCount} {t('search.results', locale)}</span>
+          <section class="section">
+            <div class="sec-head">
+              <h2 class="disp d-m md:text-[26px]">{t('additive.productsWith', locale)} {id}</h2>
+              <span class="muted text-[13px]">{productsCount} {t('search.results', locale)}</span>
             </div>
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div class="grid gap-3 md:grid-cols-2 md:gap-[18px] lg:grid-cols-3">
               {products.map((product) => (
-                <ProductCard product={product} variant="grid" />
+                <ProductCard product={product} />
               ))}
             </div>
-          </div>
+          </section>
         )}
-      </div>
+      </>
     )}
   </main>
 </Layout>

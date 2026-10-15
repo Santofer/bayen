@@ -27,23 +27,44 @@ interface HealthAnalysisProps {
   ingredients?: string
 }
 
+export type NutrientLevel = 'good' | 'moderate' | 'warning' | 'danger'
+
 interface HealthAlert {
   icon: React.ReactNode
   title: string
   description: string
-  level: 'good' | 'moderate' | 'warning' | 'danger'
+  level: NutrientLevel
 }
 
 /** Aplat de la pastille d'icône par niveau (texte encre dessus) : menthe → citron → orange → tomate */
-const LEVEL_FILL: Record<HealthAlert['level'], string> = {
+const LEVEL_FILL: Record<NutrientLevel, string> = {
   good: 'bg-score-excellent',
   moderate: 'bg-citron',
   warning: 'bg-score-mediocre',
   danger: 'bg-score-mauvais',
 }
 
-// Puce posée sur un aplat (.pop-chip hors calque Tailwind → `!`)
-const FILL_CHIP = 'pop-chip h-[22px]! px-2! text-[11px]! border-encre! text-encre!'
+/** Même échelle en couleur CSS (barres « Pourquoi ? » de la fiche, en style en ligne) */
+export const LEVEL_COLOR: Record<NutrientLevel, string> = {
+  good: 'var(--color-score-excellent)',
+  moderate: 'var(--color-citron)',
+  warning: 'var(--color-score-mediocre)',
+  danger: 'var(--color-score-mauvais)',
+}
+
+/**
+ * Niveau d'un nutriment « à limiter » pour 100 g — seuils des alertes ci-dessous,
+ * partagés avec les barres « Pourquoi ? » de la fiche (une seule source).
+ * Sucres entre 5 et 12,5 g : pas d'alerte, niveau « moderate » pour la barre.
+ */
+export function nutrientLevel(key: 'sugars' | 'fat_saturated' | 'salt', v: number): NutrientLevel {
+  if (key === 'sugars') return v > 22.5 ? 'danger' : v > 12.5 ? 'warning' : v <= 5 ? 'good' : 'moderate'
+  if (key === 'fat_saturated') return v > 5 ? 'danger' : v > 1.5 ? 'moderate' : 'good'
+  return v > 1.5 ? 'danger' : v > 0.6 ? 'moderate' : 'good'
+}
+
+// Puce compacte posée sur un aplat (texte encre)
+const FILL_CHIP = 'chip fill h-[22px] px-2 text-[11px]'
 
 type T = (key: string) => string
 
@@ -81,33 +102,21 @@ function generateAlerts(props: HealthAnalysisProps, t: T): HealthAlert[] {
     }
   }
 
-  // Sucres
+  // Sucres, graisses saturées, sel : niveau donné par nutrientLevel(), puis son texte
   if (n.sugars != null) {
-    if (n.sugars > 22.5) {
-      alerts.push({ icon: <Candy size={16} className="text-current" />, title: `${t('health.sugars.high')} : ${n.sugars} g / 100g`, description: t('health.sugars.high.desc'), level: 'danger' })
-    } else if (n.sugars > 12.5) {
-      alerts.push({ icon: <Candy size={16} className="text-current" />, title: `${t('health.sugars.mod')} : ${n.sugars} g / 100g`, description: t('health.sugars.mod.desc'), level: 'warning' })
-    } else if (n.sugars <= 5) {
-      alerts.push({ icon: <Candy size={16} className="text-current" />, title: `${t('health.sugars.low')} : ${n.sugars} g / 100g`, description: t('health.sugars.low.desc'), level: 'good' })
-    }
+    const level = nutrientLevel('sugars', n.sugars)
+    const k = level === 'danger' ? 'high' : level === 'warning' ? 'mod' : level === 'good' ? 'low' : null
+    if (k) alerts.push({ icon: <Candy size={16} className="text-current" />, title: `${t(`health.sugars.${k}`)} : ${n.sugars} g / 100g`, description: t(`health.sugars.${k}.desc`), level })
   }
-
-  // Graisses saturées
   if (n.fat_saturated != null) {
-    if (n.fat_saturated > 5) {
-      alerts.push({ icon: <Droplet size={16} className="text-current" />, title: `${t('health.fat.high')} : ${n.fat_saturated} g / 100g`, description: t('health.fat.high.desc'), level: 'danger' })
-    } else if (n.fat_saturated > 1.5) {
-      alerts.push({ icon: <Droplet size={16} className="text-current" />, title: `${t('health.fat.mod')} : ${n.fat_saturated} g / 100g`, description: t('health.fat.mod.desc'), level: 'moderate' })
-    }
+    const level = nutrientLevel('fat_saturated', n.fat_saturated)
+    const k = level === 'danger' ? 'high' : level === 'moderate' ? 'mod' : null
+    if (k) alerts.push({ icon: <Droplet size={16} className="text-current" />, title: `${t(`health.fat.${k}`)} : ${n.fat_saturated} g / 100g`, description: t(`health.fat.${k}.desc`), level })
   }
-
-  // Sel
   if (n.salt != null) {
-    if (n.salt > 1.5) {
-      alerts.push({ icon: <Sparkles size={16} className="text-current" />, title: `${t('health.salt.high')} : ${n.salt} g / 100g`, description: t('health.salt.high.desc'), level: 'danger' })
-    } else if (n.salt > 0.6) {
-      alerts.push({ icon: <Sparkles size={16} className="text-current" />, title: `${t('health.salt.mod')} : ${n.salt} g / 100g`, description: t('health.salt.mod.desc'), level: 'moderate' })
-    }
+    const level = nutrientLevel('salt', n.salt)
+    const k = level === 'danger' ? 'high' : level === 'moderate' ? 'mod' : null
+    if (k) alerts.push({ icon: <Sparkles size={16} className="text-current" />, title: `${t(`health.salt.${k}`)} : ${n.salt} g / 100g`, description: t(`health.salt.${k}.desc`), level })
   }
 
   // Fibres
@@ -158,26 +167,26 @@ export default function HealthAnalysis(props: HealthAnalysisProps) {
   const badCount = alerts.filter(a => a.level === 'danger' || a.level === 'warning').length
 
   return (
-    <div className="rounded-2xl border bg-card p-6 space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-sm font-bold text-foreground flex items-center gap-2">
-          <HeartPulse size={16} className="text-current" /> {t('health.title')}
+    <section className="section">
+      <div className="sec-head">
+        <h2 className="disp d-m flex items-center gap-2">
+          <HeartPulse size={18} className="flex-none text-current" /> {t('health.title')}
         </h2>
-        <div className="flex gap-1.5">
+        <div className="chips flex-nowrap">
           {goodCount > 0 && (
-            <span className={`${FILL_CHIP} bg-menthe!`}>
+            <span className={`${FILL_CHIP} bg-score-excellent`}>
               {goodCount} {goodCount > 1 ? t('health.positivesPlural') : t('health.positives')}
             </span>
           )}
           {badCount > 0 && (
-            <span className={`${FILL_CHIP} bg-tomate!`}>
+            <span className={`${FILL_CHIP} bg-tomate`}>
               {badCount} {badCount > 1 ? t('health.alertsPlural') : t('health.alerts')}
             </span>
           )}
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="card space-y-2 p-4">
         {alerts.map((alert, i) => (
           <div key={i} className="flex items-start gap-3 rounded-xl border-[1.5px] border-line bg-background/60 p-3">
             {/* Pastille d'icône en aplat : le niveau se lit à la couleur, le texte reste neutre */}
@@ -191,6 +200,6 @@ export default function HealthAnalysis(props: HealthAnalysisProps) {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 }

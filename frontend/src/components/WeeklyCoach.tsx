@@ -6,7 +6,6 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 import { Sparkles, Loader2, Lightbulb, RefreshCw } from 'lucide-react'
@@ -71,9 +70,9 @@ export default function WeeklyCoach() {
   if (loggedIn !== true) return null
 
   return (
-    <section className="rounded-2xl border bg-card p-5">
+    <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="pop-chip h-8 gap-2 border-encre bg-ai text-sm font-bold text-encre">
+        <h2 className="chip fill h-8 gap-2 bg-ai text-sm font-bold">
           <Sparkles className="h-4 w-4" />
           {t('coach.title')}
         </h2>
@@ -95,9 +94,9 @@ export default function WeeklyCoach() {
             <img src="/mascotte/naanaa-astuce.webp" alt="" width="64" height="94" />
             <p className="bubble">{t('coach.intro')}</p>
           </div>
-          <Button onClick={generate} size="sm" className="bg-ai text-ai-foreground hover:bg-ai/90">
-            <Sparkles className="mr-1.5 h-4 w-4" />{t('coach.generate')}
-          </Button>
+          <button type="button" onClick={generate} className="btn sm border-encre bg-ai text-encre">
+            <Sparkles aria-hidden="true" />{t('coach.generate')}
+          </button>
         </div>
       ) : error ? (
         <div className="naanaa">
@@ -129,6 +128,6 @@ export default function WeeklyCoach() {
           <p className="text-[11px] text-muted-foreground italic">{t('coach.caveat')}</p>
         </div>
       )}
-    </section>
+    </div>
   )
 }

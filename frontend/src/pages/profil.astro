@@ -14,10 +14,10 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
   title="Mon profil santé — Bayen"
   description="Déclare les allergènes et additifs que tu évites : Bayen t'alerte automatiquement quand un produit scanné en contient. Gratuit, sans compte, 100% privé."
   path="/profil"
+  mobileTopbar={false}
 >
-  <main class="mx-auto px-4 py-6 pb-24 md:pb-12" style="max-width: 760px">
-    <PageHero image="/hero/ingredients.jpg" tone="framboise" mascot="astuce" kicker={t('profile.badge', locale)} title={t('profile.title', locale)} subtitle={t('profile.subtitle', locale)} class="mb-8" />
-
+  <PageHero tone="framboise" mascot="astuce" back="/compte" kicker={t('profile.badge', locale)} title={t('profile.title', locale)} subtitle={t('profile.subtitle', locale)} />
+  <main class="screen max-md:pt-5">
     <HealthProfileEditor client:load />
   </main>
 </Layout>

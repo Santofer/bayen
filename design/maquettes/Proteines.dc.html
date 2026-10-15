@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Univers protéines</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="bayen.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&amp;family=Readex+Pro:wght@400;500;600;700&amp;family=Archivo:wdth,wght@62..100,600..900&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="bp phone {{cls}}" style="height: 1280px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 110px">
+  <section style="background: var(--u-protein); color: var(--encre); border-bottom: 2px solid var(--encre); padding-bottom: 22px; display: grid; gap: 14px">
+    <header class="topbar" style="padding-bottom: 0">
+      <a class="icon-btn" href="Main.dc.html" aria-label="Retour" style="--surface: #FFF8EC; --fg: #1B1B1B; --line: #1B1B1B"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+      <span class="chip" style="background: #FFF8EC; color: #1B1B1B; border-color: #1B1B1B">Univers protéines</span>
+    </header>
+    <div style="padding: 0 18px; display: grid; gap: 10px">
+      <h1 class="disp d-xl">Plus de protéines, moins de sucre.</h1>
+      <p style="font-size: 15px">Classés par grammes de protéines pour 100 g, avec le score Bayen à côté pour ne pas se faire avoir.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Minimum de protéines</p>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+      <span class="btn sm flat">5 g</span>
+      <span class="btn sm flat" style="background: var(--u-protein); color: var(--encre); border-color: var(--encre)">10 g</span>
+      <span class="btn sm flat">20 g</span>
+      <span class="btn sm flat">30 g</span>
+    </div>
+  </section>
+
+  <section class="section" style="gap: 12px">
+    <a href="FichePop.dc.html" class="card" style="display: grid; grid-template-columns: 76px 1fr auto auto; gap: 12px; align-items: center; padding: 10px 12px 10px 10px; text-decoration: none">
+      <div class="tile t-blue" style="width: 76px; height: 76px"><img src="/_blob/32eeb68ab0b9254e84bfe99f98f7176a" alt=""></div>
+      <div><p style="font-weight: 700">Sardines à l'huile d'olive</p><p class="muted" style="font-size: 12px">125 g · 1,9 DH / 10 g prot.</p></div>
+      <div style="text-align: right"><b class="disp d-m num">24</b><p style="font-size: 11px">g / 100 g</p></div>
+      <div class="sticker sm sa"><div><b>84</b></div></div>
+    </a>
+    <a href="FichePop.dc.html" class="card" style="display: grid; grid-template-columns: 76px 1fr auto auto; gap: 12px; align-items: center; padding: 10px 12px 10px 10px; text-decoration: none">
+      <div class="tile t-mint" style="width: 76px; height: 76px"><img src="/_blob/b6294d2312555ceb38186497634b9e09" alt=""></div>
+      <div><p style="font-weight: 700">Skyr nature 0 %</p><p class="muted" style="font-size: 12px">150 g · 4,6 DH / 10 g prot.</p></div>
+      <div style="text-align: right"><b class="disp d-m num">10</b><p style="font-size: 11px">g / 100 g</p></div>
+      <div class="sticker sm sb"><div><b>78</b></div></div>
+    </a>
+    <a href="FichePop.dc.html" class="card" style="display: grid; grid-template-columns: 76px 1fr auto auto; gap: 12px; align-items: center; padding: 10px 12px 10px 10px; text-decoration: none">
+      <div class="tile t-tomato" style="width: 76px; height: 76px"><img src="/_blob/b104925a9141b356accaf423263dd100" alt=""></div>
+      <div><p style="font-weight: 700">Barre « protéinée » chocolat</p><p class="muted" style="font-size: 12px">45 g · 28 g de sucres</p></div>
+      <div style="text-align: right"><b class="disp d-m num">12</b><p style="font-size: 11px">g / 100 g</p></div>
+      <div class="sticker sm sd"><div><b>29</b></div></div>
+    </a>
+    <div class="naanaa" style="grid-template-columns: 56px 1fr">
+      <div class="m" style="width: 56px; height: 56px"><img src="/_blob/ff2391840852cc0cac4c27ac311ec542" alt=""></div>
+      <p class="bubble">« Protéinée » sur l'emballage ne veut pas dire sain : regarde aussi le sucre.</p>
+    </div>
+  </section>
+  <nav class="tabbar" aria-label="Navigation principale"><a href="Main.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a><a href="Recherche.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Chercher</a><a href="Scan.dc.html" class="scan" aria-label="Scanner un produit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/></svg></a><a href="Repas.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Repas</a><a href="Compte.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/></svg>Compte</a></nav>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["light", "dark"], "default": "light"}, "$preview": {"width": 390, "height": 1280}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme ?? 'light';
+    return { cls: theme === 'dark' ? 'dark' : ''  };
+  }
+}
+</script>
+</body>
+</html>

@@ -51,28 +51,28 @@ export default function ScanHistory({ limit, compact = false, heading, seeAllLab
   if (shown.length === 0) {
     if (compact) return null
     return (
-      <div className="rounded-3xl border bg-card p-8 flex flex-col items-center gap-5">
+      <div className="card grid justify-items-start gap-4 p-4">
         {/* Historique vide : Naânaa attend avec son panier */}
         <div className="naanaa">
-          <img src="/mascotte/naanaa-courses.webp" alt="" width="72" height="106" />
+          <div className="m"><img src="/mascotte/naanaa-courses.webp" alt="" /></div>
           <p className="bubble flex items-center gap-2 font-semibold">
             <History size={16} className="flex-shrink-0 text-muted-foreground" aria-hidden="true" />
             {t('history.empty')}
           </p>
         </div>
-        <a href="/scan" className="btn-pop">
-          <ScanLine size={16} /> {t('nav.scan')}
+        <a href="/scan" className="btn primary">
+          <ScanLine aria-hidden="true" /> {t('nav.scan')}
         </a>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-3">
       {heading && (
-        <div className="sec-head-v2">
-          <h2>{heading}</h2>
-          {seeAllLabel && <a href="/mes-scans">{seeAllLabel} →</a>}
+        <div className="sec-head">
+          <h2 className="disp d-m">{heading}</h2>
+          {seeAllLabel && <a href="/mes-scans">{seeAllLabel}</a>}
         </div>
       )}
       {!compact && (
@@ -85,14 +85,14 @@ export default function ScanHistory({ limit, compact = false, heading, seeAllLab
             onClick={() => {
               if (window.confirm(t('history.clearConfirm'))) clearHistory()
             }}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-destructive"
+            className="btn sm flat"
           >
-            <Trash2 size={15} /> {t('history.clear')}
+            <Trash2 aria-hidden="true" /> {t('history.clear')}
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-6 lg:grid-cols-5">
         {shown.map((e) => (
           <ProductCard key={e.barcode} product={toProduct(e)} variant="grid" />
         ))}

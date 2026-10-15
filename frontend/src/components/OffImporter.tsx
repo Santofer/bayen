@@ -4,11 +4,11 @@
  */
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { getAccessToken } from '@/lib/auth'
+import { cn } from '@/lib/utils'
+import { productTint } from '@/components/ProductCard'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
-import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
+import { CheckCircle, AlertTriangle, XCircle, Loader2 } from 'lucide-react'
 
 const DIRECTUS_URL = '/api/directus'
 
@@ -403,105 +403,112 @@ export default function OffImporter() {
     setState('done')
   }
 
+  const busy = state === 'searching' || state === 'importing'
+  const batchCount = barcodeList.split(/[\n,;\s]+/).filter(c => /^\d{8,13}$/.test(c.trim())).length
+
   return (
-    <div className="space-y-6">
-      {/* Toggle mode */}
-      <div className="flex rounded-lg bg-muted p-1 w-fit">
-        <button onClick={() => { setMode('single'); setState('idle') }} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${mode === 'single' ? 'bg-background shadow-sm' : 'text-muted-foreground'}`}>
-          Un produit
-        </button>
-        <button onClick={() => { setMode('batch'); setState('idle') }} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${mode === 'batch' ? 'bg-background shadow-sm' : 'text-muted-foreground'}`}>
-          Import en masse
-        </button>
+    <div className="grid gap-5 md:max-w-[760px]">
+      {/* Mode : puces */}
+      <div className="chips gap-2" role="group" aria-label="Mode d'import">
+        {([['single', 'Un produit'], ['batch', 'Import en masse']] as const).map(([m, label]) => (
+          <button
+            key={m}
+            type="button"
+            aria-pressed={mode === m}
+            onClick={() => { setMode(m); setState('idle'); setError('') }}
+            className={cn('chip h-10 px-4 text-sm', mode === m && 'fill bg-menthe')}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Mode single */}
       {mode === 'single' && (
-        <div className="space-y-4">
+        <div className="grid gap-4">
           <div className="flex gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Code-barres (ex: 6111080016394)"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
-              maxLength={13}
-            />
-            <Button onClick={handleSearch} disabled={state === 'searching' || state === 'importing'}>
-              {state === 'searching' ? (
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              ) : 'Rechercher'}
-            </Button>
+            <label className="card flex h-[50px] min-w-0 flex-1 items-center rounded-full px-4 shadow-[3px_3px_0_var(--color-hard)]">
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="Code-barres (ex: 6111080016394)"
+                aria-label="Code-barres"
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="num min-w-0 flex-1 border-0 bg-transparent text-[15px] font-medium outline-none"
+                maxLength={13}
+              />
+            </label>
+            <button type="button" className="btn primary min-h-[50px]" onClick={handleSearch} disabled={busy}>
+              {state === 'searching' ? <Loader2 className="animate-spin" aria-label="Recherche…" /> : 'Rechercher'}
+            </button>
           </div>
 
           {state === 'exists' && (
-            <div className="rounded-2xl border-2 border-line tint-citron p-4">
-              <p className="text-sm text-foreground">Ce produit existe déjà dans Bayen.</p>
-              <a href={`/produit/${barcode}`} className="text-sm text-brand-ink hover:underline mt-1 inline-block">Voir la fiche →</a>
+            <div className="card tint-citron grid gap-1 p-4">
+              <p className="text-sm font-semibold">Ce produit existe déjà dans Bayen.</p>
+              <a href={`/produit/${barcode}`} className="w-max text-sm font-bold underline underline-offset-[3px]">Voir la fiche →</a>
             </div>
           )}
 
-          {state === 'preview' && product && (
-            <div className="rounded-xl border bg-card p-5 space-y-4">
-              <div className="flex gap-4">
-                {product.image && (
-                  <img src={product.image} alt={product.name} className="w-20 h-20 rounded-lg object-cover" />
-                )}
-                <div>
-                  <h3 className="font-bold">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground">{product.brand}</p>
-                  <div className="flex gap-2 mt-1">
-                    {product.nutriscore && <Badge>Nutri-Score {product.nutriscore}</Badge>}
-                    {product.nova && <Badge variant="outline">NOVA {product.nova}</Badge>}
-                    {product.additives.length > 0 && <Badge variant="outline">{product.additives.length} additifs</Badge>}
+          {(state === 'preview' || state === 'importing') && product && (
+            <div className="card grid gap-4 p-4 md:p-5">
+              <div className="grid grid-cols-[88px_minmax(0,1fr)] items-center gap-3">
+                <div className={cn('tile size-[88px]', productTint(product.barcode))}>
+                  {product.image && <img src={product.image} alt={product.name} />}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="disp d-s">{product.name}</h3>
+                  <p className="muted text-sm">{product.brand}</p>
+                  <div className="chips mt-2">
+                    {product.nutriscore && <span className="chip">Nutri-Score {product.nutriscore}</span>}
+                    {product.nova && <span className="chip">NOVA {product.nova}</span>}
+                    {product.additives.length > 0 && <span className="chip">{product.additives.length} additifs</span>}
                   </div>
                 </div>
               </div>
 
-              {/* Nutrition preview */}
-              <div className="grid grid-cols-4 gap-2 text-center text-xs">
+              {/* Aperçu nutritionnel (données OFF pour 100 g) */}
+              <div className="grid grid-cols-4 gap-2 text-center">
                 {[
                   { label: 'Énergie', value: product.energy, unit: 'kcal' },
                   { label: 'Lipides', value: product.fat, unit: 'g' },
                   { label: 'Sucres', value: product.sugars, unit: 'g' },
                   { label: 'Sel', value: product.salt, unit: 'g' },
                 ].map(({ label, value, unit }) => (
-                  <div key={label} className="rounded-lg bg-muted p-2">
-                    <p className="text-muted-foreground">{label}</p>
-                    <p className="font-bold">{value != null ? `${value} ${unit}` : '—'}</p>
+                  <div key={label} className="rounded-[14px] border-2 border-line px-1 py-2">
+                    <b className="num block font-display text-[15px]">{value != null ? value : '—'}</b>
+                    <span className="block text-[11px]">{value != null ? `${unit} · ` : ''}{label}</span>
                   </div>
                 ))}
               </div>
 
-              <Button onClick={handleImport} className="w-full" disabled={state === 'importing'}>
+              <button type="button" className="btn primary w-full" onClick={handleImport} disabled={state === 'importing'}>
                 {state === 'importing' ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Import en cours...
-                  </span>
+                  <><Loader2 className="animate-spin" aria-hidden="true" /> Import en cours...</>
                 ) : 'Importer dans Bayen'}
-              </Button>
+              </button>
             </div>
           )}
 
           {state === 'done' && product && (
-            <div className="rounded-2xl border-2 border-line tint-menthe p-4 text-center">
-              <p className="text-sm text-foreground font-medium flex items-center justify-center gap-1"><CheckCircle size={14} className="text-current" /> {product.name} importé avec succès !</p>
-              <a href={`/produit/${product.barcode}`} className="text-sm text-brand-ink hover:underline mt-2 inline-block">Voir la fiche →</a>
-              <div className="mt-3">
-                <Button variant="outline" size="sm" onClick={() => { setState('idle'); setBarcode(''); setProduct(null) }}>
-                  Importer un autre
-                </Button>
-              </div>
+            <div className="card tint-menthe grid justify-items-center gap-2 p-4 text-center">
+              <p className="flex items-center gap-1.5 text-sm font-semibold"><CheckCircle size={16} /> {product.name} importé avec succès !</p>
+              <a href={`/produit/${product.barcode}`} className="text-sm font-bold underline underline-offset-[3px]">Voir la fiche →</a>
+              <button type="button" className="btn sm mt-1" onClick={() => { setState('idle'); setBarcode(''); setProduct(null) }}>
+                Importer un autre
+              </button>
             </div>
           )}
 
           {error && state === 'error' && (
-            <div className="rounded-2xl border-2 border-line tint-tomate p-4">
-              <p className="text-sm text-foreground">{error}</p>
-              <Button variant="outline" size="sm" className="mt-2" onClick={() => setState('idle')}>Réessayer</Button>
+            <div className="naanaa grid-cols-[56px_minmax(0,1fr)]" role="alert">
+              <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="56" className="size-14" />
+              <div className="bubble grid justify-items-start gap-2">
+                <p className="text-sm">{error}</p>
+                <button type="button" className="btn sm" onClick={() => setState('idle')}>Réessayer</button>
+              </div>
             </div>
           )}
         </div>
@@ -509,43 +516,45 @@ export default function OffImporter() {
 
       {/* Mode batch */}
       {mode === 'batch' && (
-        <div className="space-y-4">
+        <div className="grid gap-4">
           <textarea
             rows={6}
             placeholder={"Collez une liste de codes-barres (un par ligne) :\n6111080016394\n3017620422003\n5449000131812"}
+            aria-label="Liste de codes-barres"
             value={barcodeList}
             onChange={(e) => setBarcodeList(e.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono resize-none"
+            className="w-full resize-none rounded-2xl border-2 border-line bg-background px-4 py-3 font-mono text-sm outline-none focus:border-brand-ink"
           />
-          <Button onClick={handleBatchImport} disabled={state === 'importing'} className="w-full">
+          <button type="button" className="btn primary w-full" onClick={handleBatchImport} disabled={state === 'importing'}>
             {state === 'importing' ? (
-              <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                Import en cours... {batchProgress}%
-              </span>
-            ) : `Importer ${barcodeList.split(/[\n,;\s]+/).filter(c => /^\d{8,13}$/.test(c.trim())).length} produits`}
-          </Button>
+              <><Loader2 className="animate-spin" aria-hidden="true" /> Import en cours... {batchProgress}%</>
+            ) : `Importer ${batchCount} produits`}
+          </button>
 
-          {/* Barre de progression */}
+          {error && state !== 'importing' && batchResults.length === 0 && (
+            <p className="text-sm text-destructive" role="alert">{error}</p>
+          )}
+
+          {/* Barre de progression (barre de la maquette Compte) */}
           {state === 'importing' && (
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <div className="h-full bg-primary transition-all" style={{ width: `${batchProgress}%` }} />
+            <div className="h-2.5 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">
+              <div className="h-full bg-menthe transition-all" style={{ width: `${batchProgress}%` }} />
             </div>
           )}
 
-          {/* Résultats batch */}
+          {/* Résultats batch : lignes de carte */}
           {batchResults.length > 0 && (
-            <div className="rounded-xl border bg-card p-4 space-y-1 max-h-60 overflow-y-auto">
+            <ul className="card max-h-72 overflow-y-auto">
               {batchResults.map((r, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs py-1 border-b last:border-0">
-                  <span className="font-mono text-muted-foreground w-28 flex-shrink-0">{r.barcode}</span>
-                  {r.status === 'imported' && <span className="text-brand-ink flex items-center gap-1"><CheckCircle size={14} className="text-current" /> {r.name}</span>}
-                  {r.status === 'exists' && <span className="text-score-mediocre-ink flex items-center gap-1"><AlertTriangle size={14} className="text-current" /> Déjà existant</span>}
-                  {r.status === 'not_found' && <span className="text-muted-foreground flex items-center gap-1"><XCircle size={14} className="text-current" /> Non trouvé sur OFF</span>}
-                  {r.status === 'error' && <span className="text-destructive flex items-center gap-1"><XCircle size={14} className="text-current" /> Erreur</span>}
-                </div>
+                <li key={i} className="flex items-center gap-3 border-b-[1.5px] border-line px-4 py-2 text-xs last:border-b-0">
+                  <span className="num w-28 flex-none font-mono">{r.barcode}</span>
+                  {r.status === 'imported' && <span className="flex min-w-0 items-center gap-1 truncate font-semibold"><CheckCircle size={14} className="flex-none text-brand-ink" /> {r.name}</span>}
+                  {r.status === 'exists' && <span className="chip fill bg-citron"><AlertTriangle /> Déjà existant</span>}
+                  {r.status === 'not_found' && <span className="muted flex items-center gap-1"><XCircle size={14} /> Non trouvé sur OFF</span>}
+                  {r.status === 'error' && <span className="flex items-center gap-1 text-destructive"><XCircle size={14} /> Erreur</span>}
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
       )}
