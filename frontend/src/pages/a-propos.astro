@@ -12,6 +12,16 @@ const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
 
 const SITE_URL = 'https://bayen.ma'
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+
+// Date réelle de la dernière fiche produit modifiée (crons nocturnes, contributions) ; rien si l'API ne répond pas
+const lastData = await fetch(`${DIRECTUS_URL}/items/products?sort=-date_updated&limit=1&fields=date_updated&filter[status][_eq]=published&filter[date_updated][_nnull]=true`, { signal: AbortSignal.timeout(3000) })
+  .then((r) => (r.ok ? r.json() : null))
+  .then((j: { data?: Array<{ date_updated: string | null }> } | null) => j?.data?.[0]?.date_updated ?? null)
+  .catch(() => null)
+const lastDataLabel = lastData
+  ? t('about.dataUpdated', locale).replace('{date}', new Date(lastData).toLocaleDateString(locale === 'ary' ? 'ar-MA' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }))
+  : null
 
 // Section éditoriale : titre à gauche, texte (≤ 68ch) à droite sur ordinateur
 const ED = 'section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12'
@@ -147,7 +157,7 @@ const jsonLd = [
     </section>
 
     <p class="section muted text-center text-xs">
-      {t('about.updated', locale)}
+      {lastDataLabel && <>{lastDataLabel} · </>}{t('about.updated', locale)}
     </p>
   </main>
 </Layout>

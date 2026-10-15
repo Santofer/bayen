@@ -7,7 +7,9 @@
  */
 import { useState, type CSSProperties } from 'react'
 
-export const HONEYPOT_STYLE: CSSProperties = { position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }
+// Masqué sans décalage hors écran : en arabe (RTL), un « left: -10000px » rend la page
+// défilable sur 10 000 px. Le champ reste dans le DOM, donc rempli par les robots.
+export const HONEYPOT_STYLE: CSSProperties = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap', opacity: 0, pointerEvents: 'none' }
 
 /** Vrai si l'envoi vient d'un robot. `startedAt` absent = client ancien, toléré. */
 export function isBot(body: Record<string, unknown>): boolean {

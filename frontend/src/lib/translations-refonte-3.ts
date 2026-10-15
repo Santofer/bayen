@@ -134,7 +134,7 @@ export const refonte3 = {
   'about.srcAddB':     { fr: "additifs à risque selon l'EFSA", ary: 'الإضافات الخطيرة حسب EFSA' },
   'about.srcAddC':     { fr: ' (Autorité européenne) et le ', ary: ' (الهيئة الأوروبية) و' },
   'about.srcAddD':     { fr: ' (Centre international de recherche sur le cancer / OMS)', ary: ' (المركز الدولي لأبحاث السرطان / منظمة الصحة العالمية)' },
-  'about.readMethod':  { fr: 'Lire la méthodologie complète du score Bayen →', ary: 'اقرا المنهجية الكاملة ديال نقطة بيّن ←' },
+  'about.readMethod':  { fr: 'Toute la méthodologie →', ary: 'المنهجية كاملة ←' },
   'about.commitTitle': { fr: 'Nos engagements',             ary: 'الالتزامات ديالنا' },
   'about.c1Title':     { fr: 'Gratuit pour toujours',       ary: 'فابور ديما' },
   'about.c1Desc':      { fr: "Pas d'abonnement caché, pas de freemium déguisé.", ary: 'لا اشتراك مخبّي، لا فريميوم متنكّر.' },
@@ -168,7 +168,8 @@ export const refonte3 = {
   'about.bugDesc':     { fr: 'Ou suggérer une amélioration, sur GitHub.', ary: 'ولا تقترح شي تحسين، على GitHub.' },
   'about.writeTitle':  { fr: 'Nous écrire',                 ary: 'تكتب لينا' },
   'about.writeDesc':   { fr: ' : partenariat, presse, ONG ou association.', ary: ': شراكة، صحافة، منظمة ولا جمعية.' },
-  'about.updated':     { fr: 'Dernière mise à jour : mai 2026 · Site lancé en avril 2026 · Données : Open Food Facts + contributions communauté', ary: 'آخر تحديث: ماي 2026 · السيت تلانسا فأبريل 2026 · المعطيات: Open Food Facts + مساهمات المجتمع' },
+  'about.updated':     { fr: 'Site lancé en avril 2026 · Sources : Open Food Facts + contributions de la communauté', ary: 'السيت تلانسا فأبريل 2026 · المصادر: Open Food Facts + مساهمات المجتمع' },
+  'about.dataUpdated': { fr: 'Données mises à jour le {date}', ary: 'المعطيات تحدّثات ف {date}' },
 
   // ── Méthodologie (barème identique à scoring.ts) ────────────────
   'method.kicker':     { fr: 'Transparence totale',         ary: 'شفافية كاملة' },
@@ -220,7 +221,7 @@ export const refonte3 = {
   'method.aiP2a':      { fr: "Le score final n'est JAMAIS calculé par l'IA.", ary: 'النقطة النهائية عمرها ما كتحسب بالذكاء الاصطناعي.' },
   'method.aiP2b':      { fr: " Une fois les valeurs nutritionnelles extraites, l'algorithme déterministe ci-dessus prend la main. C'est ce qui garantit la reproductibilité : le même produit donne le même score, à chaque scan, sans variation.", ary: ' ملي كتتجبد القيم الغذائية، الخوارزمية الثابتة اللي فوق هي اللي كتكمّل. هادشي اللي كيضمن نفس النتيجة: نفس المنتوج كيعطي نفس النقطة، فكل سكان، بلا تبدال.' },
   'method.sourceCode': { fr: 'Code source : ',              ary: 'الكود المصدري: ' },
-  'method.updated':    { fr: 'Dernière mise à jour : 11 mai 2026', ary: 'آخر تحديث: 11 ماي 2026' },
+  'method.updated':    { fr: 'Dernière mise à jour : 15 octobre 2026', ary: 'آخر تحديث: 15 أكتوبر 2026' },
 
   // ── Comparateur ──────────────────────────────────────────────────
   'cmp.hint':          { fr: "Cherche deux produits, de préférence du même rayon : le meilleur score Bayen gagne, et je t'explique pourquoi.", ary: 'قلّب على جوج منتوجات، والأحسن يكونو من نفس الرايون: اللي عندو أحسن نقطة بيّن هو اللي كيربح، وأنا نشرح ليك علاش.' },

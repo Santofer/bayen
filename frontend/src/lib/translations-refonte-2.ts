@@ -133,7 +133,7 @@ export const refonte2 = {
   'beauty.hub.kicker':       { fr: 'Univers beauté',                     ary: 'عالم الجمال' },
   'beauty.hub.title':        { fr: "On lit l'INCI à ta place.",          ary: 'كنقراو INCI بلاصتك.' },
   'beauty.hub.subtitle':     { fr: 'Chaque ingrédient est vérifié contre les listes officielles (CosIng, annexes du règlement européen).', ary: 'كل مكوّن كنقارنوه مع اللوائح الرسمية (CosIng، الملحقات ديال القانون الأوروبي).' },
-  'beauty.hub.cta':          { fr: 'Scanner une crème, un shampoing…',   ary: 'سكاني كريمة، شامبوان…' },
+  'beauty.hub.cta':          { fr: 'Scanner un cosmétique',   ary: 'سكاني منتوج تجميل' },
   'beauty.hub.noPe':         { fr: 'Sans perturbateur endocrinien suspecté', ary: 'بلا مخلّ هرموني مشكوك فيه' },
   'beauty.hub.safest':       { fr: 'Les plus sûrs',                      ary: 'الأكثر أمان' },
   'beauty.hub.sourceLink':   { fr: 'source ↗',                           ary: 'المصدر ↗' },

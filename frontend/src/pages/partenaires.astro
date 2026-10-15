@@ -114,7 +114,7 @@ const args = [
           <textarea id="pf-msg" name="message" rows="4" class={`${field} py-3`} placeholder={t('partners.messagePh', locale)}></textarea>
         </label>
         <!-- Honeypot anti-bots : invisible pour un humain -->
-        <div aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden">
+        <div aria-hidden="true" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; opacity: 0; pointer-events: none">
           <label for="pf-gotcha">Ne pas remplir</label>
           <input id="pf-gotcha" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
         </div>
