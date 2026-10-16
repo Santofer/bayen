@@ -60,6 +60,10 @@ const SHOTS = [
   ['photo-F7-couscous', 'iPad paysage', '/produit/6111094000013', 0],
   ['photo-F5-ar', 'iPhone 14', '/analyser-repas', 250, 848, repas, 'ary'],
   ['photo-F2-ar', 'iPhone 14', '/beaute', 0, 895, null, 'ary'],
+  // Lot 3 : flocons d'avoine Javana (100/100, fiche complète) sur la tablette, fiche et protéines en darija
+  ['photo-F7-avoine', 'iPad paysage', '/produit/6111180015501', 0],
+  ['photo-F1-ar', 'iPhone 14', PRODUIT, 0, 872, null, 'ary'],
+  ['photo-F3-ar', 'iPhone 14', '/proteines', 0, 862, null, 'ary'],
 ]
 const browser = await chromium.launch()
 const only = process.argv.slice(2)

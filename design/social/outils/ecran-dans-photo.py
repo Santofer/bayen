@@ -26,7 +26,8 @@ JOBS += [(C / f'{k}.png', cap, None, None, SOC / f'{k}.jpg') for k, cap in [
     ('F5-repas', 'photo-F5'), ('F6-courses', 'photo-F6'), ('F7-tablette', 'photo-F7'), ('F8-ordinateur', 'photo-F8')]]
 # Variantes du lot 2 : même photo, autre écran (fiche couscous, interface en darija)
 JOBS += [(C / f'{k}.png', cap, None, None, SOC / f'{k}-{suffixe}.jpg') for k, cap, suffixe in [
-    ('F7-tablette', 'photo-F7-couscous', 'couscous'), ('F5-repas', 'photo-F5-ar', 'ar'), ('F2-beaute', 'photo-F2-ar', 'ar')]]
+    ('F7-tablette', 'photo-F7-couscous', 'couscous'), ('F5-repas', 'photo-F5-ar', 'ar'), ('F2-beaute', 'photo-F2-ar', 'ar'),
+    ('F7-tablette', 'photo-F7-avoine', 'avoine'), ('F1-scan', 'photo-F1-ar', 'ar'), ('F3-proteines', 'photo-F3-ar', 'ar')]]
 
 def extent(v):
     """Bornes du bloc dense le plus long (ignore les traits fins de même couleur, ex. le fil menthe)."""

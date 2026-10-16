@@ -13,6 +13,7 @@
  */
 import type { Article, ArticleCategory } from '@/lib/types'
 import type { Locale } from '@/lib/translations'
+import { readingTime } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { articleCover } from '@/lib/blog-covers'
 
@@ -49,7 +50,7 @@ export function formatBlogDate(iso: string | null | undefined, locale: Locale): 
 
 /** Méta de carte : « 5 min · 12 oct. 2026 » */
 function cardMeta(article: Article, locale: Locale): string {
-  const reading = article.reading_time_min ? `${article.reading_time_min} ${locale === 'ary' ? 'دقيقة' : 'min'}` : ''
+  const reading = article.reading_time_min ? readingTime(article.reading_time_min, locale, true) : ''
   return [reading, formatBlogDate(article.date_published ?? article.date_created, locale)].filter(Boolean).join(' · ')
 }
 

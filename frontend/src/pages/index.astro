@@ -5,7 +5,7 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import ProductCard, { ScoreSticker } from '@/components/ProductCard.tsx'
-import { getLocale, t } from '@/lib/i18n'
+import { getLocale, readingTime, t } from '@/lib/i18n'
 import type { Article, ArticleCategory, Product } from '@/lib/types'
 import { localCover } from '@/lib/blog-covers'
 
@@ -195,7 +195,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
               <div class="grid gap-1.5 p-3.5 md:p-4">
                 <span class:list={['chip fill w-max md:hidden', CAT_FILL[a.category]]}>{t(`blog.category.${a.category}`, locale)}</span>
                 <p class="disp d-s">{(locale === 'ary' && a.title_ar) || a.title_fr}</p>
-                {a.reading_time_min ? <p class="muted text-[13px] md:hidden">{a.reading_time_min} {t('blog.readingTimeMin', locale)}</p> : null}
+                {a.reading_time_min ? <p class="muted text-[13px] md:hidden">{readingTime(a.reading_time_min, locale)}</p> : null}
               </div>
             </a>
           ))}

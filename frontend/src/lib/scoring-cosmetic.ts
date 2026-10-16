@@ -31,6 +31,8 @@ export interface CosmeticScoreResult {
   counts: Record<CosmeticRiskLevel, number>
   incomplete: boolean
   unscored: boolean
+  /** Trop d'ingrédients non reconnus pour noter favorablement : pas de note affichée (on invite à photographier la liste) */
+  insufficient?: boolean
 }
 
 const CAP: Record<CosmeticRiskLevel, number> = { banned: 5, high: 25, moderate: 50, low: 75, none: 100, unknown: 100 }
@@ -77,6 +79,11 @@ export function computeCosmeticScore(params: {
 
   const known = ings.length - counts.unknown
   const incomplete = known === 0 || counts.unknown / ings.length > 0.2
+  // Données insuffisantes : sans ingrédient interdit, élevé ou modéré identifié, une note haute serait trompeuse
+  // (les inconnus peuvent cacher n'importe quoi). On ne note pas ; un plafond bas, lui, reste un avertissement fiable.
+  if ((incomplete || known < 3) && (worstLevel === 'none' || worstLevel === 'low')) {
+    return { total: null, label: null, color: '#E4D6BF', cap_reason: null, worst: [], counts, incomplete: true, unscored: true, insufficient: true }
+  }
   const { label, color } = cosmeticScoreToLabel(total)
   const worst = ings
     .filter((i) => i.risk_level !== 'none' && i.risk_level !== 'unknown')

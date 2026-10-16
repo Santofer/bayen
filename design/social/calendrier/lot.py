@@ -15,7 +15,7 @@ OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else D / 'out' / f'lot-{N}.html'
 SOC = ROOT / 'social'
 import re
 # Typographie française : espace fine insécable avant ? ! ; et insécable avant : et dans les guillemets
-esc = lambda t: html.escape(re.sub(r' ([?!;])', '\u202f\\1', re.sub(r' :', '\u00a0:', t.replace('« ', '«\u00a0').replace(' »', '\u00a0»'))))
+esc = lambda t: html.escape(re.sub(r'(\d) %', '\\1\u00a0%', re.sub(r' ([?!;])', '\u202f\\1', re.sub(r' :', '\u00a0:', t.replace('« ', '«\u00a0').replace(' »', '\u00a0»')))))
 
 # ---------- Ressources ----------
 ZELLIGE_TOMATE = tex(C['tomate'], mix(C['tomate'], C['encre'], .12),
@@ -102,8 +102,10 @@ TAGS = {'annonce': '#NouveauLook #ConsommerMieux', 'action': '#AppMaroc #Consomm
         'cercle': '#ProduitsMarocains #ConsommerMieux', 'sante': '#JourneeMondialeDuDiabete #ConsommerMieux',
         'partenariat': '#Partenariat #MarquesMarocaines', 'app': '#AppMaroc #ConsommerMieux', 'saison': '#Hiver #ConsommerMieux', 'fete': ''}
 TAGS_AR = {'astuce': '#نصائح #استهلاك_واعي', 'action': '#تطبيق #استهلاك_واعي', 'jeu': '#صحيح_ولا_غالط #استهلاك_واعي',
-           'communaute': '#مساهمة #المجتمع', 'mission': '#استهلاك_واعي #منتوجات_مغربية', 'journee': '#اليوم_العالمي_للغة_العربية #الدارجة'}
-FETES = {'fete-unite': '#FeteDeLUnite', 'marche-verte': '#MarcheVerte', 'independance': '#FeteDeLIndependance'}
+           'communaute': '#مساهمة #المجتمع', 'mission': '#استهلاك_واعي #منتوجات_مغربية', 'journee': '#اليوم_العالمي_للغة_العربية #الدارجة',
+           'partenariat': '#شراكة #منتوجات_مغربية'}
+FETES = {'fete-unite': '#FeteDeLUnite', 'marche-verte': '#MarcheVerte', 'independance': '#FeteDeLIndependance',
+         'nouvel-an': '#BonneAnnee2027', 'manifeste': '#11Janvier', 'yennayer': '#Yennayer #Asggas2977'}
 def legendes(p):
     slug, ar, fete = p['id'][11:], p.get('lang') == 'ar', p['rubrique'] == 'fete'
     base = '#باين #المغرب #Bayen ' if ar else '#Bayen #Maroc '
@@ -179,6 +181,7 @@ CSS = '''
   .post.photo .ph { position:absolute; inset:0 0 auto; width:100%; height:66%; object-fit:cover; }
   .post.photo .band { position:absolute; inset:auto 0 0; height:34%; border-top:.5cqw solid var(--encre); padding:4.5cqw 6cqw; display:grid; align-content:start; gap:2.2cqw; }
   .post.photo .band .t { font-size:6.6cqw; max-width:76%; }
+  .post.photo .band .x { max-width:62%; }  /* le logo occupe le coin bas droit de la bande */
   .post.xxl .in { position:relative; z-index:3; padding:6.5cqw; display:flex; flex-direction:column; align-items:flex-start; gap:3cqw; }
   .post.xxl .in > .t { max-width:86%; color:inherit; }
   .post.xxl .in > .x { max-width:62%; color:inherit; }

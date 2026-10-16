@@ -48,6 +48,15 @@ export function t(key: TranslationKey, locale?: Locale): string {
  * Hook React pour le système i18n
  * Retourne { locale, setLocale, t, isRtl }
  */
+/**
+ * Durée de lecture d'un article, accordée en darija (1 دقيقة, 2 دقيقتين, 3 à 10 دقايق, 11 et plus دقيقة).
+ * `court` = sans « de lecture » (cartes du journal).
+ */
+export function readingTime(n: number, locale?: Locale, court = false): string {
+  const forme = n === 1 ? 'one' : n === 2 ? 'two' : n <= 10 ? 'few' : 'many'
+  return t(`blog.${court ? 'min' : 'read'}.${forme}` as TranslationKey, locale).replace('{n}', String(n))
+}
+
 export function useLocale() {
   const [locale, setLocaleState] = useState<Locale>(getLocale)
 

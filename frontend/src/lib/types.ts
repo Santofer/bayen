@@ -102,6 +102,8 @@ export interface CosmeticRiskSummary {
   counts: Record<string, number>
   incomplete: boolean
   unscored: boolean
+  /** Trop d'ingrédients non reconnus : pas de note (voir scoring-cosmetic.ts) */
+  insufficient?: boolean
   unknown: string[]
   matched_count: number
   token_count: number
