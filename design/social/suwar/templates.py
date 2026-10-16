@@ -178,7 +178,7 @@ def exemples(nom, h):
                  'Sticker1': U['sticker-wordmark']},
                 {'Rubrique': AR('نصيحة نعناعة'), 'Titre': AR('شوف السكريات، ماشي غير الكالوري.'), 'Sticker1': ''})
     return ({'Rubrique': '6 novembre', 'Titre': 'Commémoration de la Marche verte', 'Texte': '', 'Image': U['plein-P2-marche-verte'],
-             'TitreAr': AR('ذكرى المسيرة الخضراء'), 'Signature': "Toute l'équipe Bayen"},
+             'TitreAr': AR('ذكرى المسيرة الخضراء'), 'Signature': ''},
             {'Rubrique': AR('نية العام الجديد'), 'Titre': AR('منتوج واحد فالشهر.'), 'Texte': AR('بدّل كل شهر منتوج واحد بواحد عندو نقطة أحسن.'),
              'Image': U['plein-P13-resolutions'], 'TitreAr': '', 'Signature': ''})
 

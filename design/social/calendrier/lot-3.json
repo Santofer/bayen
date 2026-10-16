@@ -10,114 +10,274 @@
   ],
   "posts": [
     {
-      "id": "2026-12-21-sodium", "date": "2026-12-21", "heure": "19:00", "rubrique": "astuce", "lang": "ar",
-      "visuel": { "layout": "xxl", "fond": "vagues", "naanaa": "astuce" },
-      "kicker": "نصيحة نعناعة", "titre": "الصوديوم ماشي هو الملحة.",
+      "id": "2026-12-21-sodium",
+      "date": "2026-12-21",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "lang": "ar",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "vagues",
+        "naanaa": "astuce"
+      },
+      "kicker": "نصيحة نعناعة",
+      "titre": "الصوديوم ماشي هو الملحة.",
       "texte": "ضرب الصوديوم ف 2,5 وعرف شحال من ملحة.",
       "legende": "بزاف ديال الإتيكيتات كيكتبو «الصوديوم» فبلاصة «الملحة»، وهادشي كيغلّط.\n\nالقاعدة ساهلة: ضرب الصوديوم ف 2,5 وعندك شحال من ملحة. مثلا 0,4 غرام ديال الصوديوم، راه 1 غرام ديال الملحة.\n\nوباين كيحسبها ليك ديريكت فالبطاقة ديال المنتوج."
     },
     {
-      "id": "2026-12-23-alternatives", "date": "2026-12-23", "heure": "19:00", "rubrique": "action", "lang": "ar",
-      "visuel": { "layout": "photo", "photo": "F1-scan-ar", "bande": "tomate" },
-      "kicker": "باين فالخدمة · البدائل", "titre": "كاين أحسن، فنفس الرف.",
+      "id": "2026-12-23-alternatives",
+      "date": "2026-12-23",
+      "heure": "19:00",
+      "rubrique": "action",
+      "lang": "ar",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F1-scan-ar",
+        "bande": "tomate"
+      },
+      "kicker": "باين فالخدمة · البدائل",
+      "titre": "كاين أحسن، فنفس الرف.",
       "legende": "ملي كتسكاني منتوج بباين، كتلقى تحت البطاقة ديالو منتوجات من نفس الرف عندهم نقطة أحسن.\n\nما محتاجش تبدّل العادات ديالك كاملين: غير بدّل منتوج بمنتوج، واحد فواحد."
     },
     {
-      "id": "2026-12-25-pur-jus", "date": "2026-12-25", "heure": "19:00", "rubrique": "jeu",
-      "visuel": { "layout": "xxl", "fond": "rayons", "naanaa": "oups", "stickers": ["vrai", "faux"] },
-      "kicker": "Vrai ou faux ?", "titre": "Un jus « 100 % pur jus » ne contient pas de sucre.", "cta": "Réponse dans la légende",
+      "id": "2026-12-25-pur-jus",
+      "date": "2026-12-25",
+      "heure": "19:00",
+      "rubrique": "jeu",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "rayons",
+        "naanaa": "oups",
+        "stickers": [
+          "vrai",
+          "faux"
+        ]
+      },
+      "kicker": "Vrai ou faux ?",
+      "titre": "Un jus « 100 % pur jus » ne contient pas de sucre.",
+      "cta": "Réponse dans la légende",
       "reponse": "FAUX",
       "legende": "Vrai ou faux : un jus « 100 % pur jus » ne contient pas de sucre ?\n\nRéponse : FAUX. On n'y ajoute pas de sucre, mais le jus garde les sucres naturels du fruit. Un verre de jus peut en contenir autant qu'un soda.\n\nLe fruit entier, lui, apporte aussi ses fibres. Et pour comparer deux jus, regarde la ligne « dont sucres »."
     },
     {
-      "id": "2026-12-27-classement", "date": "2026-12-27", "heure": "11:00", "rubrique": "communaute",
-      "visuel": { "layout": "xxl", "fond": "damier", "naanaa": "bravo", "stickers": ["scanne"] },
-      "kicker": "La communauté", "titre": "Qui complète le plus de fiches ?",
+      "id": "2026-12-27-classement",
+      "date": "2026-12-27",
+      "heure": "11:00",
+      "rubrique": "communaute",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "damier",
+        "naanaa": "bravo",
+        "stickers": [
+          "scanne"
+        ]
+      },
+      "kicker": "La communauté",
+      "titre": "Qui complète le plus de fiches ?",
       "texte": "Le classement des contributeurs est sur bayen.ma.",
       "lien": "https://bayen.ma/classement",
       "legende": "Chaque photo d'étiquette, chaque nouveau produit, chaque prix relevé fait avancer Bayen pour tout le monde.\n\nLes contributeurs gagnent des points et grimpent dans le classement : nouveau, contributeur, expert. Tu en es où ?"
     },
     {
-      "id": "2026-12-28-agrumes", "date": "2026-12-28", "heure": "19:00", "rubrique": "saison",
-      "visuel": { "layout": "plein", "image": "P12-agrumes" },
-      "kicker": "Saison · hiver", "titre": "L'hiver, c'est la saison des agrumes.",
+      "id": "2026-12-28-agrumes",
+      "date": "2026-12-28",
+      "heure": "19:00",
+      "rubrique": "saison",
+      "visuel": {
+        "layout": "plein",
+        "image": "P12-agrumes"
+      },
+      "kicker": "Saison · hiver",
+      "titre": "L'hiver, c'est la saison des agrumes.",
       "texte": "Oranges et clémentines de saison : de la vitamine C, sans étiquette à déchiffrer.",
       "legende": "Oranges, clémentines, mandarines : l'hiver est leur saison au Maroc.\n\nUn fruit entier apporte de la vitamine C et des fibres, sans liste d'ingrédients ni additif. Pour le goûter, c'est souvent plus simple qu'un biscuit."
     },
     {
-      "id": "2026-12-30-ordinateur", "date": "2026-12-30", "heure": "19:00", "rubrique": "action",
-      "visuel": { "layout": "photo", "photo": "F8-ordinateur", "bande": "myrtille" },
-      "kicker": "Bayen en action · ordinateur", "titre": "Bayen, aussi sur grand écran.",
+      "id": "2026-12-30-ordinateur",
+      "date": "2026-12-30",
+      "heure": "19:00",
+      "rubrique": "action",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F8-ordinateur",
+        "bande": "myrtille"
+      },
+      "kicker": "Bayen en action · ordinateur",
+      "titre": "Bayen, aussi sur grand écran.",
       "legende": "Pas besoin du téléphone pour préparer tes courses : bayen.ma marche dans n'importe quel navigateur.\n\nCherche un produit, compare deux références côte à côte, ou fais ta liste de courses depuis l'ordinateur."
     },
     {
-      "id": "2027-01-01-nouvel-an", "date": "2027-01-01", "heure": "10:00", "rubrique": "fete",
-      "visuel": { "layout": "fete", "image": "P9-nouvel-an" },
-      "kicker": "1er janvier", "titre": "Bonne année 2027", "titreAr": "سنة سعيدة", "signature": "Toute l'équipe Bayen",
+      "id": "2027-01-01-nouvel-an",
+      "date": "2027-01-01",
+      "heure": "10:00",
+      "rubrique": "fete",
+      "visuel": {
+        "layout": "fete",
+        "image": "P9-nouvel-an"
+      },
+      "kicker": "1er janvier",
+      "titre": "Bonne année 2027",
+      "titreAr": "سنة سعيدة",
       "legende": "Bonne année 2027 ! Que cette année soit pleine de bons produits et de bons moments.\n\nسنة سعيدة"
     },
     {
-      "id": "2027-01-03-resolution", "date": "2027-01-03", "heure": "11:00", "rubrique": "astuce", "lang": "ar",
-      "visuel": { "layout": "plein", "image": "P13-resolutions" },
-      "kicker": "نية العام الجديد", "titre": "منتوج واحد فالشهر.",
+      "id": "2027-01-03-resolution",
+      "date": "2027-01-03",
+      "heure": "11:00",
+      "rubrique": "astuce",
+      "lang": "ar",
+      "visuel": {
+        "layout": "plein",
+        "image": "P13-resolutions"
+      },
+      "kicker": "نية العام الجديد",
+      "titre": "منتوج واحد فالشهر.",
       "texte": "بدّل كل شهر منتوج واحد بواحد عندو نقطة أحسن.",
       "legende": "النيات الكبار ديال العام الجديد كيطيحو غالبا ف فبراير. جرّب شي حاجة صغيرة.\n\nكل شهر، اختار منتوج واحد كتشريه بزاف، وقلّب بباين على بديل من نفس الرف عندو نقطة أحسن. ف آخر العام، تكون بدّلتي 12 ديال المنتوجات بلا ما تحس."
     },
     {
-      "id": "2027-01-04-sucres-calories", "date": "2027-01-04", "heure": "19:00", "rubrique": "astuce", "lang": "ar",
-      "visuel": { "layout": "bulle", "fond": "trame", "naanaa": "astuce" },
-      "kicker": "نصيحة نعناعة", "titre": "شوف السكريات، ماشي غير الكالوري.",
+      "id": "2027-01-04-sucres-calories",
+      "date": "2027-01-04",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "lang": "ar",
+      "visuel": {
+        "layout": "bulle",
+        "fond": "trame",
+        "naanaa": "astuce"
+      },
+      "kicker": "نصيحة نعناعة",
+      "titre": "شوف السكريات، ماشي غير الكالوري.",
       "legende": "الكالوري كتقولك شحال من طاقة فالمنتوج، ولكن ما كتقولكش منين جات.\n\nجوج منتوجات عندهم نفس الكالوري يقدرو يكونو مختلفين بزاف: واحد فيه البروتين والألياف، والآخر غير السكر. شوف السطر ديال «السكريات» فالجدول الغذائي."
     },
     {
-      "id": "2027-01-06-flocons-avoine", "date": "2027-01-06", "heure": "19:00", "rubrique": "cercle",
-      "visuel": { "layout": "photo", "photo": "F7-tablette-avoine", "bande": "citron", "score": "100" },
-      "kicker": "Le bon produit du mois", "titre": "Flocons d'avoine, Javana.", "texte": "Sans additif · NOVA 1 · Nutri-Score A",
+      "id": "2027-01-06-flocons-avoine",
+      "date": "2027-01-06",
+      "heure": "19:00",
+      "rubrique": "cercle",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F7-tablette-avoine",
+        "bande": "citron",
+        "score": "100"
+      },
+      "kicker": "Le bon produit du mois",
+      "titre": "Flocons d'avoine, Javana.",
+      "texte": "Sans additif · NOVA 1 · Nutri-Score A",
       "note": "Score et données lus le 16/10/2026 : à revérifier la veille.",
       "legende": "Le bon produit du mois : les flocons d'avoine de Javana, 100/100 sur Bayen.\n\nSans additif, non transformés (groupe NOVA 1) et un Nutri-Score A. Pour le petit-déjeuner, avec du lait et un fruit, c'est simple et rassasiant.\n\nQuel produit veux-tu voir le mois prochain ?"
     },
     {
-      "id": "2027-01-08-sel-de-mer", "date": "2027-01-08", "heure": "19:00", "rubrique": "jeu", "lang": "ar",
-      "visuel": { "layout": "xxl", "fond": "rayons", "naanaa": "loupe", "stickers": ["sahih", "ghalet"] },
-      "kicker": "صحيح ولا غالط؟", "titre": "ملحة البحر فيها صوديوم قل بزاف.", "cta": "الجواب تحت التصويرة",
+      "id": "2027-01-08-sel-de-mer",
+      "date": "2027-01-08",
+      "heure": "19:00",
+      "rubrique": "jeu",
+      "lang": "ar",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "rayons",
+        "naanaa": "loupe",
+        "stickers": [
+          "sahih",
+          "ghalet"
+        ]
+      },
+      "kicker": "صحيح ولا غالط؟",
+      "titre": "ملحة البحر فيها صوديوم قل بزاف.",
+      "cta": "الجواب تحت التصويرة",
       "reponse": "غالط",
       "legende": "صحيح ولا غالط: ملحة البحر فيها صوديوم قل بزاف من الملحة العادية؟\n\nالجواب: غالط. بنفس الوزن، ملحة البحر والملحة العادية فيهم تقريبا نفس الصوديوم. اللي كيفرق هو الطعم والشكل، ماشي الكمية.\n\nالمهم هو شحال كتحط من ملحة، ماشي نوع الملحة."
     },
     {
-      "id": "2027-01-10-comparer", "date": "2027-01-10", "heure": "11:00", "rubrique": "action", "lang": "ar",
-      "visuel": { "layout": "scene", "scene": "s5-comparer" },
-      "kicker": "باين فالخدمة · المقارنة", "titre": "جوج منتوجات، واحد اللي ربح.",
+      "id": "2027-01-10-comparer",
+      "date": "2027-01-10",
+      "heure": "11:00",
+      "rubrique": "action",
+      "lang": "ar",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s5-comparer"
+      },
+      "kicker": "باين فالخدمة · المقارنة",
+      "titre": "جوج منتوجات، واحد اللي ربح.",
       "legende": "متردد بين جوج منتوجات؟ المقارنة ديال باين كتحطهم جنب بعضياتهم: النقطة، Nutri-Score، السكر، التحويل.\n\nاللي عندو أحسن نقطة كيربح، ونعناعة كتشرح ليك علاش."
     },
     {
-      "id": "2027-01-11-manifeste", "date": "2027-01-11", "heure": "10:00", "rubrique": "fete",
-      "visuel": { "layout": "fete", "image": "P10-manifeste" },
-      "kicker": "11 janvier", "titre": "Commémoration du Manifeste de l'Indépendance", "titreAr": "ذكرى تقديم وثيقة الاستقلال", "signature": "Toute l'équipe Bayen",
+      "id": "2027-01-11-manifeste",
+      "date": "2027-01-11",
+      "heure": "10:00",
+      "rubrique": "fete",
+      "visuel": {
+        "layout": "fete",
+        "image": "P10-manifeste"
+      },
+      "kicker": "11 janvier",
+      "titre": "Commémoration du Manifeste de l'Indépendance",
+      "titreAr": "ذكرى تقديم وثيقة الاستقلال",
       "legende": "En ce 11 janvier, nous commémorons la présentation du Manifeste de l'Indépendance.\n\nذكرى تقديم وثيقة الاستقلال"
     },
     {
-      "id": "2027-01-13-proteines", "date": "2027-01-13", "heure": "19:00", "rubrique": "action", "lang": "ar",
-      "visuel": { "layout": "photo", "photo": "F3-proteines-ar", "bande": "myrtille" },
-      "kicker": "باين فالخدمة · البروتين", "titre": "بروتين كثر، سكر قل.",
+      "id": "2027-01-13-proteines",
+      "date": "2027-01-13",
+      "heure": "19:00",
+      "rubrique": "action",
+      "lang": "ar",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F3-proteines-ar",
+        "bande": "myrtille"
+      },
+      "kicker": "باين فالخدمة · البروتين",
+      "titre": "بروتين كثر، سكر قل.",
       "legende": "كتقلّب على منتوجات فيها البروتين؟ فالعالم ديال البروتين ف باين، ختار الحد الأدنى ديال البروتين ف 100 غرام (5، 10، 20 ولا 30 غرام)، واللائحة كتترتّب على حساب النقطة.\n\nهكا ما كيغلطكش منتوج «بروتين» عامر بالسكر."
     },
     {
-      "id": "2027-01-14-yennayer", "date": "2027-01-14", "heure": "10:00", "rubrique": "fete",
-      "visuel": { "layout": "fete", "image": "P11-yennayer" },
-      "kicker": "14 janvier · Yennayer", "titre": "Asggas ameggaz 2977", "titreAr": "سنة أمازيغية سعيدة", "signature": "Toute l'équipe Bayen",
+      "id": "2027-01-14-yennayer",
+      "date": "2027-01-14",
+      "heure": "10:00",
+      "rubrique": "fete",
+      "visuel": {
+        "layout": "fete",
+        "image": "P11-yennayer"
+      },
+      "kicker": "14 janvier · Yennayer",
+      "titre": "Asggas ameggaz 2977",
+      "titreAr": "سنة أمازيغية سعيدة",
       "legende": "Asggas ameggaz 2977 ! Toute l'équipe Bayen te souhaite une belle année amazighe, autour d'un bon couscous aux sept légumes.\n\nسنة أمازيغية سعيدة"
     },
     {
-      "id": "2027-01-15-sucre-roux", "date": "2027-01-15", "heure": "19:00", "rubrique": "jeu",
-      "visuel": { "layout": "xxl", "fond": "rayons", "naanaa": "loupe", "stickers": ["vrai", "faux"] },
-      "kicker": "Vrai ou faux ?", "titre": "Le sucre roux est bien meilleur que le sucre blanc.", "cta": "Réponse dans la légende",
+      "id": "2027-01-15-sucre-roux",
+      "date": "2027-01-15",
+      "heure": "19:00",
+      "rubrique": "jeu",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "rayons",
+        "naanaa": "loupe",
+        "stickers": [
+          "vrai",
+          "faux"
+        ]
+      },
+      "kicker": "Vrai ou faux ?",
+      "titre": "Le sucre roux est bien meilleur que le sucre blanc.",
+      "cta": "Réponse dans la légende",
       "reponse": "FAUX",
       "legende": "Vrai ou faux : le sucre roux est bien meilleur pour la santé que le sucre blanc ?\n\nRéponse : FAUX. Les deux sont presque entièrement du saccharose. Le sucre roux garde un peu de mélasse, qui lui donne sa couleur et son goût, mais en quantités trop faibles pour changer quoi que ce soit.\n\nRoux ou blanc, c'est la quantité qui compte."
     },
     {
-      "id": "2027-01-17-partenaires", "date": "2027-01-17", "heure": "11:00", "rubrique": "partenariat", "lang": "ar",
-      "visuel": { "layout": "scene", "scene": "s7-partenariat" },
-      "kicker": "الشراكات", "titre": "باين مفتوح للشركاء.",
+      "id": "2027-01-17-partenaires",
+      "date": "2027-01-17",
+      "heure": "11:00",
+      "rubrique": "partenariat",
+      "lang": "ar",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s7-partenariat"
+      },
+      "kicker": "الشراكات",
+      "titre": "باين مفتوح للشركاء.",
       "lien": "https://bayen.ma/partenaires",
       "legende": "نتوما ماركة ولا منتج مغربي؟ باين مفتوح ليكم.\n\nصححو ولا كمّلو البطاقات ديال المنتوجات ديالكم (التغذية، المكونات، التصاور الرسمية)، وبيّنو المجهود ديالكم: النقطة كتكافئ التحسينات الحقيقية، بحال سكر قل ولا إضافات قل. والنقطة ما كتشراش.\n\nتواصلو معانا من bayen.ma/partenaires."
     }
