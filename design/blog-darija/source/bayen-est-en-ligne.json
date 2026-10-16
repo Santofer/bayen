@@ -1,0 +1,9 @@
+{
+ "id": "531f560a-debc-4279-8a2e-daab0d29f53b",
+ "slug": "bayen-est-en-ligne",
+ "title_fr": "Bayen est en ligne : scanner, comprendre, choisir",
+ "excerpt_fr": "Après des mois de préparation, l'application marocaine de notation des produits alimentaires est ouverte à tous. Gratuite, open source, sans pub.",
+ "content_fr": "## Un outil pour reprendre le contrôle\n\nAu Maroc, les rayons débordent de produits importés, de promesses marketing, d'emballages rassurants. Entre le \"bio\", le \"sans sucre ajouté\" et le \"riche en fibres\", il devient impossible de distinguer les bons produits des mauvais sans lire dix étiquettes à chaque course.\n\n**Bayen** (\"c'est clair, ça se voit\" en darija) répond à ce besoin : scanne un code-barres, obtiens un score de 0 à 100 calculé de façon transparente, et comprends en 3 secondes ce que tu achètes vraiment.\n\n## Ce qu'on t'apporte dès maintenant\n\n- **Plus de 25 000 produits** disponibles dès le lancement (importés d'Open Food Facts + contributions communauté marocaine)\n- **Score Bayen** objectif : Nutri-Score officiel + groupe NOVA + additifs détectés\n- **Détection des additifs** interdits ou à éviter au Maroc\n- **100% gratuit**, sans publicité, sans tracking invasif\n- **Open source** : [le code est public sur GitHub](https://github.com/Santofer/bayen)\n\n## Comment tu peux aider\n\nLa base grandit chaque jour avec vos scans. Si un produit est absent, tu peux l'ajouter en 1 minute depuis l'app :\n\n1. Scanne le code-barres\n2. Prends une photo du tableau nutritionnel\n3. L'OCR rempli les champs automatiquement\n\n> Le Maroc a besoin d'une base nutritionnelle indépendante. Chaque produit que tu ajoutes bénéficie à tous.\n\n[Scanne ton premier produit](/scan) ou [explore la base](/recherche).",
+ "category": "actualites",
+ "reading_time_min": 2
+}
