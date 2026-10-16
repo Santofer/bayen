@@ -419,13 +419,14 @@ button.chip { cursor: pointer; font-family: inherit; }
    Deux balisages : <img> directe (le rond est son fond) ou <div class="m"><img></div>. */
 .naanaa { --s: 72px; display: grid; grid-template-columns: var(--s) minmax(0, 1fr); gap: 12px; align-items: center; }
 .naanaa > img {
-  width: calc(var(--s) * 1.2); height: calc(var(--s) * 1.23); max-width: none;
-  margin: calc(var(--s) * -0.23) 0 0 calc(var(--s) * -0.1);
+  /* 6 px de marge basse (padding) : le rond et son ombre ne sont jamais coupés par le cadre de l'image */
+  width: calc(var(--s) * 1.2); height: calc(var(--s) * 1.23 + 6px); padding-bottom: 6px; max-width: none;
+  margin: calc(var(--s) * -0.23) 0 -6px calc(var(--s) * -0.1);
   object-fit: cover; object-position: 50% 0;
   /* rond menthe clair + filet encre + ombre nette, centrés sur le bas de l'image */
   background:
-    radial-gradient(circle at 50% calc(100% - var(--s) / 2), #BFF0DC 0 calc(var(--s) / 2 - 2px), var(--color-encre) calc(var(--s) / 2 - 2px) calc(var(--s) / 2), transparent calc(var(--s) / 2 + .5px)) no-repeat,
-    radial-gradient(circle at calc(50% + 2px) calc(100% - var(--s) / 2 + 2px), var(--color-hard) 0 calc(var(--s) / 2), transparent calc(var(--s) / 2 + .5px)) no-repeat;
+    radial-gradient(circle at 50% calc(100% - 6px - var(--s) / 2), #BFF0DC 0 calc(var(--s) / 2 - 2px), var(--color-encre) calc(var(--s) / 2 - 2px) calc(var(--s) / 2), transparent calc(var(--s) / 2 + .5px)) no-repeat,
+    radial-gradient(circle at calc(50% + 2px) calc(100% - 4px - var(--s) / 2), var(--color-hard) 0 calc(var(--s) / 2), transparent calc(var(--s) / 2 + .5px)) no-repeat;
 }
 .naanaa .m { position: relative; width: var(--s); height: var(--s); border-radius: 50%; border: 2px solid var(--color-encre); box-shadow: 2px 2px 0 var(--color-hard); background: #BFF0DC; }
 .naanaa .m img { position: absolute; left: -10%; bottom: 0; width: 120%; height: 123%; max-width: none; object-fit: cover; object-position: 50% 0; }
