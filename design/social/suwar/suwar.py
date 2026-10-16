@@ -37,7 +37,7 @@ def call(name: str, args: dict, essais: int = 6):
         if 'error' in r: raise RuntimeError(f"{name} : {r['error']}")
         res = r['result']
         text = ''.join(c.get('text', '') for c in res.get('content', []) if c.get('type') == 'text')
-        if res.get('isError') and ('API 429' in text or 'fetch failed' in text) and essai < essais - 1:
+        if res.get('isError') and ('API 429' in text or 'fetch failed' in text or 'Render failed' in text) and essai < essais - 1:
             time.sleep(65); continue
         break
     if res.get('isError'): raise RuntimeError(f'{name} : {text[:1500]}')

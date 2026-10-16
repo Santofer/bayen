@@ -20,7 +20,7 @@ GAB = {'scene': 'Scène', 'photo': 'Photo', 'xxl': 'XXL', 'bulle': 'Bulle', 'ple
 SLOT = {'vrai': 'Sticker1', 'sahih': 'Sticker1', 'e171': 'Sticker1', 'e300': 'Sticker1', 'faux': 'Sticker2', 'ghalet': 'Sticker2',
         'wordmark': 'Sticker2', 'scanne': 'Sticker2'}
 # Un titre est « long » au-delà de deux lignes (mesuré sur les gabarits : ~34 signes en Unbounded XXL, ~40 sur la bande photo)
-LONG = {'XXL': 34, 'Photo': 40}
+LONG = {'XXL': 34, 'Photo': 40, 'Plein écran': 34}
 
 
 def fond_scene(k):

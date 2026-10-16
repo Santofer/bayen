@@ -109,8 +109,8 @@ def plein(W, H):
     ombre = {'shadowColor': 'rgba(0,0,0,0.35)', 'shadowX': 0, 'shadowY': 4, 'shadowBlur': 16}
     els = [image('image', 'Image', 0, 0, W, H), voile, kicker(70, y0),
            {**titre(70, y0 + 74, 940, 190, 80, LAIT), **ombre},
-           {'id': 'titre-ar', 'name': 'Titre en arabe', 'type': 'text', 'content': '{{TitreAr}}', 'x': 70, 'y': y0 + 274, 'width': 940, 'height': 110,
-            'fontFamily': 'Readex Pro', 'fontWeight': 700, 'fontSize': 80, 'lineHeight': 1.3, 'fill': LAIT, 'textAlign': 'right', **ombre},
+           {'id': 'titre-ar', 'name': 'Titre en arabe', 'type': 'text', 'content': '{{TitreAr}}', 'x': 70, 'y': y0 + 274, 'width': 940, 'height': 190,
+            'fontFamily': 'Readex Pro', 'fontWeight': 700, 'fontSize': 68, 'lineHeight': 1.3, 'fill': LAIT, 'textAlign': 'right', **ombre},
            {**texte(70, y0 + 274, 860, 150, 42, LAIT), **ombre},
            {'id': 'signe', 'name': 'Signature', 'type': 'text', 'content': '{{Signature}}', 'x': 70, 'y': y0 + 400, 'width': 900, 'height': 54,
             'fontFamily': 'Readex Pro', 'fontWeight': 600, 'fontSize': 39, 'fill': LAIT, **ombre},
@@ -139,14 +139,15 @@ def darija(els):
                          'y': e['y'] + e['height'] - round(w * ratio(AR_VB))}
     return o
 
-def long(els):
-    """Titre long : sa boîte gagne deux lignes, le texte descend d'autant (XXL, Photo)."""
+def long(els, lignes=None):
+    """Titre long : sa boîte gagne des lignes, et tout ce qui est dessous dans la colonne de texte descend d'autant."""
     o, t = {}, next((e for e in els if e['id'] == 'titre'), None)
     if not t: return o
-    plus = round(t['fontSize'] * 1.04 * (2 if t['fontSize'] > 75 else 1))
+    lignes = lignes or (2 if t['fontSize'] > 75 else 1)
+    plus = round(t['fontSize'] * 1.04 * lignes)
     o['titre'] = {'height': t['height'] + plus}
-    tx = next((e for e in els if e['id'] == 'texte'), None)
-    if tx: o['texte'] = {'y': tx['y'] + plus}
+    for e in els:
+        if e['id'] in ('texte', 'titre-ar', 'signe') and e['y'] > t['y']: o[e['id']] = {'y': e['y'] + plus}
     return o
 
 def fusion(*ds):
@@ -196,11 +197,13 @@ for nom, fn in GABARITS.items():
             ids[cle] = {'id': call('create_static_template', {**args, 'projectId': PROJET})['id']}
         tid = ids[cle]['id']
         variantes = {'Darija': darija(els)}
-        if nom in ('XXL', 'Photo'):
-            dl = fusion(darija(els), long(els))
-            dl['titre']['height'] = round(long(els)['titre']['height'] * 1.3)
-            if 'texte' in dl: dl['texte']['y'] = long(els)['texte']['y'] + round(long(els)['titre']['height'] * .3)
-            variantes |= {'Long': long(els), 'Darija long': dl}
+        if nom in ('XXL', 'Photo', 'Plein écran'):
+            lg = long(els, 1 if nom == 'Plein écran' else None)
+            dl = fusion(darija(els), lg)
+            dl['titre']['height'] = round(lg['titre']['height'] * 1.3)
+            for k in ('texte', 'titre-ar', 'signe'):
+                if k in lg: dl[k]['y'] = lg[k]['y'] + round(lg['titre']['height'] * .3)
+            variantes |= {'Long': lg, 'Darija long': dl}
         for vn, ov in variantes.items():
             cle_v = vn.lower().replace(' ', '-')
             longs = {'XXL': ({'Titre': '« Sans sucres ajoutés » veut dire sans sucre.'}, {'Titre': AR('الياغورت «بلا سكر مضاف» ماعندوش السكر نهائيا.')}),
