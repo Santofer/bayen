@@ -181,6 +181,7 @@ CSS = '''
   .post.photo .ph { position:absolute; inset:0 0 auto; width:100%; height:66%; object-fit:cover; }
   .post.photo .band { position:absolute; inset:auto 0 0; height:34%; border-top:.5cqw solid var(--encre); padding:4.5cqw 6cqw; display:grid; align-content:start; gap:2.2cqw; }
   .post.photo .band .t { font-size:6.6cqw; max-width:76%; }
+  .post.photo .band .x { max-width:62%; }  /* le logo occupe le coin bas droit de la bande */
   .post.xxl .in { position:relative; z-index:3; padding:6.5cqw; display:flex; flex-direction:column; align-items:flex-start; gap:3cqw; }
   .post.xxl .in > .t { max-width:86%; color:inherit; }
   .post.xxl .in > .x { max-width:62%; color:inherit; }
