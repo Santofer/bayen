@@ -28,16 +28,19 @@ STICKERS = {
     'score-90': st_score('riso', '90'), 'score-100': st_score('riso', '100'),
 }
 ZELLIGE_TOMATE = tex(C['tomate'], mix(C['tomate'], C['encre'], .12), star(40, 40, 22) + ''.join(star(x, y, 22) for x in (0, 80) for y in (0, 80)), 80)
-FONDS = {  # nom → (image du carreau, taille CSS du carreau à 1080 px de large)
-    'trame': (T['trame'][1], '65px'), 'damier': (T['damier'][1], '108px'), 'vagues': (T['vagues'][1], '173px 69px'),
-    'graines': (T['graines'][1], '259px'), 'zellige': (T['zellige'][1], '194px'), 'fete': (ZELLIGE_TOMATE, '194px'),
-    'rayons': (RAYONS, 'cover'),
+# nom → (image du carreau, taille CSS du carreau, couleur de fond). Tailles = multiples ENTIERS du carreau SVG :
+# une taille fractionnaire (ex. 173 px pour 80) laisse un interstice d'1 px entre deux répétitions (ligne verticale).
+FONDS = {
+    'trame': (T['trame'][1], '72px', C['menthe']), 'damier': (T['damier'][1], '96px', C['figue']),
+    'vagues': (T['vagues'][1], '160px 64px', C['myrtille']), 'graines': (T['graines'][1], '240px', C['framboise']),
+    'zellige': (T['zellige'][1], '160px', C['aubergine']), 'fete': (ZELLIGE_TOMATE, '160px', C['tomate']),
+    'rayons': (RAYONS, 'cover', C['citron']),
 }
 page = ('<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Readex+Pro:wght@400;600;700&display=swap">'
         '<style>body{margin:0;background:transparent}.s{width:900px;padding:20px}.s svg{width:100%;height:auto;display:block;overflow:visible}.f{background-position:70% 80%}</style>' + FILTERS
         + ''.join(f'<div class="s" id="stk-{k}">{v}</div>' for k, v in STICKERS.items())
-        + ''.join(f'<div class="f" id="fond-{k}-{h}" style="width:1080px;height:{h}px;background-image:url({u});background-size:{s}"></div>'
-                  for k, (u, s) in FONDS.items() for h in (1350, 1920)))
+        + ''.join(f'<div class="f" id="fond-{k}-{h}" style="width:1080px;height:{h}px;background:{bg} url({u}) {"70% 80%" if s == "cover" else "0 0"}/{s} repeat"></div>'
+                  for k, (u, s, bg) in FONDS.items() for h in (1350, 1920)))
 (OUT / 'page.html').write_text(page)
 js = f"""const {{ chromium }} = require(process.env.PW || '/Users/amine/Code/karakeep/node_modules/playwright')
 ;(async () => {{ const b = await chromium.launch(); const p = await b.newPage({{ viewport: {{ width: 1100, height: 1000 }} }})
@@ -59,8 +62,9 @@ for p in sorted((SOC / 'scenes').glob('s*.png')): A[f'scene-{p.stem}'] = (p, 135
 for p in sorted((SOC / 'plein').glob('P*.png')): A[f'plein-{p.stem}'] = (p, 1402, 'JPEG')
 for p in sorted((SOC / 'photos-ecran').glob('F*.jpg')): A[f'photo-{p.stem}'] = (p, 1536, 'JPEG')
 
+import sys as _sys
 for nom, (src, taille, fmt) in A.items():
-    if nom in uploads: continue
+    if nom in uploads and not ('--fonds' in _sys.argv and nom.startswith('fond-')): continue
     im = Image.open(src); im = im.convert('RGBA' if fmt == 'PNG' else 'RGB'); im.thumbnail((taille, taille), Image.LANCZOS)
     b = io.BytesIO(); im.save(b, fmt, **({'quality': 88} if fmt == 'JPEG' else {'optimize': True}))
     ext, mime = ('png', 'image/png') if fmt == 'PNG' else ('jpg', 'image/jpeg')

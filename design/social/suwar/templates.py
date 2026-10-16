@@ -64,7 +64,7 @@ def photo(W, H):
     els = [image('image', 'Image', 0, 0, W, ph), rect('bande', 0, ph, W, H - ph, '{{Bande}}'), rect('filet', 0, ph - 3, W, 6, ENCRE),
            image('pastille', 'Pastille', W - 324, 32 if H == 1350 else 250, 292, 307, 'contain', 'Pastille de score'),
            kicker(65, y), titre(65, y + 80, 940, 155 if H == 1350 else 175, 71 if H == 1350 else 80),
-           texte(65, y + 80 + (165 if H == 1350 else 185), 680, 110, 38), signature(W, H, bas=60 if H == 1350 else 300)]
+           texte(65, y + 80 + (165 if H == 1350 else 185), 690, 110, 34), signature(W, H, bas=60 if H == 1350 else 300)]
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, V('Image', 'Photo à écran réel', 'image'), V('Bande', 'Couleur de la bande', 'color', '#19C08B'),
                  V('Pastille', 'Pastille de score riso (facultatif)', 'image', hide=[])]
 
@@ -78,14 +78,23 @@ def xxl(W, H):
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, VAR_APPEL, V('Fond', 'Fond texturé (image)', 'image'), V('Encre', 'Couleur du texte', 'color', ENCRE),
                  V('Naanaa', 'Naânaa (pose riso)', 'image'), V('Sticker1', 'Sticker 1 (facultatif)', 'image', hide=[]), V('Sticker2', 'Sticker 2 (facultatif)', 'image', hide=[])]
 
+def bulle_d(w, h, r=54, tx=150, tw=72, th=50):
+    """Bulle de BD d'un seul tracé : rectangle arrondi dont le bord bas s'ouvre sur une pointe (pas de raccord visible)."""
+    return (f'M{r} 0H{w - r}A{r} {r} 0 0 1 {w} {r}V{h - r}A{r} {r} 0 0 1 {w - r} {h}'
+            f'H{tx + tw}L{tx + tw * .35} {h + th}L{tx} {h}H{r}A{r} {r} 0 0 1 0 {h - r}V{r}A{r} {r} 0 0 1 {r} 0Z')
+
 def bulle(W, H):
     s = H == 1350
-    by, bh = (140, 330) if s else (340, 420)
-    queue = {'id': 'queue', 'name': 'Pointe de la bulle', 'type': 'path', 'd': 'M0 0 L32 46 L64 0', 'viewBox': '0 0 64 46', 'closed': False,
-             'fill': CREME, 'stroke': ENCRE, 'strokeWidth': 5, 'strokeLinejoin': 'round', 'x': 250, 'y': by + bh - 3, 'width': 64, 'height': 46}
+    bx, by, bw, bh, th = 70, (140 if s else 340), 920, (330 if s else 420), 50
+    d, m = bulle_d(bw, bh, th=th), 4  # marge de tracé (trait de 5 px centré sur le contour)
+    vb = f'{-m} {-m} {bw + 2 * m} {bh + th + 2 * m}'
+    def forme(id_, dx, fill, stroke):
+        e = {'id': id_, 'name': 'Bulle' if id_ == 'bulle' else 'Ombre de la bulle', 'type': 'path', 'd': d, 'viewBox': vb, 'fill': fill,
+             'x': bx - m + dx, 'y': by - m + dx, 'width': bw + 2 * m, 'height': bh + th + 2 * m}
+        return {**e, 'stroke': stroke, 'strokeWidth': 5, 'strokeLinejoin': 'round'} if stroke else e
     els = [image('fond', 'Fond', 0, 0, W, H, name='Fond texturé'),
-           rect('bulle', 70, by, 920, bh, CREME, borderColor=ENCRE, borderWidth=5, borderRadius=54, shadowColor=ENCRE, shadowX=11, shadowY=11, shadowBlur=0),
-           queue, titre(120, by + 45, 820, bh - 90, 97 if s else 104),
+           forme('bulle-ombre', 11, ENCRE, None), forme('bulle', 0, CREME, ENCRE),
+           titre(120, by + 45, 820, bh - 90, 97 if s else 104),
            image('naanaa', 'Naanaa', -32, 583 if s else 1060, 540, 810, 'contain', 'Naânaa'),
            image('sticker1', 'Sticker1', 540, 1049 if s else 1480, 518, 236, 'contain', 'Sticker'), kicker(70, 62 if s else 260)]
     return els, [VAR_RUB, VAR_TITRE, V('Fond', 'Fond texturé (image)', 'image'), V('Naanaa', 'Naânaa (pose riso)', 'image'),
@@ -146,10 +155,40 @@ def fusion(*ds):
         for k, v in d.items(): out.setdefault(k, {}).update(v)
     return out
 
+U = json.loads((D / 'uploads.json').read_text())
+AR = lambda t: '\u202b' + t + '\u202c'  # texte arabe isolé en sens droite-à-gauche
+def exemples(nom, h):
+    """Valeurs d'exemple (posts réels du calendrier) : (français, darija)."""
+    f = lambda k: U[f'fond-{k}-{h}']
+    if nom == 'Scène':
+        return ({'Rubrique': "L'astuce de Naânaa", 'Titre': 'Le sucre a plusieurs noms.', 'Image': U['scene-s2-frigo-sucre'], 'Fond': '#23CF92'},
+                {'Rubrique': AR('نصيحة نعناعة'), 'Titre': AR('السكر عندو بزاف ديال السميات.')})
+    if nom == 'Photo':
+        return ({'Rubrique': 'Le bon produit du mois', 'Titre': 'Leben, Jaouda.', 'Texte': 'Sans additif · NOVA\u00a01 · Nutri-Score\u00a0B',
+                 'Image': U['photo-F7-tablette'], 'Bande': '#19C08B', 'Pastille': U['sticker-score-90']},
+                {'Rubrique': AR('باين فالخدمة · الوجبة'), 'Titre': AR('صوّر الطبسيل ديالك، وعرف شنو فيه.'), 'Texte': '',
+                 'Image': U['photo-F5-repas-ar'], 'Bande': '#B98CFF', 'Pastille': ''})
+    if nom == 'XXL':
+        return ({'Rubrique': 'Vrai ou faux\u00a0?', 'Titre': '« Light » veut dire sans sucre.', 'Texte': '', 'Appel': 'Réponse dans la légende',
+                 'Fond': f('rayons'), 'Encre': ENCRE, 'Naanaa': U['naanaa-loupe'], 'Sticker1': U['sticker-vrai'], 'Sticker2': U['sticker-faux']},
+                {'Rubrique': AR('صحيح ولا غالط؟'), 'Titre': AR('لايت معناها ديما شوية ديال السكر.'), 'Appel': AR('الجواب تحت التصويرة'),
+                 'Sticker1': U['sticker-sahih'], 'Sticker2': U['sticker-ghalet']})
+    if nom == 'Bulle':
+        return ({'Rubrique': "L'astuce de Naânaa", 'Titre': "Lis l'étiquette avant le prix.", 'Fond': f('trame'), 'Naanaa': U['naanaa-astuce'],
+                 'Sticker1': U['sticker-wordmark']},
+                {'Rubrique': AR('نصيحة نعناعة'), 'Titre': AR('شوف السكريات، ماشي غير الكالوري.'), 'Sticker1': ''})
+    return ({'Rubrique': '6 novembre', 'Titre': 'Commémoration de la Marche verte', 'Texte': '', 'Image': U['plein-P2-marche-verte'],
+             'TitreAr': AR('ذكرى المسيرة الخضراء'), 'Signature': "Toute l'équipe Bayen"},
+            {'Rubrique': AR('نية العام الجديد'), 'Titre': AR('منتوج واحد فالشهر.'), 'Texte': AR('بدّل كل شهر منتوج واحد بواحد عندو نقطة أحسن.'),
+             'Image': U['plein-P13-resolutions'], 'TitreAr': '', 'Signature': ''})
+
 for nom, fn in GABARITS.items():
     for fmt, (W, H) in {'Post': (1080, 1350), 'Story': (1080, 1920)}.items():
         cle = f'{nom} · {fmt}'
         els, variables = fn(W, H)
+        ex_fr, ex_ar = exemples(nom, H)
+        for v in variables:
+            if v['name'] in ex_fr: v['defaultValue'] = ex_fr[v['name']]
         args = {'name': f'Bayen · {cle}', 'width': W, 'height': H, 'elements': els, 'variables': variables, 'bgColor': CREME}
         if cle in ids:
             call('update_template', {'id': ids[cle]['id'], **args})
@@ -164,7 +203,12 @@ for nom, fn in GABARITS.items():
             variantes |= {'Long': long(els), 'Darija long': dl}
         for vn, ov in variantes.items():
             cle_v = vn.lower().replace(' ', '-')
-            if cle_v in ids[cle]: call('update_variant', {'id': ids[cle][cle_v], 'overrides': {'elements': ov}})
-            else: ids[cle][cle_v] = call('create_variant', {'templateId': tid, 'name': vn, 'overrides': {'elements': ov}})['id']
+            longs = {'XXL': ({'Titre': '« Sans sucres ajoutés » veut dire sans sucre.'}, {'Titre': AR('الياغورت «بلا سكر مضاف» ماعندوش السكر نهائيا.')}),
+                     'Photo': ({'Titre': 'Ta crème, décodée ingrédient par ingrédient.', 'Image': U['photo-F2-beaute'], 'Bande': '#FF8FB1', 'Texte': '', 'Pastille': ''},
+                               {'Titre': AR('الكريمة ديالك، مكوّن بمكوّن، مع اللوائح الرسمية.'), 'Image': U['photo-F2-beaute-ar'], 'Bande': '#FF8FB1'})}
+            var = {'Darija': ex_ar, 'Long': longs.get(nom, ({}, {}))[0], 'Darija long': {**ex_ar, **longs.get(nom, ({}, {}))[1]}}.get(vn, {})
+            ovs = {'elements': ov, 'variables': var}
+            if cle_v in ids[cle]: call('update_variant', {'id': ids[cle][cle_v], 'overrides': ovs})
+            else: ids[cle][cle_v] = call('create_variant', {'templateId': tid, 'name': vn, 'overrides': ovs})['id']
         CACHE.write_text(json.dumps(ids, indent=1, ensure_ascii=False))
         print('ok', cle, tid, list(variantes))
