@@ -267,6 +267,8 @@ export function registerContributeEndpoint(router: Router, context: {
             fill.data_issues = JSON.stringify(guard.issues.filter((i) => !guard.changed.includes(i.field)).map((i) => ({ field: i.field, code: i.code, message: i.message })))
           }
         }
+        // Fiche fantôme masquée (brouillon) qui reçoit enfin un vrai nom : on la republie
+        if (existing.status === 'draft' && !badName.test(String(fill.name_fr ?? existing.name_fr ?? ''))) fill.status = 'published'
         if (Object.keys(fill).length > 0) {
           await knex('products').where('barcode', barcode).update(fill)
         }

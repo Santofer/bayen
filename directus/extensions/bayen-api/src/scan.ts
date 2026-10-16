@@ -436,6 +436,20 @@ export function registerScanEndpoint(router: Router, context: {
         return
       }
 
+      // Fiche non publiée : jamais réimportée depuis OFF (elle existe déjà, la réinsérer doublerait le code-barres).
+      //  - archived : retirée par la modération (ni alimentaire ni cosmétique, doublon…)
+      //  - draft    : fiche fantôme sans nom ni photo exploitable → on invite à la documenter (la contribution la republie)
+      const db = database as unknown as (t: string) => { where(c: Record<string, unknown>): { whereIn(col: string, v: string[]): { first(...cols: string[]): Promise<{ id: string; status: string } | undefined> } } }
+      const masque = await db('products').where({ barcode }).whereIn('status', ['archived', 'draft']).first('id', 'status')
+      if (masque?.status === 'archived') {
+        res.json({ found: false, barcode, excluded: true, message: "Ce produit n'est ni alimentaire ni cosmétique : il n'est pas noté sur Bayen." })
+        return
+      }
+      if (masque?.status === 'draft') {
+        res.json({ found: false, barcode, message: "Ce produit n'est pas encore documenté.", contribute_url: `/contribuer?barcode=${barcode}` })
+        return
+      }
+
       // ──────────────────────────────────────────
       // 2. Chercher sur Open Food Facts
       // ──────────────────────────────────────────

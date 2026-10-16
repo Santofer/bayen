@@ -114,6 +114,32 @@ export default function CosmeticScore({ risk, ingredients, hasInciText, barcode,
     return onProfileChange(() => setProfile(getProfile()))
   }, [])
 
+  // Liste lue mais trop d'ingrédients non reconnus : pas de note (elle induirait en erreur), on demande une photo
+  if (hasInciText && risk?.insufficient) {
+    const lus = risk.matched_count ?? 0
+    return (
+      <div className={cn('flex flex-col gap-4', className)}>
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" />
+          <div className="bubble">
+            <p className="font-display text-base font-bold text-foreground">{t('beauty.insufficient')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t('beauty.insufficientDesc')}</p>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          <bdi>{t('beauty.insufficientCount').replace('{a}', String(Math.max(0, lus))).replace('{b}', String(risk.token_count ?? 0))}</bdi>
+        </p>
+        {(risk.unknown?.length ?? 0) > 0 && (
+          <div className="grid gap-1.5">
+            <p className="text-sm font-semibold">{t('beauty.unrecognized')} <bdi>({risk.unknown.length})</bdi></p>
+            <p dir="ltr" className="text-start text-xs uppercase tracking-wide text-muted-foreground">{risk.unknown.join(', ')}</p>
+          </div>
+        )}
+        <a href={`/contribuer/${barcode}`} className="btn primary w-full">{t('beauty.insufficientCta')}</a>
+      </div>
+    )
+  }
+
   // Pas de liste INCI → rien à noter, on dit quoi faire
   if (!hasInciText || !risk || risk.total == null || risk.label == null) {
     return (

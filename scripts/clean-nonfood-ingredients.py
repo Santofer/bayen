@@ -39,12 +39,21 @@ GARBAGE_PATTERNS = [
     r"^\s*dans le contexte\b",
     r"valeur en sucres", r"valeur nutri", r"\bpour 100\s*g\b",
     r"^\s*lad tel\b",
+    # 16/10/2026 : phrases de l'emballage lues comme ingrédients (lait UHT Jaouda)
+    r"^\s*(il|elle|ils|elles|nous|vous|on)\s+(est|sont|a|ont|peut|peuvent|doit|contient|garde)\b",
+    r"\bc'est\b", r"^\s*qui\s", r"\bsubit\b", r"\bd[ée]truit\b", r"\bconditionn[ée]e?s?\s+dans\b",
+    r"\bprot[ée]geant\b", r"\bcontamination\b", r"\bmicro-?organismes\b", r"\bemballage\b",
+    r"\bapr[èe]s ouverture\b", r"\bfabriqu[ée] (par|en|au)\b", r"\bdistribu[ée] par\b", r"\bimport[ée] par\b",
+    r"\bproduit contenant\b", r"\bmeilleur avant\b",
+    r"يتم", r"لأنه", r"الثلاجة", r"يحفظ", r"المكونات", r"لا يحتوي", r"صنع ف",
 ]
 GARBAGE_RE = re.compile("|".join(GARBAGE_PATTERNS), re.IGNORECASE)
 
 # Garde-fou : ne jamais toucher une entrée courte qui ressemble à un vrai
 # ingrédient (mono-mot ou deux mots sans chiffre) même si un motif matchait.
 SAFE_SHORT_RE = re.compile(r"^[A-Za-zÀ-ÿ' -]{1,24}$")
+# Poubelle certaine même courte (passe outre SAFE_SHORT_RE) : jamais un nom d'ingrédient
+FORCE_RE = re.compile(r"\bc'est\b|^\s*fabriqu[ée] (par|en|au)\b", re.IGNORECASE)
 
 
 def req(url, method="GET", data=None, token=None, timeout=90):
@@ -60,6 +69,8 @@ def req(url, method="GET", data=None, token=None, timeout=90):
 def is_garbage(name):
     n = (name or "").strip()
     if not n:
+        return True
+    if FORCE_RE.search(n):
         return True
     if SAFE_SHORT_RE.match(n):   # « Arôme », « Vitamine D », « Sel » → protégés
         return False
