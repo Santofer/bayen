@@ -1,4 +1,4 @@
-# CLAUDE.md — Bayen (بَيَّن)
+# CLAUDE.md — Bayen (باين)
 
 ## Contexte projet
 
@@ -76,6 +76,11 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
   `design/logo/b-cuillere.py` (contours d'Unbounded wght 800) puis `design/logo/icones.py` (favicons,
   icônes PWA, `logo-bayen.svg`, `og-default`). Le sigle seul = icône d'app et bouton flottant `.sigle-fab`
   (apparaît au défilement, ouvre le menu).
+- Nom arabe : « باين » (avec alif, sans chadda), jamais « بيّن ». Wordmark arabe validé le 16/10/2026 :
+  Alexandria Black, relief incliné comme le latin, point du ن remplacé par une petite cuillère couchée
+  au-dessus du creux de la lettre. Fichier `design/logo/bayen-wordmark-arabe.svg`, variante `arabe` de
+  `Logo.astro` (affichée en darija) ; régénérable par `design/logo/bayen-arabe.py <Alexandria.ttf> 900
+  alexandria noon 135 --final` (HarfBuzz + pathops).
 - Mascotte Naânaa (brin de menthe), style « riso décalé » (refaite par Codex le 15/10/2026) :
   `public/mascotte/naanaa-<pose>.webp` (salut, astuce, bravo, loupe, oups, nuit, scan, courses), en médaillon
   rond dans `.naanaa`. Sources PNG transparentes 1024×1536 : `design/naanaa-v2/riso/` (référence de style :

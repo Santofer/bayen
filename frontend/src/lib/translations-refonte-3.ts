@@ -350,4 +350,8 @@ export const refonte3 = {
   'import.lines':          { fr: 'lignes',                  ary: 'سطر' },
   'import.doneTitle':      { fr: 'Import termine',          ary: 'الاستيراد سالا' },
   'import.summary':        { fr: '{a} produits importes, {b} deja presents, {c} erreurs.', ary: '{a} منتوج تستورد، {b} كانو ديجا، {c} أخطاء.' },
+  'visual.meal':          { fr: "Un tajine de poulet aux olives analysé par Bayen sur un téléphone", ary: 'طاجين دجاج بالزيتون محلّل ببيّن فالتيليفون' },
+  'visual.scan':          { fr: 'La fiche du Leben de Jaouda ouverte dans Bayen, téléphone en main', ary: 'البطاقة ديال ليبن جودة مفتوحة فبيّن، والتيليفون فاليد' },
+  'visual.fiche':         { fr: 'Une fiche produit complète de Bayen sur une tablette', ary: 'بطاقة منتوج كاملة ديال بيّن فالطابليط' },
+  'search.scoreAny':       { fr: 'Tous',                    ary: 'كلشي' },
 } as const satisfies Record<string, { fr: string; ary: string }>

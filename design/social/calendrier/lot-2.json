@@ -1,0 +1,267 @@
+{
+  "lot": 2,
+  "du": "2026-11-23",
+  "au": "2026-12-20",
+  "regles": [
+    "Neuf posts sur seize entièrement en darija (visuel, légende, hashtags) ; leurs écrans montrent l'app en darija et ils signent « باين ».",
+    "Aucun chiffre inventé : scores et données lus dans la base Bayen le 16/10/2026, à revérifier la veille de chaque publication.",
+    "Tout écran montré est une capture réelle de bayen.ma ; l'IA repas reste une estimation, jamais un avis médical.",
+    "La darija est à relire par un darijaphone avant programmation."
+  ],
+  "posts": [
+    {
+      "id": "2026-11-23-100-grammes",
+      "date": "2026-11-23",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "lang": "ar",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "trame",
+        "naanaa": "loupe"
+      },
+      "kicker": "نصيحة نعناعة",
+      "titre": "قارن ف 100 غرام، ماشي فالباكية.",
+      "texte": "الأرقام ديال 100 غرام كتخليك تقارن بلا ما يغلطك الحجم.",
+      "legende": "باش تقارن جوج منتوجات، شوف الأرقام ديال 100 غرام، ماشي ديال الباكية كاملة.\n\nالباكية الكبيرة ديما فيها كثر، ولكن ف 100 غرام كتبان الحقيقة: شحال فيها ديال السكر، الملحة والدهون.\n\nوباين كيوريها ليك ديريكت ملي كتسكاني المنتوج."
+    },
+    {
+      "id": "2026-11-25-proteines",
+      "date": "2026-11-25",
+      "heure": "19:00",
+      "rubrique": "action",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F3-proteines",
+        "bande": "myrtille"
+      },
+      "kicker": "Bayen en action · protéines",
+      "titre": "Le top protéines, au gramme près.",
+      "legende": "Tu cherches des produits riches en protéines, sans te faire piéger par le sucre ? Dans l'univers Protéines de Bayen, choisis un minimum de protéines pour 100 g (5, 10, 20 ou 30 g) : la liste est ensuite classée par score Bayen.\n\nLe classement est sur bayen.ma/proteines."
+    },
+    {
+      "id": "2026-11-27-light",
+      "date": "2026-11-27",
+      "heure": "19:00",
+      "rubrique": "jeu",
+      "lang": "ar",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "rayons",
+        "naanaa": "oups",
+        "stickers": [
+          "sahih",
+          "ghalet"
+        ],
+        "stickerStyle": "riso"
+      },
+      "kicker": "صحيح ولا غالط؟",
+      "titre": "«لايت» معناها ديما شوية ديال السكر.",
+      "cta": "الجواب تحت التصويرة",
+      "reponse": "غالط",
+      "legende": "صحيح ولا غالط: «لايت» معناها ديما شوية ديال السكر؟\n\nالجواب: غالط. «لايت» كتعني غير بلي شي حاجة نقصات على المنتوج العادي، وبزاف ديال المرات هي الدهون، ماشي ضروري السكر.\n\nباش تعرف، شوف السطر ديال السكريات فالجدول الغذائي، ولا سكاني المنتوج بباين."
+    },
+    {
+      "id": "2026-11-29-contribuer",
+      "date": "2026-11-29",
+      "heure": "11:00",
+      "rubrique": "communaute",
+      "lang": "ar",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "damier",
+        "naanaa": "bravo"
+      },
+      "kicker": "المجتمع",
+      "titre": "صوّر الإتيكيت، وكمّل البطاقة للناس كاملين.",
+      "texte": "⁦+20⁩ نقطة على كل تصويرة، ⁦+50⁩ على كل منتوج جديد.",
+      "legende": "شي منتوج ما عندوش بطاقة كاملة فباين؟ صوّر الإتيكيت ديالو من التطبيق: القيم الغذائية والمكونات كيتقراو أوتوماتيكيا، ومن بعد كيتراجعو.\n\nكل مساهمة كتجيب ليك النقط: ⁦+20⁩ على كل تصويرة، ⁦+50⁩ على كل منتوج جديد. والبطاقة كتنفع الناس كاملين."
+    },
+    {
+      "id": "2026-11-30-e300",
+      "date": "2026-11-30",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "graines",
+        "naanaa": "astuce",
+        "stickers": [
+          "e300"
+        ],
+        "stickerStyle": "riso"
+      },
+      "kicker": "L'astuce de Naânaa",
+      "titre": "E300, c'est de la vitamine C.",
+      "texte": "Un code E veut dire « additif autorisé et répertorié », pas « danger ».",
+      "legende": "Un E sur l'étiquette ne veut pas dire « chimique dangereux ». C'est le code d'un additif autorisé et répertorié en Europe.\n\nE300, c'est de la vitamine C. E330, l'acide citrique du citron. D'autres sont à limiter ou à éviter : sur Bayen, chaque additif a sa fiche, avec son niveau de risque et ses sources."
+    },
+    {
+      "id": "2026-12-02-repas",
+      "date": "2026-12-02",
+      "heure": "19:00",
+      "rubrique": "action",
+      "lang": "ar",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F5-repas-ar",
+        "bande": "figue"
+      },
+      "kicker": "باين فالخدمة · الوجبة",
+      "titre": "صوّر الطبسيل ديالك، وعرف شنو فيه.",
+      "legende": "بغيتي تعرف شحال من سعرة فالطبسيل ديالك؟ صوّرو بباين.\n\nالذكاء الاصطناعي كيعطيك تقدير: السعرات، البروتين، السكريات والدهون، مع لائحة ديال المكونات.\n\nراه تقدير من التصويرة، ماشي قيمة دقيقة ولا نصيحة طبية."
+    },
+    {
+      "id": "2026-12-04-couscous-dari",
+      "date": "2026-12-04",
+      "heure": "19:00",
+      "rubrique": "cercle",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F7-tablette-couscous",
+        "bande": "menthe",
+        "score": "100",
+        "scoreStyle": "riso"
+      },
+      "kicker": "Le bon produit du mois",
+      "titre": "Couscous moyen, Dari.",
+      "texte": "Sans additif · NOVA 1 · Nutri-Score A",
+      "note": "Score et données lus le 16/10/2026 : à revérifier la veille.",
+      "legende": "Le bon produit du mois : le couscous moyen de Dari, 100/100 sur Bayen.\n\nSans additif, non transformé (groupe NOVA 1) et un Nutri-Score A. Le couscous du vendredi coche toutes les cases.\n\nEt toi, quel produit veux-tu voir le mois prochain ?"
+    },
+    {
+      "id": "2026-12-06-dayra-zwina",
+      "date": "2026-12-06",
+      "heure": "11:00",
+      "rubrique": "mission",
+      "lang": "ar",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s6-cercle-vertueux"
+      },
+      "kicker": "المهمة · المنتوجات الزوينة",
+      "titre": "الدايرة الزوينة.",
+      "legende": "كلما كثرنا اللي كيسكانيو، كلما بانو المنتوجات الزوينة.\n\nنتا كتختار أحسن، المنتوجات اللي عندها نقطة مزيانة كتبان كثر، والماركات كيلقاو سبب باش يحسنو الوصفات ديالهم: سكر قل، إضافات قل. والنقطة ديال باين كتحسب بخوارزمية علنية، وكتكافئ هاد المجهود.\n\nهادي هي الدايرة الزوينة."
+    },
+    {
+      "id": "2026-12-07-halal",
+      "date": "2026-12-07",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "lang": "ar",
+      "visuel": {
+        "layout": "plein",
+        "image": "P5-halal"
+      },
+      "kicker": "نصيحة نعناعة",
+      "titre": "حلال: باين كيقرا اللوغو، والناس كيأكدو.",
+      "legende": "ملي كتصوّر منتوج، باين كيقلب على اللوغو ديال الحلال فالتصويرة. ومن بعد، الناس كيأكدو.\n\nوالحالة ديال الحلال عمرها ما كتحيد أوتوماتيكيا: Open Food Facts والمجتمع هوما اللي عندهم الكلمة."
+    },
+    {
+      "id": "2026-12-09-courses",
+      "date": "2026-12-09",
+      "heure": "19:00",
+      "rubrique": "action",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F6-courses",
+        "bande": "menthe"
+      },
+      "kicker": "Bayen en action · courses",
+      "titre": "Tes courses, enfin claires.",
+      "legende": "Ajoute tes produits à ta liste de courses dans Bayen : tu vois le score moyen de ton panier, et Bayen te propose des produits mieux notés dans tes rayons.\n\nLa liste reste dans ton téléphone, pas besoin de compte."
+    },
+    {
+      "id": "2026-12-11-bio",
+      "date": "2026-12-11",
+      "heure": "19:00",
+      "rubrique": "jeu",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "rayons",
+        "naanaa": "loupe",
+        "stickers": [
+          "vrai",
+          "faux"
+        ],
+        "stickerStyle": "riso"
+      },
+      "kicker": "Vrai ou faux ?",
+      "titre": "« Bio » veut dire bon pour la santé.",
+      "cta": "Réponse dans la légende",
+      "reponse": "FAUX",
+      "legende": "Vrai ou faux : « bio » veut dire bon pour la santé ?\n\nRéponse : FAUX. Le bio décrit une façon de produire (sans pesticides ni engrais de synthèse, par exemple), pas la composition du produit. Un biscuit bio peut être aussi sucré qu'un autre.\n\nScanne-le : le score Bayen regarde ce qu'il y a dedans."
+    },
+    {
+      "id": "2026-12-13-installer",
+      "date": "2026-12-13",
+      "heure": "11:00",
+      "rubrique": "app",
+      "visuel": {
+        "layout": "plein",
+        "image": "P7-installer-app"
+      },
+      "kicker": "Astuce · application",
+      "titre": "Bayen, sur ton écran d'accueil.",
+      "legende": "Bayen s'installe comme une app, sans passer par un store.\n\nSur iPhone : ouvre bayen.ma dans Safari, touche l'icône Partager, puis « Sur l'écran d'accueil ».\nSur Android : ouvre bayen.ma dans Chrome, puis « Installer l'application » dans le menu.\n\nL'icône menthe t'attend à côté de tes autres apps."
+    },
+    {
+      "id": "2026-12-14-score",
+      "date": "2026-12-14",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "lang": "ar",
+      "visuel": {
+        "layout": "plein",
+        "image": "P6-nutriscore"
+      },
+      "kicker": "نصيحة نعناعة",
+      "titre": "كيفاش كتحسب النقطة ديال باين؟",
+      "texte": "نوتري سكور 50٪ · التحويل (⁦NOVA⁩) 30٪ · الإضافات 20٪",
+      "legende": "النقطة ديال باين على 100، وكتحسب بثلاثة ديال الحوايج:\n\n• نوتري سكور (50٪): السكر، الملحة والدهون، والألياف والبروتين.\n• التحويل، مجموعة NOVA (30٪): واش المنتوج طبيعي ولا محوّل بزاف.\n• الإضافات (20٪): كل إضافة عندها مستوى ديال الخطر.\n\nالخوارزمية علنية، والتفاصيل كاملين فصفحة المنهجية."
+    },
+    {
+      "id": "2026-12-16-beaute",
+      "date": "2026-12-16",
+      "heure": "19:00",
+      "rubrique": "action",
+      "lang": "ar",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F2-beaute-ar",
+        "bande": "framboise"
+      },
+      "kicker": "باين فالخدمة · الجمال",
+      "titre": "الكريمة ديالك، مكوّن بمكوّن.",
+      "legende": "باين ماشي غير للماكلة. سكاني منتوج ديال التجميل: كل مكوّن فاللائحة ديال INCI كيتقارن مع اللوائح الرسمية (CosIng، الملحقات ديال القانون الأوروبي).\n\nالنقطة كتحسب على حساب المكوّن اللي فيه أكبر خطر، وكتشوف دغيا شنو ممنوع، ولا خطرو كبير، متوسط ولا قليل."
+    },
+    {
+      "id": "2026-12-18-langue-arabe",
+      "date": "2026-12-18",
+      "heure": "10:00",
+      "rubrique": "journee",
+      "lang": "ar",
+      "visuel": {
+        "layout": "plein",
+        "image": "P4-langue-arabe"
+      },
+      "kicker": "18 دجنبر",
+      "titre": "اليوم العالمي للغة العربية",
+      "texte": "باين كاين بالدارجة: بدّل اللغة من القائمة.",
+      "legende": "18 دجنبر، اليوم العالمي للغة العربية.\n\nباين كامل كاين بالدارجة: من القائمة، بدّل اللغة وشوف كلشي بالحروف ديالنا، من البطاقات حتى لنصائح نعناعة."
+    },
+    {
+      "id": "2026-12-20-soupe",
+      "date": "2026-12-20",
+      "heure": "11:00",
+      "rubrique": "saison",
+      "visuel": {
+        "layout": "plein",
+        "image": "P8-soupe-hiver"
+      },
+      "kicker": "Saison · hiver",
+      "titre": "L'hiver, ça se mange en soupe.",
+      "legende": "Harira, bissara, soupe de lentilles : les légumineuses (lentilles, pois chiches, fèves) apportent des fibres et des protéines végétales.\n\nFaite maison, tu choisis le sel. En sachet, scanne-la : Bayen affiche le sel et les additifs."
+    }
+  ]
+}

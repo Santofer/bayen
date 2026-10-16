@@ -1,0 +1,296 @@
+{
+  "lot": 1,
+  "du": "2026-10-26",
+  "au": "2026-11-22",
+  "regles": [
+    "Aucun chiffre inventé : scores et données lus dans la base Bayen le 16/10/2026, à revérifier la veille de chaque publication.",
+    "On valorise les bons produits ; jamais une marque citée pour la dénigrer (le comparateur oppose deux produits de la même marque).",
+    "Tout écran montré est une capture réelle de bayen.ma.",
+    "Pas de conseil médical ; l'IA repas reste une estimation."
+  ],
+  "posts": [
+    {
+      "id": "2026-10-26-peau-neuve",
+      "date": "2026-10-26",
+      "heure": "19:00",
+      "rubrique": "annonce",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "trame",
+        "naanaa": "salut",
+        "stickers": [
+          "wordmark"
+        ]
+      },
+      "kicker": "Nouveau look",
+      "titre": "Bayen fait peau neuve.",
+      "texte": "Même mission : te dire ce qu'il y a vraiment dans ton panier.",
+      "legende": "Bayen change de tête ! Nouvelles couleurs, nouveau logo, et Naânaa, notre brin de menthe, qui t'accompagne maintenant dans toute l'app.\n\nCe qui ne change pas : tu scannes un produit, Bayen te dit ce qu'il contient vraiment, avec un score calculé par un algorithme public.\n\nAlors, ce nouveau look, tu en penses quoi ? 👇"
+    },
+    {
+      "id": "2026-10-28-scan",
+      "date": "2026-10-28",
+      "heure": "19:00",
+      "rubrique": "action",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F1-scan",
+        "bande": "tomate"
+      },
+      "kicker": "Bayen en action · scan",
+      "titre": "Scanne. C'est clair.",
+      "legende": "Au rayon, un doute sur un produit ? Scanne son code-barres avec Bayen.\n\nEn quelques secondes : un score sur 100, les additifs, le niveau de transformation, les prix relevés par la communauté et de meilleures alternatives du même rayon.\n\nSur la photo, le Leben de Jaouda : 90/100."
+    },
+    {
+      "id": "2026-10-30-sans-sucres-ajoutes",
+      "date": "2026-10-30",
+      "heure": "19:00",
+      "rubrique": "jeu",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "rayons",
+        "naanaa": "oups",
+        "stickers": [
+          "vrai",
+          "faux"
+        ],
+        "stickerStyle": "riso"
+      },
+      "kicker": "Vrai ou faux ?",
+      "titre": "« Sans sucres ajoutés » veut dire sans sucre.",
+      "cta": "Réponse dans la légende",
+      "reponse": "FAUX",
+      "legende": "Vrai ou faux : « sans sucres ajoutés » veut dire sans sucre ?\n\nRéponse : FAUX. La mention dit seulement qu'on n'a pas ajouté de sucre pendant la fabrication. Les sucres naturellement présents restent : ceux du lait dans un yaourt, ceux des fruits dans un jus.\n\nPour savoir combien il y en a, regarde la ligne « dont sucres » du tableau nutritionnel, ou scanne le produit."
+    },
+    {
+      "id": "2026-10-31-fete-unite",
+      "date": "2026-10-31",
+      "heure": "10:00",
+      "rubrique": "fete",
+      "visuel": {
+        "layout": "fete",
+        "image": "P1-unite"
+      },
+      "kicker": "31 octobre",
+      "titre": "Bonne fête de l'Unité",
+      "titreAr": "عيد الوحدة مبارك سعيد",
+      "signature": "Toute l'équipe Bayen",
+      "legende": "En ce 31 octobre, toute l'équipe Bayen te souhaite une bonne fête de l'Unité.\n\nعيد الوحدة مبارك سعيد"
+    },
+    {
+      "id": "2026-11-01-contribuer",
+      "date": "2026-11-01",
+      "heure": "11:00",
+      "rubrique": "communaute",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "damier",
+        "naanaa": "bravo",
+        "stickers": [
+          "scanne"
+        ],
+        "stickerStyle": "riso"
+      },
+      "kicker": "La communauté",
+      "titre": "Ta photo complète la fiche de tout le monde.",
+      "texte": "+20 points par photo, +50 par nouveau produit.",
+      "legende": "Un produit sans fiche complète sur Bayen ? Prends son étiquette en photo depuis l'app : les valeurs nutritionnelles et les ingrédients sont lus automatiquement, puis contrôlés.\n\nChaque contribution te rapporte des points : +20 par photo, +50 pour un nouveau produit. Et la fiche sert ensuite à toute la communauté."
+    },
+    {
+      "id": "2026-11-02-sucre-cache",
+      "date": "2026-11-02",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s2-frigo-sucre"
+      },
+      "kicker": "L'astuce de Naânaa",
+      "titre": "Le sucre a plusieurs noms.",
+      "lien": "https://bayen.ma/blog/sucre-cache-produits-marocains",
+      "legende": "Sur une liste d'ingrédients, le sucre ne s'appelle pas toujours « sucre ».\n\nSirop de glucose, sirop de glucose-fructose, dextrose, saccharose, miel, sirop d'agave : ce sont aussi des sucres. Plus ils arrivent tôt dans la liste, plus le produit en contient.\n\nNotre guide sur le sucre caché dans les produits marocains est sur le journal Bayen (lien en bio)."
+    },
+    {
+      "id": "2026-11-04-comparateur",
+      "date": "2026-11-04",
+      "heure": "19:00",
+      "rubrique": "action",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F4-comparer",
+        "bande": "citron"
+      },
+      "kicker": "Bayen en action · comparateur",
+      "titre": "Deux yaourts. Un seul gagnant.",
+      "legende": "Deux produits du même rayon, et tu hésites ? Le comparateur de Bayen les met côte à côte : score, Nutri-Score, sucres, transformation.\n\nLe meilleur score gagne, et Naânaa t'explique pourquoi."
+    },
+    {
+      "id": "2026-11-06-marche-verte",
+      "date": "2026-11-06",
+      "heure": "10:00",
+      "rubrique": "fete",
+      "visuel": {
+        "layout": "fete",
+        "image": "P2-marche-verte"
+      },
+      "kicker": "6 novembre",
+      "titre": "Commémoration de la Marche verte",
+      "titreAr": "ذكرى المسيرة الخضراء",
+      "signature": "Toute l'équipe Bayen",
+      "legende": "En ce 6 novembre, nous commémorons la Marche verte.\n\nذكرى المسيرة الخضراء المظفرة"
+    },
+    {
+      "id": "2026-11-08-cercle-vertueux",
+      "date": "2026-11-08",
+      "heure": "11:00",
+      "rubrique": "mission",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s6-cercle-vertueux"
+      },
+      "kicker": "Mission · bons produits",
+      "titre": "Le cercle vertueux.",
+      "legende": "Plus on est nombreux à scanner, plus les bons produits se voient.\n\nTu choisis mieux, les produits bien notés gagnent en visibilité, et les marques ont une bonne raison d'améliorer leurs recettes : moins de sucre, moins d'additifs. Le score Bayen est calculé par un algorithme public, il récompense ces progrès.\n\nC'est ça, le cercle vertueux."
+    },
+    {
+      "id": "2026-11-09-etiquette-avant-prix",
+      "date": "2026-11-09",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "visuel": {
+        "layout": "bulle",
+        "fond": "trame",
+        "naanaa": "astuce",
+        "stickers": [
+          "wordmark"
+        ]
+      },
+      "kicker": "L'astuce de Naânaa",
+      "titre": "Lis l'étiquette avant le prix.",
+      "legende": "Les ingrédients sont toujours listés du plus présent au moins présent. Les trois premiers te disent l'essentiel de ce que tu achètes.\n\nSi le sucre, l'huile ou le sel arrivent en tête, tu sais à quoi t'en tenir. Et une liste longue comme le bras, c'est souvent le signe d'un produit très transformé."
+    },
+    {
+      "id": "2026-11-11-beaute",
+      "date": "2026-11-11",
+      "heure": "19:00",
+      "rubrique": "action",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F2-beaute",
+        "bande": "framboise"
+      },
+      "kicker": "Bayen en action · beauté",
+      "titre": "Ta crème, décodée ingrédient par ingrédient.",
+      "legende": "Bayen ne s'arrête pas à ton assiette. Scanne un cosmétique : chaque ingrédient de sa liste INCI est vérifié contre les listes officielles (CosIng, annexes du règlement européen).\n\nLe score dépend de l'ingrédient le plus préoccupant, et tu vois en un coup d'œil ceux qui sont interdits ou à risque élevé, modéré ou faible."
+    },
+    {
+      "id": "2026-11-13-leben-jaouda",
+      "date": "2026-11-13",
+      "heure": "19:00",
+      "rubrique": "cercle",
+      "visuel": {
+        "layout": "photo",
+        "photo": "F7-tablette",
+        "bande": "menthe",
+        "score": "90",
+        "scoreStyle": "riso"
+      },
+      "kicker": "Le bon produit du mois",
+      "titre": "Leben, Jaouda.",
+      "texte": "Sans additif · NOVA 1 · Nutri-Score B",
+      "note": "Score et données lus le 16/10/2026 : à revérifier la veille.",
+      "legende": "Le bon produit du mois : le Leben de Jaouda, 90/100 sur Bayen.\n\nPas d'additif, un produit peu transformé (groupe NOVA 1) et un Nutri-Score B. Un classique marocain qui coche les bonnes cases.\n\nChaque mois, on met en avant un produit bien noté. Lequel veux-tu voir la prochaine fois ?"
+    },
+    {
+      "id": "2026-11-14-diabete",
+      "date": "2026-11-14",
+      "heure": "11:00",
+      "rubrique": "sante",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "vagues",
+        "naanaa": "courses",
+        "stickers": []
+      },
+      "kicker": "14 novembre · Journée mondiale du diabète",
+      "titre": "Le sucre, ça se lit.",
+      "texte": "La ligne « dont sucres » du tableau nutritionnel, pour 100 g.",
+      "lien": "https://bayen.ma/blog/diabete-alimentation-maroc-produits-a-eviter",
+      "legende": "14 novembre, Journée mondiale du diabète.\n\nLire les étiquettes aide à repérer les produits les plus sucrés du quotidien. Notre article fait le tour des rayons et propose des alternatives (lien en bio).\n\nBayen t'informe, il ne remplace pas l'avis d'un médecin ou d'un diététicien."
+    },
+    {
+      "id": "2026-11-15-produit-inconnu",
+      "date": "2026-11-15",
+      "heure": "11:00",
+      "rubrique": "communaute",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s1-marche-scan"
+      },
+      "kicker": "La communauté",
+      "titre": "Un produit inconnu ? Ajoute-le.",
+      "legende": "Tu tombes sur un produit que Bayen ne connaît pas encore ? Ajoute-le depuis l'app, en quelques photos.\n\n+50 points pour toi, et une fiche de plus pour toute la communauté. Le classement des contributeurs est sur bayen.ma/classement."
+    },
+    {
+      "id": "2026-11-16-inci",
+      "date": "2026-11-16",
+      "heure": "19:00",
+      "rubrique": "astuce",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s3-salle-de-bain"
+      },
+      "kicker": "L'astuce de Naânaa",
+      "titre": "Lis l'INCI à la loupe.",
+      "legende": "Sur un cosmétique, la liste des ingrédients s'appelle l'INCI. Elle est classée du plus présent au moins présent, et en dessous de 1 % l'ordre est libre.\n\nUn nom latin ou chimique n'est pas forcément inquiétant : scanne le produit, Bayen te dit pour chaque ingrédient s'il est interdit ou à quel niveau de risque, avec ses sources."
+    },
+    {
+      "id": "2026-11-18-independance",
+      "date": "2026-11-18",
+      "heure": "10:00",
+      "rubrique": "fete",
+      "visuel": {
+        "layout": "fete",
+        "image": "P3-independance"
+      },
+      "kicker": "18 novembre",
+      "titre": "Bonne fête de l'Indépendance",
+      "titreAr": "عيد الاستقلال المجيد",
+      "signature": "Toute l'équipe Bayen",
+      "legende": "Toute l'équipe Bayen te souhaite une bonne fête de l'Indépendance.\n\nعيد استقلال مجيد"
+    },
+    {
+      "id": "2026-11-20-e171",
+      "date": "2026-11-20",
+      "heure": "19:00",
+      "rubrique": "jeu",
+      "visuel": {
+        "layout": "xxl",
+        "fond": "zellige",
+        "naanaa": "loupe",
+        "stickers": [
+          "e171"
+        ]
+      },
+      "kicker": "Vrai ou faux ?",
+      "titre": "Le E171 est interdit dans l'alimentation en Europe.",
+      "cta": "Réponse dans la légende",
+      "reponse": "VRAI",
+      "legende": "Vrai ou faux : le colorant E171 (dioxyde de titane) est interdit dans l'alimentation en Europe ?\n\nRéponse : VRAI. Depuis 2022, il n'est plus autorisé comme additif alimentaire dans l'Union européenne : l'EFSA ne pouvait plus écarter un risque pour l'ADN (génotoxicité).\n\nSur Bayen, chaque additif a sa fiche, avec ses sources."
+    },
+    {
+      "id": "2026-11-22-partenaires",
+      "date": "2026-11-22",
+      "heure": "11:00",
+      "rubrique": "partenariat",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s7-partenariat"
+      },
+      "kicker": "Partenariats",
+      "titre": "Ouvert aux partenaires.",
+      "lien": "https://bayen.ma/partenaires",
+      "legende": "Vous êtes une marque ou un producteur marocain ? Bayen vous ouvre ses portes.\n\nCorrigez ou complétez les fiches de vos produits (nutrition, ingrédients, photos officielles) et faites connaître vos efforts : le score récompense les vraies améliorations, comme moins de sucre ou moins d'additifs. Le score, lui, ne s'achète pas.\n\nÉcrivez-nous depuis bayen.ma/partenaires."
+    }
+  ]
+}
