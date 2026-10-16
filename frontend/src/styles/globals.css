@@ -274,6 +274,8 @@ html.scrolled .sigle-fab { opacity: 1; transform: none; pointer-events: auto; }
 .site-footer a { color: inherit; text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .site-footer .logo { color: #FFF3DF; font-size: 30px; }
+/* Bascules thème/langue du pied de page : survol lisible sur l'aubergine (le ghost de shadcn passe en clair sur clair) */
+.site-footer button:hover { background: rgb(255 243 223 / .16); color: #FFF3DF; }
 
 /* ════════════════════════════════════════════════════════════════
    COMPOSANTS PARTAGÉS
