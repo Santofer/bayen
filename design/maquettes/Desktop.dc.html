@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Accueil · ordinateur</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="bayen.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&amp;family=Readex+Pro:wght@400;500;600;700&amp;family=Archivo:wdth,wght@62..100,600..900&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="bp {{cls}}" style="min-height: 1900px; display: grid; gap: 64px; padding-bottom: 64px; align-content: start">
+  <header style="border-bottom: 2px solid var(--line); background: var(--bg)">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px">
+      <a class="logo" href="Main.dc.html" style="font-size: 30px">bayen<i></i></a>
+      <nav aria-label="Univers" style="display: flex; flex-wrap: wrap; gap: 22px; font-weight: 600; flex: 1">
+        <a href="Recherche.dc.html" style="text-decoration: none">Alimentation</a><a href="Beaute.dc.html" style="text-decoration: none">Beauté</a><a href="Proteines.dc.html" style="text-decoration: none">Protéines</a><a href="Repas.dc.html" style="text-decoration: none">Mon repas</a><a href="Blog.dc.html" style="text-decoration: none">Le journal</a>
+      </nav>
+      <a class="btn sm" href="Compte.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/></svg> Connexion</a>
+      <a class="btn sm primary" href="Scan.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/></svg> Scanner</a>
+    </div>
+  </header>
+
+  <section style="max-width: 1240px; width: 100%; margin: 0 auto; padding: 0 32px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+    <div style="flex: 1 1 420px; min-width: 0; display: grid; gap: 22px">
+      <p class="eyebrow">Le comparateur alimentaire et beauté du Maroc</p>
+      <h1 class="disp" style="font-size: clamp(40px, 5vw, 68px)">Ce que tu manges, enfin clair.</h1>
+      <p style="font-size: 19px; max-width: 34ch" class="muted">Score, additifs, prix moyens par enseigne et meilleures alternatives, pour les produits vendus au Maroc.</p>
+      <label for="q-desk" class="card" style="display: flex; align-items: center; gap: 12px; padding: 0 8px 0 20px; height: 64px; border-radius: 999px; max-width: 560px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="q-desk" type="search" placeholder="Un produit, une marque, un code-barres…" style="border: 0; background: transparent; font: 500 17px var(--f-ui); color: var(--fg); flex: 1; outline: none; min-width: 0">
+        <span class="btn primary sm flat">Chercher</span>
+      </label>
+      <div class="chips"><span class="chip">Sardines</span><span class="chip">Huile d'argan</span><span class="chip">Yaourt</span><span class="chip">Crème solaire</span></div>
+    </div>
+    <div style="flex: 1 1 480px; min-width: 0; position: relative">
+      <div class="tile t-mint" style="height: 440px; border-radius: 36px; box-shadow: 8px 8px 0 var(--shadow)"><img src="/_blob/f7de1b1efd4643e31459d9d8a8ebc630" alt="Produits marocains du quotidien en collage" style="width: 100%; height: 100%; object-fit: cover"></div>
+      <div class="sticker lg sa" style="position: absolute; left: -24px; bottom: -28px; width: 132px; height: 132px"><div><b style="font-size: 48px">91</b><span>Excellent</span></div></div>
+      <div style="position: absolute; right: -18px; top: -26px; width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid var(--encre); box-shadow: 4px 4px 0 var(--shadow)"><img src="/_blob/ff2391840852cc0cac4c27ac311ec542" alt="Naânaa" style="width: 100%; height: 100%; object-fit: cover"></div>
+    </div>
+  </section>
+
+  <section style="max-width: 1240px; width: 100%; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px">
+    <a href="Recherche.dc.html" class="card" style="background: var(--u-food); color: var(--encre); padding: 22px; display: grid; gap: 40px; text-decoration: none"><span class="u-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8.5 5.5-14 14-14 0 9-5.5 14-14 14z"/><path d="M5 19l8-8"/></svg></span><span><b class="disp d-m" style="display: block">Alimentation</b>Score, additifs, Nutri-Score</span></a>
+    <a href="Beaute.dc.html" class="card" style="background: var(--u-beauty); color: var(--encre); padding: 22px; display: grid; gap: 40px; text-decoration: none"><span class="u-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c4 5 6.5 8 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 11 8 8 12 3z"/></svg></span><span><b class="disp d-m" style="display: block">Beauté</b>La liste INCI décodée</span></a>
+    <a href="Proteines.dc.html" class="card" style="background: var(--u-protein); color: var(--encre); padding: 22px; display: grid; gap: 40px; text-decoration: none"><span class="u-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg></span><span><b class="disp d-m" style="display: block">Protéines</b>Les plus riches / 100 g</span></a>
+    <a href="Repas.dc.html" class="card" style="background: var(--u-meal); color: var(--encre); padding: 22px; display: grid; gap: 40px; text-decoration: none"><span class="u-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="14" r="4"/></svg></span><span><b class="disp d-m" style="display: block">Mon repas</b>Une photo, les calories</span></a>
+  </section>
+
+  <section style="max-width: 1240px; width: 100%; margin: 0 auto; padding: 0 32px; display: grid; gap: 20px">
+    <div class="sec-head"><h2 class="disp d-l">Les mieux notés cette semaine</h2><a href="Recherche.dc.html">Tout voir</a></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px">
+      <a href="FichePop.dc.html" class="card" style="padding: 14px; display: grid; gap: 12px; text-decoration: none; position: relative"><div class="tile t-lemon" style="height: 200px"><img src="/_blob/86f0df17a7d786802adafb41315e3033" alt=""></div><div class="sticker sa" style="position: absolute; right: 8px; top: 176px"><div><b>91</b><span>Excellent</span></div></div><p style="font-weight: 700">Huile d'olive vierge extra</p><p class="muted" style="font-size: 13px">1 L · dès 89 DH</p></a>
+      <a href="FichePop.dc.html" class="card" style="padding: 14px; display: grid; gap: 12px; text-decoration: none; position: relative"><div class="tile t-blue" style="height: 200px"><img src="/_blob/32eeb68ab0b9254e84bfe99f98f7176a" alt=""></div><div class="sticker sa" style="position: absolute; right: 8px; top: 176px"><div><b>84</b><span>Excellent</span></div></div><p style="font-weight: 700">Sardines à l'huile d'olive</p><p class="muted" style="font-size: 13px">125 g · dès 7 DH</p></a>
+      <a href="FichePop.dc.html" class="card" style="padding: 14px; display: grid; gap: 12px; text-decoration: none; position: relative"><div class="tile t-mint" style="height: 200px"><img src="/_blob/b6294d2312555ceb38186497634b9e09" alt=""></div><div class="sticker sb" style="position: absolute; right: 8px; top: 176px"><div><b>78</b><span>Bon</span></div></div><p style="font-weight: 700">Skyr nature 0 %</p><p class="muted" style="font-size: 13px">150 g · dès 6,90 DH</p></a>
+      <a href="Beaute.dc.html" class="card" style="padding: 14px; display: grid; gap: 12px; text-decoration: none; position: relative"><div class="tile t-pink" style="height: 200px"><img src="/_blob/8ca5cb5e82cc54681c96cbb81cd09fa7" alt=""></div><div class="sticker sa" style="position: absolute; right: 8px; top: 176px"><div><b>95</b><span>Excellent</span></div></div><p style="font-weight: 700">Huile d'argan pure</p><p class="muted" style="font-size: 13px">30 ml · beauté</p></a>
+    </div>
+  </section>
+
+  <section style="max-width: 1240px; width: 100%; margin: 0 auto; padding: 0 32px; display: grid; gap: 20px">
+    <div class="sec-head"><h2 class="disp d-l">Le journal</h2><a href="Blog.dc.html">Tous les articles</a></div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px">
+      <a href="Blog.dc.html" class="card" style="overflow: hidden; display: grid; text-decoration: none"><img src="/_blob/bc8619152848ce4296b9310d9ac7d4b7" alt="" style="width: 100%; height: 200px; object-fit: cover; border-bottom: 2px solid var(--line)"><p class="disp d-s" style="padding: 16px">Combien de sucre cache ton jus « 100 % fruits » ?</p></a>
+      <a href="Blog.dc.html" class="card" style="overflow: hidden; display: grid; text-decoration: none"><img src="/_blob/bcb5b1cd1f47aa5ad871abe911ba235c" alt="" style="width: 100%; height: 200px; object-fit: cover; border-bottom: 2px solid var(--line)"><p class="disp d-s" style="padding: 16px">Crèmes éclaircissantes : ce que dit vraiment l'étiquette</p></a>
+      <a href="Blog.dc.html" class="card" style="overflow: hidden; display: grid; text-decoration: none"><img src="/_blob/e964ce3750435b756f0335bc2ea627b0" alt="" style="width: 100%; height: 200px; object-fit: cover; border-bottom: 2px solid var(--line)"><p class="disp d-s" style="padding: 16px">Un ftour équilibré sans renoncer à la chebakia</p></a>
+    </div>
+  </section>
+
+  <footer style="background: var(--aubergine); color: #FFF3DF; border-top: 2px solid var(--line)">
+    <div style="max-width: 1240px; margin: 0 auto; padding: 40px 32px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px">
+      <div style="display: grid; gap: 8px; max-width: 360px"><span class="logo" style="color: #FFF3DF; font-size: 30px">bayen<i></i></span><p style="font-size: 14px; opacity: .85">« Bayen » : c'est clair, ça se voit. Un projet participatif, le score est calculé par un algorithme public.</p></div>
+      <nav aria-label="Pied de page" style="display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 8px 32px; font-size: 14px"><a href="Main.dc.html">Méthodologie</a><a href="Main.dc.html">Contribuer</a><a href="Main.dc.html">Classement</a><a href="Main.dc.html">Partenaires</a><a href="Main.dc.html">À propos</a><a href="Main.dc.html">العربية</a></nav>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["light", "dark"], "default": "light"}, "$preview": {"width": 1440, "height": 1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme ?? 'light';
+    return { cls: theme === 'dark' ? 'dark' : ''  };
+  }
+}
+</script>
+</body>
+</html>

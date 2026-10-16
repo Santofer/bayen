@@ -4,9 +4,9 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { getAccessToken } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 import { computeScore, type RiskLevel } from '@/lib/scoring'
 import {
   Download,
@@ -183,6 +183,7 @@ function clearResume(): void {
 }
 
 export default function BulkOffImporter() {
+  const { t } = useLocale()
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [isDone, setIsDone] = useState(false)
@@ -266,7 +267,7 @@ export default function BulkOffImporter() {
    */
   async function importSingleProduct(p: OffSearchProduct): Promise<boolean> {
     const token = await getAccessToken()
-    if (!token) throw new Error('Session expirée — merci de te reconnecter')
+    if (!token) throw new Error(t('import.sessionExpired'))
     const name = p.product_name_fr || p.product_name || 'Inconnu'
     const brand = (p.brands || 'Inconnu').split(',')[0].trim()
     const nutriments = p.nutriments ?? ({} as OffNutriments)
@@ -410,21 +411,21 @@ export default function BulkOffImporter() {
 
     const token = await getAccessToken()
     if (!token) {
-      addLog('error', 'Non connecte — impossible de continuer')
+      addLog('error', t('import.notLoggedStop'))
       setIsRunning(false)
       return
     }
 
     let page = resumeState?.nextPage ?? 1
     if (resumeState) {
-      addLog('skipped', `Reprise à la page ${page} (${initialStats.imported} produits déjà importés)`)
+      addLog('skipped', t('import.log.resume').replace('{p}', String(page)).replace('{n}', String(initialStats.imported)))
     }
     let totalPageCount = initialStats.pageCount
     const localStats: ImportStats = { ...initialStats }
 
     // Parcourir les pages OFF
     while (!stopRef.current) {
-      addLog('skipped', `--- Page ${page} ---`)
+      addLog('skipped', `--- ${t('import.page')} ${page} ---`)
 
       // Le proxy /bayen-api/off-search gère cache (15min), throttle 10s,
       // et backoff 20s/60s côté serveur (plafond tunnel Cloudflare). Si le
@@ -438,22 +439,22 @@ export default function BulkOffImporter() {
           const res = await fetch(buildOffUrl(page))
           if (res.ok) {
             offData = (await res.json()) as OffSearchResponse
-            if (attempt > 1) addLog('skipped', `(réussi après ${attempt} tentatives)`)
+            if (attempt > 1) addLog('skipped', t('import.log.retryOk').replace('{n}', String(attempt)))
             break
           }
           lastError = `HTTP ${res.status}`
         } catch (err) {
-          lastError = err instanceof Error ? err.message : 'inconnu'
+          lastError = err instanceof Error ? err.message : t('import.unknown')
         }
         if (attempt < 3) {
           const pauseSec = 120 // 2 min pour laisser OFF relâcher le blacklist
-          addLog('skipped', `Page ${page} : ${lastError}, pause ${pauseSec}s puis retry...`)
+          addLog('skipped', t('import.log.pause').replace('{p}', String(page)).replace('{e}', lastError).replace('{s}', String(pauseSec)))
           await new Promise((r) => setTimeout(r, pauseSec * 1000))
         }
       }
 
       if (!offData) {
-        addLog('error', `Page ${page} impossible après 3 tentatives (${lastError}) — import stoppé`)
+        addLog('error', t('import.log.pageFail').replace('{p}', String(page)).replace('{e}', lastError))
         break
       }
 
@@ -462,7 +463,7 @@ export default function BulkOffImporter() {
         localStats.pageCount = totalPageCount
         addLog(
           'skipped',
-          `${offData.count} produits sur OFF Maroc — ${totalPageCount} pages`
+          t('import.log.total').replace('{n}', String(offData.count)).replace('{p}', String(totalPageCount))
         )
       }
 
@@ -477,7 +478,7 @@ export default function BulkOffImporter() {
       if (incompleteCount > 0) {
         addLog(
           'skipped',
-          `Ignores (incomplets): ${incompleteCount} produits sur cette page`
+          t('import.log.incomplete').replace('{n}', String(incompleteCount))
         )
       }
 
@@ -493,7 +494,7 @@ export default function BulkOffImporter() {
         const exists = await checkExists(code)
         if (exists) {
           localStats.alreadyInBayen += 1
-          addLog('exists', `Existe deja: ${code}`)
+          addLog('exists', t('import.log.exists').replace('{c}', code))
           setStats({ ...localStats })
           continue
         }
@@ -502,12 +503,12 @@ export default function BulkOffImporter() {
         try {
           await importSingleProduct(product)
           localStats.imported += 1
-          addLog('imported', `Importe: ${name} (${code})`)
+          addLog('imported', t('import.log.imported').replace('{name}', name).replace('{c}', code))
         } catch (err) {
           localStats.errors += 1
           addLog(
             'error',
-            `Erreur: ${code} — ${err instanceof Error ? err.message : 'inconnu'}`
+            `${t('import.error')}: ${code} — ${err instanceof Error ? err.message : t('import.unknown')}`
           )
         }
 
@@ -544,11 +545,11 @@ export default function BulkOffImporter() {
     if (completedAll) {
       clearResume()
       setResume(null)
-      addLog('imported', '--- Import termine ---')
+      addLog('imported', t('import.log.done'))
     } else if (stopRef.current) {
-      addLog('skipped', '--- Import arrete par l\'utilisateur — reprise possible ---')
+      addLog('skipped', t('import.log.stopped'))
     } else {
-      addLog('skipped', '--- Import interrompu — reprise possible ---')
+      addLog('skipped', t('import.log.interrupted'))
     }
   }
 
@@ -564,9 +565,9 @@ export default function BulkOffImporter() {
   // Chargement de la verification admin
   if (isAdmin === null) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        Verification des droits...
+      <div className="muted flex items-center justify-center gap-2 py-20">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        {t('import.checkingRights')}
       </div>
     )
   }
@@ -574,9 +575,9 @@ export default function BulkOffImporter() {
   // Pas admin
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-6 text-red-800 dark:text-red-200">
-        <AlertCircle className="h-5 w-5 flex-shrink-0" />
-        <span>Acces reserve aux administrateurs.</span>
+      <div className="naanaa grid-cols-[56px_minmax(0,1fr)]" role="alert">
+        <img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="56" className="size-14" />
+        <p className="bubble flex items-center gap-2"><AlertCircle className="h-5 w-5 flex-none" /> {t('import.adminOnly')}</p>
       </div>
     )
   }
@@ -587,28 +588,16 @@ export default function BulkOffImporter() {
       : 0
 
   return (
-    <div className="space-y-6">
-      {/* Titre */}
-      <div>
-        <h1 className="text-2xl font-bold">
-          Import massif — Open Food Facts Maroc
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Importe automatiquement les produits vendus au Maroc depuis OFF
-        </p>
-      </div>
-
+    <div className="grid gap-5">
       {/* Bandeau de reprise si import interrompu */}
       {resume && !isRunning && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 space-y-2">
-          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
-            Import interrompu détecté
-          </p>
-          <p className="text-xs text-amber-800 dark:text-amber-300">
-            Dernier arrêt : page <strong>{resume.nextPage - 1}</strong> terminée ·
-            {' '}<strong>{resume.stats.imported}</strong> produits importés ·
-            {' '}<strong>{resume.stats.errors}</strong> erreurs ·
-            {' '}il y a {Math.round((Date.now() - resume.updatedAt) / 60000)} min
+        <div className="card tint-citron grid gap-1.5 p-4">
+          <p className="disp d-s">{t('import.interruptedTitle')}</p>
+          <p className="text-[13px]">
+            {t('import.lastStopPage')} <strong>{resume.nextPage - 1}</strong> {t('import.pageDone')}
+            {' '}<strong>{resume.stats.imported}</strong> {t('import.productsImported')}
+            {' '}<strong>{resume.stats.errors}</strong> {t('import.errorsSep')}
+            {' '}{t('import.agoMin').replace('{m}', String(Math.round((Date.now() - resume.updatedAt) / 60000)))}
           </p>
         </div>
       )}
@@ -617,52 +606,35 @@ export default function BulkOffImporter() {
       <div className="flex flex-wrap gap-3">
         {resume && !isRunning ? (
           <>
-            <Button
-              onClick={() => startImport(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              size="lg"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Reprendre à la page {resume.nextPage}
-            </Button>
-            <Button
-              onClick={() => startImport(false)}
-              variant="outline"
-              size="lg"
-            >
-              Recommencer depuis le début
-            </Button>
+            <button type="button" className="btn primary" onClick={() => startImport(true)}>
+              <Download />
+              {t('import.resumeAt').replace('{p}', String(resume.nextPage))}
+            </button>
+            <button type="button" className="btn" onClick={() => startImport(false)}>
+              {t('import.restart')}
+            </button>
           </>
         ) : (
-          <Button
-            onClick={() => startImport(false)}
-            disabled={isRunning}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            size="lg"
-          >
+          <button type="button" className="btn primary" onClick={() => startImport(false)} disabled={isRunning}>
             {isRunning ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Import en cours...
+                <Loader2 className="animate-spin" />
+                {t('import.importing')}
               </>
             ) : (
               <>
-                <Download className="mr-2 h-4 w-4" />
-                Lancer l&apos;import
+                <Download />
+                {t('import.start')}
               </>
             )}
-          </Button>
+          </button>
         )}
 
         {isRunning && (
-          <Button
-            onClick={stopImport}
-            variant="destructive"
-            size="lg"
-          >
-            <Square className="mr-2 h-4 w-4" />
-            Arreter
-          </Button>
+          <button type="button" className="btn dark-btn" onClick={stopImport}>
+            <Square />
+            {t('import.stop')}
+          </button>
         )}
       </div>
 
@@ -670,48 +642,48 @@ export default function BulkOffImporter() {
       {(isRunning || isDone || stats.pagesScanned > 0) && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard
-            label="Pages scannees"
+            label={t('import.statPages')}
             value={stats.pagesScanned}
             extra={stats.pageCount > 0 ? `/ ${stats.pageCount}` : undefined}
           />
-          <StatCard label="Trouves sur OFF" value={stats.foundOnOff} />
-          <StatCard label="Filtres (complets)" value={stats.filtered} />
-          <StatCard label="Deja dans Bayen" value={stats.alreadyInBayen} />
+          <StatCard label={t('import.statFound')} value={stats.foundOnOff} />
+          <StatCard label={t('import.statFiltered')} value={stats.filtered} />
+          <StatCard label={t('import.statExisting')} value={stats.alreadyInBayen} />
           <StatCard
-            label="Importes"
+            label={t('import.statImported')}
             value={stats.imported}
             variant="success"
           />
-          <StatCard label="Erreurs" value={stats.errors} variant="error" />
+          <StatCard label={t('import.statErrors')} value={stats.errors} variant="error" />
         </div>
       )}
 
-      {/* Barre de progression */}
+      {/* Barre de progression (barre de la maquette Compte) */}
       {(isRunning || isDone) && stats.filtered > 0 && (
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground">
+        <div className="grid gap-1">
+          <div className="muted flex justify-between text-xs">
             <span>
-              {stats.imported} / {stats.filtered} importes
+              {stats.imported} / {stats.filtered} {t('import.importedSuffix')}
             </span>
-            <span>{progressPercent}%</span>
+            <span className="num">{progressPercent}%</span>
           </div>
-          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+          <div className="h-2.5 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">
             <div
-              className="h-full bg-primary transition-all duration-300"
+              className="h-full bg-menthe transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
       )}
 
-      {/* Log */}
+      {/* Journal */}
       {logs.length > 0 && (
-        <div className="rounded-xl border bg-card">
-          <div className="flex items-center justify-between border-b px-4 py-2">
-            <span className="text-sm font-medium">Journal d&apos;import</span>
-            <Badge variant="outline">{logs.length} lignes</Badge>
+        <div className="card overflow-hidden">
+          <div className="flex items-center justify-between border-b-[1.5px] border-line px-4 py-2.5">
+            <span className="disp d-s">{t('import.logTitle')}</span>
+            <span className="chip num">{logs.length} {t('import.lines')}</span>
           </div>
-          <div className="max-h-96 overflow-y-auto p-3 font-mono text-xs leading-relaxed space-y-0.5">
+          <div className="max-h-96 space-y-0.5 overflow-y-auto p-3 font-mono text-xs leading-relaxed">
             {logs.map((entry, i) => (
               <LogLine key={i} entry={entry} />
             ))}
@@ -720,16 +692,15 @@ export default function BulkOffImporter() {
         </div>
       )}
 
-      {/* Resume */}
+      {/* Résumé */}
       {isDone && (
-        <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30 p-4 text-sm text-green-800 dark:text-green-200">
-          <div className="flex items-center gap-2 font-medium">
+        <div className="card tint-menthe grid gap-1 p-4 text-sm">
+          <div className="flex items-center gap-2 font-bold">
             <CheckCircle className="h-4 w-4" />
-            Import termine
+            {t('import.doneTitle')}
           </div>
-          <p className="mt-1">
-            {stats.imported} produits importes, {stats.alreadyInBayen} deja
-            presents, {stats.errors} erreurs.
+          <p>
+            {t('import.summary').replace('{a}', String(stats.imported)).replace('{b}', String(stats.alreadyInBayen)).replace('{c}', String(stats.errors))}
           </p>
         </div>
       )}
@@ -752,23 +723,17 @@ function StatCard({
   extra?: string
   variant?: 'success' | 'error'
 }) {
-  const valueColor =
-    variant === 'success'
-      ? 'text-green-600'
-      : variant === 'error'
-        ? 'text-red-600'
-        : 'text-foreground'
-
+  // Aplat : menthe (importés) / tomate (erreurs), texte encre ; sinon carte blanche
   return (
-    <div className="rounded-xl border bg-card p-3 text-center">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-xl font-bold ${valueColor}`}>
+    <div className={cn(
+      'card grid gap-1 p-3',
+      variant === 'success' && 'bg-menthe text-encre',
+      variant === 'error' && value > 0 && 'bg-tomate text-encre'
+    )}>
+      <p className="text-[11.5px] font-semibold">{label}</p>
+      <p className="num font-display text-xl font-extrabold">
         {value}
-        {extra && (
-          <span className="text-xs font-normal text-muted-foreground ml-1">
-            {extra}
-          </span>
-        )}
+        {extra && <span className="ms-1 text-xs font-normal">{extra}</span>}
       </p>
     </div>
   )
@@ -778,7 +743,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
   switch (entry.level) {
     case 'imported':
       return (
-        <div className="flex items-start gap-1.5 text-green-700">
+        <div className="flex items-start gap-1.5 text-brand-ink">
           <CheckCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{entry.message}</span>
         </div>
@@ -792,14 +757,14 @@ function LogLine({ entry }: { entry: LogEntry }) {
       )
     case 'exists':
       return (
-        <div className="flex items-start gap-1.5 text-blue-600">
+        <div className="flex items-start gap-1.5 text-protein-ink">
           <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{entry.message}</span>
         </div>
       )
     case 'error':
       return (
-        <div className="flex items-start gap-1.5 text-red-600">
+        <div className="flex items-start gap-1.5 text-destructive">
           <XCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{entry.message}</span>
         </div>

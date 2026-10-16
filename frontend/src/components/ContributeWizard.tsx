@@ -10,12 +10,14 @@
  * Fonctionne sans compte : les photos passent par /bayen-api/upload-photo.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   ArrowLeft, ArrowRight, Camera, Check, Loader2,
-  RotateCcw, Sparkles, Star, HelpCircle, Tag,
+  RotateCcw, Sparkles, HelpCircle, Tag,
 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
+import { cn } from '@/lib/utils'
 import { authHeader, isAuthenticated } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
 import { shrink } from '@/lib/image'
@@ -40,40 +42,58 @@ interface PhotoState {
   uploading: boolean
 }
 
-const CATEGORIES: Array<{ id: number; label: string }> = [
-  { id: 1, label: 'Biscuits' },
-  { id: 2, label: 'Céréales & petit-déjeuner' },
-  { id: 3, label: 'Produits laitiers' },
-  { id: 4, label: 'Charcuterie & viandes' },
-  { id: 5, label: 'Boissons sucrées' },
-  { id: 6, label: 'Eaux & jus' },
-  { id: 7, label: 'Conserves' },
-  { id: 8, label: 'Épices & condiments' },
-  { id: 9, label: 'Huiles & graisses' },
-  { id: 10, label: 'Snacks & chips' },
-  { id: 11, label: 'Pain & viennoiseries' },
-  { id: 12, label: 'Plats préparés' },
+const CATEGORIES: Array<{ id: number; label: TranslationKey }> = [
+  { id: 1, label: 'wizard.cat.1' },
+  { id: 2, label: 'wizard.cat.2' },
+  { id: 3, label: 'wizard.cat.3' },
+  { id: 4, label: 'wizard.cat.4' },
+  { id: 5, label: 'wizard.cat.5' },
+  { id: 6, label: 'wizard.cat.6' },
+  { id: 7, label: 'wizard.cat.7' },
+  { id: 8, label: 'wizard.cat.8' },
+  { id: 9, label: 'wizard.cat.9' },
+  { id: 10, label: 'wizard.cat.10' },
+  { id: 11, label: 'wizard.cat.11' },
+  { id: 12, label: 'wizard.cat.12' },
 ]
 
 /** Catégories beauté (C23) — mêmes clés que products.cosmetic_category */
 const COSMETIC_CATEGORIES = ['visage', 'corps', 'cheveux', 'hygiene', 'dents', 'maquillage', 'parfum', 'solaire', 'bebe', 'homme', 'eclaircissant', 'ongles'] as const
 type CosmeticCategory = (typeof COSMETIC_CATEGORIES)[number]
 
+// Valeurs envoyées telles quelles à l'API prix : seule « Épicerie du coin » est traduite à l'affichage
 const STORES = ['Marjane', 'Carrefour', 'BIM', 'Aswak Assalam', 'Atacadao', 'Épicerie du coin']
 
 const NUTRIENTS = [
-  { key: 'energy_kcal', label: 'Énergie', unit: 'kcal', max: 950 },
-  { key: 'fat_total', label: 'Matières grasses', unit: 'g', max: 100 },
-  { key: 'fat_saturated', label: 'dont saturées', unit: 'g', max: 100 },
-  { key: 'carbs_total', label: 'Glucides', unit: 'g', max: 100 },
-  { key: 'sugars', label: 'dont sucres', unit: 'g', max: 100 },
-  { key: 'fiber', label: 'Fibres', unit: 'g', max: 100 },
-  { key: 'proteins', label: 'Protéines', unit: 'g', max: 100 },
-  { key: 'salt', label: 'Sel', unit: 'g', max: 100 },
-] as const
+  { key: 'energy_kcal', label: 'meal.energy', unit: 'kcal', max: 950 },
+  { key: 'fat_total', label: 'meal.fat', unit: 'g', max: 100 },
+  { key: 'fat_saturated', label: 'wizard.fatSat', unit: 'g', max: 100 },
+  { key: 'carbs_total', label: 'meal.carbs', unit: 'g', max: 100 },
+  { key: 'sugars', label: 'wizard.sugarsOf', unit: 'g', max: 100 },
+  { key: 'fiber', label: 'meal.fiber', unit: 'g', max: 100 },
+  { key: 'proteins', label: 'meal.proteins', unit: 'g', max: 100 },
+  { key: 'salt', label: 'meal.salt', unit: 'g', max: 100 },
+] as const satisfies ReadonlyArray<{ key: string; label: TranslationKey; unit: string; max: number }>
 
 type NutrientKey = (typeof NUTRIENTS)[number]['key']
+
+// Langage Marché Pop : champ contour encre sur fond crème, puce de choix à taille tactile
+const FIELD = 'min-h-[52px] w-full rounded-2xl border-2 border-line bg-background px-4 text-base font-semibold outline-none focus:border-brand-ink'
+const CHOICE = 'chip h-11 px-4 text-sm'
+const LABEL = 'text-[13.5px] font-bold'
+/** Carte d'étape */
+const STEP_CARD = 'card grid gap-4 p-4 md:p-6'
 type Nutrition = Partial<Record<NutrientKey, number | null>>
+
+/** Bulle de Naânaa (astuce, attente, erreur) */
+function Bubble({ pose, children, alert }: { pose: string; children: ReactNode; alert?: boolean }) {
+  return (
+    <div className="naanaa grid-cols-[56px_minmax(0,1fr)]" role={alert ? 'alert' : undefined}>
+      <img src={`/mascotte/naanaa-${pose}.webp`} alt="" width="56" height="56" className="size-14" />
+      <div className="bubble">{children}</div>
+    </div>
+  )
+}
 
 function sessionId(): string {
   try {
@@ -378,20 +398,15 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
   }
 
   const Header = (
-    <div className="pt-1">
+    <div className="grid gap-3.5">
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={back}
-          aria-label="Retour"
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border bg-card"
-        >
-          <ArrowLeft size={18} />
+        <button type="button" onClick={back} aria-label={t('nav.back')} className="icon-btn">
+          <ArrowLeft className="rtl:rotate-180" />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="font-bold">{t('contrib.addThis')}</p>
+          <p className="disp d-s">{t('contrib.addThis')}</p>
           {stepLabel && (
-            <p className="text-xs text-muted-foreground">
+            <p className="muted mt-0.5 text-xs">
               {t('contrib.step')} {stepIndex} {t('contrib.of')} 4 — {stepLabel}
             </p>
           )}
@@ -404,19 +419,17 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
               else if (step === 'nutrition' || step === 'inci') setStep('price')
               else void submit(false)
             }}
-            className="-me-3 flex min-h-[44px] items-center px-3 text-[13px] font-bold text-primary"
+            className="-me-2 flex min-h-[44px] items-center px-2 text-[13px] font-bold underline underline-offset-[3px]"
           >
             {t('contrib.skip')}
           </button>
         )}
       </div>
       {stepLabel && (
-        <div className="mt-3.5 flex gap-1.5">
+        // Progression : 4 segments, barre de la maquette Compte
+        <div className="flex gap-1.5" aria-hidden="true">
           {[1, 2, 3, 4].map((n) => (
-            <div
-              key={n}
-              className={n <= stepIndex ? 'h-1.5 flex-1 rounded-full bg-primary' : 'h-1.5 flex-1 rounded-full bg-primary/15'}
-            />
+            <span key={n} className={cn('h-2.5 flex-1 rounded-full border-[1.5px] border-line', n <= stepIndex ? 'bg-menthe' : 'bg-muted')} />
           ))}
         </div>
       )}
@@ -427,11 +440,10 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
     const p = photos[kind]
     return (
       <label
-        className={
-          p
-            ? 'flex cursor-pointer items-center gap-4 rounded-[20px] border-2 border-primary bg-card p-4 shadow-[var(--shadow-card)]'
-            : 'flex cursor-pointer items-center gap-4 rounded-[20px] border border-dashed border-primary/45 bg-card p-4'
-        }
+        className={cn(
+          'grid cursor-pointer grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-3 rounded-[20px] border-2 p-2.5 pe-3',
+          p ? 'border-line' : 'border-dashed border-line/45 bg-background'
+        )}
       >
         <input
           type="file"
@@ -444,65 +456,55 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             e.target.value = ''
           }}
         />
-        <span className="relative flex h-[74px] w-[74px] flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-muted">
+        <span className="tile tint-creme size-[76px] rounded-[14px]">
           {p ? (
             <>
-              <img src={p.preview} alt="" className="h-full w-full object-cover" />
+              <img src={p.preview} alt="" />
               {p.uploading ? (
-                <span className="absolute inset-0 flex items-center justify-center bg-background/60">
-                  <Loader2 size={20} className="animate-spin text-primary" />
+                <span className="absolute inset-0 grid place-items-center bg-background/60">
+                  <Loader2 size={20} className="animate-spin" />
                 </span>
               ) : (
-                <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-success-600)] shadow">
-                  <Check size={13} className="text-white" strokeWidth={3} />
+                <span className="absolute end-1 top-1 grid size-6 place-items-center rounded-full border-2 border-encre bg-menthe">
+                  <Check size={13} className="text-encre" strokeWidth={3} />
                 </span>
               )}
             </>
           ) : (
-            <Camera size={28} className="text-muted-foreground" />
+            <Camera size={26} className="text-muted-foreground" />
           )}
         </span>
-        <span className="min-w-0 flex-1">
+        <span className="min-w-0">
           <span className="block font-bold">{title}</span>
-          <span className="mt-0.5 block text-[13px] text-muted-foreground">{hint}</span>
+          <span className="muted mt-0.5 block text-[13px]">{hint}</span>
         </span>
-        <span
-          className={
-            p
-              ? 'flex min-h-[44px] items-center px-2 text-[13px] font-bold text-primary'
-              : 'flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_4px_14px_hsl(97_40%_20%/0.25)]'
-          }
-        >
-          {p ? t('contrib.retake') : <Camera size={21} />}
-        </span>
+        {p ? (
+          <span className="flex min-h-[44px] items-center text-[13px] font-bold underline underline-offset-[3px]">{t('contrib.retake')}</span>
+        ) : (
+          <span className="icon-btn border-encre bg-menthe text-encre" aria-hidden="true"><Camera /></span>
+        )}
       </label>
     )
   }
 
   const UniverseSwitch = (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-[13.5px] font-bold">{t('contrib.universe')}</span>
-      <div className="grid grid-cols-2 gap-1 rounded-full border bg-card p-1">
+    <div className="grid gap-1.5">
+      <span className={LABEL}>{t('contrib.universe')}</span>
+      <div className="grid grid-cols-2 gap-2">
         {(['food', 'cosmetic'] as const).map((u) => (
           <button
             key={u}
             type="button"
             onClick={() => setUniverse(u)}
             aria-pressed={universe === u}
-            className={
-              universe === u
-                ? u === 'cosmetic'
-                  ? 'min-h-[42px] rounded-full bg-beauty text-sm font-bold text-beauty-foreground'
-                  : 'min-h-[42px] rounded-full bg-primary text-sm font-bold text-primary-foreground'
-                : 'min-h-[42px] rounded-full text-sm font-semibold text-muted-foreground'
-            }
+            className={cn(CHOICE, 'justify-center', universe === u && (u === 'cosmetic' ? 'fill bg-beauty' : 'fill bg-menthe'))}
           >
             {u === 'food' ? t('beauty.food') : t('beauty.cosmetic')}
           </button>
         ))}
       </div>
       {universeDetected && (
-        <p className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+        <p className="muted flex items-center gap-1.5 text-[12px] font-semibold">
           <Sparkles size={13} /> {t('contrib.universeDetected')}
         </p>
       )}
@@ -510,64 +512,65 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
   )
 
   const Cta = ({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-full bg-primary text-[17px] font-bold text-primary-foreground shadow-[0_8px_24px_hsl(97_40%_20%/0.3)] disabled:opacity-60"
-    >
+    <button type="button" onClick={onClick} disabled={disabled} className="btn primary min-h-[54px] w-full text-[17px]">
       {label}
-      {!disabled && <ArrowRight size={19} />}
+      {!disabled && <ArrowRight size={19} className="rtl:rotate-180" />}
     </button>
   )
+
+  const ErrorBubble = error ? (
+    <Bubble pose="oups" alert>
+      <p className="font-semibold text-destructive">{error}</p>
+    </Bubble>
+  ) : null
 
   // ── Écrans ──────────────────────────────────────────────────────────
   if (step === 'done') {
     return (
-      <div className="flex flex-col items-center py-8 text-center">
-        <div className="relative mb-6 flex h-[148px] w-[148px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_16px_44px_hsl(97_40%_20%/0.35)]">
-          <div>
-            <div className="font-display text-[42px] font-extrabold leading-none">+{earned.total}</div>
-            <div className="text-[13px] font-bold uppercase tracking-wider opacity-85">{t('points.points')}</div>
-          </div>
-          <Star size={26} className="absolute -top-2 right-1 fill-[#b1cf3a] text-[#b1cf3a]" />
+      <div className="card grid justify-items-center gap-4 p-5 text-center md:p-8">
+        <div className="flex items-end justify-center gap-3">
+          <img src="/mascotte/naanaa-bravo.webp" alt="" width="96" height="141" className="naanaa-bob h-auto w-24" />
+          {/* Pastille de points : même emblème que le score, sur aplat citron */}
+          <span
+            className="score-sticker lg"
+            style={{ '--c': 'var(--color-citron)' } as CSSProperties}
+            role="img"
+            aria-label={`+${earned.total} ${t('points.points')}`}
+          >
+            <span aria-hidden="true"><b>+{earned.total}</b><i>{t('points.points')}</i></span>
+          </span>
         </div>
 
-        <h1 className="font-display text-2xl font-bold leading-tight">{t('contrib.thanksTitle')}</h1>
-        <p className="mt-2.5 max-w-[290px] text-[15px] leading-relaxed text-muted-foreground">
+        <h2 className="disp d-l">{t('contrib.thanksTitle')}</h2>
+        <p className="muted max-w-[320px] text-[15px] leading-relaxed">
           « {name} » {t('contrib.thanksDesc')}
         </p>
 
-        <div className="mt-6 w-full max-w-[320px] rounded-[20px] border bg-card p-4 shadow-[var(--shadow-card)]">
-          <div className="flex flex-col gap-2.5">
-            {earned.lines.map(([label, pts]) => (
-              <div key={label} className="flex items-center justify-between text-sm">
-                <span className="font-semibold">{label}</span>
-                <span className="font-extrabold text-primary">+{pts}</span>
-              </div>
-            ))}
-          </div>
-          {loggedIn !== true && (
-            <p className="mt-3.5 border-t pt-3.5 text-[13px] text-muted-foreground">
-              {t('contrib.anonNote')}{' '}
-              <a href="/connexion" className="font-bold text-primary">
-                {t('nav.account')}
-              </a>
-            </p>
-          )}
-        </div>
+        <ul className="w-full max-w-[340px] overflow-hidden rounded-2xl border-2 border-line text-start">
+          {earned.lines.map(([label, pts]) => (
+            <li key={label} className="flex items-center justify-between gap-3 border-b-[1.5px] border-line px-4 py-2.5 text-sm last:border-b-0">
+              <span className="font-semibold">{label}</span>
+              <span className="chip fill num bg-menthe">+{pts}</span>
+            </li>
+          ))}
+        </ul>
 
-        <div className="mt-7 flex w-full max-w-[320px] flex-col gap-3">
-          <a
-            href={`/produit/${barcode}`}
-            className="flex min-h-[58px] items-center justify-center rounded-full bg-primary text-[17px] font-bold text-primary-foreground shadow-[0_8px_24px_hsl(97_40%_20%/0.3)]"
-          >
+        {loggedIn !== true && (
+          <div className="w-full max-w-[340px] text-start">
+            <Bubble pose="astuce">
+              <p className="text-[13px]">
+                {t('contrib.anonNote')}{' '}
+                <a href="/connexion" className="font-bold underline underline-offset-2">{t('nav.account')}</a>
+              </p>
+            </Bubble>
+          </div>
+        )}
+
+        <div className="grid w-full max-w-[340px] gap-3">
+          <a href={`/produit/${barcode}`} className="btn primary min-h-[54px] text-[17px]">
             {t('contrib.seeProduct')}
           </a>
-          <a
-            href="/scan"
-            className="flex min-h-[54px] items-center justify-center gap-2.5 rounded-full border border-primary/30 bg-card text-[15px] font-bold text-primary"
-          >
+          <a href="/scan" className="btn">
             <RotateCcw size={17} />
             {t('contrib.scanAnother')}
           </a>
@@ -577,12 +580,12 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid gap-5">
       {Header}
 
       {step === 'barcode' && (
-        <div className="flex flex-1 flex-col gap-4">
-          <h1 className="font-display text-xl font-bold">{t('scan.manual')}</h1>
+        <div className={STEP_CARD}>
+          <h2 className="disp d-m">{t('scan.manual')}</h2>
           <input
             type="text"
             inputMode="numeric"
@@ -590,21 +593,19 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             onChange={(e) => setBarcode(e.target.value.replace(/\D/g, '').slice(0, 13))}
             placeholder="6111080016394"
             aria-label={t('scan.manual')}
-            className="min-h-[58px] w-full rounded-2xl border bg-card px-5 text-center font-display text-xl font-bold tracking-wider outline-none focus:border-primary"
+            className={cn(FIELD, 'min-h-[58px] text-center font-display text-xl tracking-wider')}
           />
-          <div className="mt-auto pt-4">
-            <Cta
-              label={t('contrib.continue')}
-              disabled={!/^\d{8}$|^\d{13}$/.test(barcode)}
-              onClick={() => setStep('photos')}
-            />
-          </div>
+          <Cta
+            label={t('contrib.continue')}
+            disabled={!/^\d{8}$|^\d{13}$/.test(barcode)}
+            onClick={() => setStep('photos')}
+          />
         </div>
       )}
 
       {step === 'photos' && (
-        <div className="flex flex-1 flex-col gap-3.5">
-          <h1 className="font-display text-xl font-bold">{t('contrib.photosTitle')}</h1>
+        <div className={STEP_CARD}>
+          <h2 className="disp d-m">{t('contrib.photosTitle')}</h2>
 
           <PhotoTile kind="front" title={t('contrib.photoFront')} hint={t('contrib.photoFrontHint')} />
           {photos.front && UniverseSwitch}
@@ -618,176 +619,149 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
           )}
 
           {readingInci && (
-            <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <p className="flex items-center gap-2 text-sm font-semibold">
               <Loader2 size={15} className="animate-spin" />
               {t('inci.reading')}
             </p>
           )}
 
           {identifying && (
-            <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <Loader2 size={15} className="animate-spin" />
-              {t('contrib.identifying')}
-            </p>
+            <Bubble pose="loupe">
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <Loader2 size={15} className="animate-spin text-ai-ink" />
+                {t('contrib.identifying')}
+              </p>
+            </Bubble>
           )}
 
-          <div className="flex items-start gap-2.5 rounded-2xl border border-accent bg-accent/50 px-4 py-3">
-            <Sparkles size={16} className="mt-0.5 flex-shrink-0 text-accent-foreground" />
-            <p className="text-[13px] leading-snug text-accent-foreground">{t('contrib.photoBonus')}</p>
-          </div>
+          <Bubble pose="astuce">
+            <p className="text-[13px] leading-snug">{t('contrib.photoBonus')}</p>
+          </Bubble>
 
-          {error && <p className="text-sm font-semibold text-destructive">{error}</p>}
+          {ErrorBubble}
 
-          <div className="mt-auto pt-4">
+          <div>
             <Cta
               label={t('contrib.continue')}
               disabled={!photos.front}
               onClick={() => setStep('info')}
             />
             {!photos.front && (
-              <p className="mt-2 text-center text-[13px] text-muted-foreground">{t('contrib.photoRequired')}</p>
+              <p className="muted mt-2 text-center text-[13px]">{t('contrib.photoRequired')}</p>
             )}
           </div>
         </div>
       )}
 
       {step === 'info' && (
-        <div className="flex flex-1 flex-col gap-4">
+        <div className={STEP_CARD}>
           {antibot.honeypot}
+          <h2 className="disp d-m">{t('contrib.stepProduct')}</h2>
           {prefilled && (
-            <p className="inline-flex items-center gap-2 self-start rounded-full border border-accent bg-accent/50 px-4 py-2 text-[13px] font-bold text-accent-foreground">
-              <Sparkles size={15} />
+            <span className="chip fill h-auto min-h-[26px] max-w-full justify-self-start whitespace-normal bg-ai py-1">
+              <Sparkles />
               {t('contrib.prefilled')}
-            </p>
+            </span>
           )}
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13.5px] font-bold">{t('contrib.name')}</span>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Confiture de fraises extra"
-              className="min-h-[52px] rounded-2xl border bg-card px-4 text-base font-semibold outline-none focus:border-primary"
-            />
+          <label className="grid gap-1.5">
+            <span className={LABEL}>{t('contrib.name')}</span>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('wizard.namePh')} className={FIELD} />
           </label>
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13.5px] font-bold">{t('contrib.brand')}</span>
-            <input
-              type="text"
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              placeholder="Délicia"
-              className="min-h-[52px] rounded-2xl border bg-card px-4 text-base font-semibold outline-none focus:border-primary"
-            />
+          <label className="grid gap-1.5">
+            <span className={LABEL}>{t('contrib.brand')}</span>
+            <input type="text" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Délicia" className={FIELD} />
           </label>
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13.5px] font-bold">{t('contrib.quantity')}</span>
-            <input
-              type="text"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              placeholder="430 g"
-              className="min-h-[52px] rounded-2xl border bg-card px-4 text-base font-semibold outline-none focus:border-primary"
-            />
+          <label className="grid gap-1.5">
+            <span className={LABEL}>{t('contrib.quantity')}</span>
+            <input type="text" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="430 g" className={FIELD} />
           </label>
 
           {UniverseSwitch}
 
           {universe === 'cosmetic' ? (
-            <div className="flex flex-col gap-2">
-              <span className="text-[13.5px] font-bold">{t('beauty.category')}</span>
-              <div className="flex flex-wrap gap-2">
+            <div className="grid gap-2">
+              <span className={LABEL}>{t('beauty.category')}</span>
+              <div className="chips gap-2">
                 {COSMETIC_CATEGORIES.map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setCosmeticCategory(cosmeticCategory === c ? null : c)}
-                    className={
-                      cosmeticCategory === c
-                        ? 'flex min-h-[46px] items-center gap-1.5 rounded-full bg-beauty px-4 text-sm font-bold text-beauty-foreground'
-                        : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
-                    }
+                    aria-pressed={cosmeticCategory === c}
+                    className={cn(CHOICE, cosmeticCategory === c && 'fill bg-beauty')}
                   >
-                    {cosmeticCategory === c && <Check size={14} strokeWidth={3} />}
+                    {cosmeticCategory === c && <Check strokeWidth={3} />}
                     {t(`beauty.cat.${c}` as `beauty.cat.${CosmeticCategory}`)}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-          <div className="flex flex-col gap-2">
-            <span className="text-[13.5px] font-bold">{t('contrib.category')}</span>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}
-                  className={
-                    categoryId === c.id
-                      ? 'flex min-h-[46px] items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground'
-                      : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
-                  }
-                >
-                  {categoryId === c.id && <Check size={14} strokeWidth={3} />}
-                  {c.label}
-                </button>
-              ))}
+            <div className="grid gap-2">
+              <span className={LABEL}>{t('contrib.category')}</span>
+              <div className="chips gap-2">
+                {CATEGORIES.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}
+                    aria-pressed={categoryId === c.id}
+                    className={cn(CHOICE, categoryId === c.id && 'fill bg-menthe')}
+                  >
+                    {categoryId === c.id && <Check strokeWidth={3} />}
+                    {t(c.label)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
           )}
 
-          <div className="flex items-center gap-3.5 rounded-[20px] border bg-card p-4">
-            <span className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-full bg-primary/[0.09] text-primary">
-              <span className="block h-6 w-6" dangerouslySetInnerHTML={{ __html: halalLogo }} />
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-line p-3">
+            <span className="tile tint-menthe size-[42px] flex-none rounded-full">
+              <span className="block size-6" dangerouslySetInnerHTML={{ __html: halalLogo }} />
             </span>
             <span className="min-w-0 flex-1 text-[15px] font-bold">{t('halal.question')}</span>
-            <span className="flex flex-shrink-0 gap-2">
+            <span className="flex flex-none gap-2">
               <button
                 type="button"
                 onClick={() => setHalal(halal === true ? null : true)}
-                className={
-                  halal === true
-                    ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-[13.5px] font-bold text-primary-foreground'
-                    : 'flex min-h-[46px] items-center rounded-full bg-secondary px-4 text-[13.5px] font-semibold text-muted-foreground'
-                }
+                aria-pressed={halal === true}
+                className={cn(CHOICE, halal === true && 'fill bg-menthe')}
               >
                 {t('halal.yes')}
               </button>
               <button
                 type="button"
                 onClick={() => setHalal(halal === false ? null : false)}
-                className={
-                  halal === false
-                    ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-[13.5px] font-bold text-primary-foreground'
-                    : 'flex min-h-[46px] items-center rounded-full bg-secondary px-4 text-[13.5px] font-semibold text-muted-foreground'
-                }
+                aria-pressed={halal === false}
+                className={cn(CHOICE, halal === false && 'fill bg-menthe')}
               >
                 {t('halal.notSeen')}
               </button>
             </span>
           </div>
 
-          <div className="mt-auto pt-4">
-            <Cta
-              label={t('contrib.continue')}
-              disabled={name.trim().length < 2}
-              onClick={() => setStep(thirdStep)}
-            />
-          </div>
+          <Cta
+            label={t('contrib.continue')}
+            disabled={name.trim().length < 2}
+            onClick={() => setStep(thirdStep)}
+          />
         </div>
       )}
 
       {step === 'nutrition' && (
-        <div className="flex flex-1 flex-col gap-3.5">
-          <div>
-            <h1 className="font-display text-xl font-bold">{t('contrib.nutritionTitle')}</h1>
+        <div className={STEP_CARD}>
+          <div className="grid gap-2">
+            <div className="sec-head">
+              <h2 className="disp d-m">{t('contrib.nutritionTitle')}</h2>
+              <span className="eyebrow">{t('wizard.per100')}</span>
+            </div>
             {(photos.nutrition || readingLabel) && (
-              <p className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-primary">
-                {readingLabel ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+              <p className="flex items-center gap-2 text-[13px] font-semibold">
+                {readingLabel ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} className="text-ai-ink" />}
                 {t('contrib.nutritionRead')}
               </p>
             )}
@@ -799,13 +773,12 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
               return (
                 <label
                   key={key}
-                  className={
-                    bad
-                      ? 'relative flex flex-col rounded-2xl border-2 border-[var(--color-score-mediocre)] bg-card px-4 py-3'
-                      : 'relative flex flex-col rounded-2xl border bg-card px-4 py-3'
-                  }
+                  className={cn(
+                    'relative flex flex-col rounded-2xl border-2 bg-background px-4 py-3',
+                    bad ? 'border-score-mediocre' : 'border-line'
+                  )}
                 >
-                  <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+                  <span className="muted text-xs font-semibold">{t(label)}</span>
                   <span className="mt-0.5 flex items-baseline gap-1.5">
                     <input
                       type="text"
@@ -819,10 +792,10 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
                       placeholder="—"
                       className="w-full min-w-0 border-0 bg-transparent p-0 font-display text-xl font-extrabold outline-none"
                     />
-                    <span className="flex-shrink-0 text-xs font-semibold text-muted-foreground">{unit}</span>
+                    <span className="muted flex-none text-xs font-semibold">{unit}</span>
                   </span>
                   {bad && (
-                    <span className="absolute right-3 top-2.5 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--color-score-mediocre)]">
+                    <span className="absolute end-3 top-2.5 text-[10.5px] font-extrabold uppercase tracking-wide text-score-mediocre-ink">
                       {t('contrib.check')}
                     </span>
                   )}
@@ -831,28 +804,22 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             })}
           </div>
 
-          <button
-            type="button"
-            onClick={() => { setNutrition({}); setStep('price') }}
-            className="flex min-h-[50px] items-center justify-center gap-2.5 rounded-full bg-secondary text-sm font-semibold text-muted-foreground"
-          >
+          <button type="button" onClick={() => { setNutrition({}); setStep('price') }} className="btn flat w-full">
             <HelpCircle size={17} />
             {t('contrib.noTable')}
           </button>
 
-          <div className="mt-auto pt-4">
-            <Cta label={t('contrib.continue')} onClick={() => setStep('price')} />
-          </div>
+          <Cta label={t('contrib.continue')} onClick={() => setStep('price')} />
         </div>
       )}
 
       {step === 'inci' && (
-        <div className="flex flex-1 flex-col gap-3.5">
-          <div>
-            <h1 className="font-display text-xl font-bold">{t('contrib.inciTitle')}</h1>
+        <div className={STEP_CARD}>
+          <div className="grid gap-2">
+            <h2 className="disp d-m">{t('contrib.inciTitle')}</h2>
             {(photos.ingredients || readingInci) && (
-              <p className="mt-2 flex items-center gap-2 text-[13px] font-semibold text-primary">
-                {readingInci ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+              <p className="flex items-center gap-2 text-[13px] font-semibold">
+                {readingInci ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} className="text-ai-ink" />}
                 {readingInci ? t('inci.reading') : t('inci.read')}
               </p>
             )}
@@ -867,45 +834,31 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
             onChange={(e) => setInciText(e.target.value)}
             placeholder={t('inci.placeholder')}
             rows={7}
-            className="w-full rounded-2xl border bg-card px-4 py-3 text-sm font-medium uppercase leading-relaxed outline-none focus:border-primary"
+            className="w-full rounded-2xl border-2 border-line bg-background px-4 py-3 text-sm font-medium uppercase leading-relaxed outline-none focus:border-brand-ink"
           />
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13.5px] font-bold">{t('inci.paoLabel')}</span>
-            <input
-              type="text"
-              value={pao}
-              onChange={(e) => setPao(e.target.value)}
-              placeholder="12M"
-              className="min-h-[52px] w-32 rounded-2xl border bg-card px-4 text-base font-semibold uppercase outline-none focus:border-primary"
-            />
+          <label className="grid gap-1.5">
+            <span className={LABEL}>{t('inci.paoLabel')}</span>
+            <input type="text" value={pao} onChange={(e) => setPao(e.target.value)} placeholder="12M" className={cn(FIELD, 'w-32 uppercase')} />
           </label>
 
-          <button
-            type="button"
-            onClick={() => { setInciText(''); setStep('price') }}
-            className="flex min-h-[50px] items-center justify-center gap-2.5 rounded-full bg-secondary text-sm font-semibold text-muted-foreground"
-          >
+          <button type="button" onClick={() => { setInciText(''); setStep('price') }} className="btn flat w-full">
             <HelpCircle size={17} />
             {t('inci.noList')}
           </button>
 
-          <div className="mt-auto pt-4">
-            <Cta label={t('contrib.continue')} onClick={() => setStep('price')} />
-          </div>
+          <Cta label={t('contrib.continue')} onClick={() => setStep('price')} />
         </div>
       )}
 
       {step === 'price' && (
-        <div className="flex flex-1 flex-col gap-4">
-          <div>
-            <h1 className="font-display text-xl font-bold">{t('price.howMuch')}</h1>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              {t('price.disclaimer')}
-            </p>
+        <div className={STEP_CARD}>
+          <div className="grid gap-1.5">
+            <h2 className="disp d-m">{t('price.howMuch')}</h2>
+            <p className="muted text-sm leading-relaxed">{t('price.disclaimer')}</p>
           </div>
 
-          <div className="flex items-baseline justify-center gap-2.5 rounded-3xl border-2 border-primary bg-card px-5 py-6 shadow-[0_8px_26px_hsl(97_40%_20%/0.14)]">
+          <div className="flex items-baseline justify-center gap-2.5 rounded-3xl border-2 border-line bg-background px-5 py-6">
             <input
               type="text"
               inputMode="decimal"
@@ -915,58 +868,42 @@ export default function ContributeWizard({ initialBarcode = '', initialUniverse 
               aria-label={t('price.howMuch')}
               className="w-40 border-0 bg-transparent text-center font-display text-[52px] font-extrabold leading-none outline-none"
             />
-            <span className="text-xl font-bold text-muted-foreground">DH</span>
+            <span className="muted text-xl font-bold">DH</span>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-[13.5px] font-bold">{t('price.where')}</span>
-            <div className="flex flex-wrap gap-2">
+          <div className="grid gap-2">
+            <span className={LABEL}>{t('price.where')}</span>
+            <div className="chips gap-2">
               {STORES.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setStore(store === s ? '' : s)}
-                  className={
-                    store === s
-                      ? 'flex min-h-[46px] items-center rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground'
-                      : 'flex min-h-[46px] items-center rounded-full border bg-card px-4 text-sm font-semibold'
-                  }
+                  aria-pressed={store === s}
+                  className={cn(CHOICE, store === s && 'fill bg-menthe')}
                 >
-                  {s}
+                  {s === 'Épicerie du coin' ? t('wizard.cornerStore') : s}
                 </button>
               ))}
             </div>
           </div>
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[13.5px] font-bold">{t('price.city')}</span>
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Casablanca"
-              className="min-h-[52px] rounded-2xl border bg-card px-4 text-base font-semibold outline-none focus:border-primary"
-            />
+          <label className="grid gap-1.5">
+            <span className={LABEL}>{t('price.city')}</span>
+            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Casablanca" className={FIELD} />
           </label>
 
-          <p className="inline-flex items-center gap-2 self-start rounded-full border border-accent bg-accent/50 px-4 py-2 text-[13px] font-bold text-accent-foreground">
-            <Tag size={15} />
+          <span className="chip fill w-max bg-citron">
+            <Tag />
             {t('points.pricePill')}
-          </p>
+          </span>
 
-          {error && <p className="text-sm font-semibold text-destructive">{error}</p>}
+          {ErrorBubble}
 
-          <div className="mt-auto pt-4">
-            <button
-              type="button"
-              onClick={() => void submit(true)}
-              disabled={submitting}
-              className="flex min-h-[58px] w-full items-center justify-center gap-2.5 rounded-full bg-primary text-[17px] font-bold text-primary-foreground shadow-[0_8px_24px_hsl(97_40%_20%/0.3)] disabled:opacity-60"
-            >
-              {submitting ? <Loader2 size={19} className="animate-spin" /> : <Check size={19} />}
-              {submitting ? t('contrib.sending') : t('contrib.publish')}
-            </button>
-          </div>
+          <button type="button" onClick={() => void submit(true)} disabled={submitting} className="btn primary min-h-[54px] w-full text-[17px]">
+            {submitting ? <Loader2 size={19} className="animate-spin" /> : <Check size={19} />}
+            {submitting ? t('contrib.sending') : t('contrib.publish')}
+          </button>
         </div>
       )}
     </div>

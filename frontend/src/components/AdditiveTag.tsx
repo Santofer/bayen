@@ -3,8 +3,6 @@
  * Utilisé dans la liste des additifs et les fiches produit
  */
 
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import type { RiskLevel } from '@/lib/types'
 import type { TranslationKey } from '@/lib/translations'
@@ -22,6 +20,18 @@ const RISK_VARIANTS: Record<RiskLevel, 'safe' | 'limited' | 'avoid' | 'banned'> 
   limited: 'limited',
   avoid: 'avoid',
   banned_ma: 'banned',
+}
+
+/**
+ * Aplat Marché Pop par niveau de risque (texte encre posé dessus), du plus
+ * sûr au plus grave : menthe, citron, orange, tomate. Variables CSS : valables
+ * en style inline (fond, bordure) et identiques dans les deux thèmes.
+ */
+const RISK_FILL: Record<RiskLevel, string> = {
+  safe: 'var(--color-score-excellent)',
+  limited: 'var(--color-citron)',
+  avoid: 'var(--color-score-mediocre)',
+  banned_ma: 'var(--color-score-mauvais)',
 }
 
 const RISK_LABEL_KEYS: Record<RiskLevel, TranslationKey> = {
@@ -47,18 +57,20 @@ export default function AdditiveTag({
 }: AdditiveTagProps) {
   const { t } = useLocale()
 
+  // `!` : .pop-chip est une règle globale hors calque Tailwind
   return (
-    <Badge
-      variant={RISK_VARIANTS[riskLevel]}
-      className={cn('gap-1', className)}
+    <span
+      className={`pop-chip border-encre! text-encre! ${className ?? ''}`}
+      style={{ backgroundColor: RISK_FILL[riskLevel] }}
+      title={t(RISK_LABEL_KEYS[riskLevel])}
     >
       <span className="font-bold">{code}</span>
       {showName && name && (
         <span className="font-normal opacity-80">— {name}</span>
       )}
-      <span className="opacity-60 text-[10px]">{RISK_ICONS[riskLevel]}</span>
-    </Badge>
+      <span className="text-[10px] opacity-70" aria-hidden="true">{RISK_ICONS[riskLevel]}</span>
+    </span>
   )
 }
 
-export { RISK_VARIANTS, RISK_ICONS, RISK_LABEL_KEYS }
+export { RISK_VARIANTS, RISK_ICONS, RISK_LABEL_KEYS, RISK_FILL }

@@ -6,8 +6,10 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Moon, Sun } from 'lucide-react'
+import { useLocale } from '@/lib/i18n'
 
 export default function ThemeToggle() {
+  const { t } = useLocale()
   const [dark, setDark] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -34,7 +36,7 @@ export default function ThemeToggle() {
       size="icon"
       onClick={toggle}
       className="h-9 w-9 rounded-full"
-      aria-label={dark ? 'Mode clair' : 'Mode sombre'}
+      aria-label={dark ? t('theme.light') : t('theme.dark')}
     >
       {dark ? <Sun size={18} /> : <Moon size={18} />}
     </Button>

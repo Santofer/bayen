@@ -1,5 +1,6 @@
 ---
-// Page recherche produits
+// Page recherche produits (maquette « Recherche ») : la barre du haut
+// (retour, titre, filtres) est dessinée par SearchPage
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
@@ -10,8 +11,9 @@ import SearchPage from '@/components/SearchPage'
   title="Recherche produits alimentaires Maroc — Bayen"
   description="Cherche parmi près de 2000 produits alimentaires vendus au Maroc. Score nutritionnel, additifs détectés, Nutri-Score, comparatifs marques marocaines."
   path="/recherche"
+  mobileTopbar={false}
 >
-  <main>
-    <SearchPage client:load />
+  <main class="screen gap-4 md:gap-8">
+    <SearchPage client:load showTopbar />
   </main>
 </Layout>

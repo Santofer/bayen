@@ -62,7 +62,7 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
     return (
       <div
         ref={ref}
-        className={cn('rounded-2xl border bg-card p-5 shadow-sm sm:p-6', className)}
+        className={cn('rounded-2xl border bg-card p-5 sm:p-6', className)}
         {...props}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
@@ -76,7 +76,7 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
               aria-label="Choisir la période"
               value={selectedRunId ?? runOptions[0]?.id}
               onChange={(e) => onRunChange?.(e.target.value)}
-              className="rounded-md border bg-background px-3 py-1.5 text-sm text-foreground"
+              className="rounded-full border-2 border-line bg-background px-3 py-1.5 text-sm text-foreground"
             >
               {runOptions.map((o) => (
                 <option key={o.id} value={o.id}>

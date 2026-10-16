@@ -52,6 +52,41 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 
 ---
 
+## Identité visuelle « Marché Pop » (refonte 2026-10)
+
+- Tokens dans `frontend/src/styles/globals.css` : crème `#FFF8EC`, encre `#1B1B1B`, menthe `#19C08B`,
+  citron, tomate, myrtille, figue, framboise ; sombre = aubergine `#1D1430`. Titres Unbounded, texte Readex Pro.
+- Texte posé sur un aplat vif = ENCRE, jamais blanc. Menthe en TEXTE = `text-brand-ink` (le menthe vif ne passe pas AA).
+- Cartes : `bg-card border` reçoit automatiquement contour encre + ombre nette (règle globale).
+- Score : `lib/score-colors.ts` (aplats + versions texte), pastille `.score-sticker` (chiffre + mot).
+  Échelle 4 niveaux (75/50/25) — les couleurs de `scoreToLabel` sont dupliquées dans l'extension.
+- Univers : beauté framboise, protéines myrtille, repas/IA figue — jamais une teinte de l'échelle de score.
+- **Maquettes validées = référence de structure** : `design/maquettes/*.dc.html` (règles dans
+  `design/REFONTE-MAQUETTES.md`). Leurs classes sont portées telles quelles dans `globals.css`
+  (`card chip tile pcard sticker naanaa bubble nut band screen topbar section sec-head btn icon-btn`…) :
+  un écran se construit avec ce vocabulaire, pas avec de nouveaux composants visuels.
+- Photos produit : elles REMPLISSENT le cadre (`.tile > img` en cover) ; jamais de détourage ni de
+  `object-contain`/`mix-blend` sur une vignette produit (hors photos d'étiquette, qui sont des documents).
+- Gabarit : bandeau de page = `PageHero` (aplat pleine largeur, posé hors conteneur, avec
+  `mobileTopbar={false}`), puis `<main class="screen">`. Menu complet = `SiteMenu.astro` (`<dialog>`),
+  ouvert par tout élément `[data-open-menu]`.
+- Logo « b-cuillère » (validé le 15/10/2026) : wordmark « bayen » sans point ni arabe, la panse du b
+  est le cuilleron d'une cuillère dont le manche, en creux, traverse la hampe. Composant
+  `components/Logo.astro` (`variant="wordmark" | "sigle"`, couleur = currentColor). Sources régénérables :
+  `design/logo/b-cuillere.py` (contours d'Unbounded wght 800) puis `design/logo/icones.py` (favicons,
+  icônes PWA, `logo-bayen.svg`, `og-default`). Le sigle seul = icône d'app et bouton flottant `.sigle-fab`
+  (apparaît au défilement, ouvre le menu).
+- Mascotte Naânaa (brin de menthe), style « riso décalé » (refaite par Codex le 15/10/2026) :
+  `public/mascotte/naanaa-<pose>.webp` (salut, astuce, bravo, loupe, oups, nuit, scan, courses), en médaillon
+  rond dans `.naanaa`. Sources PNG transparentes 1024×1536 : `design/naanaa-v2/riso/` (référence de style :
+  `design/naanaa-v2/c-riso.png` — toute nouvelle pose part de là, via le plugin Codex). Couvertures du journal :
+  `public/blog/covers/<slug>.webp` (aussi posées dans Directus par `scripts/set-blog-covers.py`).
+- Visuels : photos à plat, objets à ombre nette sur aplat de couleur, sans texte (générés sur Magnific).
+- **Darija** : tout texte visible passe par `t()` (aucun français en dur), y compris les bulles de
+  Naânaa. Nouvelles clés de la refonte dans `lib/translations-refonte-{1,2,3}.ts` (fusionnées dans
+  `translations`). En Astro, passer `locale` à `ProductCard`/`ScoreSticker`. Mots de score :
+  ممتاز / مزيان / ضعيف / خايب ; perturbateur endocrinien = « مخلّ هرموني ». Valeur + unité dans un `<bdi>`.
+
 ## Structure API — règles strictes
 
 - Toutes les requêtes Directus passent par le client SDK dans `frontend/src/lib/directus.ts`

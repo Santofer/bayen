@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react'
 import { getAccessToken } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
 import { StreakCard } from '@/components/ui/streak-card'
 import type { StreakPeriod } from '@/components/ui/streak-calendar'
 
@@ -31,6 +32,7 @@ interface StreakWidgetProps {
 }
 
 export default function StreakWidget({ labels }: StreakWidgetProps) {
+  const { t } = useLocale()
   const [data, setData] = useState<MyStatsResponse['streak'] | null>(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -65,14 +67,21 @@ export default function StreakWidget({ labels }: StreakWidgetProps) {
   // Rien tant que pas chargé, ou si l'utilisateur n'a aucun scan
   if (!loaded || !data || data.total_scans === 0) return null
 
+  // Section d'écran (maquette Compte) : se pose directement dans <main class="screen">
   return (
-    <StreakCard
-      streak={data.active_days}
-      currentStreak={data.current}
-      longestStreak={data.longest}
-      total={data.total_scans}
-      today={data.today}
-      labels={labels}
-    />
+    <section className="section">
+      <StreakCard
+        streak={data.active_days}
+        currentStreak={data.current}
+        longestStreak={data.longest}
+        total={data.total_scans}
+        today={data.today}
+        title={t('streak.title')}
+        aria-label={t('streak.aria')}
+        howItWorksTitle={t('streak.howTitle')}
+        howItWorksItems={[t('streak.how1'), t('streak.how2'), t('streak.how3')]}
+        labels={labels ?? { days: t('streak.days'), longest: t('streak.longest'), total: t('streak.total') }}
+      />
+    </section>
   )
 }

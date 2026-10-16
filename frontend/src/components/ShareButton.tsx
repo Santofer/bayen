@@ -15,10 +15,12 @@ interface ShareButtonProps {
   score: number | null
   barcode: string
   className?: string
+  /** 'icon' = bouton rond de la barre du haut (maquette FichePop) */
+  variant?: 'button' | 'icon'
 }
 
-export default function ShareButton({ productName, brand, score, barcode, className }: ShareButtonProps) {
-  const { t, locale } = useLocale()
+export default function ShareButton({ productName, brand, score, barcode, className, variant = 'button' }: ShareButtonProps) {
+  const { t } = useLocale()
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -40,6 +42,8 @@ export default function ShareButton({ productName, brand, score, barcode, classN
   }, [open])
 
   const handleShare = async () => {
+    // Menu ouvert : le même bouton (devenu une croix) le referme
+    if (open) { setOpen(false); return }
     // Mobile : utiliser le Web Share API natif
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
@@ -54,7 +58,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
       }
     }
     // Desktop / fallback : ouvrir le dropdown
-    setOpen(!open)
+    setOpen(true)
   }
 
   const handleWhatsApp = () => {
@@ -87,39 +91,32 @@ export default function ShareButton({ productName, brand, score, barcode, classN
     setOpen(false)
   }
 
-  const isRtl = locale === 'ary'
-
   return (
     <div className={cn('relative', className)} ref={dropdownRef}>
-      <Button
-        onClick={handleShare}
-        className="bg-[#476a32] hover:bg-[#3a5829] text-[#f0f2d2] dark:bg-[#b1cf3a] dark:hover:bg-[#9dba2e] dark:text-[#1c3014] gap-2 shadow-md"
-        size="sm"
-      >
-        <Share2 size={16} />
-        {t('share.title')}
-      </Button>
+      {variant === 'icon' ? (
+        <button type="button" className={cn('icon-btn', open && 'bg-citron text-encre')} onClick={handleShare} aria-label={open ? t('common.close') : t('share.title')} aria-expanded={open}>
+          {open ? (
+            <X strokeWidth={2.5} />
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4" /></svg>
+          )}
+        </button>
+      ) : (
+        // Bouton Marché Pop par défaut : aplat menthe, texte et contour encre
+        <Button onClick={handleShare} className="gap-2" size="sm">
+          {open ? <X size={16} /> : <Share2 size={16} />}
+          {open ? t('common.close') : t('share.title')}
+        </Button>
+      )}
 
       {/* Dropdown fallback */}
       {open && (
-        <div
-          className={cn(
-            'absolute top-full mt-2 z-50 min-w-[180px] rounded-lg border bg-card shadow-lg p-1',
-            isRtl ? 'left-0' : 'right-0'
-          )}
-        >
-          {/* Fermer */}
-          <button
-            onClick={() => setOpen(false)}
-            className="absolute top-1.5 right-1.5 text-muted-foreground hover:text-foreground"
-          >
-            <X size={14} />
-          </button>
+        <div className="absolute end-0 top-full z-50 mt-2 min-w-[190px] rounded-2xl border bg-card p-1.5">
 
           {/* WhatsApp */}
           <button
             onClick={handleWhatsApp}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm hover:bg-accent transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
           >
             <MessageCircle size={18} className="text-[#25D366]" />
             <span>{t('share.whatsapp')}</span>
@@ -128,12 +125,12 @@ export default function ShareButton({ productName, brand, score, barcode, classN
           {/* Copier le lien */}
           <button
             onClick={handleCopy}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm hover:bg-accent transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
           >
             {copied ? (
               <>
-                <Check size={18} className="text-primary" />
-                <span className="text-primary font-medium">{t('share.copied')}</span>
+                <Check size={18} className="text-brand-ink" />
+                <span className="text-brand-ink font-medium">{t('share.copied')}</span>
               </>
             ) : (
               <>
@@ -146,7 +143,7 @@ export default function ShareButton({ productName, brand, score, barcode, classN
           {/* Facebook */}
           <button
             onClick={handleFacebook}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm hover:bg-accent transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-muted transition-colors"
           >
             <Globe size={18} className="text-[#1877F2]" />
             <span>{t('share.facebook')}</span>

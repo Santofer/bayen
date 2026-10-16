@@ -1,10 +1,12 @@
 ---
-// Fiche ingrédient cosmétique (C23) — l'INCI sert d'identifiant d'URL
+// Fiche ingrédient cosmétique (C23) — l'INCI sert d'identifiant d'URL (motif bandeau Beauté)
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 import { getLocale, t } from '@/lib/i18n'
+import type { Product } from '@/lib/types'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
@@ -16,7 +18,7 @@ interface Ingredient {
   restriction_fr: string | null; source_label: string | null; source_url: string | null; note_fr: string | null
 }
 let ingredient: Ingredient | null = null
-let products: Record<string, unknown>[] = []
+let products: Product[] = []
 
 try {
   const res = await fetch(`${DIRECTUS_URL}/items/cosmetic_ingredients?filter[inci_name][_eq]=${encodeURIComponent(inci)}&limit=1`, { signal: AbortSignal.timeout(5000) })
@@ -27,24 +29,35 @@ try {
       { signal: AbortSignal.timeout(5000) }
     )
     if (pr.ok) {
+      // Une ligne par produit (un INCI peut apparaître deux fois dans une liste)
       const seen = new Set<string>()
-      products = ((await pr.json()).data ?? [])
-        .map((r: Record<string, unknown>) => r.products_id as Record<string, unknown> | null)
-        .filter((p: Record<string, unknown> | null): p is Record<string, unknown> => Boolean(p && p.barcode) && !seen.has(String(p!.barcode)) && Boolean(seen.add(String(p!.barcode))))
+      for (const r of ((await pr.json()).data ?? []) as Array<{ products_id: Product | null }>) {
+        const p = r.products_id
+        if (p?.barcode && !seen.has(p.barcode)) { seen.add(p.barcode); products.push(p) }
+      }
     }
   }
 } catch { /* fiche introuvable */ }
 
-const LEVEL_STYLE: Record<string, string> = {
-  banned: 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200',
-  high: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
-  moderate: 'bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300',
-  low: 'bg-lime-50 text-lime-800 dark:bg-lime-950/30 dark:text-lime-200',
-  none: 'bg-muted text-foreground',
+// Aplats Marché Pop (même échelle que InciList), texte encre posé dessus
+const LEVEL_FILL: Record<string, string> = {
+  banned: 'fill bg-score-mauvais',
+  high: 'fill bg-score-mauvais',
+  moderate: 'fill bg-score-mediocre',
+  low: 'fill bg-citron',
+  none: 'fill bg-score-excellent',
   unknown: 'bg-muted text-muted-foreground',
 }
 const levelKey = (l: string) => (['banned', 'high', 'moderate', 'low', 'none'].includes(l) ? `beauty.risk.${l}` : 'beauty.risk.unknown') as Parameters<typeof t>[0]
-const typeKey = (ty: string) => (['endocrine', 'cmr', 'allergen', 'irritant', 'environment', 'restricted'].includes(ty) ? `beauty.type.${ty}` as Parameters<typeof t>[0] : null)
+const typeKey = (ty: string) => (['cmr', 'allergen', 'irritant', 'environment', 'restricted'].includes(ty) ? `beauty.type.${ty}` as Parameters<typeof t>[0] : null)
+const qualified = ingredient?.risk_status === 'suspected' || ingredient?.risk_status === 'confirmed'
+const statusLabel = qualified ? t(`beauty.status.${ingredient!.risk_status}` as Parameters<typeof t>[0], locale) : ''
+// Règle C23 : « perturbateur endocrinien » seulement qualifié (suspecté / avéré) ET sourcé
+const typeLabels = (ingredient?.risk_types ?? []).flatMap((ty) => {
+  if (ty === 'endocrine') return qualified && ingredient?.source_url ? [`${t('beauty.type.endocrine', locale)} ${statusLabel}`] : []
+  const k = typeKey(ty)
+  return k ? [t(k, locale)] : []
+})
 const risky = ingredient ? !['none', 'unknown'].includes(ingredient.risk_level) : false
 const title = ingredient ? `${ingredient.inci_name}${ingredient.name_fr ? ` (${ingredient.name_fr})` : ''} — ${t(levelKey(ingredient.risk_level), locale)} | Bayen` : `Ingrédient ${inci} — Bayen`
 const description = ingredient
@@ -52,76 +65,84 @@ const description = ingredient
   : `Ingrédient cosmétique ${inci} introuvable dans le référentiel Bayen.`
 ---
 
-<Layout title={title} description={description} path={`/ingredients-cosmetiques/${encodeURIComponent(inci)}`} noindex={!ingredient || !risky} universe="beauty">
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    {!ingredient ? (
-      <div class="text-center py-12">
-        <p class="text-muted-foreground">{t('search.noResults', locale)}</p>
-        <a href="/ingredients-cosmetiques" class="text-primary hover:underline text-sm mt-2 inline-block">← {t('beauty.ingredientsTitle', locale)}</a>
+<Layout title={title} description={description} path={`/ingredients-cosmetiques/${encodeURIComponent(inci)}`} noindex={!ingredient || !risky} universe="beauty" mobileTopbar={false}>
+  <PageHero
+    tone="beauty"
+    back="/ingredients-cosmetiques"
+    kicker={t('nav.inci', locale)}
+    title={ingredient?.inci_name ?? inci}
+    subtitle={ingredient ? (ingredient.name_fr ?? undefined) : t('search.noResults', locale)}
+    class="[&_h1]:[overflow-wrap:anywhere]"
+  >
+    {ingredient && (
+      <div class="chips">
+        <span class:list={['chip', LEVEL_FILL[ingredient.risk_level] ?? LEVEL_FILL.unknown]}>
+          {t(levelKey(ingredient.risk_level), locale)}{statusLabel && ` · ${statusLabel}`}
+        </span>
+        {typeLabels.map((l) => <span class="chip">{l}</span>)}
       </div>
-    ) : (
-      <div class="space-y-6">
-        <div class="rounded-3xl border bg-card p-5 sm:p-6 shadow-card">
-          <div class="flex flex-wrap items-start gap-3">
-            <div class="min-w-0 flex-1">
-              <h1 class="font-display text-2xl font-bold break-words">{ingredient.inci_name}</h1>
-              {ingredient.name_fr && <p class="text-lg text-muted-foreground">{ingredient.name_fr}</p>}
-            </div>
-            <span class:list={['flex-shrink-0 rounded-full px-3 py-1 text-sm font-bold', LEVEL_STYLE[ingredient.risk_level] ?? LEVEL_STYLE.unknown]}>
-              {t(levelKey(ingredient.risk_level), locale)}
-              {ingredient.risk_status && (ingredient.risk_status === 'suspected' || ingredient.risk_status === 'confirmed') && ` · ${t(`beauty.status.${ingredient.risk_status}` as Parameters<typeof t>[0], locale)}`}
-            </span>
-          </div>
-          {Array.isArray(ingredient.risk_types) && ingredient.risk_types.length > 0 && (
-            <div class="mt-3 flex flex-wrap gap-1.5">
-              {ingredient.risk_types.map((ty) => { const k = typeKey(ty); return <span class="rounded-full border px-2.5 py-0.5 text-xs font-semibold">{k ? t(k, locale) : ty}</span> })}
-            </div>
-          )}
-          {ingredient.note_fr && <p class="mt-4 text-[15px] leading-relaxed">{ingredient.note_fr}</p>}
-          <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            {ingredient.restriction_fr && (
-              <div class="rounded-xl bg-muted/50 p-3"><dt class="text-xs text-muted-foreground">{t('beauty.restriction', locale)}</dt><dd class="mt-0.5 font-medium">{ingredient.restriction_fr}</dd></div>
-            )}
-            {Array.isArray(ingredient.functions) && ingredient.functions.length > 0 && (
-              <div class="rounded-xl bg-muted/50 p-3"><dt class="text-xs text-muted-foreground">{t('beauty.functions', locale)}</dt><dd class="mt-0.5 font-medium">{ingredient.functions.join(', ')}</dd></div>
-            )}
-            {Array.isArray(ingredient.synonyms) && ingredient.synonyms.length > 0 && (
-              <div class="rounded-xl bg-muted/50 p-3"><dt class="text-xs text-muted-foreground">{t('beauty.synonyms', locale)}</dt><dd class="mt-0.5 font-medium">{ingredient.synonyms.join(', ')}</dd></div>
-            )}
-            {ingredient.cas_number && (
-              <div class="rounded-xl bg-muted/50 p-3"><dt class="text-xs text-muted-foreground">CAS</dt><dd class="mt-0.5 font-mono text-xs">{ingredient.cas_number}</dd></div>
-            )}
-            {ingredient.source_label && (
-              <div class="rounded-xl bg-muted/50 p-3 sm:col-span-2"><dt class="text-xs text-muted-foreground">{t('beauty.source', locale)}</dt>
-                <dd class="mt-0.5 font-medium">
-                  {ingredient.source_url ? <a href={ingredient.source_url} rel="noopener nofollow" target="_blank" class="text-primary hover:underline">{ingredient.source_label} ↗</a> : ingredient.source_label}
-                </dd>
-              </div>
-            )}
-          </dl>
-        </div>
+    )}
+  </PageHero>
 
-        <div>
-          <div class="sec-head-v2">
-            <h2>{t('beauty.productsWith', locale)} {ingredient.inci_name}</h2>
-            <span class="text-sm text-muted-foreground">{products.length} {t('search.results', locale)}</span>
+  <main class="screen max-md:pt-5">
+    {!ingredient ? (
+      <section class="section">
+        <div class="naanaa grid-cols-[56px_minmax(0,1fr)]">
+          <div class="m size-14"><img src="/mascotte/naanaa-oups.webp" alt="" width="56" height="56" /></div>
+          <p class="bubble">{t('search.noResults', locale)}</p>
+        </div>
+        <a href="/ingredients-cosmetiques" class="btn w-max">{t('beauty.ingredientsTitle', locale)}</a>
+      </section>
+    ) : (
+      <>
+        {(ingredient.note_fr || ingredient.restriction_fr || ingredient.functions?.length || ingredient.synonyms?.length || ingredient.cas_number || ingredient.source_label) && (
+          <section class="section">
+            <div class="card grid gap-4 p-5 md:p-6">
+              {ingredient.note_fr && <p class="text-[15px] leading-relaxed">{ingredient.note_fr}</p>}
+              <dl class="grid gap-3 text-sm md:grid-cols-2">
+                {ingredient.restriction_fr && (
+                  <div class="rounded-[14px] bg-muted p-3"><dt class="muted text-xs">{t('beauty.restriction', locale)}</dt><dd class="mt-0.5 font-medium">{ingredient.restriction_fr}</dd></div>
+                )}
+                {Array.isArray(ingredient.functions) && ingredient.functions.length > 0 && (
+                  <div class="rounded-[14px] bg-muted p-3"><dt class="muted text-xs">{t('beauty.functions', locale)}</dt><dd class="mt-0.5 font-medium">{ingredient.functions.join(', ')}</dd></div>
+                )}
+                {Array.isArray(ingredient.synonyms) && ingredient.synonyms.length > 0 && (
+                  <div class="rounded-[14px] bg-muted p-3"><dt class="muted text-xs">{t('beauty.synonyms', locale)}</dt><dd class="mt-0.5 font-medium">{ingredient.synonyms.join(', ')}</dd></div>
+                )}
+                {ingredient.cas_number && (
+                  <div class="rounded-[14px] bg-muted p-3"><dt class="muted text-xs">CAS</dt><dd class="mt-0.5 font-mono text-xs">{ingredient.cas_number}</dd></div>
+                )}
+                {ingredient.source_label && (
+                  <div class="rounded-[14px] bg-muted p-3 md:col-span-2"><dt class="muted text-xs">{t('beauty.source', locale)}</dt>
+                    <dd class="mt-0.5 font-medium">
+                      {ingredient.source_url ? <a href={ingredient.source_url} rel="noopener nofollow" target="_blank" class="underline underline-offset-2">{ingredient.source_label} ↗</a> : ingredient.source_label}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          </section>
+        )}
+
+        <section class="section">
+          <div class="sec-head">
+            <h2 class="disp d-m [overflow-wrap:anywhere]">{t('beauty.productsWith', locale)} {ingredient.inci_name}</h2>
+            <span class="muted flex-none text-xs">{products.length} {t('search.results', locale)}</span>
           </div>
           {products.length === 0 ? (
-            <div class="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
-              {t('search.noResults', locale)}
-            </div>
+            <p class="card p-6 text-center text-sm muted">{t('search.noResults', locale)}</p>
           ) : (
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {products.map((product) => <ProductCard product={product as any} variant="grid" />)}
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+              {products.map((product) => <ProductCard product={product} variant="grid" locale={locale} />)}
             </div>
           )}
-        </div>
+        </section>
 
-        <p class="text-xs text-muted-foreground">{t('beauty.disclaimer', locale)}</p>
-        <div class="text-center">
-          <a href="/ingredients-cosmetiques" class="text-sm text-muted-foreground hover:text-primary">← {t('beauty.ingredientsTitle', locale)}</a>
-        </div>
-      </div>
+        <section class="section">
+          <p class="muted text-xs">{t('beauty.disclaimer', locale)}</p>
+          <a href="/ingredients-cosmetiques" class="btn sm w-max">{t('beauty.ingredientsTitle', locale)}</a>
+        </section>
+      </>
     )}
   </main>
 </Layout>

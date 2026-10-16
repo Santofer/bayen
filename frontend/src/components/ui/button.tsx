@@ -4,23 +4,23 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  // Micro-interactions : transition douce, press tactile (scale), lift au survol
-  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] active:transition-none',
+  // Marché Pop : pilule à contour encre, ombre nette qui s'écrase au clic
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-bold ring-offset-background transition-[transform,box-shadow,background-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:-translate-y-px',
-        destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md',
-        outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary/30',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+        default: 'border-2 border-encre bg-primary text-primary-foreground shadow-[3px_3px_0_var(--color-hard)] hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0_var(--color-hard)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
+        destructive: 'border-2 border-encre bg-tomate text-encre shadow-[3px_3px_0_var(--color-hard)] hover:-translate-y-px active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
+        outline: 'border-2 border-line bg-card text-foreground shadow-[2px_2px_0_var(--color-hard)] hover:-translate-y-px hover:bg-muted active:translate-x-[2px] active:translate-y-[2px] active:shadow-none',
+        secondary: 'border-2 border-encre bg-citron text-encre shadow-[2px_2px_0_var(--color-hard)] hover:-translate-y-px active:translate-x-[2px] active:translate-y-[2px] active:shadow-none',
+        ghost: 'hover:bg-muted',
+        link: 'text-brand-ink underline underline-offset-4 decoration-2 decoration-menthe hover:decoration-current',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-lg px-3',
-        lg: 'h-11 rounded-xl px-8',
-        icon: 'h-10 w-10',
+        default: 'h-11 px-5',
+        sm: 'h-9 px-3.5 text-[13px]',
+        lg: 'h-12 px-7 text-base',
+        icon: 'h-11 w-11',
       },
     },
     defaultVariants: {

@@ -11,6 +11,7 @@ import {
   Plus, Camera, Pencil, Check, Tag, ScanLine, Trophy,
 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 
 const DIRECTUS_URL = '/api/directus'
@@ -42,11 +43,11 @@ const ACTIONS = [
   { type: 'scan', key: 'points.actionScan', points: 1, Icon: ScanLine },
 ] as const
 
-const RANKS = [
-  { rank: 'nouveau', min: 0, next: 100, nextLabel: 'contributeur' },
-  { rank: 'contributeur', min: 100, next: 500, nextLabel: 'expert' },
-  { rank: 'expert', min: 500, next: 2000, nextLabel: 'vérifié' },
-  { rank: 'vérifié', min: 2000, next: null, nextLabel: null },
+const RANKS: Array<{ rank: string; label: TranslationKey; min: number; next: number | null; nextLabel: TranslationKey | null }> = [
+  { rank: 'nouveau', label: 'rank.nouveau', min: 0, next: 100, nextLabel: 'rank.contributeur' },
+  { rank: 'contributeur', label: 'rank.contributeur', min: 100, next: 500, nextLabel: 'rank.expert' },
+  { rank: 'expert', label: 'rank.expert', min: 500, next: 2000, nextLabel: 'rank.verified' },
+  { rank: 'vérifié', label: 'rank.verified', min: 2000, next: null, nextLabel: null },
 ]
 
 export default function PointsDashboard() {
@@ -83,100 +84,112 @@ export default function PointsDashboard() {
   const pointsFor = (type: string): number => ACTIONS.find((a) => a.type === type)?.points ?? 0
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Carte rang */}
-      <div className="relative overflow-hidden rounded-3xl bg-primary p-5 text-primary-foreground shadow-[0_12px_32px_hsl(97_40%_20%/0.3)]">
-        <Trophy
-          size={150}
-          className="pointer-events-none absolute -bottom-10 -right-8 opacity-[0.07]"
-          aria-hidden="true"
-        />
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.08em] opacity-75">{t('points.rank')}</p>
-            <p className="mt-0.5 font-display text-2xl font-extrabold capitalize">
-              {loggedIn === false ? '—' : currentRank}
+    <>
+      {/* Rang + Naânaa (côte à côte sur ordinateur) */}
+      <section className="section gap-5 md:grid-cols-2 md:items-center md:gap-8">
+        <div className="card relative overflow-hidden border-encre bg-menthe p-5 text-encre">
+          <Trophy
+            size={150}
+            className="pointer-events-none absolute -bottom-10 -right-8 opacity-[0.12]"
+            aria-hidden="true"
+          />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="eyebrow text-encre/75">{t('points.rank')}</p>
+              <p className="disp d-l mt-1 capitalize">
+                {loggedIn === false ? '—' : t(rankInfo.label)}
+              </p>
+            </div>
+            <div className="text-end">
+              <p className="disp d-xl num">{points}</p>
+              <p className="text-xs font-bold opacity-75">{t('points.points')}</p>
+            </div>
+          </div>
+
+          {loggedIn === false ? (
+            <p className="mt-4 text-sm font-semibold opacity-90">
+              {t('points.loginToEarn')}{' '}
+              <a href="/connexion?redirect=%2Fcompte%2Fpoints" className="underline underline-offset-2">
+                {t('nav.account')}
+              </a>
             </p>
-          </div>
-          <div className="text-end">
-            <p className="font-display text-3xl font-extrabold leading-none">{points}</p>
-            <p className="text-xs font-bold opacity-75">{t('points.points')}</p>
-          </div>
+          ) : rankInfo.next && (
+            <div className="mt-4">
+              <div className="mb-1.5 flex justify-between text-xs font-semibold opacity-85">
+                <span className="capitalize">
+                  {rankInfo.nextLabel && t(rankInfo.nextLabel)} — {rankInfo.next} {t('points.points')}
+                </span>
+                <span>
+                  {Math.max(0, rankInfo.next - points)} {t('points.toNext')}
+                </span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full border-[1.5px] border-encre bg-creme">
+                <div className="h-full bg-encre" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          )}
         </div>
 
-        {loggedIn === false ? (
-          <p className="mt-4 text-sm font-semibold opacity-90">
-            {t('points.loginToEarn')}{' '}
-            <a href="/connexion" className="underline underline-offset-2">
-              {t('nav.account')}
-            </a>
-          </p>
-        ) : rankInfo.next && (
-          <div className="mt-4">
-            <div className="mb-1.5 flex justify-between text-xs font-semibold opacity-85">
-              <span className="capitalize">
-                {rankInfo.nextLabel} — {rankInfo.next} {t('points.points')}
-              </span>
-              <span>
-                {Math.max(0, rankInfo.next - points)} {t('points.toNext')}
-              </span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-primary-foreground/20">
-              <div className="h-full rounded-full bg-primary-foreground" style={{ width: `${progress}%` }} />
-            </div>
+        {/* Naânaa applaudit dès le premier point */}
+        {points > 0 && (
+          <div className="naanaa">
+            <div className="m"><img src="/mascotte/naanaa-bravo.webp" alt={t('account.naanaaBravoAlt')} /></div>
+            <p className="bubble">
+              <b>{t('points.earned')} : +{points}</b>
+            </p>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Barème */}
-      <h2 className="mt-1 font-display text-lg font-bold">{t('points.howTo')}</h2>
-      <div className="grid grid-cols-2 gap-2.5">
-        {ACTIONS.map(({ type, key, points: pts, Icon }) => (
-          <div key={type} className="flex flex-col gap-2 rounded-[18px] border bg-card p-3.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/[0.09] text-primary">
-              <Icon size={18} />
-            </span>
-            <span className="text-sm font-bold leading-tight">{t(key)}</span>
-            <span className="text-[15px] font-extrabold text-primary">
-              +{pts} {pts > 1 ? 'pts' : 'pt'}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Activité récente */}
-      <h2 className="mt-1 font-display text-lg font-bold">{t('points.recent')}</h2>
-      <div className="rounded-[18px] border bg-card px-4">
-        {loggedIn === false ? (
-          <p className="py-4 text-sm text-muted-foreground">
-            <a href="/connexion" className="font-bold text-primary">
-              {t('nav.account')}
-            </a>{' '}
-            — {t('contrib.anonNote')}
-          </p>
-        ) : !stats?.activity || stats.activity.length === 0 ? (
-          <p className="py-4 text-sm text-muted-foreground">{t('points.noActivity')}</p>
-        ) : (
-          stats.activity.map((a, i) => (
-            <div
-              key={`${a.type}-${a.date}-${i}`}
-              className={
-                i < (stats.activity?.length ?? 0) - 1
-                  ? 'flex items-center gap-3 border-b py-3'
-                  : 'flex items-center gap-3 py-3'
-              }
-            >
-              <span className="min-w-0 flex-1 text-[13.5px] font-semibold">
-                {labelFor(a.type)}
-                {a.label && <span className="text-muted-foreground"> — {a.label}</span>}
+      <section className="section">
+        <div className="sec-head"><h2 className="disp d-m">{t('points.howTo')}</h2></div>
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-4">
+          {ACTIONS.map(({ type, key, points: pts, Icon }) => (
+            <div key={type} className="card grid content-start gap-2 p-3.5">
+              <span className="tile tint-menthe size-9 rounded-xl border-[1.5px]">
+                <Icon size={18} aria-hidden="true" />
               </span>
-              <span className="flex-shrink-0 text-[13px] font-extrabold text-primary">
-                +{pointsFor(a.type)}
+              <span className="text-sm font-bold leading-tight">{t(key)}</span>
+              <span className="disp d-s text-brand-ink">
+                +{pts} {pts > 1 ? t('rank.pts') : t('points.ptOne')}
               </span>
             </div>
-          ))
-        )}
-      </div>
-    </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Activité récente */}
+      <section className="section">
+        <div className="sec-head"><h2 className="disp d-m">{t('points.recent')}</h2></div>
+        <div className="card grid overflow-hidden">
+          {loggedIn === false ? (
+            <p className="p-4 text-sm text-muted-foreground">
+              <a href="/connexion?redirect=%2Fcompte%2Fpoints" className="font-bold text-brand-ink">
+                {t('nav.account')}
+              </a>{' '}
+              — {t('contrib.anonNote')}
+            </p>
+          ) : !stats?.activity || stats.activity.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground">{t('points.noActivity')}</p>
+          ) : (
+            stats.activity.map((a, i) => (
+              <div
+                key={`${a.type}-${a.date}-${i}`}
+                className="flex items-center gap-3 border-b-[1.5px] border-line px-4 py-3.5 last:border-b-0"
+              >
+                <span className="min-w-0 flex-1 text-[13.5px] font-semibold">
+                  {labelFor(a.type)}
+                  {a.label && <span className="text-muted-foreground"> — {a.label}</span>}
+                </span>
+                <span className="chip fill num flex-shrink-0 bg-citron font-display font-extrabold">
+                  +{pointsFor(a.type)}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+    </>
   )
 }

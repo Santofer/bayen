@@ -10,6 +10,8 @@
 import { useEffect, useState } from 'react'
 import { Handshake, Mail, Check, X, Loader2, RotateCcw } from 'lucide-react'
 import { authHeader } from '@/lib/auth'
+import { useLocale } from '@/lib/i18n'
+import type { Locale, TranslationKey } from '@/lib/translations'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -25,15 +27,16 @@ interface PartnerRequest {
   date_created: string
 }
 
-const STATUS_META: Record<PartnerRequest['status'], { label: string; cls: string }> = {
-  new: { label: 'Nouvelle', cls: 'bg-primary text-primary-foreground' },
-  processed: { label: 'Traitée', cls: 'bg-secondary text-secondary-foreground' },
-  dismissed: { label: 'Écartée', cls: 'bg-muted text-muted-foreground' },
+// Puce de statut : aplat + texte encre (nouvelle), puce contour sinon
+const STATUS_META: Record<PartnerRequest['status'], { label: TranslationKey; cls: string }> = {
+  new: { label: 'partnerAdmin.status.new', cls: 'chip fill bg-citron' },
+  processed: { label: 'partnerAdmin.status.processed', cls: 'chip' },
+  dismissed: { label: 'partnerAdmin.status.dismissed', cls: 'chip text-muted-foreground' },
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: Locale): string {
   try {
-    return new Date(iso).toLocaleDateString('fr-MA', {
+    return new Date(iso).toLocaleDateString(locale === 'ary' ? 'ar-MA' : 'fr-MA', {
       day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
     })
   } catch {
@@ -42,6 +45,7 @@ function formatDate(iso: string): string {
 }
 
 export default function PartnerRequestsAdmin() {
+  const { t, locale } = useLocale()
   const [requests, setRequests] = useState<PartnerRequest[] | null>(null)
   const [forbidden, setForbidden] = useState(false)
   const [error, setError] = useState(false)
@@ -87,59 +91,63 @@ export default function PartnerRequestsAdmin() {
 
   if (forbidden) {
     return (
-      <div className="rounded-2xl border bg-card p-6 text-center">
-        <p className="text-sm text-muted-foreground">
-          Cette page est réservée à l'équipe Bayen.
-        </p>
-      </div>
+      <section className="section">
+        <div className="card p-4">
+          <div className="naanaa">
+            <div className="m"><img src="/mascotte/naanaa-oups.webp" alt="" /></div>
+            <p className="bubble">{t('partnerAdmin.forbidden')}</p>
+          </div>
+        </div>
+      </section>
     )
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl border bg-card p-6 text-center">
-        <p className="text-sm text-muted-foreground">Chargement impossible. Recharge la page.</p>
-      </div>
+      <section className="section">
+        <div className="card p-6 text-center">
+          <p className="text-sm text-muted-foreground">{t('partnerAdmin.loadError')}</p>
+        </div>
+      </section>
     )
   }
 
   if (requests === null) {
     return (
-      <div className="flex flex-col gap-3" aria-hidden="true">
+      <section className="section md:grid-cols-2" aria-hidden="true">
         <div className="skeleton h-28 w-full" />
         <div className="skeleton h-28 w-full" />
-      </div>
+      </section>
     )
   }
 
   if (requests.length === 0) {
     return (
-      <div className="rounded-2xl border bg-card p-8 text-center">
-        <Handshake size={28} className="mx-auto mb-3 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">
-          Aucune demande de partenariat pour le moment. Elles apparaîtront ici dès
-          qu'une marque remplira le formulaire de la page Partenaires.
-        </p>
-      </div>
+      <section className="section">
+        <div className="card p-8 text-center">
+          <Handshake size={28} className="mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">{t('partnerAdmin.empty')}</p>
+        </div>
+      </section>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <section className="section md:grid-cols-2 md:items-start md:gap-6">
       {requests.map((r) => {
         const meta = STATUS_META[r.status]
         return (
-          <div key={r.id} className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]">
+          <div key={r.id} className="card p-5">
             <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
               <div className="min-w-0 flex-1">
-                <p className="font-display text-lg font-bold leading-tight">{r.company}</p>
+                <p className="disp d-s">{r.company}</p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   {r.name}
                   {r.role ? ` · ${r.role}` : ''}
                 </p>
               </div>
-              <span className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-bold ${meta.cls}`}>
-                {meta.label}
+              <span className={`flex-shrink-0 ${meta.cls}`}>
+                {t(meta.label)}
               </span>
             </div>
 
@@ -149,25 +157,25 @@ export default function PartnerRequestsAdmin() {
               </p>
             )}
 
-            <p className="mt-3 text-xs text-muted-foreground">{formatDate(r.date_created)}</p>
+            <p className="mt-3 text-xs text-muted-foreground">{formatDate(r.date_created, locale)}</p>
 
-            <div className="mt-3.5 flex flex-wrap items-center gap-2.5 border-t pt-3.5">
+            <div className="mt-3.5 flex flex-wrap items-center gap-2.5 border-t-[1.5px] border-line pt-3.5">
               <a
                 href={`mailto:${r.email}?subject=${encodeURIComponent(`Bayen — votre demande de partenariat (${r.company})`)}`}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground"
+                className="btn sm primary"
               >
                 <Mail size={15} />
-                Répondre à {r.email}
+                {t('partnerAdmin.reply').replace('{email}', r.email)}
               </a>
               {r.status !== 'processed' && (
                 <button
                   type="button"
                   onClick={() => void setStatus(r.id, 'processed')}
                   disabled={busyId === r.id}
-                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-primary/30 bg-card px-4 text-sm font-semibold text-primary disabled:opacity-60"
+                  className="btn sm"
                 >
                   {busyId === r.id ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-                  Marquer traitée
+                  {t('partnerAdmin.markDone')}
                 </button>
               )}
               {r.status === 'new' && (
@@ -175,10 +183,10 @@ export default function PartnerRequestsAdmin() {
                   type="button"
                   onClick={() => void setStatus(r.id, 'dismissed')}
                   disabled={busyId === r.id}
-                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border bg-card px-4 text-sm font-semibold text-muted-foreground disabled:opacity-60"
+                  className="btn sm flat"
                 >
                   <X size={15} />
-                  Écarter
+                  {t('partnerAdmin.dismiss')}
                 </button>
               )}
               {r.status !== 'new' && (
@@ -186,16 +194,16 @@ export default function PartnerRequestsAdmin() {
                   type="button"
                   onClick={() => void setStatus(r.id, 'new')}
                   disabled={busyId === r.id}
-                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border bg-card px-4 text-sm font-semibold text-muted-foreground disabled:opacity-60"
+                  className="btn sm flat"
                 >
                   <RotateCcw size={15} />
-                  Rouvrir
+                  {t('partnerAdmin.reopen')}
                 </button>
               )}
             </div>
           </div>
         )
       })}
-    </div>
+    </section>
   )
 }

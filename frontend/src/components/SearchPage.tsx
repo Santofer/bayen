@@ -1,15 +1,16 @@
 /**
- * Page de recherche produits avec filtres, tri et pagination
- * Composant React client monté dans recherche.astro
+ * Page de recherche produits avec filtres, tri et pagination (maquette « Recherche »)
+ * Composant React client monté dans recherche.astro (avec sa barre du haut) et beaute.astro.
+ * Rend des `section.section` : à poser dans un `<main class="screen">`.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Button } from '@/components/ui/button'
 import ProductCard from '@/components/ProductCard'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getProfile } from '@/lib/health-profile'
 import type { Product, Category, NutriScoreGrade } from '@/lib/types'
+import type { Locale } from '@/lib/translations'
 
 // ────────────────────────────────────────────────────────────────
 // Configuration
@@ -30,12 +31,13 @@ type SortValue = (typeof SORT_OPTIONS)[number]['value']
 
 const NUTRISCORE_GRADES: NutriScoreGrade[] = ['A', 'B', 'C', 'D', 'E']
 
+// Couleurs officielles Nutri-Score (tokens), lettre et contour encre
 const NUTRISCORE_COLORS: Record<NutriScoreGrade, string> = {
-  A: 'bg-[#038141]',
-  B: 'bg-lime-500',
-  C: 'bg-yellow-400',
-  D: 'bg-orange-500',
-  E: 'bg-red-600',
+  A: 'bg-nutriscore-a',
+  B: 'bg-nutriscore-b',
+  C: 'bg-nutriscore-c',
+  D: 'bg-nutriscore-d',
+  E: 'bg-nutriscore-e',
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -156,8 +158,10 @@ function buildQueryParams(filters: Filters, offset: number): string {
     params.set('filter[proteins][_nnull]', 'true')
   }
 
-  // Tri
+  // Tri — Postgres range les NULL en tête d'un tri décroissant : sans ce filtre,
+  // « meilleur score » commencerait par les fiches non notées
   params.set('sort', filters.sort)
+  if (filters.sort === '-scan_score' && filters.scoreMin === 0) params.set('filter[scan_score][_nnull]', 'true')
 
   // Pagination
   params.set('limit', String(PAGE_SIZE))
@@ -206,10 +210,12 @@ interface SearchPageProps {
   /** Page /beaute : univers cosmétique d'emblée */
   initialUniverse?: Universe
   initialCosmeticCategory?: string
+  /** Barre du haut de la maquette Recherche (retour, titre, bouton filtres) — /recherche uniquement */
+  showTopbar?: boolean
 }
 
-export default function SearchPage({ initialUniverse, initialCosmeticCategory }: SearchPageProps = {}) {
-  const { t } = useLocale()
+export default function SearchPage({ initialUniverse, initialCosmeticCategory, showTopbar = false }: SearchPageProps = {}) {
+  const { t, locale } = useLocale()
   // État initial identique côté serveur et client (sinon l'hydratation garde
   // l'onglet rendu par le SSR) ; l'URL ?univers=beaute&cat=… est lue après montage.
   const [filters, setFilters] = useState<Filters>(() => ({
@@ -223,8 +229,14 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
     try {
       const sp = new URLSearchParams(window.location.search)
       const fromUrl: Universe | null = sp.get('univers') === 'beaute' ? 'cosmetic' : null
+      // ?q= : recherche lancée depuis la barre de l'accueil
+      const q = (sp.get('q') ?? '').trim().slice(0, 80)
+      if (q) setFilters((prev) => ({ ...prev, query: q }))
       const prot = Number(sp.get('proteines'))
       if (prot === 12 || prot === 20) setFilters((prev) => ({ ...prev, proteinMin: prot, sort: '-proteins' }))
+      // ?sort= : « Tout voir » des mieux notés (accueil) — seulement une option connue
+      const sort = SORT_OPTIONS.find((o) => o.value === sp.get('sort'))?.value
+      if (sort) setFilters((prev) => ({ ...prev, sort }))
       const c = sp.get('cat') ?? ''
       const cat = (COSMETIC_CATEGORIES as readonly string[]).includes(c) ? c : ''
       if (fromUrl && (fromUrl !== (initialUniverse ?? 'food') || cat)) {
@@ -237,7 +249,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
   const [products, setProducts] = useState<Product[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [offset, setOffset] = useState(0)
-  const [loading, setLoading] = useState(false)
+  // true d'emblée : le rendu serveur montre le squelette, pas un faux « aucun résultat »
+  const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -247,6 +260,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
   const [profileAdditives, setProfileAdditives] = useState<string[]>([])
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Numéro de la dernière requête : une réponse plus ancienne arrivée en retard est ignorée
+  const requestRef = useRef(0)
 
   // Charger les catégories au montage
   useEffect(() => {
@@ -282,6 +297,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
   // Recherche quand les filtres changent (sauf query qui est debounced)
   const fetchProducts = useCallback(
     async (currentOffset: number, append: boolean) => {
+      const requestId = ++requestRef.current
       const filtersWithDebouncedQuery = { ...filters, query: debouncedQuery }
       // Exclusion d'additifs active ou univers beauté → endpoint custom SQL (voir buildCustomParams)
       // (le filtre protéines aussi : sa garde-fou d'énergie est en SQL)
@@ -310,6 +326,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
           localCount = json.count ?? json.meta?.filter_count ?? localProducts.length
         }
         // Si Directus retourne 403 ou erreur, localProducts reste []
+        if (requestId !== requestRef.current) return
 
         if (append) {
           setProducts((prev) => [...prev, ...localProducts])
@@ -334,8 +351,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
                 .map((p: Record<string, unknown>) => ({
                   id: p.code as string,
                   barcode: p.code as string,
-                  name_fr: (p.product_name_fr || p.product_name || 'Inconnu') as string,
-                  brand: (p.brands || 'Inconnu') as string,
+                  name_fr: (p.product_name_fr || p.product_name || t('product.unknown')) as string,
+                  brand: (p.brands || t('product.unknown')) as string,
                   image_front: (p.image_front_small_url || p.image_front_url || null) as string | null,
                   scan_score: null,
                   score_label: null,
@@ -347,7 +364,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
                   product_type: isBeauty ? 'cosmetic' : 'food',
                   cosmetic_risk: null,
                 }))
-              setOffResults(offProducts)
+              if (requestId === requestRef.current) setOffResults(offProducts)
             }
           } catch {
             // Silencieux si OFF indisponible
@@ -358,13 +375,15 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
           setOffResults([])
         }
       } catch {
-        if (!append) setProducts([])
+        if (!append && requestId === requestRef.current) setProducts([])
       } finally {
-        setLoading(false)
-        setLoadingMore(false)
+        if (requestId === requestRef.current) {
+          setLoading(false)
+          setLoadingMore(false)
+        }
       }
     },
-    [filters, debouncedQuery]
+    [filters, debouncedQuery, t]
   )
 
   // Déclencher la recherche quand les filtres (non-texte) ou la query debounced changent
@@ -411,6 +430,9 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
     })
   }
 
+  // Réinitialiser : on garde l'univers, la saisie et le tri
+  const resetFilters = () => setFilters((prev) => ({ ...defaultFilters, universe: prev.universe, query: prev.query, sort: prev.sort }))
+
   const setUniverse = (u: Universe): void => {
     setFilters((prev) => ({ ...defaultFilters, universe: u, query: prev.query, sort: prev.sort }))
     setOffResults([])
@@ -424,474 +446,403 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
   }
   const isBeauty = filters.universe === 'cosmetic'
 
-  const hasActiveFilters =
-    filters.cosmeticCategory !== '' ||
-    filters.riskFree ||
-    filters.noEndocrine ||
-    filters.categoryId !== null ||
-    filters.scoreMin > 0 ||
-    filters.nutriscoreGrades.length > 0 ||
-    filters.noAdditives ||
-    filters.halal ||
-    filters.bio ||
-    filters.sugarMax !== null ||
-    filters.proteinMin !== null ||
-    filters.excludeAdditives.length > 0
+  const activeCount = [
+    filters.cosmeticCategory !== '',
+    filters.riskFree,
+    filters.noEndocrine,
+    filters.categoryId !== null,
+    filters.scoreMin > 0,
+    filters.nutriscoreGrades.length > 0,
+    filters.noAdditives,
+    filters.halal,
+    filters.bio,
+    filters.sugarMax !== null,
+    filters.proteinMin !== null,
+    filters.excludeAdditives.length > 0,
+  ].filter(Boolean).length
+  const hasActiveFilters = activeCount > 0
 
   const hasMore = products.length < totalCount
 
+  // Nom de catégorie dans la langue courante (name_ar si présent)
+  const catName = (c: Category | undefined): string | undefined => c && ((locale === 'ary' && c.name_ar) || c.name_fr)
+
+  // Titre de la barre du haut : catégorie active, sinon « Recherche »
+  const heading = isBeauty
+    ? (filters.cosmeticCategory
+        ? t(`beauty.cat.${filters.cosmeticCategory}` as `beauty.cat.${(typeof COSMETIC_CATEGORIES)[number]}`)
+        : t('search.title'))
+    : (catName(categories.find((c) => c.id === filters.categoryId)) ?? t('search.title'))
+
+  // Puces de filtres (maquette) : les filtres booléens existants, appliqués par l'API
+  const toggleProfile = () => {
+    const allOn = profileAdditives.every((c) => filters.excludeAdditives.includes(c))
+    updateFilter(
+      'excludeAdditives',
+      allOn
+        ? filters.excludeAdditives.filter((c) => !profileAdditives.includes(c))
+        : [...new Set([...filters.excludeAdditives, ...profileAdditives])]
+    )
+  }
+  const chips: Array<{ label: string; active: boolean; onClick: () => void }> = isBeauty
+    ? [
+        { label: t('beauty.riskFree'), active: filters.riskFree, onClick: () => updateFilter('riskFree', !filters.riskFree) },
+        { label: t('beauty.noEndocrine'), active: filters.noEndocrine, onClick: () => updateFilter('noEndocrine', !filters.noEndocrine) },
+        { label: t('search.halal'), active: filters.halal, onClick: () => updateFilter('halal', !filters.halal) },
+      ]
+    : [
+        { label: t('search.chipSugar5'), active: filters.sugarMax === 5, onClick: () => updateFilter('sugarMax', filters.sugarMax === 5 ? null : 5) },
+        { label: t('product.noAdditive'), active: filters.noAdditives, onClick: () => updateFilter('noAdditives', !filters.noAdditives) },
+        { label: t('search.halal'), active: filters.halal, onClick: () => updateFilter('halal', !filters.halal) },
+        { label: t('search.bio'), active: filters.bio, onClick: () => updateFilter('bio', !filters.bio) },
+        { label: t('search.sugarFree'), active: filters.sugarMax === 0.5, onClick: () => updateFilter('sugarMax', filters.sugarMax === 0.5 ? null : 0.5) },
+        { label: t('protein.filter12'), active: filters.proteinMin === 12, onClick: () => updateFilter('proteinMin', filters.proteinMin === 12 ? null : 12) },
+        { label: t('protein.filter20'), active: filters.proteinMin === 20, onClick: () => updateFilter('proteinMin', filters.proteinMin === 20 ? null : 20) },
+        ...(profileAdditives.length > 0
+          ? [{ label: t('profile.filterBy'), active: profileAdditives.every((c) => filters.excludeAdditives.includes(c)), onClick: toggleProfile }]
+          : []),
+      ]
+
+  const filterIcon = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+  )
+
   // ────────────────────────────────────────────────────────────────
-  // Rendu
+  // Rendu (maquette « Recherche ») : barre du haut, recherche, univers,
+  // puces, compteur + tri, liste, bulle Naânaa
   // ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
-      {/* Univers (C23) : Alimentation | Beauté — deux bases, deux scores, jamais mélangés */}
-      <div className="grid grid-cols-2 gap-1 rounded-full border bg-card p-1 max-w-sm" role="tablist">
-        {(['food', 'cosmetic'] as const).map((u) => (
+    <>
+      {showTopbar && (
+        <header className="topbar pb-0 md:p-0">
+          <a className="icon-btn md:hidden" href="/" aria-label={t('nav.back')}>
+            <svg className="rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          </a>
+          <h1 className="disp d-m flex-1 md:text-[40px]">{heading}</h1>
           <button
-            key={u}
             type="button"
-            role="tab"
-            aria-selected={filters.universe === u}
-            onClick={() => setUniverse(u)}
-            className={cn(
-              'min-h-[40px] rounded-full text-sm font-bold transition-colors',
-              filters.universe === u
-                ? u === 'cosmetic' ? 'bg-beauty text-beauty-foreground' : 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted'
-            )}
+            className={cn('icon-btn', filtersOpen && 'bg-citron text-encre')}
+            aria-label={t('search.filters')}
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((o) => !o)}
           >
-            {u === 'food' ? t('beauty.food') : t('beauty.cosmetic')}
-          </button>
-        ))}
-      </div>
-
-      {/* Barre de recherche — héroïque (maquette v2) */}
-      <div className="search-hero">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <input
-          type="search"
-          placeholder={isBeauty ? t('beauty.searchPlaceholder') : t('search.placeholder')}
-          value={filters.query}
-          onChange={(e) => updateFilter('query', e.target.value)}
-        />
-        <button
-          type="button"
-          className="go hidden sm:block"
-          onClick={(e) => (e.currentTarget.previousElementSibling as HTMLInputElement)?.blur()}
-        >
-          {t('search.searchBtn')}
-        </button>
-      </div>
-
-      {/* Barre tri + bouton filtres */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Button
-            variant={filtersOpen ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFiltersOpen(!filtersOpen)}
-            className="gap-1.5"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-            </svg>
-            {t('search.filters')}
-            {hasActiveFilters && (
-              <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground text-primary text-[10px] font-bold">
-                {
-                  [
-                    filters.cosmeticCategory !== '',
-                    filters.riskFree,
-                    filters.noEndocrine,
-                    filters.categoryId !== null,
-                    filters.scoreMin > 0,
-                    filters.nutriscoreGrades.length > 0,
-                    filters.noAdditives,
-                    filters.halal,
-                    filters.bio,
-                    filters.sugarMax !== null,
-                    filters.proteinMin !== null,
-                    filters.excludeAdditives.length > 0,
-                  ].filter(Boolean).length
-                }
+            {filterIcon}
+            {activeCount > 0 && (
+              <span className="absolute -end-1 -top-1 grid size-5 place-items-center rounded-full bg-encre text-[10px] font-bold text-creme dark:bg-creme dark:text-encre">
+                {activeCount}
               </span>
             )}
-          </Button>
+          </button>
+          {/* Ouvre le menu du site (SiteMenu, rendu par le Layout) */}
+          <button type="button" className="icon-btn md:hidden" data-open-menu="" aria-label={t('nav.menu')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+        </header>
+      )}
 
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilters({ ...defaultFilters, universe: filters.universe, query: filters.query, sort: filters.sort })}
-              className="text-xs text-muted-foreground"
+      <section className="section gap-3 md:grid-cols-[minmax(0,1fr)_360px] md:items-center">
+        {/* Recherche pilule */}
+        <form
+          role="search"
+          className="card flex h-12 items-center gap-2.5 rounded-full px-4 shadow-[3px_3px_0_var(--color-hard)]"
+          onSubmit={(e) => {
+            e.preventDefault()
+            // Entrée : referme le clavier, la recherche part déjà à la frappe
+            e.currentTarget.querySelector('input')?.blur()
+          }}
+        >
+          <svg className="size-[22px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          <input
+            type="search"
+            aria-label={t('search.searchBtn')}
+            placeholder={isBeauty ? t('beauty.searchPlaceholder') : t('search.placeholder')}
+            value={filters.query}
+            onChange={(e) => updateFilter('query', e.target.value)}
+            className="min-w-0 flex-1 border-0 bg-transparent text-[14.5px] font-medium text-foreground outline-none"
+          />
+        </form>
+
+        {/* Univers (C23) : Alimentation | Beauté — deux bases, deux scores, jamais mélangés */}
+        <div className="flex gap-1.5 rounded-full border-2 border-line bg-card p-1" role="tablist">
+          {(['food', 'cosmetic'] as const).map((u) => (
+            <button
+              key={u}
+              type="button"
+              role="tab"
+              aria-selected={filters.universe === u}
+              onClick={() => setUniverse(u)}
+              className={cn(
+                'btn sm flat flex-1',
+                filters.universe === u
+                  ? u === 'cosmetic' ? 'border-encre bg-beauty text-encre' : 'border-encre bg-menthe text-encre'
+                  : 'border-transparent bg-transparent'
+              )}
             >
+              {u === 'food' ? t('beauty.food') : t('beauty.cosmetic')}
+            </button>
+          ))}
+        </div>
+
+        {/* Puces de filtres */}
+        <div className="chips md:col-span-2">
+          {chips.map((c) => (
+            <FilterChip key={c.label} {...c} />
+          ))}
+          {/* Sans barre du haut (page Beauté) : les filtres avancés s'ouvrent ici */}
+          {!showTopbar && (
+            <button type="button" className={cn('chip', filtersOpen && 'fill bg-citron')} aria-expanded={filtersOpen} onClick={() => setFiltersOpen((o) => !o)}>
+              {filterIcon}
+              {t('search.filters')}
+            </button>
+          )}
+          {hasActiveFilters && (
+            <button type="button" className="chip" onClick={resetFilters}>
+              <span aria-hidden="true">✕</span>
               {t('search.resetFilters')}
-            </Button>
+            </button>
           )}
         </div>
 
-        {/* Tri */}
-        <select
-          value={filters.sort}
-          onChange={(e) => updateFilter('sort', e.target.value as SortValue)}
-          className="rounded-lg border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-        >
-          {SORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {t(opt.labelKey)}
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* Filtres avancés (bouton filtres) */}
+        {filtersOpen && (
+          <div className="card grid animate-in gap-5 p-4 fade-in slide-in-from-top-2 duration-200 md:col-span-2 md:grid-cols-3 md:p-5">
+            {isBeauty ? (
+              <div className="grid content-start gap-1.5">
+                <label htmlFor="f-cosmetic-cat" className="text-sm font-semibold">{t('beauty.category')}</label>
+                <select
+                  id="f-cosmetic-cat"
+                  value={filters.cosmeticCategory}
+                  onChange={(e) => updateFilter('cosmeticCategory', e.target.value)}
+                  className="w-full rounded-xl border-2 border-line bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  <option value="">{t('beauty.allCategories')}</option>
+                  {COSMETIC_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{t(`beauty.cat.${c}` as `beauty.cat.${(typeof COSMETIC_CATEGORIES)[number]}`)}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="grid content-start gap-1.5">
+                <label htmlFor="f-cat" className="text-sm font-semibold">{t('search.category')}</label>
+                <select
+                  id="f-cat"
+                  value={filters.categoryId ?? ''}
+                  onChange={(e) => updateFilter('categoryId', e.target.value ? Number(e.target.value) : null)}
+                  className="w-full rounded-xl border-2 border-line bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  <option value="">{t('search.allCategories')}</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon ? `${cat.icon} ` : ''}
+                      {catName(cat)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-      {/* Panneau de filtres (dépliable) */}
-      {filtersOpen && isBeauty && (
-        <div className="rounded-xl border bg-card p-4 space-y-5 animate-in slide-in-from-top-2 fade-in duration-200">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">{t('beauty.category')}</label>
-            <select
-              value={filters.cosmeticCategory}
-              onChange={(e) => updateFilter('cosmeticCategory', e.target.value)}
-              className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-            >
-              <option value="">{t('beauty.allCategories')}</option>
-              {COSMETIC_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{t(`beauty.cat.${c}` as `beauty.cat.${(typeof COSMETIC_CATEGORIES)[number]}`)}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              {t('search.scoreMin')} : <span className="font-bold text-primary">{filters.scoreMin}</span>
-            </label>
-            <input type="range" min={0} max={100} step={5} value={filters.scoreMin}
-              onChange={(e) => updateFilter('scoreMin', Number(e.target.value))} className="w-full accent-primary" />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <ToggleChip label={t('beauty.riskFree')} active={filters.riskFree} onClick={() => updateFilter('riskFree', !filters.riskFree)} />
-            <ToggleChip label={t('beauty.noEndocrine')} active={filters.noEndocrine} onClick={() => updateFilter('noEndocrine', !filters.noEndocrine)} />
-            <ToggleChip label={t('search.halal')} active={filters.halal} onClick={() => updateFilter('halal', !filters.halal)} />
-          </div>
-        </div>
-      )}
+            {/* Score minimum */}
+            <div className="grid content-start gap-1.5">
+              <label htmlFor="f-score" className="text-sm font-semibold">
+                {t('search.scoreMin')} : <span className="font-bold text-brand-ink">{filters.scoreMin}</span>
+              </label>
+              <input
+                id="f-score"
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={filters.scoreMin}
+                onChange={(e) => updateFilter('scoreMin', Number(e.target.value))}
+                className="w-full accent-primary"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>0</span>
+                <span>50</span>
+                <span>100</span>
+              </div>
+            </div>
 
-      {filtersOpen && !isBeauty && (
-        <div className="rounded-xl border bg-card p-4 space-y-5 animate-in slide-in-from-top-2 fade-in duration-200">
-          {/* Catégorie */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">{t('search.category')}</label>
+            {/* Nutri-Score */}
+            {!isBeauty && (
+              <div className="grid content-start gap-1.5">
+                <span className="text-sm font-semibold">{t('nutriscore.title')}</span>
+                <div className="flex gap-2">
+                  {NUTRISCORE_GRADES.map((grade) => {
+                    const active = filters.nutriscoreGrades.includes(grade)
+                    return (
+                      <button
+                        key={grade}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => toggleNutriscore(grade)}
+                        className={cn(
+                          'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold transition-all',
+                          active
+                            ? `${NUTRISCORE_COLORS[grade]} border-2 border-encre text-encre shadow-[2px_2px_0_var(--color-hard)]`
+                            : 'border-2 border-line/30 bg-background text-muted-foreground hover:bg-muted'
+                        )}
+                      >
+                        {grade}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Exclure des additifs précis (C8c) */}
+            {!isBeauty && riskyAdditives.length > 0 && (
+              <div className="grid gap-1.5 md:col-span-3">
+                <span className="text-sm font-semibold">
+                  {t('search.excludeAdditives')}
+                  {filters.excludeAdditives.length > 0 && (
+                    <span className="ms-2 text-xs font-bold text-destructive">{filters.excludeAdditives.length}</span>
+                  )}
+                </span>
+                <p className="text-xs text-muted-foreground">{t('search.excludeAdditivesHint')}</p>
+                <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto pt-1">
+                  {riskyAdditives.map((a) => {
+                    const active = filters.excludeAdditives.includes(a.id)
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() =>
+                          updateFilter(
+                            'excludeAdditives',
+                            active
+                              ? filters.excludeAdditives.filter((c) => c !== a.id)
+                              : [...filters.excludeAdditives, a.id]
+                          )
+                        }
+                        className={cn(
+                          'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors',
+                          active
+                            ? 'border-destructive bg-destructive text-destructive-foreground'
+                            : a.risk_level === 'limited'
+                              ? 'border-line bg-citron/15 text-foreground hover:bg-citron/30'
+                              : 'border-line bg-tomate/15 text-foreground hover:bg-tomate/30'
+                        )}
+                        title={a.name_fr}
+                      >
+                        {active && <span aria-hidden="true">✕</span>}
+                        {a.id}
+                        <span className="max-w-28 truncate font-normal text-muted-foreground">{a.name_fr}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Compteur de résultats + tri */}
+        <div className="flex items-center justify-between gap-3 text-[13px] md:col-span-2">
+          <span className="muted">
+            {!loading && totalCount > 0 && (
+              <b className="text-foreground">
+                {totalCount} {totalCount > 1 ? t('history.itemsPlural') : t('history.itemSingular')}
+              </b>
+            )}
+          </span>
+          <label className="flex items-center gap-1 font-bold">
+            {t('search.sortLabel')}
             <select
-              value={filters.categoryId ?? ''}
-              onChange={(e) =>
-                updateFilter('categoryId', e.target.value ? Number(e.target.value) : null)
-              }
-              className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              value={filters.sort}
+              onChange={(e) => updateFilter('sort', e.target.value as SortValue)}
+              aria-label={t('search.sort')}
+              className="cursor-pointer appearance-none bg-transparent font-bold lowercase text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
-              <option value="">{t('search.allCategories')}</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.icon ? `${cat.icon} ` : ''}
-                  {cat.name_fr}
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {t(opt.labelKey)}
                 </option>
               ))}
             </select>
-          </div>
+            <span aria-hidden="true">▾</span>
+          </label>
+        </div>
+      </section>
 
-          {/* Score minimum */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              {t('search.scoreMin')} : <span className="font-bold text-primary">{filters.scoreMin}</span>
-            </label>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={5}
-              value={filters.scoreMin}
-              onChange={(e) => updateFilter('scoreMin', Number(e.target.value))}
-              className="w-full accent-primary"
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>0</span>
-              <span>50</span>
-              <span>100</span>
+      <section className="section gap-3">
+        {/* Squelette de chargement */}
+        {loading && <LoadingSkeleton />}
+
+        {/* Résultats : cartes en ligne (mobile), grille (ordinateur) */}
+        {!loading && products.length > 0 && <ProductList products={products} locale={locale} />}
+
+        {/* Résultats Open Food Facts (quand Directus est vide) */}
+        {!loading && products.length === 0 && offResults.length > 0 && (
+          <>
+            <div className="flex items-center gap-2 rounded-2xl border-2 border-encre bg-citron px-4 py-2.5 text-encre">
+              <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              <p className="text-sm">
+                {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {isBeauty ? t('beauty.obfResults') : t('search.offResults')}
+              </p>
             </div>
-          </div>
+            <ProductList products={offResults} locale={locale} />
+          </>
+        )}
 
-          {/* Nutri-Score */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">{t('nutriscore.title')}</label>
-            <div className="flex gap-2">
-              {NUTRISCORE_GRADES.map((grade) => {
-                const active = filters.nutriscoreGrades.includes(grade)
-                return (
-                  <button
-                    key={grade}
-                    type="button"
-                    onClick={() => toggleNutriscore(grade)}
-                    className={cn(
-                      'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold transition-all',
-                      active
-                        ? `${NUTRISCORE_COLORS[grade]} text-white shadow-sm`
-                        : 'border bg-background text-muted-foreground hover:bg-muted'
-                    )}
-                  >
-                    {grade}
-                  </button>
-                )
-              })}
-            </div>
+        {/* Recherche OFF en cours */}
+        {searchingOff && (
+          <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+            <Spinner />
+            {t('search.searchingOff')}
           </div>
+        )}
 
-          {/* Toggles */}
-          <div className="flex flex-wrap gap-2">
-            <ToggleChip
-              label={t('search.noAdditives')}
-              active={filters.noAdditives}
-              onClick={() => updateFilter('noAdditives', !filters.noAdditives)}
-            />
-            <ToggleChip
-              label={t('search.halal')}
-              active={filters.halal}
-              onClick={() => updateFilter('halal', !filters.halal)}
-            />
-            <ToggleChip
-              label={t('search.bio')}
-              active={filters.bio}
-              onClick={() => updateFilter('bio', !filters.bio)}
-            />
-            <ToggleChip
-              label={t('search.sugarFree')}
-              active={filters.sugarMax === 0.5}
-              onClick={() => updateFilter('sugarMax', filters.sugarMax === 0.5 ? null : 0.5)}
-            />
-            <ToggleChip
-              label={t('search.lowSugar')}
-              active={filters.sugarMax === 5}
-              onClick={() => updateFilter('sugarMax', filters.sugarMax === 5 ? null : 5)}
-            />
-            <ToggleChip
-              label={t('protein.filter12')}
-              active={filters.proteinMin === 12}
-              onClick={() => updateFilter('proteinMin', filters.proteinMin === 12 ? null : 12)}
-            />
-            <ToggleChip
-              label={t('protein.filter20')}
-              active={filters.proteinMin === 20}
-              onClick={() => updateFilter('proteinMin', filters.proteinMin === 20 ? null : 20)}
-            />
-            {profileAdditives.length > 0 && (
-              <ToggleChip
-                label={t('profile.filterBy')}
-                active={profileAdditives.every((c) => filters.excludeAdditives.includes(c))}
-                onClick={() => {
-                  const allOn = profileAdditives.every((c) => filters.excludeAdditives.includes(c))
-                  updateFilter(
-                    'excludeAdditives',
-                    allOn
-                      ? filters.excludeAdditives.filter((c) => !profileAdditives.includes(c))
-                      : [...new Set([...filters.excludeAdditives, ...profileAdditives])]
-                  )
-                }}
-              />
-            )}
-          </div>
-
-          {/* Exclure des additifs précis (C8c) */}
-          {riskyAdditives.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
-                {t('search.excludeAdditives')}
-                {filters.excludeAdditives.length > 0 && (
-                  <span className="ml-2 text-xs font-bold text-destructive">
-                    {filters.excludeAdditives.length}
-                  </span>
-                )}
-              </label>
-              <p className="text-xs text-muted-foreground">{t('search.excludeAdditivesHint')}</p>
-              <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pt-1">
-                {riskyAdditives.map((a) => {
-                  const active = filters.excludeAdditives.includes(a.id)
-                  return (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() =>
-                        updateFilter(
-                          'excludeAdditives',
-                          active
-                            ? filters.excludeAdditives.filter((c) => c !== a.id)
-                            : [...filters.excludeAdditives, a.id]
-                        )
-                      }
-                      className={cn(
-                        'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors',
-                        active
-                          ? 'bg-destructive text-destructive-foreground border-destructive'
-                          : a.risk_level === 'limited'
-                            ? 'bg-background border-orange-300 dark:border-orange-800 text-foreground hover:bg-orange-50 dark:hover:bg-orange-950/30'
-                            : 'bg-background border-red-300 dark:border-red-800 text-foreground hover:bg-red-50 dark:hover:bg-red-950/30'
-                      )}
-                      title={a.name_fr}
-                    >
-                      {active && <span aria-hidden="true">✕</span>}
-                      {a.id}
-                      <span className="font-normal text-muted-foreground max-w-28 truncate">
-                        {a.name_fr}
-                      </span>
-                    </button>
-                  )
-                })}
+        {/* État vide (ni local ni OFF) : Naânaa à la loupe */}
+        {!loading && !searchingOff && products.length === 0 && offResults.length === 0 && (
+          <>
+            <div className="naanaa md:max-w-xl">
+              <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" />
+              <div className="bubble">
+                <p className="disp d-s">{t('search.noResults')}</p>
+                <p className="muted mt-1 text-sm">{t('search.noResultsDesc')}</p>
               </div>
             </div>
-          )}
-        </div>
-      )}
+            {hasActiveFilters && (
+              <button type="button" className="btn sm justify-self-start" onClick={resetFilters}>
+                {t('search.resetFilters')}
+              </button>
+            )}
+          </>
+        )}
 
-      {/* Compteur de résultats */}
-      {!loading && (
-        <p className="text-sm text-muted-foreground">
-          {totalCount > 0
-            ? `${totalCount} ${t('search.results')}`
-            : null}
-        </p>
-      )}
-
-      {/* Squelette de chargement */}
-      {loading && <LoadingSkeleton />}
-
-      {/* Grille de résultats */}
-      {!loading && products.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} variant="grid" />
-          ))}
-        </div>
-      )}
-
-      {/* Résultats Open Food Facts (quand Directus est vide) */}
-      {!loading && products.length === 0 && offResults.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800 px-4 py-2.5">
-            <svg className="w-4 h-4 text-amber-600 dark:text-amber-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 16v-4" />
-              <path d="M12 8h.01" />
-            </svg>
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              {t('search.noLocalResults')} — <strong>{offResults.length}</strong> {isBeauty ? t('beauty.obfResults') : t('search.offResults')}
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {offResults.map((product) => (
-              <ProductCard key={product.id} product={product} variant="grid" />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Recherche OFF en cours */}
-      {searchingOff && (
-        <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          {t('search.searchingOff')}
-        </div>
-      )}
-
-      {/* État vide (ni local ni OFF) */}
-      {!loading && !searchingOff && products.length === 0 && offResults.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <svg
-            className="mb-4 text-muted-foreground/40"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-            <path d="M8 11h6" />
-          </svg>
-          <p className="text-lg font-medium text-foreground">{t('search.noResults')}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('search.noResultsDesc')}
-          </p>
-          {hasActiveFilters && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={() => setFilters(defaultFilters)}
-            >
-              {t('search.resetFilters')}
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Charger plus */}
-      {!loading && hasMore && products.length > 0 && (
-        <div className="flex justify-center pt-2">
-          <Button
-            variant="outline"
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-            className="min-w-[200px]"
-          >
+        {/* Charger plus */}
+        {!loading && hasMore && products.length > 0 && (
+          <button type="button" className="btn mt-2 min-w-[200px] justify-self-center" onClick={handleLoadMore} disabled={loadingMore}>
             {loadingMore ? (
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
+              <>
+                <Spinner />
                 {t('common.loading')}
-              </span>
+              </>
             ) : (
               t('search.loadMore')
             )}
-          </Button>
+          </button>
+        )}
+
+        {/* Bulle Naânaa : produit absent → scanner */}
+        <div className="naanaa mt-1.5 grid-cols-[56px_minmax(0,1fr)] md:max-w-xl">
+          <div className="m size-14">
+            <img src="/mascotte/naanaa-scan.webp" alt="" width="56" height="56" loading="lazy" />
+          </div>
+          <p className="bubble">
+            {t('search.naanaaMissing')} <a href="/scan" className="underline underline-offset-2"><b>{t('search.naanaaScan')}</b></a>{t('search.naanaaAdd')}
+          </p>
         </div>
-      )}
-    </div>
+      </section>
+    </>
   )
 }
 
@@ -899,66 +850,51 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory }:
 // Sous-composants
 // ────────────────────────────────────────────────────────────────
 
-/** Chip toggle pour les filtres booléens */
-function ToggleChip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string
-  active: boolean
-  onClick: () => void
-}) {
+/** Puce de filtre (maquette) : active = aplat citron + coche, texte encre */
+function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
-        active
-          ? 'border-primary bg-primary/10 text-primary'
-          : 'border-border bg-background text-muted-foreground hover:bg-muted'
-      )}
-    >
+    <button type="button" onClick={onClick} aria-pressed={active} className={cn('chip', active && 'fill bg-citron')}>
       {active && (
-        <svg
-          className="mr-1 inline-block"
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>
       )}
       {label}
     </button>
   )
 }
 
-/** Squelette de chargement avec animation pulse */
+/** Liste de résultats : ProductCard « row » sur mobile, « grid » sur ordinateur */
+function ProductList({ products, locale }: { products: Product[]; locale: Locale }) {
+  return (
+    <>
+      <div className="grid gap-3 md:hidden">
+        {products.map((p) => (
+          <ProductCard key={p.id} product={p} locale={locale} />
+        ))}
+      </div>
+      <div className="hidden gap-4 md:grid md:grid-cols-3 lg:grid-cols-4">
+        {products.map((p) => (
+          <ProductCard key={p.id} product={p} variant="grid" locale={locale} />
+        ))}
+      </div>
+    </>
+  )
+}
+
+function Spinner() {
+  return (
+    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  )
+}
+
+/** Squelette de chargement : silhouettes de cartes (ligne sur mobile, grille sur ordinateur) */
 function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    <div className="grid gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4" aria-hidden="true">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex gap-3 rounded-xl border bg-card p-3 animate-pulse"
-        >
-          <div className="h-20 w-20 rounded-lg bg-muted flex-shrink-0" />
-          <div className="flex-1 space-y-2 py-1">
-            <div className="h-4 w-3/4 rounded bg-muted" />
-            <div className="h-3 w-1/2 rounded bg-muted" />
-            <div className="flex gap-1.5">
-              <div className="h-4 w-12 rounded-full bg-muted" />
-              <div className="h-4 w-12 rounded-full bg-muted" />
-            </div>
-          </div>
-        </div>
+        <div key={i} className="card h-24 animate-pulse bg-muted md:h-80" />
       ))}
     </div>
   )

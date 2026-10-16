@@ -6,7 +6,6 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
 import { Sparkles, Loader2, Lightbulb, RefreshCw } from 'lucide-react'
@@ -71,40 +70,56 @@ export default function WeeklyCoach() {
   if (loggedIn !== true) return null
 
   return (
-    <section className="rounded-2xl border border-ai/30 bg-ai/10 p-5">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-semibold flex items-center gap-2 text-ai">
+    <div className="card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="chip fill h-8 gap-2 bg-ai text-sm font-bold">
           <Sparkles className="h-4 w-4" />
           {t('coach.title')}
         </h2>
         {result?.enough && !loading && (
-          <button onClick={generate} className="text-xs text-muted-foreground hover:text-ai inline-flex items-center gap-1">
+          <button onClick={generate} className="text-xs text-muted-foreground hover:text-ai-ink inline-flex items-center gap-1">
             <RefreshCw className="h-3 w-3" />{t('coach.refresh')}
           </button>
         )}
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />{t('coach.thinking')}</p>
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-loupe.webp" alt="" width="64" height="94" className="naanaa-bob" />
+          <p className="bubble flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />{t('coach.thinking')}</p>
+        </div>
       ) : result == null ? (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">{t('coach.intro')}</p>
-          <Button onClick={generate} size="sm" className="bg-ai text-ai-foreground hover:bg-ai/90">
-            <Sparkles className="mr-1.5 h-4 w-4" />{t('coach.generate')}
-          </Button>
+          <div className="naanaa">
+            <img src="/mascotte/naanaa-astuce.webp" alt="" width="64" height="94" />
+            <p className="bubble">{t('coach.intro')}</p>
+          </div>
+          <button type="button" onClick={generate} className="btn sm border-encre bg-ai text-encre">
+            <Sparkles aria-hidden="true" />{t('coach.generate')}
+          </button>
         </div>
       ) : error ? (
-        <p className="text-sm text-muted-foreground">{t('coach.error')}</p>
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-oups.webp" alt="" width="64" height="94" />
+          <p className="bubble">{t('coach.error')}</p>
+        </div>
       ) : !result.enough ? (
-        <p className="text-sm text-muted-foreground">{t('coach.notEnough')}</p>
+        <div className="naanaa">
+          <img src="/mascotte/naanaa-astuce.webp" alt="" width="64" height="94" />
+          <p className="bubble">{t('coach.notEnough')}</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-foreground/90 leading-relaxed">{result.bilan}</p>
+          {/* Le bilan sort de la bouche de Naânaa (pose « astuce ») */}
+          <div className="naanaa items-start">
+            <img src="/mascotte/naanaa-astuce.webp" alt="" width="64" height="94" />
+            <p className="bubble leading-relaxed">{result.bilan}</p>
+          </div>
           {result.conseils && result.conseils.length > 0 && (
             <ul className="space-y-1.5">
               {result.conseils.map((c, i) => (
-                <li key={i} className="flex gap-2 text-sm text-foreground/80">
-                  <Lightbulb className="h-4 w-4 text-ai flex-shrink-0 mt-0.5" />
+                <li key={i} className="flex gap-2 text-sm text-foreground/85">
+                  <Lightbulb className="h-4 w-4 text-ai-ink flex-shrink-0 mt-0.5" />
                   <span>{c}</span>
                 </li>
               ))}
@@ -113,6 +128,6 @@ export default function WeeklyCoach() {
           <p className="text-[11px] text-muted-foreground italic">{t('coach.caveat')}</p>
         </div>
       )}
-    </section>
+    </div>
   )
 }

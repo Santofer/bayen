@@ -1,0 +1,131 @@
+/* Bayen · Marché Pop — feuille partagée par tous les artboards */
+.bp {
+  --creme: #FFF8EC; --encre: #1B1B1B; --papier: #FFFFFF;
+  --menthe: #19C08B; --menthe-encre: #0B6B4C; --citron: #FFD43B; --tomate: #FF5A3C; --aubergine: #3B1F5C;
+  /* univers : jamais une teinte de l'échelle de score */
+  --u-food: #19C08B; --u-beauty: #FF8FB1; --u-protein: #6B7BFF; --u-meal: #B98CFF;
+  /* échelle de score (toujours avec chiffre + mot) */
+  --s-a: #19C08B; --s-b: #A6E35F; --s-c: #FFD43B; --s-d: #FFA24D; --s-e: #FF5A3C;
+  --bg: var(--creme); --surface: var(--papier); --fg: var(--encre); --muted: #5E5A52; --line: var(--encre); --shadow: var(--encre); --soft: #F3EADB;
+  --f-disp: 'Unbounded', 'Arial Black', sans-serif; --f-ui: 'Readex Pro', system-ui, sans-serif;
+  --f-label: 'Archivo', 'Arial Narrow', sans-serif; --f-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  background: var(--bg); color: var(--fg); font-family: var(--f-ui); font-size: 15px; line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+.bp.dark {
+  --bg: #1D1430; --surface: #2A1E44; --fg: #FFF3DF; --muted: #CBBFDF; --line: #FFF3DF; --shadow: #0B0614; --soft: #34264F;
+  --u-protein: #8D99FF; --u-meal: #CDAEFF;
+}
+.bp *, .bp *::before, .bp *::after { box-sizing: border-box }
+.bp h1, .bp h2, .bp h3, .bp p { margin: 0 }
+.bp a { color: inherit }
+.bp img { display: block; max-width: 100% }
+.bp svg { width: 22px; height: 22px; flex: none }
+.u-ico svg { width: 32px; height: 32px }
+
+/* ── Typo ── */
+.disp { font-family: var(--f-disp); font-weight: 800; letter-spacing: -.02em; line-height: 1.02; text-wrap: balance }
+.d-xl { font-size: 34px } .d-l { font-size: 26px } .d-m { font-size: 20px } .d-s { font-size: 16px }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted) }
+.muted { color: var(--muted) }
+.num { font-variant-numeric: tabular-nums }
+
+/* ── Boutons (pilule, contour, ombre nette) ── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); color: var(--fg); font: 700 15px var(--f-ui); text-decoration: none; box-shadow: 3px 3px 0 var(--shadow); cursor: pointer }
+.btn.primary { background: var(--menthe); color: var(--encre); border-color: var(--encre) }
+.btn.dark-btn { background: var(--encre); color: var(--creme); border-color: var(--encre) }
+.btn.sm { min-height: 36px; padding: 0 14px; font-size: 13px; box-shadow: 2px 2px 0 var(--shadow) }
+.btn.flat { box-shadow: none }
+.btn svg { width: 18px; height: 18px }
+.icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: inline-grid; place-items: center; color: var(--fg); box-shadow: 2px 2px 0 var(--shadow) }
+.icon-btn svg { width: 20px; height: 20px }
+
+/* ── Chips ── */
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--line); font-size: 12px; font-weight: 600; background: var(--surface); color: var(--fg); white-space: nowrap }
+.chip.fill { border-color: transparent; color: var(--encre) }
+.chip svg { width: 14px; height: 14px }
+
+/* ── Pastille de score (l'emblème) ── */
+.sticker { --c: var(--s-a); position: relative; width: 64px; height: 64px; border-radius: 50%; background: var(--c); color: var(--encre); border: 2px solid var(--encre); box-shadow: 3px 3px 0 var(--shadow); display: grid; place-items: center; text-align: center; transform: rotate(-8deg); flex: none }
+.sticker::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; border: 1.5px dashed rgb(27 27 27 / .4) }
+.sticker b { font-family: var(--f-disp); font-weight: 800; font-size: 22px; line-height: 1; display: block }
+.sticker span { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; display: block; margin-top: 1px }
+.sticker.lg { width: 112px; height: 112px; border-width: 3px; box-shadow: 5px 5px 0 var(--shadow) }
+.sticker.lg::before { inset: 8px; border-width: 2px }
+.sticker.lg b { font-size: 40px } .sticker.lg span { font-size: 11px }
+.sticker.sm { width: 46px; height: 46px; box-shadow: 2px 2px 0 var(--shadow) }
+.sticker.sm b { font-size: 16px } .sticker.sm span { display: none } .sticker.sm::before { inset: 4px }
+.sa { --c: var(--s-a) } .sb { --c: var(--s-b) } .sc { --c: var(--s-c) } .sd { --c: var(--s-d) } .se { --c: var(--s-e) }
+
+/* ── Cartes ── */
+.card { background: var(--surface); border: 2px solid var(--line); border-radius: 20px; box-shadow: 4px 4px 0 var(--shadow) }
+.tile { border-radius: 16px; display: grid; place-items: center; overflow: hidden; border: 2px solid var(--line) }
+.tile img { width: 86%; height: 86%; object-fit: contain }
+.t-mint { background: #BFF0DC } .t-lemon { background: #FFEC9E } .t-pink { background: #FFD3E1 } .t-blue { background: #D4D9FF } .t-fig { background: #E7D8FF } .t-tomato { background: #FFC9BC } .t-cream { background: #F6E9D2 }
+.bp.dark .t-mint { background: #1F5A47 } .bp.dark .t-lemon { background: #5C4E14 } .bp.dark .t-pink { background: #5C2F45 } .bp.dark .t-blue { background: #2F3470 } .bp.dark .t-fig { background: #45306B } .bp.dark .t-tomato { background: #5E2A20 } .bp.dark .t-cream { background: #4A3D2A }
+
+/* Carte produit Marché Pop (liste) */
+.pcard { display: grid; grid-template-columns: 76px 1fr auto; gap: 12px; align-items: center; padding: 10px 12px 10px 10px }
+.pcard .tile { width: 76px; height: 76px; border-radius: 14px }
+.pcard .pn { font-weight: 700; font-size: 14.5px; line-height: 1.25 }
+.pcard .pm { font-size: 12px; color: var(--muted); margin-top: 2px }
+.pcard .chips { margin-top: 6px }
+.pcard .chip { height: 22px; font-size: 11px; padding: 0 8px }
+
+/* Carte produit Étiquette (variante B) */
+.lcard { background: var(--surface); border: 2px solid var(--line); border-radius: 6px; display: grid; grid-template-columns: 70px 1fr 64px; overflow: hidden }
+.lcard .tile { border: 0; border-right: 2px solid var(--line); border-radius: 0; height: 100% ; min-height: 86px }
+.lcard .lb { padding: 8px 10px; display: grid; gap: 2px; align-content: center; min-width: 0 }
+.lcard .pn { font-family: var(--f-label); font-weight: 800; font-stretch: 85%; font-size: 15px; line-height: 1.15; text-transform: uppercase }
+.lcard .pm { font-family: var(--f-mono); font-size: 11px; color: var(--muted) }
+.lcard .ln { font-family: var(--f-mono); font-size: 11px; display: flex; gap: 10px; border-top: 1px solid var(--line); padding-top: 4px; margin-top: 4px }
+.lcard .sc { border-left: 2px solid var(--line); display: grid; grid-template-rows: auto 1fr auto; text-align: center }
+.lcard .sc .h { background: var(--encre); color: var(--creme); font: 800 9px var(--f-label); letter-spacing: .08em; padding: 3px 0; text-transform: uppercase }
+.bp.dark .lcard .sc .h { background: var(--fg); color: var(--bg) }
+.lcard .sc b { font-family: var(--f-label); font-stretch: 62%; font-weight: 900; font-size: 34px; line-height: 1; align-self: center }
+.lcard .sc i { font-style: normal; font-size: 10px; font-weight: 700; padding: 3px 0; color: var(--encre); background: var(--c) }
+
+/* ── Barre du haut / navigation ── */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px }
+.logo { font-family: var(--f-disp); font-weight: 800; font-size: 24px; letter-spacing: -.04em; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--fg) }
+.logo i { width: 12px; height: 12px; border-radius: 50%; background: var(--menthe); border: 2px solid var(--line); display: inline-block; transform: translateY(-6px) }
+.tabbar { position: absolute; left: 12px; right: 12px; bottom: 14px; height: 68px; border-radius: 24px; background: var(--surface); border: 2px solid var(--line); box-shadow: 4px 4px 0 var(--shadow); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; z-index: 5 }
+.tabbar a { display: grid; justify-items: center; gap: 2px; font-size: 10.5px; font-weight: 600; text-decoration: none; color: var(--muted) }
+.tabbar a svg { width: 22px; height: 22px }
+.tabbar a.on { color: var(--fg) }
+.tabbar a.on svg { color: var(--menthe-encre) }
+.bp.dark .tabbar a.on svg { color: var(--menthe) }
+.tabbar .scan { width: 62px; height: 62px; border-radius: 50%; background: var(--menthe); border: 2px solid var(--encre); box-shadow: 3px 3px 0 var(--shadow); display: grid; place-items: center; color: var(--encre); justify-self: center; margin-top: -26px }
+.tabbar .scan svg { width: 28px; height: 28px }
+
+/* ── Écran téléphone ── */
+.phone { position: relative; width: 390px; overflow: hidden }
+.section { padding: 0 18px; display: grid; gap: 12px }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px }
+.sec-head a { font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px }
+.scroller { display: flex; gap: 12px; overflow: hidden; padding: 2px 18px 8px }
+
+/* Bulle de la mascotte */
+.naanaa { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center }
+.naanaa .m { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 2px solid var(--encre); box-shadow: 2px 2px 0 var(--shadow) }
+.naanaa .m img { width: 100%; height: 100%; object-fit: cover }
+.bubble { background: var(--surface); border: 2px solid var(--line); border-radius: 18px 18px 18px 4px; padding: 10px 14px; font-size: 13.5px; box-shadow: 3px 3px 0 var(--shadow) }
+
+/* Barres de nutriments */
+.nut { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center }
+.nut .bar { grid-column: 1 / -1; height: 10px; border-radius: 99px; background: var(--soft); border: 1.5px solid var(--line); overflow: hidden }
+.nut .bar i { display: block; height: 100% }
+.nut .lab { font-weight: 600; font-size: 14px }
+.nut .val { font-size: 13px; font-variant-numeric: tabular-nums }
+
+/* Tableau type étiquette */
+.label { border: 3px solid var(--line); background: var(--surface); font-family: var(--f-label) }
+.label .hd { background: var(--encre); color: var(--creme); font-weight: 900; font-stretch: 75%; text-transform: uppercase; font-size: 18px; padding: 6px 10px; letter-spacing: .01em }
+.bp.dark .label .hd { background: var(--fg); color: var(--bg) }
+.label .row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border-top: 1px solid var(--line); font-size: 14px }
+.label .row.thick { border-top-width: 8px }
+.label .row.med { border-top-width: 3px }
+.label .row b { font-weight: 800 }
+.label .row .v { font-family: var(--f-mono); font-size: 13px }
+.label .row.ind { padding-left: 24px }

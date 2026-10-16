@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { ThumbsUp, ThumbsDown, Check, Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
@@ -119,123 +119,97 @@ export default function MealFeedback({
 
   if (sent) {
     return (
-      <div className="rounded-2xl border bg-card p-4 shadow-[var(--shadow-card)]">
-        <p className="flex items-center gap-2 font-bold text-primary">
-          <Check size={17} /> {t('mealfb.thanks')}
+      <div className="naanaa grid-cols-[56px_minmax(0,1fr)]">
+        <div className="m size-14"><img src="/mascotte/naanaa-bravo.webp" alt="" width="56" height="56" /></div>
+        <p className="bubble flex items-center gap-2 font-bold">
+          <Check size={17} className="flex-none text-brand-ink" aria-hidden="true" /> {t('mealfb.thanks')}
         </p>
       </div>
     )
   }
 
-  return (
-    <div className="rounded-2xl border bg-card p-4 shadow-[var(--shadow-card)] sm:p-5">
-      <p className="font-bold">{t('mealfb.question')}</p>
-      <p className="mt-0.5 text-[13px] text-muted-foreground">{t('mealfb.why')}</p>
+  // Champ de correction : libellé | saisie | unité
+  const FIELD = 'flex items-center gap-3 rounded-[14px] border-2 border-line bg-card px-3.5 py-3'
+  const LABEL = 'w-[70px] flex-none text-[13px] font-semibold text-muted-foreground'
+  const INPUT = 'min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] font-bold outline-none'
 
-      <div className="mt-3.5 flex gap-2.5">
-        <button
-          type="button"
-          onClick={() => void send('up', false)}
-          disabled={busy}
-          className={
-            rating === 'up'
-              ? 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-primary/[0.09] text-sm font-bold text-primary'
-              : 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-primary/[0.09] text-sm font-bold text-primary disabled:opacity-60'
-          }
-        >
-          {busy && rating === null ? <Loader2 size={18} className="animate-spin" /> : <ThumbsUp size={18} />}
-          {t('mealfb.yes')}
+  // Carte « C'est le bon plat ? » (maquette Repas) : Oui / Corriger
+  return (
+    <div className="card grid gap-3 p-4">
+      <p className="font-bold">{t('mealfb.rightDish')}</p>
+      <div className="grid grid-cols-2 gap-2.5">
+        <button type="button" onClick={() => void send('up', false)} disabled={busy} className="btn">
+          {busy && rating === null ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Check aria-hidden="true" />}
+          {t('mealfb.yesThat')}
         </button>
         <button
           type="button"
           onClick={() => setRating('down')}
           disabled={busy}
-          className={
-            rating === 'down'
-              ? 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-primary/[0.09] text-sm font-bold text-primary'
-              : 'flex min-h-[50px] flex-1 items-center justify-center gap-2 rounded-2xl border bg-card text-sm font-bold text-muted-foreground'
-          }
+          aria-expanded={rating === 'down'}
+          className={rating === 'down' ? 'btn border-encre bg-ai text-encre' : 'btn'}
         >
-          <ThumbsDown size={18} />
-          {t('mealfb.no')}
+          {t('mealfb.fix')}
         </button>
       </div>
+      <p className="muted text-[12.5px]">{t('mealfb.improves')}</p>
 
       {rating === 'down' && (
-        <div className="mt-4 rounded-2xl border bg-popover p-4">
+        <div className="grid gap-3 rounded-[14px] border-2 border-line bg-muted p-4">
           {antibot.honeypot}
           <p className="font-bold">{t('mealfb.correctTitle')}</p>
 
-          <div className="mt-3 flex flex-col gap-2.5">
-            <label className="flex items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
-              <span className="w-[70px] flex-shrink-0 text-[13px] font-semibold text-muted-foreground">
-                {t('mealfb.dish')}
-              </span>
-              <input
-                type="text"
-                value={dish}
-                onChange={(e) => setDish(e.target.value)}
-                list="mealfb-dishes"
-                className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] font-bold outline-none"
-              />
-              <datalist id="mealfb-dishes">
-                {dishNames.map((n) => <option key={n} value={n} />)}
-              </datalist>
-            </label>
+          <label className={FIELD}>
+            <span className={LABEL}>{t('mealfb.dish')}</span>
+            <input type="text" value={dish} onChange={(e) => setDish(e.target.value)} list="mealfb-dishes" className={INPUT} />
+            <datalist id="mealfb-dishes">
+              {dishNames.map((n) => <option key={n} value={n} />)}
+            </datalist>
+          </label>
 
-            <label className="flex items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
-              <span className="w-[70px] flex-shrink-0 text-[13px] font-semibold text-muted-foreground">
-                {t('mealfb.portion')}
-              </span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={portion}
-                onChange={(e) => setPortion(e.target.value.replace(/[^\d]/g, ''))}
-                className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] font-bold outline-none"
-              />
-              <span className="flex-shrink-0 text-[13px] font-semibold text-muted-foreground">g</span>
-            </label>
+          <label className={FIELD}>
+            <span className={LABEL}>{t('mealfb.portion')}</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={portion}
+              onChange={(e) => setPortion(e.target.value.replace(/[^\d]/g, ''))}
+              className={INPUT}
+            />
+            <span className="flex-none text-[13px] font-semibold text-muted-foreground">g</span>
+          </label>
 
-            <label className="flex items-center gap-3 rounded-xl border bg-card px-3.5 py-3">
-              <span className="w-[70px] flex-shrink-0 text-[13px] font-semibold text-muted-foreground">
-                {t('mealfb.calories')}
-              </span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={kcal}
-                onChange={(e) => setKcal(e.target.value.replace(/[^\d]/g, ''))}
-                className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] font-bold outline-none"
-              />
-              <span className="flex-shrink-0 text-[13px] font-semibold text-muted-foreground">kcal</span>
-            </label>
-          </div>
+          <label className={FIELD}>
+            <span className={LABEL}>{t('mealfb.calories')}</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={kcal}
+              onChange={(e) => setKcal(e.target.value.replace(/[^\d]/g, ''))}
+              className={INPUT}
+            />
+            <span className="flex-none text-[13px] font-semibold text-muted-foreground">kcal</span>
+          </label>
 
           {photo && (
-            <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-[13px] leading-snug text-muted-foreground">
+            <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-snug text-muted-foreground">
               <input
                 type="checkbox"
                 checked={sharePhoto}
                 onChange={(e) => setSharePhoto(e.target.checked)}
-                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[var(--color-primary)]"
+                className="mt-0.5 size-4 flex-none accent-[var(--color-primary)]"
               />
               <span>{t('mealfb.sharePhoto')}</span>
             </label>
           )}
 
-          <button
-            type="button"
-            onClick={() => void send('down', true)}
-            disabled={busy}
-            className="mt-3.5 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full bg-primary text-[15px] font-bold text-primary-foreground disabled:opacity-60"
-          >
-            {busy ? <Loader2 size={18} className="animate-spin" /> : null}
+          <button type="button" onClick={() => void send('down', true)} disabled={busy} className="btn primary w-full">
+            {busy ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
             {t('mealfb.send')}
           </button>
 
-          <p className="mt-2.5 text-center text-xs text-muted-foreground">
-            <span className="font-bold text-primary">+10 {t('points.points')}</span> — {t('mealfb.anonNote')}
+          <p className="text-center text-xs text-muted-foreground">
+            <span className="font-bold text-brand-ink">+10 {t('points.points')}</span> — {t('mealfb.anonNote')}
           </p>
         </div>
       )}

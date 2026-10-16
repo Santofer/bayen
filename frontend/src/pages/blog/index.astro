@@ -4,6 +4,8 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import BlogCard from '@/components/BlogCard.tsx'
+import { withLocalCover } from '@/lib/blog-covers'
+import type { TranslationKey } from '@/lib/translations'
 import { getLocale, t } from '@/lib/i18n'
 import type { Article, ArticleCategory } from '@/lib/types'
 
@@ -29,37 +31,26 @@ try {
   const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
   if (res.ok) {
     const data = await res.json()
-    articles = (data.data ?? []) as Article[]
+    articles = ((data.data ?? []) as Article[]).map((a) => withLocalCover(a, Astro.url))
   }
 } catch {
   // Page s'affiche quand même
 }
 
-// Article vedette (maquette v2) : le plus récent, en cover pleine largeur.
-// Uniquement sur la vue non filtrée pour garder les listes par catégorie denses.
-const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
-const FALLBACK_COVER: Record<ArticleCategory, string> = {
-  'bien-etre': '/blog/fallback-bien-etre.jpg',
-  habitudes: '/blog/fallback-habitudes.jpg',
-  guides: '/blog/fallback-guides.jpg',
-  actualites: '/blog/fallback-actualites.jpg',
-}
+// Article mis en avant (maquette Blog) : le plus récent, uniquement sur la vue
+// non filtrée pour garder les listes par catégorie denses.
 const featured = !selectedCategory && articles.length > 0 ? articles[0] : null
-const gridArticles = featured ? articles.slice(1) : articles
-const featuredCover = featured
-  ? (featured.cover_image
-      ? (featured.cover_image.startsWith('http') ? featured.cover_image : `${CDN_URL}/${featured.cover_image}`)
-      : FALLBACK_COVER[featured.category])
-  : null
-const featuredTitle = featured ? ((locale === 'ary' && featured.title_ar) || featured.title_fr) : null
+const listArticles = featured ? articles.slice(1) : articles
 
-const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: string; color: string }> = [
-  { value: null,          labelKey: 'blog.allCategories',       color: '#94a3b8' },
-  { value: 'bien-etre',   labelKey: 'blog.category.bien-etre',  color: '#476a32' },
-  { value: 'habitudes',   labelKey: 'blog.category.habitudes',  color: '#b1cf3a' },
-  { value: 'guides',      labelKey: 'blog.category.guides',     color: '#0f766e' },
-  { value: 'actualites',  labelKey: 'blog.category.actualites', color: '#f97316' },
+// Puces de catégories (maquette : « Tout » actif en menthe)
+const CATEGORIES: Array<{ value: ArticleCategory | null; labelKey: TranslationKey }> = [
+  { value: null, labelKey: 'blog.allShort' },
+  { value: 'bien-etre', labelKey: 'blog.category.bien-etre' },
+  { value: 'habitudes', labelKey: 'blog.category.habitudes' },
+  { value: 'guides', labelKey: 'blog.category.guides' },
+  { value: 'actualites', labelKey: 'blog.category.actualites' },
 ]
+const heading = t('blog.listHeading', locale)
 
 // JSON-LD : Blog + BreadcrumbList + ItemList (les 10 articles les plus récents)
 const SITE_URL = 'https://bayen.ma'
@@ -97,136 +88,47 @@ const blogJsonLd = [
   path="/blog"
   jsonLd={blogJsonLd}
 >
-  <main class="section-v2 py-6 pb-24 md:pb-12">
-    {/* En-tête éditorial (maquette blog v2) */}
-    <header class="mb-7">
-      <p class="text-xs font-extrabold uppercase tracking-[0.08em] text-primary mb-1.5">{t('blog.kicker', locale)}</p>
-      <h1 class="blog-hero-title">
-        {t('blog.heroTitle1', locale)} <em>{t('blog.heroTitle2', locale)}</em>
-      </h1>
-      <p class="text-sm sm:text-base text-muted-foreground mt-2.5 max-w-xl">
-        {t('blog.description', locale)}
-      </p>
-    </header>
+  {/* Barre du haut mobile (maquette) : logo + puce « Le journal » */}
+  <span slot="topbar-end" class="chip">{t('nav.journalBlog', locale)}</span>
 
-    {/* Filtres par catégorie — pills cliquables */}
-    <nav class="flex flex-wrap gap-2 mb-8" aria-label="Filtres catégories">
-      {CATEGORIES.map((cat) => {
-        const isActive = cat.value === selectedCategory
-        const href = cat.value ? `/blog?cat=${cat.value}` : '/blog'
-        return (
-          <a
-            href={href}
-            class:list={[
-              'px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors',
-              isActive
-                ? 'text-white border-transparent'
-                : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30',
-            ]}
-            style={isActive ? `background-color: ${cat.color}` : undefined}
-          >
-            {t(cat.labelKey as any, locale)}
-          </a>
-        )
-      })}
-    </nav>
+  <main class="screen gap-5 max-md:pt-5 md:gap-12">
+    <section class="section gap-2.5 md:gap-4">
+      <h1 class="disp d-xl md:max-w-[20ch] md:text-[clamp(40px,4.4vw,60px)]">{heading}</h1>
+      <nav class="chips" aria-label={t('blog.filterAria', locale)}>
+        {CATEGORIES.map((cat) => {
+          const isActive = cat.value === selectedCategory
+          return (
+            <a
+              href={cat.value ? `/blog?cat=${cat.value}` : '/blog'}
+              class:list={['chip', isActive && 'fill bg-menthe']}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {t(cat.labelKey, locale)}
+            </a>
+          )
+        })}
+      </nav>
+    </section>
 
-    {/* Article vedette pleine largeur (maquette v2) */}
-    {featured && featuredCover && (
-      <a href={`/blog/${featured.slug}`} class="blog-feature">
-        <img src={featuredCover} alt={featuredTitle} loading="eager" />
-        <div class="scrim">
-          <span class="cat" style={`background-color: ${CATEGORIES.find(c => c.value === featured.category)?.color ?? '#b1cf3a'}`}>
-            {t(`blog.category.${featured.category}` as any, locale)}
-          </span>
-          <h2>{featuredTitle}</h2>
-          <p>
-            {featured.reading_time_min ? `${featured.reading_time_min} min de lecture` : ''}
-          </p>
-        </div>
-      </a>
+    {featured && (
+      <section class="section">
+        <BlogCard article={featured} locale={locale} variant="featured" />
+      </section>
     )}
 
-    {/* Grille des articles */}
-    {gridArticles.length > 0 ? (
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {gridArticles.map((article) => (
+    {listArticles.length > 0 ? (
+      <section class="section gap-3.5 md:grid-cols-3 md:gap-6">
+        {listArticles.map((article) => (
           <BlogCard article={article} locale={locale} />
         ))}
-      </div>
+      </section>
     ) : !featured ? (
-      <div class="rounded-xl border bg-card p-12 text-center text-muted-foreground">
-        <p>{t('blog.empty', locale)}</p>
-      </div>
+      <section class="section">
+        <div class="card grid justify-items-center gap-3 p-10 text-center">
+          <img src="/mascotte/naanaa-nuit.webp" alt="" width="88" height="130" loading="lazy" />
+          <p class="muted">{t('blog.empty', locale)}</p>
+        </div>
+      </section>
     ) : null}
   </main>
 </Layout>
-
-<style>
-  /* Titre éditorial (maquette blog v2) */
-  .blog-hero-title {
-    font-size: clamp(2rem, 4.5vw, 3.2rem) !important;
-    font-weight: 780;
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-  }
-  .blog-hero-title em {
-    font-style: normal;
-    color: hsl(97 40% 42%);
-  }
-  :global(.dark) .blog-hero-title em { color: #b1cf3a; }
-
-  /* Article vedette pleine largeur */
-  .blog-feature {
-    position: relative;
-    display: block;
-    border-radius: 26px;
-    overflow: hidden;
-    margin-bottom: 28px;
-    aspect-ratio: 21 / 10;
-    min-height: 300px;
-    box-shadow: var(--shadow-card);
-    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out-soft);
-  }
-  .blog-feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
-  .blog-feature > img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .blog-feature .scrim {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 26px 28px;
-    background: linear-gradient(to top, hsl(100 35% 8% / 0.78) 0%, hsl(100 32% 12% / 0.28) 55%, transparent 100%);
-  }
-  .blog-feature .cat {
-    align-self: flex-start;
-    color: #fff;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 5px 12px;
-    border-radius: 999px;
-    margin-bottom: 12px;
-  }
-  .blog-feature h2 {
-    color: #fff;
-    font-size: clamp(1.4rem, 3vw, 2.2rem) !important;
-    font-weight: 750;
-    line-height: 1.1;
-    max-width: 24ch;
-    text-shadow: 0 1px 8px hsl(100 40% 6% / 0.45);
-  }
-  .blog-feature p {
-    color: hsl(60 40% 92% / 0.8);
-    font-size: 0.82rem;
-    margin-top: 8px;
-  }
-</style>

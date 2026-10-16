@@ -3,9 +3,37 @@
  * Chaque clé doit exister dans les deux locales.
  */
 
-export const translations = {
+import { refonte1 } from '@/lib/translations-refonte-1'
+import { refonte2 } from '@/lib/translations-refonte-2'
+import { refonte3 } from '@/lib/translations-refonte-3'
+
+const base = {
   // ── Navigation ──────────────────────────────────────────────
   'nav.home':       { fr: 'Accueil',       ary: 'الرئيسية' },
+  'nav.main':       { fr: 'Navigation principale', ary: 'التنقل الرئيسي' },
+  'nav.food':       { fr: 'Alimentation',  ary: 'الماكلة' },
+  'nav.journalBlog':{ fr: 'Le journal',    ary: 'الجريدة' },
+  'nav.searchShort':{ fr: 'Chercher',      ary: 'قلّب' },
+  'nav.back':       { fr: 'Retour',        ary: 'رجوع' },
+  'nav.ranking':    { fr: 'Classement',    ary: 'الترتيب' },
+  'nav.menu':       { fr: 'Menu',          ary: 'القائمة' },
+  // Carte produit et pastille (ProductCard)
+  'card.score':        { fr: 'Score',                 ary: 'النقطة' },
+  'card.scoreUnknown': { fr: 'Score inconnu',         ary: 'النقطة ما معروفاش' },
+  'card.inciMissing':  { fr: 'LISTE INCI MANQUANTE',  ary: 'لائحة INCI ناقصة' },
+  'card.noKnownRisk':  { fr: 'SANS RISQUE CONNU',     ary: 'بلا خطر معروف' },
+  'card.banned':       { fr: 'INTERDIT',              ary: 'ممنوع' },
+  'card.toWatch':      { fr: 'À SURVEILLER',          ary: 'خاصو مراقبة' },
+  'card.toWatchLower': { fr: 'à surveiller',          ary: 'خاصو مراقبة' },
+  'card.additive':     { fr: 'additif',               ary: 'مضاف' },
+  'card.additives':    { fr: 'additifs',              ary: 'مضافات' },
+  'card.ingredients':  { fr: 'ingrédients',           ary: 'مكونات' },
+  'nav.more':       { fr: 'Plus',          ary: 'كثر' },
+  'nav.close':      { fr: 'Fermer',        ary: 'سد' },
+  'nav.display':    { fr: 'Affichage',     ary: 'العرض' },
+  'nav.inci':       { fr: 'Ingrédients cosmétiques', ary: 'مكونات التجميل' },
+  'footer.tagline': { fr: '« Bayen » : c\'est clair, ça se voit. Un projet participatif, le score est calculé par un algorithme public.', ary: '« بيّن » : واضح وباين. مشروع تشاركي، والنقطة كتحسب بخوارزمية علنية.' },
+  'nav.mealShort':  { fr: 'Repas',         ary: 'الماكلة' },
   'nav.scan':       { fr: 'Scanner',       ary: 'سكان' },
   'nav.search':     { fr: 'Recherche',     ary: 'بحث' },
   'nav.compare':    { fr: 'Comparer',      ary: 'قارن' },
@@ -21,7 +49,7 @@ export const translations = {
   // ── Score ───────────────────────────────────────────────────
   'score.excellent':  { fr: 'Excellent',        ary: 'ممتاز' },
   'score.bon':        { fr: 'Bon',              ary: 'مزيان' },
-  'score.mediocre':   { fr: 'Médiocre',         ary: 'دون المستوى' },
+  'score.mediocre':   { fr: 'Médiocre',         ary: 'ضعيف' },
   'score.mauvais':    { fr: 'Mauvais',          ary: 'خايب' },
   'score.incomplete': { fr: 'Score incomplet',  ary: 'النتيجة ناقصة' },
   'score.unverified': { fr: 'Non vérifié',      ary: 'ما مأكدش' },
@@ -139,6 +167,17 @@ export const translations = {
   'home.statCategories':    { fr: 'Rayons organisés par IA',     ary: 'فئات منظمة بالذكاء' },
   'home.statFree':          { fr: 'Gratuit, open source',        ary: 'بلا فلوس، مفتوح المصدر' },
   'home.latestProducts':    { fr: 'Derniers produits notés',     ary: 'آخر المنتجات المنقطة' },
+  // ── Refonte Marché Pop : Naânaa, 404, bulles de fiche ─────────
+  'home.tipTitle':          { fr: "L'astuce de Naânaa",          ary: 'نصيحة نعناعة' },
+  'home.tip':               { fr: "Un yaourt « aux fruits » contient souvent plus de sucre qu'un yaourt nature avec une cuillère de miel.", ary: 'ياغورط « بالفواكه » غالبا فيه سكر كثر من ياغورط طبيعي مع معلقة ديال العسل.' },
+  'error404.title':         { fr: "Oups, cette page s'est perdue au souk", ary: 'أوبس، هاد الصفحة تلفات فالسوق' },
+  'error404.desc':          { fr: "Le lien est peut-être ancien ou mal tapé. Scanne un produit ou repars de l'accueil.", ary: 'يمكن الرابط قديم ولا مكتوب غلط. سكاني منتوج ولا رجع للرئيسية.' },
+  'protein.tip':            { fr: "« Protéiné » sur l'emballage ne veut pas dire sain : regarde aussi le sucre.", ary: '« بروتيني » على العلبة ماشي معناه صحي: شوف حتى السكر.' },
+  'product.tip.sugar':      { fr: 'Très sucré : {n} g de sucres pour 100 g.', ary: 'فيه السكر بزاف: {n} غ ديال السكر ف100 غ.' },
+  'product.tip.salt':       { fr: 'Très salé : {n} g de sel pour 100 g.', ary: 'فيه الملح بزاف: {n} غ ديال الملح ف100 غ.' },
+  'product.tip.nova4':      { fr: 'Ultra-transformé (NOVA 4) : à garder pour les occasions.', ary: 'مصنّع بزاف (NOVA 4): خليه للمناسبات.' },
+  'product.tip.additives':  { fr: '{n} additifs dans la liste : le détail est plus bas.', ary: '{n} إضافات فاللائحة: التفاصيل لتحت.' },
+  'product.tip.good':       { fr: 'Bon choix : sucre, sel et transformation restent raisonnables.', ary: 'اختيار مزيان: السكر والملح والتصنيع معقولين.' },
 
   // ── Contribuer ──────────────────────────────────────────────
   'contribute.title':      { fr: 'Ajouter un produit',                                                           ary: 'زيد منتوج' },
@@ -886,6 +925,9 @@ export const translations = {
   'beauty.tile.none':    { fr: 'sans risque',     ary: 'بلا خطر' },
   'beauty.completeCta':  { fr: 'Compléter la fiche · +20 pts', ary: 'كمّل البطاقة · +20 نقطة' },
 } as const
+
+// Textes ajoutés par la refonte Marché Pop, un fichier par lot d'écrans
+export const translations = { ...base, ...refonte1, ...refonte2, ...refonte3 } as const
 
 /** Clé de traduction valide */
 export type TranslationKey = keyof typeof translations

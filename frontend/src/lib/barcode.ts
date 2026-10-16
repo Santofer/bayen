@@ -7,8 +7,7 @@
  *
  * Encodage GS1 : 3 tables (L, G, R) de 7 modules par chiffre, la parité du
  * premier chiffre d'un EAN-13 choisit L ou G pour les 6 chiffres suivants.
- * Rendu = 95 modules (EAN-13) ou 67 (EAN-8), gardes allongées, chiffres
- * imprimés sous les barres comme sur un emballage.
+ * Rendu = 95 modules (EAN-13) ou 67 (EAN-8), gardes allongées.
  */
 
 const L = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011']
@@ -46,50 +45,41 @@ function modules(code: string): string | null {
 }
 
 /**
- * SVG inline d'un code-barres, ou null si le code est invalide.
- * Le SVG est fluide (width 100%) et conserve son ratio via viewBox.
+ * Barres d'un code-barres en SVG (sans chiffres), ou null si le code est invalide.
+ * Les modules contigus sont fusionnés en une barre aux bouts arrondis (style
+ * « Marché Pop ») : les largeurs restent exactes, le code reste lisible par un
+ * lecteur. Couleur = currentColor ; les chiffres sont posés en HTML par la page
+ * (police de la marque), voir barcodeGroups().
  */
 export function barcodeSvg(code: string): string | null {
   const bits = modules(code)
   if (!bits) return null
-  const digits = code.replace(/\D/g, '')
   const isEan13 = bits.length === 95
-  const quiet = 9 // marge blanche latérale, en modules
-  const width = bits.length + quiet * 2
-  const barH = 60
-  const textY = barH + 13
-  const total = barH + 18
-
-  // Gardes (début, centre, fin) allongées jusqu'au texte
-  const guardStarts = isEan13 ? [0, 1, 2, 45, 46, 47, 48, 49, 92, 93, 94] : [0, 1, 2, 31, 32, 33, 34, 35, 64, 65, 66]
-  const guard = new Set(guardStarts)
+  const barH = 52
+  // Gardes (début, centre, fin) allongées, comme sur un emballage
+  const guard = new Set(isEan13 ? [0, 2, 46, 48, 92, 94] : [0, 2, 32, 34, 64, 66])
 
   let rects = ''
-  for (let i = 0; i < bits.length; i++) {
-    if (bits[i] !== '1') continue
+  for (let i = 0; i < bits.length; ) {
+    if (bits[i] !== '1') { i++; continue }
+    let j = i
+    while (bits[j] === '1') j++
     const h = guard.has(i) ? barH + 6 : barH
-    rects += `<rect x="${i + quiet}" y="0" width="1" height="${h}"/>`
-  }
-
-  // Chiffres : EAN-13 = 1 chiffre à gauche + 6 + 6 ; EAN-8 = 4 + 4
-  const font = `font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="currentColor"`
-  let text = ''
-  const d = isEan13 ? '0' + digits.slice(-13) === digits ? digits : digits.padStart(13, '0') : digits
-  if (isEan13) {
-    text += `<text x="${quiet - 2}" y="${textY}" text-anchor="end" ${font}>${d[0]}</text>`
-    text += `<text x="${quiet + 3 + 21}" y="${textY}" text-anchor="middle" ${font} textLength="38" lengthAdjust="spacing">${d.slice(1, 7)}</text>`
-    text += `<text x="${quiet + 50 + 21}" y="${textY}" text-anchor="middle" ${font} textLength="38" lengthAdjust="spacing">${d.slice(7)}</text>`
-  } else {
-    text += `<text x="${quiet + 3 + 14}" y="${textY}" text-anchor="middle" ${font} textLength="24" lengthAdjust="spacing">${d.slice(0, 4)}</text>`
-    text += `<text x="${quiet + 36 + 14}" y="${textY}" text-anchor="middle" ${font} textLength="24" lengthAdjust="spacing">${d.slice(4)}</text>`
+    rects += `<rect x="${i}" y="0" width="${j - i}" height="${h}" rx="0.5"/>`
+    i = j
   }
 
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${total}" width="100%" height="100%" ` +
-    `preserveAspectRatio="xMidYMid meet" role="img" aria-label="Code-barres ${digits}" shape-rendering="crispEdges">` +
-    `<rect width="${width}" height="${total}" fill="#fff"/>` +
-    `<g fill="#111">${rects}</g>` +
-    `<g fill="#111">${text.replace(/fill="currentColor"/g, '')}</g>` +
-    `</svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${bits.length} ${barH + 6}" width="100%" height="100%" ` +
+    `preserveAspectRatio="none" aria-hidden="true" fill="currentColor">${rects}</svg>`
   )
+}
+
+/** Chiffres groupés comme sous les barres : EAN-13 « 6 111246 722206 », EAN-8 « 1234 5670 ». */
+export function barcodeGroups(code: string): string[] {
+  let c = code.replace(/\D/g, '')
+  if (c.length === 12) c = '0' + c
+  if (c.length === 13) return [c[0], c.slice(1, 7), c.slice(7)]
+  if (c.length === 8) return [c.slice(0, 4), c.slice(4)]
+  return [c]
 }

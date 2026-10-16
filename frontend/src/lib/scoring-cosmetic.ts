@@ -37,11 +37,12 @@ const CAP: Record<CosmeticRiskLevel, number> = { banned: 5, high: 25, moderate: 
 const MALUS: Record<CosmeticRiskLevel, number> = { banned: 0, high: 8, moderate: 4, low: 2, none: 0, unknown: 0 }
 const ORDER: CosmeticRiskLevel[] = ['banned', 'high', 'moderate', 'low', 'none', 'unknown']
 
+// Couleurs = aplats Marché Pop (mêmes valeurs que score-colors.ts / scoring.ts)
 export function cosmeticScoreToLabel(total: number): { label: CosmeticScoreResult['label']; color: string } {
-  if (total >= 80) return { label: 'excellent', color: '#476a32' }
-  if (total >= 60) return { label: 'bon', color: '#b1cf3a' }
-  if (total >= 40) return { label: 'médiocre', color: '#f97316' }
-  return { label: 'mauvais', color: '#ef4444' }
+  if (total >= 80) return { label: 'excellent', color: '#19C08B' }
+  if (total >= 60) return { label: 'bon', color: '#A6E35F' }
+  if (total >= 40) return { label: 'médiocre', color: '#FFA24D' }
+  return { label: 'mauvais', color: '#FF5A3C' }
 }
 
 export function computeCosmeticScore(params: {
@@ -54,7 +55,7 @@ export function computeCosmeticScore(params: {
   for (const i of ings) counts[i.risk_level] = (counts[i.risk_level] ?? 0) + 1
 
   if (ings.length === 0) {
-    return { total: null, label: null, color: '#a1a1aa', cap_reason: null, worst: [], counts, incomplete: true, unscored: true }
+    return { total: null, label: null, color: '#E4D6BF', cap_reason: null, worst: [], counts, incomplete: true, unscored: true }
   }
 
   // 1. Plafond = pire niveau présent (le rang n'y change rien : un PE reste un PE)

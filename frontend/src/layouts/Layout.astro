@@ -5,8 +5,10 @@ import SeoHead from '@/components/SeoHead.astro'
 import UserMenu from '@/components/UserMenu'
 import LocaleToggle from '@/components/LocaleToggle'
 import ThemeToggle from '@/components/ThemeToggle'
+import Logo from '@/components/Logo.astro'
 import CartNavButton from '@/components/CartNavButton'
 import InstallPrompt from '@/components/InstallPrompt'
+import SiteMenu from '@/components/SiteMenu.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 // Lire la locale depuis le cookie SSR
@@ -25,75 +27,45 @@ interface Props {
   /** URL image OG */
   ogImage?: string
   /** Type OG */
-  ogType?: 'website' | 'product'
+  ogType?: 'website' | 'article' | 'product'
   /** JSON-LD Schema.org */
-  jsonLd?: Record<string, unknown>
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
   /** Ne pas indexer */
   noindex?: boolean
-  /** Univers de la page : rethème tous les tokens (beauté bleu-vert, protéines ambre) */
+  /** Univers de la page : rethème tous les tokens (beauté framboise, protéines myrtille) */
   universe?: 'beauty' | 'protein'
+  /** Barre du haut mobile par défaut (logo + bouton). false = la page dessine la sienne */
+  mobileTopbar?: boolean
 }
 
-const { title, description = 'Bayen — Scannez. Comprenez. Choisissez mieux.', hideNav = false, path, ogImage, ogType, jsonLd, noindex, universe } = Astro.props
+const { title, description = 'Bayen — Scannez. Comprenez. Choisissez mieux.', hideNav = false, path, ogImage, ogType, jsonLd, noindex, universe, mobileTopbar = true } = Astro.props
 const currentPath = Astro.url.pathname
 
-// ── Mega menus (desktop) — pages regroupées par section ─────────
-const NAV_ICONS: Record<string, string> = {
-  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
-  grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
-  flask: '<path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/>',
-  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
-  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
-  scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/>',
-  camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="4"/>',
-  basket: '<path d="m5 11 4-7"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="m9 11 1 9"/><path d="m15 11-1 9"/>',
-  spark: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
-  book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
-  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
-  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
-  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
-  ruler: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
-  history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
-  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
-}
-
-const megaMenus = [
-  {
-    label: t('nav.explore', locale),
-    items: [
-      { href: '/recherche', label: t('nav.search', locale), desc: t('nav.d.search', locale), icon: NAV_ICONS.search },
-      { href: '/beaute', label: t('nav.beauty', locale), desc: t('nav.d.beauty', locale), icon: NAV_ICONS.spark },
-      { href: '/proteines', label: t('nav.protein', locale), desc: t('nav.d.protein', locale), icon: NAV_ICONS.flask },
-      { href: '/categories', label: t('search.categories', locale), desc: t('nav.d.categories', locale), icon: NAV_ICONS.grid },
-      { href: '/additifs', label: t('nav.additives', locale), desc: t('nav.d.additives', locale), icon: NAV_ICONS.flask },
-      { href: '/ingredients', label: t('nav.ingredients', locale), desc: t('nav.d.ingredients', locale), icon: NAV_ICONS.leaf },
-      { href: '/comparer', label: t('nav.compare', locale), desc: t('nav.d.compare', locale), icon: NAV_ICONS.scale },
-    ],
-  },
-  {
-    label: t('nav.tools', locale),
-    items: [
-      { href: '/scan', label: t('nav.scan', locale), desc: t('nav.d.scan', locale), icon: NAV_ICONS.scan },
-      { href: '/analyser-repas', label: t('nav.meal', locale), desc: t('nav.d.meal', locale), icon: NAV_ICONS.camera },
-      { href: '/panier', label: t('nav.cart', locale), desc: t('nav.d.cart', locale), icon: NAV_ICONS.basket },
-      { href: '/compte/journal', label: t('nav.journal', locale), desc: t('nav.d.journal', locale), icon: NAV_ICONS.spark },
-      { href: '/mes-scans', label: t('nav.history', locale), desc: t('nav.d.history', locale), icon: NAV_ICONS.history },
-      { href: '/profil', label: t('nav.profile', locale), desc: t('nav.d.profile', locale), icon: NAV_ICONS.shield },
-    ],
-  },
-  {
-    label: t('nav.community', locale),
-    items: [
-      { href: '/blog', label: t('nav.blog', locale), desc: t('nav.d.blog', locale), icon: NAV_ICONS.book },
-      { href: '/contribuer', label: t('nav.contribute', locale), desc: t('nav.d.contribute', locale), icon: NAV_ICONS.plus },
-      { href: '/classement', label: t('account.rank', locale), desc: t('nav.d.rank', locale), icon: NAV_ICONS.trophy },
-      { href: '/partenaires', label: t('nav.partners', locale), desc: t('nav.d.partners', locale), icon: NAV_ICONS.users },
-      { href: '/a-propos', label: t('footer.about', locale), desc: t('nav.d.about', locale), icon: NAV_ICONS.info },
-      { href: '/methodologie', label: t('footer.methodology', locale), desc: t('nav.d.methodology', locale), icon: NAV_ICONS.ruler },
-    ],
-  },
+// En-tête ordinateur (maquette « Desktop ») : les univers, puis Connexion et Scanner
+const NAV = [
+  { href: '/recherche', label: t('nav.food', locale) },
+  { href: '/beaute', label: t('nav.beauty', locale) },
+  { href: '/proteines', label: t('nav.protein', locale) },
+  { href: '/analyser-repas', label: t('nav.meal', locale) },
+  { href: '/blog', label: t('nav.journalBlog', locale) },
 ]
+
+// Pied de page : toutes les pages qui ne sont pas dans l'en-tête restent accessibles ici
+const FOOTER_LINKS = [
+  { href: '/methodologie', label: t('footer.methodology', locale) },
+  { href: '/contribuer', label: t('nav.contribute', locale) },
+  { href: '/classement', label: t('nav.ranking', locale) },
+  { href: '/partenaires', label: t('nav.partners', locale) },
+  { href: '/a-propos', label: t('footer.about', locale) },
+  { href: '/categories', label: t('search.categories', locale) },
+  { href: '/additifs', label: t('nav.additives', locale) },
+  { href: '/ingredients', label: t('nav.ingredients', locale) },
+  { href: '/ingredients-cosmetiques', label: t('nav.inci', locale) },
+  { href: '/comparer', label: t('nav.compare', locale) },
+  { href: '/panier', label: t('nav.cart', locale) },
+  { href: '/importer', label: t('home.import', locale) },
+]
+const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/>'
 ---
 
 <!doctype html>
@@ -102,15 +74,17 @@ const megaMenus = [
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#476a32" />
+    <meta name="theme-color" content="#FFF8EC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1D1430" media="(prefers-color-scheme: dark)" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/favicon.ico?v=2" sizes="48x48" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
+    <link rel="icon" href="/favicon.ico?v=3" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.bayen.ma" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <title>{title}</title>
     <SeoHead title={title} description={description} path={path} ogImage={ogImage} ogType={ogType} jsonLd={jsonLd} noindex={noindex} />
     <!-- Appliquer locale + thème sauvegardés avant le premier paint -->
@@ -134,242 +108,106 @@ const megaMenus = [
   </head>
   <body class:list={["min-h-screen bg-background font-sans antialiased overflow-x-hidden", universe === 'beauty' && 'univ-beauty', universe === 'protein' && 'univ-protein']}>
     {!hideNav && (
-      <header class="sticky z-50 border" data-bayen-nav>
-        <div class="flex min-h-14 items-center gap-2 md:gap-4 lg:gap-[22px] px-3 sm:px-[22px]">
-          <!-- Logo -->
-          <a href="/" class="flex items-center flex-shrink-0" aria-label="Bayen — accueil">
-            <img src="/logo-bayn.svg" alt="Bayen" data-bayen-logo style="height: 30px; width: auto; display: block; filter: brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%);" />
-          </a>
-
-          <!-- Navigation desktop — mega menus par section -->
-          <nav class="hidden md:flex items-center gap-1 lg:gap-2" aria-label="Navigation principale">
-            {megaMenus.map((menu) => {
-              const groupActive = menu.items.some((it) => it.href !== '/' && currentPath.startsWith(it.href))
-              return (
-                <div class="nav-group" data-nav-group>
-                  <button type="button" class:list={['nav-link nav-group-btn', { on: groupActive }]} aria-expanded="false" aria-haspopup="true">
-                    {menu.label}
-                    <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-                  </button>
-                  <div class="nav-panel" role="menu">
-                    {menu.items.map((item) => (
-                      <a href={item.href} class:list={['nav-panel-item', { on: item.href !== '/' && currentPath.startsWith(item.href) }]} role="menuitem">
-                        <span class="nav-panel-ico">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
-                        </span>
-                        <span class="min-w-0">
-                          <b>{item.label}</b>
-                          <small>{item.desc}</small>
-                        </span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
+      <header class="site-header hidden md:block">
+        <div class="in">
+          <a class="logo relief" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
+          <nav aria-label={t('nav.main', locale)}>
+            {NAV.map((n) => (
+              <a href={n.href} aria-current={currentPath.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>
+            ))}
+            <button type="button" class="nav-more" data-open-menu aria-haspopup="dialog">
+              {t('nav.more', locale)}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
           </nav>
-
-          <!-- Spacer -->
-          <div class="flex-1" />
-
-          <!-- Utilitaires compacts : panier, thème, langue -->
-          <div class="flex items-center gap-0.5">
-            <CartNavButton label={t('nav.cart', locale)} client:load />
-            <ThemeToggle client:load />
-            <LocaleToggle client:load />
-          </div>
-
-          <!-- Se connecter (pilule outline) / avatar si connecté -->
+          <CartNavButton label={t('nav.cart', locale)} client:load />
           <UserMenu client:load />
-
-          <!-- CTA Scanner — omniprésent, pilule pleine (maquette) -->
-          <a href="/scan" class="nav-scan-cta">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
-              <path d="M3 7V5a2 2 0 012-2h2" />
-              <path d="M17 3h2a2 2 0 012 2v2" />
-              <path d="M21 17v2a2 2 0 01-2 2h-2" />
-              <path d="M7 21H5a2 2 0 01-2-2v-2" />
-              <line x1="7" y1="12" x2="17" y2="12" />
-            </svg>
-            <span class="hidden sm:inline">{t('nav.scan', locale)}</span>
+          <a class="btn sm primary" href="/scan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={SCAN_ICON} />
+            {t('nav.scan', locale)}
           </a>
+        </div>
+      </header>
+    )}
+
+    {!hideNav && mobileTopbar && (
+      <!-- Barre du haut mobile (maquette « Accueil ») : logo + un bouton rond -->
+      <header class="topbar md:hidden">
+        <a class="logo relief" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
+        <div class="flex gap-2">
+          <slot name="topbar-end"><CartNavButton label={t('nav.cart', locale)} client:load /></slot>
+          <button type="button" class="icon-btn " data-open-menu aria-label={t('nav.menu', locale)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
         </div>
       </header>
     )}
 
     <slot />
 
+    {!hideNav && <SiteMenu />}
     {!hideNav && (
-      <footer class="border-t mt-12 pb-20 md:pb-0 bg-[#476a32] text-[#f0f2d2] dark:bg-[hsl(105_30%_10%)] dark:text-[hsl(63_40%_92%)]">
-        <div class="container mx-auto max-w-screen-lg px-4 py-10">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-8">
-            <!-- Marque -->
-            <div class="col-span-2 sm:col-span-1">
-              <a href="/" class="flex items-center mb-3">
-                <img src="/logo-bayn.svg" alt="Bayen" class="h-7 w-auto" data-bayen-footer-logo style="filter: brightness(0) invert(1);" />
-              </a>
-              <p class="text-sm opacity-70">
-                {t('home.hero1', locale)}<br />{t('home.hero2', locale)}
-              </p>
-            </div>
+      <!-- Le sigle reste à l'écran au défilement et ouvre le menu (voir .sigle-fab) -->
+      <button type="button" class="sigle-fab" data-open-menu aria-haspopup="dialog" aria-label={t('nav.menu', locale)}>
+        <Logo variant="sigle" label="" />
+      </button>
+    )}
 
-            <!-- Navigation -->
-            <div>
-              <h3 class="font-semibold text-sm mb-3">{t('footer.navigation', locale)}</h3>
-              <ul class="space-y-2 text-sm opacity-70">
-                <li><a href="/scan" class="hover:opacity-100 transition-opacity">{t('nav.scan', locale)}</a></li>
-                <li><a href="/recherche" class="hover:opacity-100 transition-opacity">{t('nav.search', locale)}</a></li>
-                <li><a href="/beaute" class="hover:opacity-100 transition-opacity">{t('nav.beauty', locale)}</a></li>
-                <li><a href="/proteines" class="hover:opacity-100 transition-opacity">{t('nav.protein', locale)}</a></li>
-                <li><a href="/additifs" class="hover:opacity-100 transition-opacity">{t('nav.additives', locale)}</a></li>
-                <li><a href="/categories" class="hover:opacity-100 transition-opacity">{t('search.categories', locale)}</a></li>
-                <li><a href="/blog" class="hover:opacity-100 transition-opacity">{t('nav.blog', locale)}</a></li>
-              </ul>
-            </div>
-
-            <!-- Participer -->
-            <div>
-              <h3 class="font-semibold text-sm mb-3">{t('footer.participate', locale)}</h3>
-              <ul class="space-y-2 text-sm opacity-70">
-                <li><a href="/contribuer" class="hover:opacity-100 transition-opacity">{t('nav.contribute', locale)}</a></li>
-                <li><a href="/importer" class="hover:opacity-100 transition-opacity">{t('home.import', locale)}</a></li>
-                <li><a href="/classement" class="hover:opacity-100 transition-opacity">{t('account.rank', locale)}</a></li>
-                <li><a href="/partenaires" class="hover:opacity-100 transition-opacity">{t('nav.partners', locale)}</a></li>
-                <li><a href="/compte" class="hover:opacity-100 transition-opacity">{t('account.title', locale)}</a></li>
-              </ul>
-            </div>
-
-            <!-- Infos -->
-            <div>
-              <h3 class="font-semibold text-sm mb-3">{t('footer.info', locale)}</h3>
-              <ul class="space-y-2 text-sm opacity-70">
-                <li><a href="/a-propos" class="hover:opacity-100 transition-opacity">{t('footer.about', locale)}</a></li>
-                <li><a href="/methodologie" class="hover:opacity-100 transition-opacity">{t('footer.methodology', locale)}</a></li>
-                <li><a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="hover:opacity-100 transition-opacity">N0.ma</a></li>
-                <li><a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="hover:opacity-100 transition-opacity">Netspace</a></li>
-                <li><a href="mailto:contact@n0.ma" class="hover:opacity-100 transition-opacity">Contact</a></li>
-              </ul>
+    {!hideNav && (
+      <footer class="site-footer mt-12 pb-28 md:pb-0">
+        <div class="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-6 px-[18px] py-10 md:px-8">
+          <div class="grid max-w-[360px] content-start gap-2">
+            <a class="logo relief" href="/" aria-label={t('layout.homeAria', locale)}><Logo label="" /></a>
+            <p class="text-sm opacity-85">{t('footer.tagline', locale)}</p>
+            <div class="mt-2 flex items-center gap-3">
+              <ThemeToggle client:load />
+              <LocaleToggle client:load />
             </div>
           </div>
-
-          <!-- Séparateur + crédits -->
-          <div class="border-t border-current/10 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs opacity-60">
-            <p>
-              {t('footer.initiative', locale)}
-              <a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="opacity-100 hover:underline font-medium">N0</a>
-              &
-              <a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="opacity-100 hover:underline font-medium">Netspace</a>
-            </p>
-            <p>
-              {t('footer.dataFrom', locale)}
-              <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener noreferrer" class="opacity-100 hover:underline font-medium">Open Food Facts</a>
-              (ODbL)
-            </p>
-          </div>
+          <nav aria-label={t('layout.footerNav', locale)} class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
+            {FOOTER_LINKS.map((l) => <a href={l.href}>{l.label}</a>)}
+          </nav>
+        </div>
+        <div class="mx-auto flex max-w-[1240px] flex-col gap-1 border-t border-current/15 px-[18px] py-5 text-xs opacity-70 sm:flex-row sm:justify-between md:px-8">
+          <p>
+            {t('footer.initiative', locale)}
+            <a href="https://www.n0.ma" target="_blank" rel="noopener noreferrer" class="font-medium">N0</a>
+            &
+            <a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="font-medium">Netspace</a>
+            · <a href="mailto:contact@n0.ma">{t('layout.contact', locale)}</a>
+          </p>
+          <p>
+            {t('footer.dataFrom', locale)}
+            <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener noreferrer" class="font-medium">Open Food Facts</a>
+            (ODbL)
+          </p>
         </div>
       </footer>
     )}
 
     {!hideNav && (
-      <!-- Navigation mobile bottom -->
-      <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t" data-bayen-nav style="padding-bottom: env(safe-area-inset-bottom, 8px);">
-        <div class="flex items-center justify-around h-16 px-2 pb-1">
-          <a href="/" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/' ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            {t('nav.home', locale)}
-          </a>
-          <a href="/recherche" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/recherche' ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            {t('nav.search', locale)}
-          </a>
-          <a href="/scan" class="flex flex-col items-center gap-1 -mt-5">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg" data-bayen-scan-btn>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7V5a2 2 0 012-2h2" />
-                <path d="M17 3h2a2 2 0 012 2v2" />
-                <path d="M21 17v2a2 2 0 01-2 2h-2" />
-                <path d="M7 21H5a2 2 0 01-2-2v-2" />
-                <line x1="7" y1="12" x2="17" y2="12" />
-              </svg>
-            </div>
-            <span class="text-xs font-medium">{t('nav.scan', locale)}</span>
-          </a>
-          <a href="/additifs" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath.startsWith('/additifs') ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
-              <path d="M8.5 2h7" />
-            </svg>
-            {t('nav.additives', locale)}
-          </a>
-          <a href="/compte" class:list={['flex flex-col items-center gap-1 text-xs transition-opacity', currentPath === '/compte' ? 'opacity-100 font-medium' : 'opacity-50']}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            {t('nav.account', locale)}
-          </a>
-        </div>
+      <!-- Barre d'onglets mobile : îlot flottant, scan au centre -->
+      <nav class="tabbar md:hidden" aria-label={t('nav.main', locale)}>
+        <a href="/" class:list={[{ on: currentPath === '/' }]} aria-current={currentPath === '/' ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" /></svg>
+          {t('nav.home', locale)}
+        </a>
+        <a href="/recherche" class:list={[{ on: currentPath.startsWith('/recherche') }]} aria-current={currentPath.startsWith('/recherche') ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+          {t('nav.searchShort', locale)}
+        </a>
+        <a href="/scan" class="tab-scan" aria-label={t('nav.scan', locale)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" /><path d="M8 9v6M11 9v6M14 9v6M17 9v6" /></svg>
+        </a>
+        <a href="/analyser-repas" class:list={[{ on: currentPath.startsWith('/analyser-repas') }]} aria-current={currentPath.startsWith('/analyser-repas') ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /></svg>
+          {t('nav.mealShort', locale)}
+        </a>
+        <a href="/compte" class:list={[{ on: currentPath.startsWith('/compte') }]} aria-current={currentPath.startsWith('/compte') ? 'page' : undefined}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5" /></svg>
+          {t('nav.account', locale)}
+        </a>
       </nav>
     )}
 
-    <!-- Appliquer les couleurs navbar (inline pour éviter le tree-shaking Tailwind v4) -->
-    <script is:inline>
-      (function() {
-        function applyNavColors() {
-          var isDark = document.documentElement.classList.contains('dark');
-          var bg = isDark ? '#1c3014' : '#f0f2d2';
-          var fg = isDark ? '#b1cf3a' : '#476a32';
-          var bc = isDark ? 'rgba(177,207,58,0.15)' : 'rgba(71,106,50,0.1)';
-          var navs = document.querySelectorAll('[data-bayen-nav]');
-          for (var i = 0; i < navs.length; i++) {
-            navs[i].style.backgroundColor = bg;
-            navs[i].style.color = fg;
-            navs[i].style.borderColor = bc;
-          }
-          // Logo : vert foncé en light, lime en dark
-          var logos = document.querySelectorAll('[data-bayen-logo]');
-          var logoFilter = isDark
-            ? 'brightness(0) saturate(100%) invert(81%) sepia(45%) saturate(500%) hue-rotate(30deg) brightness(105%) contrast(90%)'
-            : 'brightness(0) saturate(100%) invert(36%) sepia(15%) saturate(1200%) hue-rotate(65deg) brightness(92%) contrast(88%)';
-          for (var j = 0; j < logos.length; j++) {
-            logos[j].style.filter = logoFilter;
-          }
-          // Bouton scan mobile : lime sur vert foncé en dark, vert foncé sur crème en light
-          var scanBtns = document.querySelectorAll('[data-bayen-scan-btn]');
-          for (var k = 0; k < scanBtns.length; k++) {
-            scanBtns[k].style.backgroundColor = isDark ? '#b1cf3a' : '#476a32';
-            scanBtns[k].style.color = isDark ? '#1c3014' : '#f0f2d2';
-          }
-          // Footer logo : crème en light (sur fond vert), lime en dark
-          var footerLogos = document.querySelectorAll('[data-bayen-footer-logo]');
-          var footerFilter = isDark
-            ? 'brightness(0) saturate(100%) invert(81%) sepia(45%) saturate(500%) hue-rotate(30deg) brightness(105%) contrast(90%)'
-            : 'brightness(0) invert(1) sepia(20%) saturate(200%) hue-rotate(20deg)';
-          for (var fl = 0; fl < footerLogos.length; fl++) {
-            footerLogos[fl].style.filter = footerFilter;
-          }
-        }
-        // Appliquer au chargement
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyNavColors);
-        } else {
-          applyNavColors();
-        }
-        // Observer les changements de thème (classe .dark sur <html>)
-        var observer = new MutationObserver(function(mutations) {
-          for (var m of mutations) {
-            if (m.attributeName === 'class') applyNavColors();
-          }
-        });
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-      })();
-    </script>
 
     <!-- PWA : install prompt + service worker (jamais en dev — il servirait
          du stale pendant les compilations lentes et masquerait les changements) -->
@@ -434,50 +272,11 @@ const megaMenus = [
           scrollTimer = setTimeout(function () {
             html.classList.remove('is-scrolling');
           }, 900);
-          // Ombre de la nav dès qu'on quitte le sommet
-          html.classList.toggle('nav-scrolled', window.scrollY > 8);
+          // Bouton au sigle : visible une fois la barre du haut sortie de l'écran
+          html.classList.toggle('scrolled', window.scrollY > 160);
         }
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
-
-        // ── Mega menus : clic + survol (desktop), Escape / clic extérieur ──
-        var groups = [].slice.call(document.querySelectorAll('[data-nav-group]'));
-        function closeAll(except) {
-          groups.forEach(function (g) {
-            if (g !== except) {
-              g.classList.remove('open');
-              var b = g.querySelector('.nav-group-btn');
-              if (b) b.setAttribute('aria-expanded', 'false');
-            }
-          });
-        }
-        groups.forEach(function (g) {
-          var btn = g.querySelector('.nav-group-btn');
-          if (!btn) return;
-          var timer = null;
-          btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            closeAll(g);
-            var open = g.classList.toggle('open');
-            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-          });
-          if (window.matchMedia('(hover: hover)').matches) {
-            g.addEventListener('mouseenter', function () {
-              if (timer) clearTimeout(timer);
-              closeAll(g);
-              g.classList.add('open');
-              btn.setAttribute('aria-expanded', 'true');
-            });
-            g.addEventListener('mouseleave', function () {
-              timer = setTimeout(function () {
-                g.classList.remove('open');
-                btn.setAttribute('aria-expanded', 'false');
-              }, 180);
-            });
-          }
-        });
-        document.addEventListener('click', function () { closeAll(null); });
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(null); });
 
         // Révélation douce au scroll — progressive enhancement strict :
         // on ne masque QUE ce qui est sous le fold, et un filet de sécurité

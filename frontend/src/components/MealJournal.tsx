@@ -1,10 +1,11 @@
 /**
- * Composant journal des analyses de repas — utilisateur connecté.
- * Liste paginée des meal_scans, triée date desc.
+ * Journal des analyses de repas — connecté : meal_scans (50 derniers, date desc) ;
+ * sans compte : journal local de l'appareil. Rend des sections d'écran.
  */
 
 import { useState, useEffect } from 'react'
 import { useLocale } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
 import { getAccessToken } from '@/lib/auth'
 import { Loader2, Camera, Trash2 } from 'lucide-react'
 import {
@@ -29,17 +30,19 @@ interface MealScanRow {
   date_created: string
 }
 
+// Pastille de fiabilité (aplats Marché Pop)
 const CONFIANCE_DOT: Record<string, string> = {
-  faible: '#f59e0b',
-  moyenne: '#3b82f6',
-  elevee: '#16a34a',
+  faible: 'var(--color-score-mediocre)',
+  moyenne: 'var(--color-citron)',
+  elevee: 'var(--color-menthe)',
 }
 
-const VERDICT_META: Record<string, { color: string; label: string }> = {
-  sain:        { color: '#476a32', label: 'Sain' },
-  equilibre:   { color: '#7a9e3a', label: 'Équilibré' },
-  a_limiter:   { color: '#f97316', label: 'À limiter' },
-  occasionnel: { color: '#ef4444', label: 'Occasionnel' },
+// Verdict qualitatif : aplat de l'échelle de score, texte encre posé dessus
+const VERDICT_META: Record<string, { color: string; label: TranslationKey }> = {
+  sain:        { color: 'var(--color-score-excellent)', label: 'journal.verdict.sain' },
+  equilibre:   { color: 'var(--color-score-bon)', label: 'journal.verdict.equilibre' },
+  a_limiter:   { color: 'var(--color-score-mediocre)', label: 'journal.verdict.a_limiter' },
+  occasionnel: { color: 'var(--color-score-mauvais)', label: 'journal.verdict.occasionnel' },
 }
 
 function kcalLabel(s: MealScanRow): string | null {
@@ -103,18 +106,23 @@ export default function MealJournal() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        <span>…</span>
-      </div>
+      <section className="section">
+        <div className="flex items-center justify-center gap-2 py-20 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+          <span>…</span>
+        </div>
+      </section>
     )
   }
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
-        {error}
-      </div>
+      <section className="section">
+        <div className="naanaa">
+          <div className="m"><img src="/mascotte/naanaa-oups.webp" alt="" /></div>
+          <p className="bubble">{t('common.error')}</p>
+        </div>
+      </section>
     )
   }
 
@@ -122,148 +130,136 @@ export default function MealJournal() {
   if (localEntries !== null) {
     const stats = todayStats(localEntries)
     return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-card">
-          <div>
-            <p className="font-display font-bold text-foreground">{t('meal.localTitle')}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{t('meal.localHint')}</p>
-          </div>
-          {stats.count > 0 && (
-            <p className="text-sm">
-              {t('meal.localToday')} :{' '}
-              <b className="font-display text-xl font-extrabold text-primary">
-                {stats.kcalMin === stats.kcalMax ? stats.kcalMax : `${stats.kcalMin}–${stats.kcalMax}`}
-              </b>{' '}
-              <span className="text-xs text-muted-foreground">{t('journal.kcal')}</span>
-            </p>
-          )}
-        </div>
-
-        {localEntries.length === 0 ? (
-          <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Camera className="h-8 w-8 text-primary" />
+      <>
+        <section className="section">
+          <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+            <div>
+              <p className="disp d-s">{t('meal.localTitle')}</p>
+              <p className="muted mt-1 text-xs">{t('meal.localHint')}</p>
             </div>
-            <p className="text-muted-foreground">{t('meal.localEmpty')}</p>
-            <a
-              href="/analyser-repas"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90"
-            >
-              {t('meal.analyzeCta')}
-            </a>
+            {stats.count > 0 && (
+              <p className="text-sm">
+                {t('meal.localToday')} :{' '}
+                <b className="disp d-m num text-brand-ink">
+                  {stats.kcalMin === stats.kcalMax ? stats.kcalMax : `${stats.kcalMin}–${stats.kcalMax}`}
+                </b>{' '}
+                <span className="muted text-xs">{t('journal.kcal')}</span>
+              </p>
+            )}
           </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-4">
-            {localEntries.map((e) => {
-              const kcal = e.kcal_min != null && e.kcal_max != null && e.kcal_min !== e.kcal_max
-                ? `${e.kcal_min}–${e.kcal_max}`
-                : String(e.kcal_max ?? e.kcal_min ?? '—')
-              return (
-                <article key={e.id} className="rounded-2xl border bg-card p-4 shadow-card">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-semibold text-foreground line-clamp-2">{e.plat}</h3>
-                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary whitespace-nowrap">
-                      {kcal} {t('journal.kcal')}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {[
-                      e.proteines_g != null ? `P ${e.proteines_g} g` : null,
-                      e.lipides_g != null ? `L ${e.lipides_g} g` : null,
-                      e.glucides_g != null ? `G ${e.glucides_g} g` : null,
-                    ].filter(Boolean).join(' · ')}
-                  </p>
-                  <div className="flex items-center justify-between mt-3">
-                    <p className="text-[11px] text-muted-foreground">{formatDate(new Date(e.at).toISOString())}</p>
-                    <button
-                      type="button"
-                      onClick={() => removeMealFromHistory(e.id)}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 size={12} /> {t('meal.localDelete')}
-                    </button>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        )}
+        </section>
 
-        <div className="rounded-2xl border border-dashed bg-card/50 p-4 text-center">
-          <a href="/connexion?next=/compte/journal" className="text-sm font-semibold text-primary hover:underline">
-            {t('meal.loginToSave')} →
+        <section className="section">
+          {localEntries.length === 0 ? (
+            <div className="card grid justify-items-start gap-4 p-4">
+              <div className="naanaa">
+                <div className="m"><img src="/mascotte/naanaa-courses.webp" alt="" /></div>
+                <p className="bubble">{t('meal.localEmpty')}</p>
+              </div>
+              <a href="/analyser-repas" className="btn primary">
+                <Camera aria-hidden="true" /> {t('meal.analyzeCta')}
+              </a>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-6">
+              {localEntries.map((e) => {
+                const kcal = e.kcal_min != null && e.kcal_max != null && e.kcal_min !== e.kcal_max
+                  ? `${e.kcal_min}–${e.kcal_max}`
+                  : String(e.kcal_max ?? e.kcal_min ?? '—')
+                return (
+                  <article key={e.id} className="card grid gap-2 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="line-clamp-2 font-bold">{e.plat}</h3>
+                      <span className="chip fill num flex-none bg-ai font-display font-bold">
+                        {kcal} {t('journal.kcal')}
+                      </span>
+                    </div>
+                    <p className="muted text-xs">
+                      {[
+                        e.proteines_g != null ? `${t('journal.macroP')} ${e.proteines_g} g` : null,
+                        e.lipides_g != null ? `${t('journal.macroL')} ${e.lipides_g} g` : null,
+                        e.glucides_g != null ? `${t('journal.macroG')} ${e.glucides_g} g` : null,
+                      ].filter(Boolean).join(' · ')}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="muted text-[11px]">{formatDate(new Date(e.at).toISOString())}</p>
+                      <button
+                        type="button"
+                        onClick={() => removeMealFromHistory(e.id)}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 size={12} aria-hidden="true" /> {t('meal.localDelete')}
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="section">
+          <a href="/connexion?redirect=%2Fcompte%2Fjournal" className="btn w-full md:w-max">
+            {t('meal.loginToSave')} <span className="inline-block rtl:rotate-180" aria-hidden="true">→</span>
           </a>
-        </div>
-      </div>
+        </section>
+      </>
     )
   }
 
   if (scans.length === 0) {
     return (
-      <div className="rounded-2xl border bg-card p-10 text-center space-y-4">
-        <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-          <Camera className="h-8 w-8 text-primary" />
+      <section className="section">
+        <div className="card grid justify-items-start gap-4 p-4">
+          <div className="naanaa">
+            <div className="m"><img src="/mascotte/naanaa-courses.webp" alt="" /></div>
+            <p className="bubble">{t('journal.empty')}</p>
+          </div>
+          <a href="/analyser-repas" className="btn primary">
+            <Camera aria-hidden="true" /> {t('journal.emptyCta')}
+          </a>
         </div>
-        <p className="text-muted-foreground">{t('journal.empty')}</p>
-        <a
-          href="/analyser-repas"
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-        >
-          {t('journal.emptyCta')}
-        </a>
-      </div>
+      </section>
     )
   }
 
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
-      {scans.map((s) => {
-        const kcal = kcalLabel(s)
-        const dot = s.confiance ? CONFIANCE_DOT[s.confiance] : null
-        const vmeta = s.verdict ? VERDICT_META[s.verdict] : null
-        return (
-          <article key={s.id} className="rounded-2xl border bg-card overflow-hidden">
-            <div className="relative aspect-[4/3] bg-muted overflow-hidden">
-              {s.image ? (
-                <img
-                  src={`${CDN_URL}/${s.image}`}
-                  alt={s.plat ?? 'Repas'}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                  <Camera className="h-8 w-8" />
-                </div>
-              )}
-              {/* Verdict qualitatif */}
-              {vmeta && (
-                <div
-                  className="absolute top-2 left-2 rounded-full text-white text-[11px] font-bold px-2.5 py-1 shadow-lg"
-                  style={{ backgroundColor: vmeta.color }}
-                >
-                  {vmeta.label}
-                </div>
-              )}
-              {kcal && (
-                <div className="absolute top-2 right-2 rounded-full bg-black/70 text-white text-xs font-bold px-3 py-1.5 shadow-lg backdrop-blur-sm">
-                  {kcal} {t('journal.kcal')}
-                </div>
-              )}
-            </div>
-            <div className="p-4 space-y-2">
-              <h3 className="font-semibold text-foreground line-clamp-1">
-                {s.plat ?? '—'}
-              </h3>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                {dot && <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: dot }} />}
-                {s.portion_g != null && <span>≈ {s.portion_g} g</span>}
-              </p>
-              <p className="text-[11px] text-muted-foreground">{formatDate(s.date_created)}</p>
-            </div>
-          </article>
-        )
-      })}
-    </div>
+    <section className="section">
+      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-6">
+        {scans.map((s) => {
+          const kcal = kcalLabel(s)
+          const dot = s.confiance ? CONFIANCE_DOT[s.confiance] : null
+          const vmeta = s.verdict ? VERDICT_META[s.verdict] : null
+          return (
+            <article key={s.id} className="card grid content-start overflow-hidden">
+              {/* La photo du plat remplit le cadre ; la teinte figue ne se voit que sans photo */}
+              <div className="tile tint-figue aspect-[4/3] rounded-none border-0 border-b-2">
+                <Camera className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+                {s.image && <img src={`${CDN_URL}/${s.image}`} alt={s.plat ?? t('meal.fallbackName')} loading="lazy" />}
+                {/* Verdict qualitatif */}
+                {vmeta && (
+                  <span className="chip fill absolute start-2 top-2 z-10" style={{ backgroundColor: vmeta.color }}>
+                    {t(vmeta.label)}
+                  </span>
+                )}
+                {kcal && (
+                  <span className="chip fill num absolute end-2 top-2 z-10 bg-creme font-display font-bold">
+                    {kcal} {t('journal.kcal')}
+                  </span>
+                )}
+              </div>
+              <div className="grid gap-1.5 p-4">
+                <h3 className="line-clamp-1 font-bold">{s.plat ?? '—'}</h3>
+                <p className="muted flex items-center gap-1.5 text-xs">
+                  {dot && <span className="inline-block size-2.5 rounded-full border border-line" style={{ backgroundColor: dot }} />}
+                  {s.portion_g != null && <span>≈ {s.portion_g} g</span>}
+                </p>
+                <p className="muted text-[11px]">{formatDate(s.date_created)}</p>
+              </div>
+            </article>
+          )
+        })}
+      </div>
+    </section>
   )
 }

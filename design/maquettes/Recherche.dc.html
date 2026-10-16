@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Recherche · catégorie</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="bayen.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&amp;family=Readex+Pro:wght@400;500;600;700&amp;family=Archivo:wdth,wght@62..100,600..900&amp;family=IBM+Plex+Mono:wght@400;600&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div class="bp phone {{cls}}" style="height: 1240px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 110px">
+  <header class="topbar" style="padding-bottom: 0">
+    <a class="icon-btn" href="Main.dc.html" aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <h1 class="disp d-m" style="flex: 1">Produits laitiers</h1>
+    <button class="icon-btn" type="button" aria-label="Filtres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+  </header>
+  <section class="section" style="gap: 12px">
+    <label for="q-cat" class="card" style="display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 48px; border-radius: 999px; box-shadow: 3px 3px 0 var(--shadow)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="q-cat" type="search" value="yaourt" style="border: 0; background: transparent; font: 500 14.5px var(--f-ui); color: var(--fg); flex: 1; outline: none">
+    </label>
+    <div style="display: flex; gap: 6px; padding: 4px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface)">
+      <a href="Recherche.dc.html" class="btn sm flat" style="flex: 1; background: var(--u-food); color: var(--encre); border-color: var(--encre)" aria-current="page">Alimentation</a>
+      <a href="Beaute.dc.html" class="btn sm flat" style="flex: 1; border-color: transparent; background: transparent">Beauté</a>
+    </div>
+    <div class="chips">
+      <span class="chip fill" style="background: var(--citron)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg> Sucres &lt; 5 g</span>
+      <span class="chip">Sans additif</span>
+      <span class="chip">Halal</span>
+      <span class="chip">Bio</span>
+      <span class="chip">Marque marocaine</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px">
+      <span class="muted"><b style="color: var(--fg)">38 produits</b> · exemple</span>
+      <span style="font-weight: 700">Trier : mieux notés ▾</span>
+    </div>
+  </section>
+  <section class="section" style="gap: 12px">
+    <a href="FichePop.dc.html" class="card pcard" style="text-decoration: none"><div class="tile t-lemon"><img src="/_blob/b6294d2312555ceb38186497634b9e09" alt=""></div><div><p class="pn">Yaourt nature brassé</p><p class="pm">Laiterie · 125 g</p><div class="chips"><span class="chip">Sans additif</span></div></div><div class="sticker sa"><div><b>81</b><span>Excellent</span></div></div></a>
+    <a href="FichePop.dc.html" class="card pcard" style="text-decoration: none"><div class="tile t-mint"><img src="/_blob/b6294d2312555ceb38186497634b9e09" alt=""></div><div><p class="pn">Skyr nature 0 %</p><p class="pm">Laiterie · 150 g</p><div class="chips"><span class="chip">10 g protéines</span></div></div><div class="sticker sb"><div><b>78</b><span>Bon</span></div></div></a>
+    <a href="FichePop.dc.html" class="card pcard" style="text-decoration: none"><div class="tile t-blue"><img src="/_blob/4f1aba2b5c7286f041cafb8395c8bb30" alt=""></div><div><p class="pn">Lben demi-écrémé</p><p class="pm">Laiterie · 1 L</p><div class="chips"><span class="chip">NOVA 1</span></div></div><div class="sticker sb"><div><b>70</b><span>Bon</span></div></div></a>
+    <a href="FichePop.dc.html" class="card pcard" style="text-decoration: none"><div class="tile t-pink"><img src="/_blob/4f1aba2b5c7286f041cafb8395c8bb30" alt=""></div><div><p class="pn">Yaourt à boire, fraise</p><p class="pm">Laiterie · 200 g</p><div class="chips"><span class="chip">E129</span></div></div><div class="sticker sc"><div><b>52</b><span>Moyen</span></div></div></a>
+    <a href="FichePop.dc.html" class="card pcard" style="text-decoration: none"><div class="tile t-tomato"><img src="/_blob/4f1aba2b5c7286f041cafb8395c8bb30" alt=""></div><div><p class="pn">Dessert lacté chocolat</p><p class="pm">Laiterie · 4 × 100 g</p><div class="chips"><span class="chip">3 additifs</span></div></div><div class="sticker sd"><div><b>31</b><span>Médiocre</span></div></div></a>
+    <div class="naanaa" style="grid-template-columns: 56px 1fr; margin-top: 6px">
+      <div class="m" style="width: 56px; height: 56px"><img src="/_blob/ff2391840852cc0cac4c27ac311ec542" alt=""></div>
+      <p class="bubble">Ton produit n'y est pas ? <a href="Scan.dc.html"><b>Scanne-le</b></a>, on l'ajoute avec toi.</p>
+    </div>
+  </section>
+  <nav class="tabbar" aria-label="Navigation principale"><a href="Main.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Accueil</a><a href="Recherche.dc.html" class="on" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Chercher</a><a href="Scan.dc.html" class="scan" aria-label="Scanner un produit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/></svg></a><a href="Repas.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Repas</a><a href="Compte.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/></svg>Compte</a></nav>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["light", "dark"], "default": "light"}, "$preview": {"width": 390, "height": 1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme ?? 'light';
+    return { cls: theme === 'dark' ? 'dark' : ''  };
+  }
+}
+</script>
+</body>
+</html>

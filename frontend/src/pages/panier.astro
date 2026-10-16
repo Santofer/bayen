@@ -1,4 +1,5 @@
 ---
+// Ma liste de courses — 100 % locale (localStorage)
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
@@ -15,12 +16,12 @@ const locale = getLocale(localeCookie)
   description="Ta liste de courses Bayen : ajoute des produits, vois leur score, imprime-la ou envoie-la sur WhatsApp."
   path="/panier"
   noindex={true}
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-md px-4 pt-6 pb-24">
-    <PageHero image="/hero/panier.jpg?v=2" kicker={t('nav.cart', locale)} title={t('cart.pageTitle', locale)} subtitle={t('cart.pageSubtitle', locale)} class="mb-8">
-      <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 11 4-7M19 11l-4-7M2 11h20M3.5 11l1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/></svg>
-    </PageHero>
-
+  <PageHero tone="primary" mascot="courses" back="/compte" kicker={t('nav.cart', locale)} title={t('cart.pageTitle', locale)} subtitle={t('cart.pageSubtitle', locale)} class="print:hidden">
+    <svg slot="icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 11 4-7M19 11l-4-7M2 11h20M3.5 11l1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/></svg>
+  </PageHero>
+  <main class="screen max-md:pt-5">
     <Cart client:load />
   </main>
 </Layout>

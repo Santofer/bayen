@@ -4,6 +4,7 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import PointsDashboard from '@/components/PointsDashboard.tsx'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
@@ -14,17 +15,10 @@ const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
   description="Vos points, votre rang et le détail de vos contributions à la base Bayen."
   path="/compte/points"
   noindex={true}
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <div class="mx-auto max-w-lg">
-      <div class="mb-5">
-        <h1 class="font-display text-2xl font-bold">{t('points.title', locale)}</h1>
-        <p class="mt-1 text-sm text-muted-foreground">
-          Chaque contribution rend la base plus fiable pour tout le monde.
-        </p>
-      </div>
-
-      <PointsDashboard client:load />
-    </div>
+  <PageHero tone="citron" mascot="bravo" back="/compte" kicker={t('nav.community', locale)} title={t('points.title', locale)} subtitle={t('points.subtitle', locale)} />
+  <main class="screen max-md:pt-5">
+    <PointsDashboard client:load />
   </main>
 </Layout>

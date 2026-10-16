@@ -1,17 +1,18 @@
 ---
-// Référentiel INCI (C23) — recherche + listes par niveau de risque
+// Référentiel INCI (C23) — recherche + listes par niveau de risque (motif bandeau Beauté)
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 60)
 
-interface Row { id: number; inci_name: string; name_fr: string | null; risk_level: string; risk_types: string[] | null; risk_status: string | null }
+interface Row { id: number; inci_name: string; name_fr: string | null; risk_level: string; risk_types: string[] | null; risk_status: string | null; source_url: string | null }
 
-const FIELDS = 'id,inci_name,name_fr,risk_level,risk_types,risk_status'
+const FIELDS = 'id,inci_name,name_fr,risk_level,risk_types,risk_status,source_url'
 let results: Row[] = []
 const lists: Record<'banned' | 'high' | 'moderate', Row[]> = { banned: [], high: [], moderate: [] }
 
@@ -28,16 +29,31 @@ try {
   }
 } catch { /* page vide mais servie */ }
 
-const LEVEL_STYLE: Record<string, string> = {
-  banned: 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-200',
-  high: 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300',
-  moderate: 'bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300',
-  low: 'bg-lime-50 text-lime-800 dark:bg-lime-950/30 dark:text-lime-200',
-  none: 'bg-muted text-foreground',
+// Aplats Marché Pop (même échelle que InciList), texte encre posé dessus
+const LEVEL_FILL: Record<string, string> = {
+  banned: 'fill bg-score-mauvais',
+  high: 'fill bg-score-mauvais',
+  moderate: 'fill bg-score-mediocre',
+  low: 'fill bg-citron',
+  none: 'fill bg-score-excellent',
   unknown: 'bg-muted text-muted-foreground',
 }
 const levelKey = (l: string) => (['banned', 'high', 'moderate', 'low', 'none'].includes(l) ? `beauty.risk.${l}` : 'beauty.risk.unknown') as Parameters<typeof t>[0]
-const typeKey = (ty: string) => (['endocrine', 'cmr', 'allergen', 'irritant', 'environment', 'restricted'].includes(ty) ? `beauty.type.${ty}` as Parameters<typeof t>[0] : null)
+const typeKey = (ty: string) => (['cmr', 'allergen', 'irritant', 'environment', 'restricted'].includes(ty) ? `beauty.type.${ty}` as Parameters<typeof t>[0] : null)
+/**
+ * Types de risque lisibles. Règle C23 : « perturbateur endocrinien » seulement
+ * qualifié (suspecté / avéré) ET sourcé (source_url) ; sinon le type est omis.
+ */
+const types = (r: Row): string =>
+  (r.risk_types ?? []).flatMap((ty) => {
+    if (ty === 'endocrine') {
+      return (r.risk_status === 'suspected' || r.risk_status === 'confirmed') && r.source_url
+        ? [`${t('beauty.type.endocrine', locale)} ${t(`beauty.status.${r.risk_status}` as Parameters<typeof t>[0], locale)}`]
+        : []
+    }
+    const k = typeKey(ty)
+    return k ? [t(k, locale)] : []
+  }).join(', ')
 ---
 
 <Layout
@@ -45,37 +61,38 @@ const typeKey = (ty: string) => (['endocrine', 'cmr', 'allergen', 'irritant', 'e
   description="Référentiel de plus de 25 000 ingrédients cosmétiques : niveau de risque, perturbateurs endocriniens suspectés, allergènes, substances interdites (CosIng, SCCS)."
   path="/ingredients-cosmetiques"
   universe="beauty"
+  mobileTopbar={false}
 >
-  <main class="container mx-auto max-w-screen-lg px-4 py-6 pb-24">
-    <div class="mb-6">
-      <h1 class="font-display text-2xl font-bold">{t('beauty.ingredientsTitle', locale)}</h1>
-      <p class="mt-1 text-sm text-muted-foreground">{t('beauty.ingredientsDesc', locale)}</p>
-    </div>
-
-    <form method="get" action="/ingredients-cosmetiques" class="search-hero mb-6">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-      <input type="search" name="q" value={q} placeholder="PARABEN, PHENOXYETHANOL, résorcinol…" aria-label={t('beauty.ingredientsTitle', locale)} />
-      <button type="submit" class="go hidden sm:block">{t('search.searchBtn', locale)}</button>
+  <PageHero tone="beauty" mascot="loupe" back="/beaute" kicker={t('beauty.hub.kicker', locale)} title={t('beauty.ingredientsTitle', locale)} subtitle={t('beauty.ingredientsDesc', locale)}>
+    <form method="get" action="/ingredients-cosmetiques" role="search" class="flex items-center gap-3 rounded-full border-2 border-encre bg-creme py-1.5 ps-5 pe-1.5 text-encre shadow-[3px_3px_0_var(--color-encre)] md:max-w-xl">
+      <svg class="size-[18px] flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
+      <input type="search" name="q" value={q} placeholder={t('inci.searchPlaceholder', locale)} aria-label={t('beauty.ingredientsTitle', locale)} class="w-0 min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-encre/55" />
+      <button type="submit" class="btn sm dark-btn flat">{t('search.searchBtn', locale)}</button>
     </form>
+  </PageHero>
 
+  <main class="screen max-md:pt-5">
     {q ? (
-      <section>
-        <div class="sec-head-v2">
-          <h2>« {q} »</h2>
-          <span class="text-sm text-muted-foreground">{results.length} {t('search.results', locale)}</span>
+      <section class="section">
+        <div class="sec-head">
+          <h2 class="disp d-m">« {q} »</h2>
+          <span class="muted text-xs">{results.length} {t('search.results', locale)}</span>
         </div>
         {results.length === 0 ? (
-          <div class="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">{t('search.noResults', locale)}</div>
+          <div class="naanaa grid-cols-[56px_minmax(0,1fr)]">
+            <div class="m size-14"><img src="/mascotte/naanaa-loupe.webp" alt="" width="56" height="56" loading="lazy" /></div>
+            <p class="bubble">{t('search.noResults', locale)}</p>
+          </div>
         ) : (
-          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {results.map((r) => (
               <li>
-                <a href={`/ingredients-cosmetiques/${encodeURIComponent(r.inci_name)}`} class="flex items-center gap-3 rounded-xl border bg-card p-3 hover:border-primary/40">
+                <a href={`/ingredients-cosmetiques/${encodeURIComponent(r.inci_name)}`} class="card flex items-center gap-3 p-3.5">
                   <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-semibold">{r.inci_name}</span>
-                    {r.name_fr && <span class="block truncate text-xs text-muted-foreground">{r.name_fr}</span>}
+                    <span class="block truncate font-bold">{r.inci_name}</span>
+                    {r.name_fr && <span class="muted block truncate text-xs">{r.name_fr}</span>}
                   </span>
-                  <span class:list={['flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold', LEVEL_STYLE[r.risk_level] ?? LEVEL_STYLE.unknown]}>{t(levelKey(r.risk_level), locale)}</span>
+                  <span class:list={['chip h-[22px] flex-none', LEVEL_FILL[r.risk_level] ?? LEVEL_FILL.unknown]}>{t(levelKey(r.risk_level), locale)}</span>
                 </a>
               </li>
             ))}
@@ -83,30 +100,31 @@ const typeKey = (ty: string) => (['endocrine', 'cmr', 'allergen', 'irritant', 'e
         )}
       </section>
     ) : (
-      <div class="space-y-8">
-        {(['banned', 'high', 'moderate'] as const).map((lvl) => (
-          <section>
-            <div class="sec-head-v2">
-              <h2>{t(levelKey(lvl), locale)}</h2>
-              <span class="text-sm text-muted-foreground">{lists[lvl].length}</span>
-            </div>
-            <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {lists[lvl].map((r) => (
-                <li>
-                  <a href={`/ingredients-cosmetiques/${encodeURIComponent(r.inci_name)}`} class="flex flex-col gap-1 rounded-xl border bg-card p-3 hover:border-primary/40">
-                    <span class="truncate text-sm font-semibold">{r.inci_name}</span>
-                    <span class="truncate text-xs text-muted-foreground">
-                      {r.name_fr ?? ''}
-                      {Array.isArray(r.risk_types) && r.risk_types.length > 0 && ` · ${r.risk_types.map((ty) => { const k = typeKey(ty); return k ? t(k, locale) : ty }).join(', ')}`}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-        <p class="text-xs text-muted-foreground">{t('beauty.disclaimer', locale)}</p>
-      </div>
+      (['banned', 'high', 'moderate'] as const).map((lvl) => (
+        <section class="section">
+          <div class="sec-head">
+            <h2 class="disp d-m flex items-center gap-2">
+              <span class:list={['inline-block size-3.5 rounded-full border-2 border-encre', LEVEL_FILL[lvl]]} aria-hidden="true" />
+              {t(levelKey(lvl), locale)}
+            </h2>
+            <span class="muted text-xs">{lists[lvl].length}</span>
+          </div>
+          <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {lists[lvl].map((r) => (
+              <li>
+                <a href={`/ingredients-cosmetiques/${encodeURIComponent(r.inci_name)}`} class="card grid gap-1 p-3.5">
+                  <span class="truncate font-bold">{r.inci_name}</span>
+                  <span class="muted truncate text-xs">{[r.name_fr, types(r)].filter(Boolean).join(' · ')}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
     )}
+
+    <section class="section">
+      <p class="muted text-xs">{t('beauty.disclaimer', locale)}</p>
+    </section>
   </main>
 </Layout>

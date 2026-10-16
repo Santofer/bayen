@@ -134,7 +134,7 @@ export default function OffImportButton({ barcode, productData }: OffImportButto
       >
         {submitting ? (
           <>
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
             Sauvegarde en cours...
           </>
         ) : (
@@ -163,8 +163,8 @@ export default function OffImportButton({ barcode, productData }: OffImportButto
         <div
           className={
             feedback.type === 'success'
-              ? 'rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 px-3 py-2 text-sm text-green-800 dark:text-green-200'
-              : 'rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 px-3 py-2 text-sm text-red-800 dark:text-red-200'
+              ? 'rounded-xl border-2 border-line tint-menthe px-3 py-2 text-sm text-foreground'
+              : 'rounded-xl border-2 border-line tint-tomate px-3 py-2 text-sm text-foreground'
           }
         >
           {feedback.message}

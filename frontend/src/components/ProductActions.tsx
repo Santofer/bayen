@@ -8,7 +8,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { useLocale } from '@/lib/i18n'
 import { getAccessToken, isAuthenticated } from '@/lib/auth'
@@ -116,16 +115,16 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
         const data = (await res.json()) as { confirmations?: number; verified?: boolean }
         setHasConfirmed(true)
         setConfirmCount(data.confirmations ?? confirmCount + 1)
-        setFeedback(data.verified ? 'Fiche vérifiée, merci !' : 'Confirmation enregistrée !')
+        setFeedback(data.verified ? t('product.verifiedThanks') : t('product.confirmSaved'))
         setTimeout(() => setFeedback(null), 3000)
       } else if (res.status === 409) {
         setHasConfirmed(true)
-        setFeedback('Tu as déjà confirmé cette fiche.')
+        setFeedback(t('product.alreadyConfirmed'))
         setTimeout(() => setFeedback(null), 3000)
       }
     } catch { /* erreur silencieuse */ }
     setSubmitting(false)
-  }, [canAct, hasConfirmed, barcode, confirmCount])
+  }, [canAct, hasConfirmed, barcode, confirmCount, t])
 
   const handleReport = useCallback(async () => {
     if (!canAct || !reportText.trim()) return
@@ -148,12 +147,12 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       if (res.ok) {
         setShowReport(false)
         setReportText('')
-        setFeedback('Signalement envoyé ! Un modérateur l\'examinera.')
+        setFeedback(t('product.reportSent'))
         setTimeout(() => setFeedback(null), 3000)
       }
     } catch { /* erreur silencieuse */ }
     setSubmitting(false)
-  }, [canAct, reportText, productId])
+  }, [canAct, reportText, productId, t])
 
   const isAdmin = userRole === 'admin'
 
@@ -166,15 +165,15 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
       if (success) {
         window.location.href = '/'
       } else {
-        setFeedback('Erreur lors de la suppression')
+        setFeedback(t('product.deleteError'))
       }
     } catch {
-      setFeedback('Erreur lors de la suppression')
+      setFeedback(t('product.deleteError'))
     } finally {
       setDeleting(false)
       setShowDeleteConfirm(false)
     }
-  }, [productId])
+  }, [productId, t])
 
   // Ne rien afficher si pas connecté ou pas le niveau requis (sauf admin)
   // — retour null sans wrapper pour éviter le bloc vide sur la page produit.
@@ -182,35 +181,27 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
   if (!canAct && !isAdmin) return null
 
   return (
-    <div className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]">
-      {/* En-tête de carte — même anatomie que les autres sections de la fiche */}
-      <div className="mb-4 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Check size={16} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="font-display text-lg font-bold leading-tight">{t('product.actionsTitle')}</h2>
-          <p className="text-xs text-muted-foreground">
-            {confirmCount}/3 {t('product.confirmHint')}
-          </p>
-        </div>
+    <section className="section">
+      {/* En-tête de section (maquette) : titre hors de la carte */}
+      <div className="sec-head">
+        <h2 className="disp d-m">{t('product.actionsTitle')}</h2>
         {confidenceScore >= 0.8 && (
-          <Badge variant="safe" className="flex-shrink-0 text-xs">Vérifié</Badge>
+          <span className="chip fill flex-none bg-menthe">{t('score.verified')}</span>
         )}
       </div>
+      <div className="card p-4 md:p-5">
+      <p className="mb-4 text-xs text-muted-foreground">
+        {confirmCount}/3 {t('product.confirmHint')}
+      </p>
 
       {/* Une seule rangée alignée : actions communauté à gauche, admin à droite */}
       <div className="flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           onClick={handleConfirm}
+          // Confirmée : l'aplat menthe reste visible malgré l'état désactivé de .btn
           disabled={hasConfirmed || submitting}
-          className={cn(
-            'inline-flex min-h-[46px] items-center gap-2 rounded-full px-5 text-sm font-bold transition-colors',
-            hasConfirmed
-              ? 'bg-primary/10 text-primary'
-              : 'border border-primary/30 bg-card text-primary hover:bg-primary/[0.06] disabled:opacity-60',
-          )}
+          className={cn('btn sm', hasConfirmed && 'primary opacity-100')}
         >
           <Check size={16} />
           {hasConfirmed ? t('product.confirmed') : t('product.confirm')}
@@ -219,7 +210,7 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           type="button"
           onClick={() => setShowReport(!showReport)}
           disabled={submitting}
-          className="inline-flex min-h-[46px] items-center gap-2 rounded-full border bg-card px-5 text-sm font-semibold transition-colors hover:bg-accent disabled:opacity-60"
+          className="btn sm"
         >
           <AlertTriangle size={16} />
           {t('product.report')}
@@ -228,19 +219,19 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
-            className="sm:ms-auto inline-flex min-h-[46px] items-center gap-2 rounded-full border border-destructive/40 bg-card px-5 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+            className="btn sm border-destructive text-destructive sm:ms-auto"
           >
             <Trash2 size={16} />
-            Supprimer ce produit
+            {t('product.delete')}
           </button>
         )}
       </div>
 
       {/* Confirmation suppression */}
       {showDeleteConfirm && (
-        <div className="mt-3 rounded-xl border-2 border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-3">
-          <p className="text-sm font-medium text-red-800 dark:text-red-200">Supprimer définitivement ce produit ?</p>
-          <p className="text-xs text-red-600 dark:text-red-400">Cette action est irréversible.</p>
+        <div className="mt-3 rounded-xl border-2 border-destructive bg-tomate/15 p-4 space-y-3">
+          <p className="text-sm font-semibold text-foreground">{t('product.deleteQ')}</p>
+          <p className="text-xs font-semibold text-destructive">{t('product.irreversible')}</p>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -248,10 +239,10 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? 'Suppression...' : 'Confirmer la suppression'}
+              {deleting ? t('product.deleting') : t('product.deleteConfirm')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
-              Annuler
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
@@ -259,21 +250,21 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       {/* Modale signalement */}
       {showReport && (
-        <div className="mt-3 rounded-xl border bg-popover p-4 space-y-3">
-          <p className="text-sm font-medium">Qu'est-ce qui est incorrect ?</p>
+        <div className="mt-3 rounded-xl border-[1.5px] border-line bg-popover p-4 space-y-3">
+          <p className="text-sm font-medium">{t('product.reportQ')}</p>
           <textarea
             value={reportText}
             onChange={(e) => setReportText(e.target.value)}
-            placeholder="Décrivez l'erreur (données nutritionnelles incorrectes, mauvaise image, etc.)"
-            className="w-full h-24 rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            placeholder={t('product.reportPlaceholder')}
+            className="w-full h-24 rounded-xl border-2 border-line bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             autoFocus
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={handleReport} disabled={!reportText.trim() || submitting}>
-              Envoyer le signalement
+              {t('product.reportSend')}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => { setShowReport(false); setReportText('') }}>
-              Annuler
+              {t('common.cancel')}
             </Button>
           </div>
         </div>
@@ -281,10 +272,11 @@ export default function ProductActions({ productId, barcode, confidenceScore }: 
 
       {/* Feedback */}
       {feedback && (
-        <div className="mt-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 px-3 py-2 text-sm text-green-800 dark:text-green-200">
+        <div className="mt-3 rounded-xl border-2 border-encre bg-menthe px-3 py-2 text-sm font-semibold text-encre" role="status">
           {feedback}
         </div>
       )}
-    </div>
+      </div>
+    </section>
   )
 }

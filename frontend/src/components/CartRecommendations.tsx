@@ -7,24 +7,18 @@ import { useState, useEffect } from 'react'
 import { useLocale } from '@/lib/i18n'
 import { Sparkles } from 'lucide-react'
 import AddToCartButton from '@/components/AddToCartButton'
+import { ScoreSticker, productTint } from '@/components/ProductCard'
+import { cn } from '@/lib/utils'
 import type { CartItem } from '@/lib/cart'
 
 const DIRECTUS_URL = '/api/directus'
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 const FIELDS = 'barcode,name_fr,brand,image_front,scan_score,score_label'
 
-function scoreColor(s: number | null): string {
-  if (s == null) return '#9ca3af'
-  if (s >= 75) return '#476a32'
-  if (s >= 50) return '#b1cf3a'
-  if (s >= 25) return '#f97316'
-  return '#ef4444'
-}
-
 interface Reco extends CartItem { }
 
 export default function CartRecommendations({ items }: { items: CartItem[] }) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [recos, setRecos] = useState<Reco[]>([])
 
   const barcodes = items.map((i) => i.barcode).sort().join(',')
@@ -61,29 +55,33 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
   if (recos.length === 0) return null
 
   return (
-    <section className="rounded-xl border bg-card p-5 print:hidden">
-      <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
-        <Sparkles className="h-4 w-4 text-primary" />
-        {t('cart.recoTitle')}
-      </h3>
-      {/* -mx-5/px-5 : le fondu du mask + les ombres vivent dans le padding, rien n'est rogné */}
-      <div className="rail-x flex gap-3 overflow-x-auto -mx-5 px-5 pt-2 pb-6 -mb-3">
+    <section className="section print:hidden">
+      <div className="sec-head">
+        <h2 className="disp d-m flex items-center gap-2">
+          <Sparkles className="size-5 flex-none text-brand-ink" aria-hidden="true" />
+          {t('cart.recoTitle')}
+        </h2>
+      </div>
+      {/* Rail défilant sur mobile, grille sur ordinateur */}
+      <div className="scroller -mx-[18px] md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible lg:grid-cols-6">
         {recos.map((r) => {
           const src = r.image_front
-            ? (r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=160&height=160&fit=cover&format=webp`)
+            ? (r.image_front.startsWith('http') ? r.image_front : `${CDN_URL}/${r.image_front}?width=320&height=320&fit=cover&format=webp`)
             : null
           return (
-            <div key={r.barcode} className="card-lift flex-shrink-0 w-[150px] rounded-xl border bg-background p-2.5">
-              <a href={`/produit/${r.barcode}`} className="block">
-                <div className="relative w-full aspect-square rounded-md overflow-hidden bg-muted mb-2">
-                  {src && <img src={src} alt={r.name_fr} className="w-full h-full object-cover" loading="lazy" />}
+            <div key={r.barcode} className="card grid w-[160px] content-start gap-2.5 p-2.5 md:w-auto">
+              <a href={`/produit/${r.barcode}`} className="grid gap-2.5">
+                <div className="relative">
+                  <div className={cn('tile aspect-square', productTint(r.barcode))}>
+                    {src && <img src={src} alt={r.name_fr} loading="lazy" />}
+                  </div>
                   {r.scan_score != null && (
-                    <div className="absolute top-1 right-1 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow" style={{ backgroundColor: scoreColor(r.scan_score) }}>
-                      {r.scan_score}
-                    </div>
+                    <span className="absolute -bottom-2 end-0">
+                      <ScoreSticker score={r.scan_score} size="sm" locale={locale} />
+                    </span>
                   )}
                 </div>
-                <p className="text-xs font-medium line-clamp-2 leading-tight mb-1">{r.name_fr}</p>
+                <p className="line-clamp-2 pe-9 text-xs font-bold leading-tight">{r.name_fr}</p>
               </a>
               <AddToCartButton item={r} compact />
             </div>
