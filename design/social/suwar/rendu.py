@@ -59,7 +59,7 @@ def ligne(p, fmt):
         r['TitreAr'] = '\u202b' + r['TitreAr'] + '\u202c'
     if not ar:  # typographie française : espace insécable avant ? ! ; : et dans les guillemets
         for k in ('Rubrique', 'Titre', 'Texte', 'Appel'):
-            if r.get(k): r[k] = re.sub(r' ([?!;:])', '\u00a0\\1', r[k].replace('« ', '«\u00a0').replace(' »', '\u00a0»'))
+            if r.get(k): r[k] = re.sub(r'(\d) %', '\\1\u00a0%', re.sub(r' ([?!;:])', '\u00a0\\1', r[k].replace('« ', '«\u00a0').replace(' »', '\u00a0»')))
     return (g, variante), r
 
 
