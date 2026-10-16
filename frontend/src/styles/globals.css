@@ -173,6 +173,8 @@
 .logo { direction: ltr; display: inline-flex; align-items: center; font-size: 24px; line-height: 1; text-decoration: none; color: var(--color-foreground); }
 /* Wordmark b-cuillère (composant Logo) : la hauteur suit la taille de police du lien */
 .logo .bayen-logo { display: block; height: 1.03em; width: auto; }
+/* Wordmark arabe « باين » : points sous la ligne et cuillère au-dessus, un cadre plus haut pour un corps de lettre égal au latin */
+.logo .bayen-logo.arabe { height: 1.32em; }
 /* Logo en relief (test du 15/10) : face couleur, contour encre, extrusion encre (comme les ombres nettes), incliné
    façon emballage. L'extrusion = drop-shadows de 0,025 em empilés (aucun chemin dupliqué). */
 .logo.relief { --logo-ext: var(--color-hard); padding: 0 .12em .14em 0; font-size: 32px; }
@@ -342,7 +344,10 @@ button.chip { cursor: pointer; font-family: inherit; }
 .score-sticker.lg { width: 112px; height: 112px; border-width: 3px; box-shadow: 5px 5px 0 var(--color-hard); }
 .score-sticker.lg::before { inset: 8px; border-width: 2px; }
 .score-sticker.lg b { font-size: 40px; }
-.score-sticker.lg i { font-size: 11px; }
+.score-sticker.lg i { font-size: 12.5px; }
+/* Mot du score en arabe : pas de capitales ni d'interlettrage, et un corps plus grand (l'arabe paraît plus petit à taille égale) */
+[dir='rtl'] .score-sticker i { font-size: 11px; letter-spacing: 0; text-transform: none; line-height: 1.2; }
+[dir='rtl'] .score-sticker.lg i { font-size: 16px; }
 .score-sticker.none { --c: var(--color-muted); color: var(--color-muted-foreground); }
 .score-sticker.w3 b { font-size: 17px; letter-spacing: -.04em; }
 /* Pastille halal : sticker rond posé sur la photo produit, même famille que la

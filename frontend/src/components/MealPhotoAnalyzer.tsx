@@ -325,7 +325,7 @@ export default function MealPhotoAnalyzer() {
                 <span className={`chip fill ${CONFIANCE_FILL[confiance]}`}>
                   <Check aria-hidden="true" /> {t('meal.confidence')} {t(`meal.confiance.${confiance}`).toLowerCase()}
                 </span>
-                {analysis.portion_estimee_g != null && <span className="chip num">≈ {analysis.portion_estimee_g} g</span>}
+                {analysis.portion_estimee_g != null && <span className="chip num"><bdi>≈ {analysis.portion_estimee_g} g</bdi></span>}
               </div>
             </div>
           </section>
@@ -347,7 +347,7 @@ export default function MealPhotoAnalyzer() {
                     ] as const).map(([key, val, label]) => (
                       <div key={key} className="rounded-[14px] border-2 border-encre bg-creme p-2.5">
                         <p className="text-[11px]">{label}</p>
-                        <b className="num">{val != null ? `≈ ${val} g` : '—'}</b>
+                        <b className="num"><bdi>{val != null ? `≈ ${val} g` : '—'}</bdi></b>
                       </div>
                     ))}
                   </div>

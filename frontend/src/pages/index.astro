@@ -105,7 +105,7 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
             class="absolute -end-1.5 -bottom-[22px] md:end-auto md:-start-6 md:-bottom-7"
             title={best.name_fr}
           >
-            <ScoreSticker score={best.scan_score} size="lg" locale={locale} className={String(best.scan_score).length > 2 ? "md:size-[132px] md:[&_b]:text-[38px]" : "md:size-[132px] md:[&_b]:text-[48px]"} />
+            <ScoreSticker score={best.scan_score} size="lg" locale={locale} className={String(best.scan_score).length > 2 ? "md:size-[132px] md:[&_b]:text-[38px] md:[&_i]:text-[14px] md:rtl:[&_i]:text-[19px]" : "md:size-[132px] md:[&_b]:text-[48px] md:[&_i]:text-[14px] md:rtl:[&_i]:text-[19px]"} />
             <span class="sr-only">{best.name_fr}</span>
           </a>
         )}

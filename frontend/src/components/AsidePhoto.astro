@@ -1,0 +1,17 @@
+---
+/**
+ * Photo d'accompagnement, ordinateur seulement, posée à côté d'un formulaire étroit
+ * pour équilibrer la page (rien de plus sur mobile). Un écran montré dans la photo
+ * est toujours une capture réelle de bayen.ma (design/social/outils/ecran-dans-photo.py).
+ */
+interface Props {
+  src: string
+  alt: string
+  /** Proportions du cadre (CSS aspect-ratio) */
+  ratio?: string
+}
+const { src, alt, ratio = '4 / 5' } = Astro.props
+---
+<figure class="card tile sticky top-24 m-0 hidden md:grid" style={`aspect-ratio: ${ratio}`}>
+  <img src={src} alt={alt} loading="lazy" decoding="async" />
+</figure>

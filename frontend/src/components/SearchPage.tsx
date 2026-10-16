@@ -11,6 +11,7 @@ import { useLocale } from '@/lib/i18n'
 import { getProfile } from '@/lib/health-profile'
 import type { Product, Category, NutriScoreGrade } from '@/lib/types'
 import type { Locale } from '@/lib/translations'
+import { SCORE_FILL, type ScoreLevel } from '@/lib/score-colors'
 
 // ────────────────────────────────────────────────────────────────
 // Configuration
@@ -91,8 +92,18 @@ const defaultFilters: Filters = {
 interface RiskyAdditive {
   id: string
   name_fr: string
+  name_ar: string | null
   risk_level: string
 }
+
+/** Sélecteur en pilule (même contour que la recherche) */
+const SELECT = 'h-11 w-full cursor-pointer rounded-full border-2 border-line bg-card px-4 text-sm font-semibold text-foreground shadow-[2px_2px_0_var(--color-hard)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
+/** Paliers du score minimum : seuils de l'échelle Bayen (scoreToLabel) */
+const SCORE_STEPS: Array<{ min: number; level: ScoreLevel | null }> = [
+  { min: 0, level: null }, { min: 25, level: 'mediocre' }, { min: 50, level: 'bon' }, { min: 75, level: 'excellent' },
+]
+/** Pastille du niveau de risque d'un additif */
+const RISK_DOT = { banned_ma: 'var(--color-tomate)', avoid: '#FFA24D', limited: 'var(--color-citron)' } as const
 
 // ────────────────────────────────────────────────────────────────
 // Helpers pour construire la requête Directus
@@ -274,7 +285,7 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
     // Profil santé local : permet le filtre « selon mon profil »
     setProfileAdditives(getProfile().avoidAdditives)
     // Additifs à risque proposés en exclusion (les pires d'abord)
-    fetch(`${DIRECTUS_URL}/items/additives?filter[risk_level][_in]=banned_ma,avoid,limited&fields=id,name_fr,risk_level&sort=risk_level,id&limit=-1`)
+    fetch(`${DIRECTUS_URL}/items/additives?filter[risk_level][_in]=banned_ma,avoid,limited&fields=id,name_fr,name_ar,risk_level&sort=risk_level,id&limit=-1`)
       .then((res) => res.json())
       .then((json: { data: RiskyAdditive[] }) => {
         const order: Record<string, number> = { banned_ma: 0, avoid: 1, limited: 2 }
@@ -604,71 +615,55 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
           )}
         </div>
 
-        {/* Filtres avancés (bouton filtres) */}
+        {/* Filtres avancés (bouton filtres) : sections étiquetées, puces du vocabulaire Marché Pop */}
         {filtersOpen && (
-          <div className="card grid animate-in gap-5 p-4 fade-in slide-in-from-top-2 duration-200 md:col-span-2 md:grid-cols-3 md:p-5">
-            {isBeauty ? (
-              <div className="grid content-start gap-1.5">
-                <label htmlFor="f-cosmetic-cat" className="text-sm font-semibold">{t('beauty.category')}</label>
-                <select
-                  id="f-cosmetic-cat"
-                  value={filters.cosmeticCategory}
-                  onChange={(e) => updateFilter('cosmeticCategory', e.target.value)}
-                  className="w-full rounded-xl border-2 border-line bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                >
+          <div className="card grid animate-in gap-5 p-4 fade-in slide-in-from-top-2 duration-200 md:col-span-2 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_auto] md:gap-x-8 md:p-6">
+            <div className="grid content-start gap-2">
+              <label htmlFor="f-cat" className="eyebrow">{isBeauty ? t('beauty.category') : t('search.category')}</label>
+              {isBeauty ? (
+                <select id="f-cat" value={filters.cosmeticCategory} onChange={(e) => updateFilter('cosmeticCategory', e.target.value)} className={SELECT}>
                   <option value="">{t('beauty.allCategories')}</option>
                   {COSMETIC_CATEGORIES.map((c) => (
                     <option key={c} value={c}>{t(`beauty.cat.${c}` as `beauty.cat.${(typeof COSMETIC_CATEGORIES)[number]}`)}</option>
                   ))}
                 </select>
-              </div>
-            ) : (
-              <div className="grid content-start gap-1.5">
-                <label htmlFor="f-cat" className="text-sm font-semibold">{t('search.category')}</label>
-                <select
-                  id="f-cat"
-                  value={filters.categoryId ?? ''}
-                  onChange={(e) => updateFilter('categoryId', e.target.value ? Number(e.target.value) : null)}
-                  className="w-full rounded-xl border-2 border-line bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                >
+              ) : (
+                <select id="f-cat" value={filters.categoryId ?? ''} onChange={(e) => updateFilter('categoryId', e.target.value ? Number(e.target.value) : null)} className={SELECT}>
                   <option value="">{t('search.allCategories')}</option>
                   {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.icon ? `${cat.icon} ` : ''}
-                      {catName(cat)}
-                    </option>
+                    <option key={cat.id} value={cat.id}>{cat.icon ? `${cat.icon} ` : ''}{catName(cat)}</option>
                   ))}
                 </select>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Score minimum */}
-            <div className="grid content-start gap-1.5">
-              <label htmlFor="f-score" className="text-sm font-semibold">
-                {t('search.scoreMin')} : <span className="font-bold text-brand-ink">{filters.scoreMin}</span>
-              </label>
-              <input
-                id="f-score"
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={filters.scoreMin}
-                onChange={(e) => updateFilter('scoreMin', Number(e.target.value))}
-                className="w-full accent-primary"
-              />
-              <div className="flex justify-between text-[10px] text-muted-foreground">
-                <span>0</span>
-                <span>50</span>
-                <span>100</span>
+            {/* Score minimum : les paliers de l'échelle Bayen (25 / 50 / 75), à la couleur du niveau */}
+            <div className="grid content-start gap-2">
+              <span className="eyebrow">{t('search.scoreMin')}</span>
+              <div className="chips">
+                {SCORE_STEPS.map(({ min, level }) => {
+                  const active = filters.scoreMin === min
+                  return (
+                    <button
+                      key={min}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => updateFilter('scoreMin', min)}
+                      className={cn('chip', active && 'fill')}
+                      style={active ? { background: level ? SCORE_FILL[level] : 'var(--color-citron)', color: 'var(--color-encre)' } : undefined}
+                    >
+                      {level ? <><bdi>{min}+</bdi> {t(`score.${level}`)}</> : t('search.scoreAny')}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Nutri-Score */}
+            {/* Nutri-Score : pastilles rondes, couleur officielle quand elles sont choisies */}
             {!isBeauty && (
-              <div className="grid content-start gap-1.5">
-                <span className="text-sm font-semibold">{t('nutriscore.title')}</span>
-                <div className="flex gap-2">
+              <div className="grid content-start gap-2">
+                <span className="eyebrow">{t('nutriscore.title')}</span>
+                <div className="flex gap-2" dir="ltr">
                   {NUTRISCORE_GRADES.map((grade) => {
                     const active = filters.nutriscoreGrades.includes(grade)
                     return (
@@ -678,10 +673,8 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
                         aria-pressed={active}
                         onClick={() => toggleNutriscore(grade)}
                         className={cn(
-                          'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold transition-all',
-                          active
-                            ? `${NUTRISCORE_COLORS[grade]} border-2 border-encre text-encre shadow-[2px_2px_0_var(--color-hard)]`
-                            : 'border-2 border-line/30 bg-background text-muted-foreground hover:bg-muted'
+                          'grid size-10 place-items-center rounded-full border-2 border-line font-display text-sm font-extrabold transition-transform hover:-translate-y-px',
+                          active ? `${NUTRISCORE_COLORS[grade]} text-encre shadow-[2px_2px_0_var(--color-hard)]` : 'bg-card text-foreground'
                         )}
                       >
                         {grade}
@@ -692,49 +685,55 @@ export default function SearchPage({ initialUniverse, initialCosmeticCategory, s
               </div>
             )}
 
-            {/* Exclure des additifs précis (C8c) */}
+            {/* Exclure des additifs précis (C8c) : groupés par niveau de risque, code toujours lisible */}
             {!isBeauty && riskyAdditives.length > 0 && (
-              <div className="grid gap-1.5 md:col-span-3">
-                <span className="text-sm font-semibold">
-                  {t('search.excludeAdditives')}
-                  {filters.excludeAdditives.length > 0 && (
-                    <span className="ms-2 text-xs font-bold text-destructive">{filters.excludeAdditives.length}</span>
-                  )}
-                </span>
-                <p className="text-xs text-muted-foreground">{t('search.excludeAdditivesHint')}</p>
-                <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto pt-1">
-                  {riskyAdditives.map((a) => {
-                    const active = filters.excludeAdditives.includes(a.id)
-                    return (
-                      <button
-                        key={a.id}
-                        type="button"
-                        aria-pressed={active}
-                        onClick={() =>
-                          updateFilter(
-                            'excludeAdditives',
-                            active
-                              ? filters.excludeAdditives.filter((c) => c !== a.id)
-                              : [...filters.excludeAdditives, a.id]
-                          )
-                        }
-                        className={cn(
-                          'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors',
-                          active
-                            ? 'border-destructive bg-destructive text-destructive-foreground'
-                            : a.risk_level === 'limited'
-                              ? 'border-line bg-citron/15 text-foreground hover:bg-citron/30'
-                              : 'border-line bg-tomate/15 text-foreground hover:bg-tomate/30'
-                        )}
-                        title={a.name_fr}
-                      >
-                        {active && <span aria-hidden="true">✕</span>}
-                        {a.id}
-                        <span className="max-w-28 truncate font-normal text-muted-foreground">{a.name_fr}</span>
-                      </button>
-                    )
-                  })}
+              <div className="grid gap-3 border-t-2 border-dashed border-line/25 pt-4 md:col-span-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <span className="eyebrow">
+                    {t('search.excludeAdditives')}
+                    {filters.excludeAdditives.length > 0 && <b className="ms-2 text-foreground">{filters.excludeAdditives.length}</b>}
+                  </span>
+                  <span className="muted text-xs">{t('search.excludeAdditivesHint')}</span>
                 </div>
+                {(['banned_ma', 'avoid', 'limited'] as const).map((risk) => {
+                  const list = riskyAdditives.filter((a) => a.risk_level === risk)
+                  if (list.length === 0) return null
+                  return (
+                    <div key={risk} className="grid gap-1.5 md:grid-cols-[150px_minmax(0,1fr)] md:items-start">
+                      <span className="flex items-center gap-1.5 pt-1.5 text-[12.5px] font-bold">
+                        <span className="size-2.5 flex-none rounded-full border border-encre" style={{ background: RISK_DOT[risk] }} aria-hidden="true" />
+                        {t(risk === 'banned_ma' ? 'additive.risk.banned' : `additive.risk.${risk}`)}
+                      </span>
+                      <div className="chips">
+                        {list.map((a) => {
+                          const active = filters.excludeAdditives.includes(a.id)
+                          const name = (locale === 'ary' && a.name_ar) || a.name_fr
+                          return (
+                            <button
+                              key={a.id}
+                              type="button"
+                              aria-pressed={active}
+                              title={name}
+                              onClick={() => updateFilter('excludeAdditives', active ? filters.excludeAdditives.filter((c) => c !== a.id) : [...filters.excludeAdditives, a.id])}
+                              className={cn('chip max-w-full', active && 'fill bg-tomate text-encre')}
+                            >
+                              {active && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>}
+                              <b dir="ltr">{a.id}</b>
+                              {/* dir="auto" : les points de suspension tombent à la fin du nom, quelle que soit sa langue */}
+                              <span dir="auto" className="max-w-[11rem] truncate font-medium opacity-75">{name}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {hasActiveFilters && (
+              <div className="flex justify-end md:col-span-3">
+                <button type="button" className="btn sm ghost" onClick={resetFilters}>{t('search.resetFilters')}</button>
               </div>
             )}
           </div>

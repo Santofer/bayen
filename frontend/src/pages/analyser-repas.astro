@@ -5,6 +5,7 @@ export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import MealPhotoAnalyzer from '@/components/MealPhotoAnalyzer'
+import AsidePhoto from '@/components/AsidePhoto.astro'
 import { getLocale, t } from '@/lib/i18n'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
@@ -29,6 +30,10 @@ const locale = getLocale(localeCookie)
   </header>
 
   <main class="screen max-md:pt-5">
-    <MealPhotoAnalyzer client:load />
+    <!-- Ordinateur : l'outil à gauche, un repas analysé à droite pour équilibrer la page -->
+    <div class="grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,.8fr)] md:items-start">
+      <div class="min-w-0"><MealPhotoAnalyzer client:load /></div>
+      <AsidePhoto src="/visuels/repas-ecran.webp" alt={t('visual.meal', locale)} />
+    </div>
   </main>
 </Layout>

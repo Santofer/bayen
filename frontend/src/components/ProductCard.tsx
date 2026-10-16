@@ -13,7 +13,7 @@
  * visible par dessous.
  */
 
-import type { CSSProperties } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 import { scoreFill, scoreLevel } from '@/lib/score-colors'
 import { getLocale, t } from '@/lib/i18n'
@@ -173,7 +173,9 @@ export default function ProductCard({ product, className, variant = 'row', badge
   // Beauté : vignette framboise (univers distinct) ; alimentaire : teinte stable par code-barres
   const tint = isBeauty ? 'tint-framboise' : productTint(product.barcode)
   const quantity = (product as { quantity?: string }).quantity
-  const meta = [product.brand, quantity].filter(Boolean).join(' · ')
+  // Marque et contenance isolées (<bdi>) : « 75 ml » garde son ordre dans une ligne en darija
+  const metaParts = [product.brand, quantity].filter((m): m is string => !!m)
+  const meta = metaParts.length > 0 ? metaParts.map((m, i) => <Fragment key={i}>{i > 0 && ' · '}<bdi>{m}</bdi></Fragment>) : null
 
   // Variante grille — carte de la maquette « Desktop » (les mieux notés) :
   // grande vignette, pastille à cheval sur son bord bas, nom, marque · contenance
