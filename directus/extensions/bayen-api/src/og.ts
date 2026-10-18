@@ -16,6 +16,10 @@ const OCR_URL = (process.env.OCR_INTERNAL_URL ?? 'http://bayen-tesseract:5000').
 // URL lue par bayen-tesseract (même réseau Docker), pas par Directus : nom du container
 const ASSETS_URL = 'http://bayen-directus:8055/assets'
 const FALLBACK = 'https://bayen.ma/og/default.jpg'
+
+/** Apostrophes perdues à l'import (« Flocons d avoine ») : rétablies à l'affichage, comme sur la fiche */
+const fixApostrophes = (s: string | null): string | null =>
+  s === null ? null : s.replace(/(^|\s)([dl]) (?=[aeiouyhàâäéèêëîïôöûüœAEIOUYHÀÂÉÈÊÎÔÛ])/g, "$1$2'")
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface KnexLike {
@@ -58,7 +62,7 @@ export function registerOgEndpoint(router: Router, context: { database: unknown 
       const brand = str(p.brand)
       const image = str(p.image_front)
       const payload = {
-        name: str(p.name_fr),
+        name: fixApostrophes(str(p.name_fr)),
         brand: brand && !/^marque inconnue$/i.test(brand) ? brand : null,
         quantity: str(p.quantity),
         barcode,
