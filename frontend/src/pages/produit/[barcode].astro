@@ -671,7 +671,11 @@ const jsonLd = product
   : undefined
 
 const imgFront = product?.image_front as string | undefined
-const ogImage = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
+// Fiche en base : carte d'aperçu « Marché Pop » (photo + score, générée par l'API) ;
+// produit lu seulement chez OFF : sa photo brute, comme avant
+const ogImage = scanResult.source === 'directus'
+  ? `${DIRECTUS_URL}/bayen-api/og/${barcode}.jpg`
+  : imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
 ---
 
 <Layout title={pageTitle} description={pageDescription} path={`/produit/${barcode}`} ogType="product" ogImage={ogImage} jsonLd={jsonLd} universe={isCosmetic ? 'beauty' : undefined} mobileTopbar={false}>

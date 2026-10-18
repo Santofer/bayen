@@ -4,14 +4,16 @@ Bayen OCR + IA Pipeline API
 - /ocr           — OCR brut (Tesseract)
 - /pipeline      — OCR étiquette → parsing nutritionnel via IA → JSON (produits)
 - /meal-analyze  — Analyse photo de plat via vision IA → estimation calories/macros
+- /og-card       — Carte Open Graph produit (JPEG 1200×630, aperçu de lien)
 
 IA : serveur vLLM partagé (OpenAI-compatible), modèle multimodal Qwen3.5-9B.
 Configuré par env AI_BASE_URL / AI_MODEL / AI_API_KEY.
 """
 
-from flask import Flask, request, jsonify, g, has_request_context
+from flask import Flask, Response, request, jsonify, g, has_request_context
 import pytesseract
-from PIL import Image, ImageFilter, ImageEnhance, UnidentifiedImageError, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageEnhance, ImageFont, UnidentifiedImageError, ImageOps, features
+from functools import lru_cache
 import base64
 import io
 import json
@@ -1401,6 +1403,232 @@ def identify_product():
         })
     except Exception as e:  # noqa: BLE001
         app.logger.error(f'identify-product error: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+# ─── Carte Open Graph produit (aperçu de lien WhatsApp / Facebook / LinkedIn) ──
+# Identité « Marché Pop » : crème, encre, aplats vifs, ombres nettes. Tout texte
+# posé sur un aplat est à l'encre. Rendu ×2 puis réduit (contours lissés).
+OG_W, OG_H, OG_SS = 1200, 630, 2
+OG_DIR = os.path.dirname(os.path.abspath(__file__))
+OG_INK = (27, 27, 27)
+OG_CREAM = (255, 248, 236)
+OG_MUTED = (94, 90, 82)
+OG_FILL = {'excellent': '#19C08B', 'bon': '#A6E35F', 'mediocre': '#FFA24D', 'mauvais': '#FF5A3C'}
+OG_WORD = {'excellent': 'Excellent', 'bon': 'Bon', 'mediocre': 'Médiocre', 'mauvais': 'Mauvais'}
+OG_NONE = '#E4D6BF'
+OG_MAX_BYTES = 300_000  # limite WhatsApp
+ARABIC_RE = re.compile(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]')
+# Sans libraqm (paquet libfribidi0), l'arabe sortirait en lettres détachées et à l'envers
+OG_RAQM = features.check('raqm')
+
+
+@lru_cache(maxsize=None)
+def _og_font(name, size, weight):
+    """Police variable à la graisse voulue (taille en px de la carte finale)."""
+    font = ImageFont.truetype(os.path.join(OG_DIR, 'fonts', name), size * OG_SS)
+    font.set_variation_by_axes([weight] if name == 'Unbounded.ttf' else [weight, 0])  # Readex : poids + HEXP
+    return font
+
+
+@lru_cache(maxsize=1)
+def _og_logo():
+    logo = Image.open(os.path.join(OG_DIR, 'assets', 'logo-bayen.png')).convert('RGBA')
+    w = 190 * OG_SS
+    return logo.resize((w, round(logo.height * w / logo.width)), Image.LANCZOS)
+
+
+@lru_cache(maxsize=1)
+def _og_grain():
+    """Grain papier : bruit doux centré sur 128 (s'ajoute à ±6 niveaux)."""
+    return Image.effect_noise((OG_W // 2, OG_H // 2), 6).resize((OG_W, OG_H), Image.BICUBIC).convert('RGB')
+
+
+def _og_photo(url):
+    """Photo produit (fond blanc sous la transparence) ; None si absente ou illisible."""
+    if not url:
+        return None
+    try:
+        r = requests.get(url, timeout=4)
+        r.raise_for_status()
+        im = ImageOps.exif_transpose(Image.open(io.BytesIO(r.content))).convert('RGBA')
+        bg = Image.new('RGB', im.size, 'white')
+        bg.paste(im, mask=im.split()[3])
+        return bg
+    except Exception as e:  # noqa: BLE001
+        app.logger.warning(f'og-card photo indisponible: {e}')
+        return None
+
+
+def _og_wrap(draw, text, font, width, max_lines):
+    """Lignes ≤ width (par mots, coupe dure si un mot déborde), ellipse au-delà de max_lines."""
+    lines, cur = [], ''
+    for word in text.split():
+        trial = f'{cur} {word}'.strip()
+        if draw.textlength(trial, font=font) <= width:
+            cur = trial
+            continue
+        if cur:
+            lines.append(cur)
+        while draw.textlength(word, font=font) > width:
+            i = len(word) - 1
+            while i > 1 and draw.textlength(word[:i], font=font) > width:
+                i -= 1
+            lines.append(word[:i])
+            word = word[i:]
+        cur = word
+    if cur:
+        lines.append(cur)
+    if len(lines) > max_lines:
+        last = lines[max_lines - 1]
+        while last and draw.textlength(last + '…', font=font) > width:
+            last = last[:-1].rstrip()
+        lines = lines[:max_lines - 1] + [last + '…']
+    return lines
+
+
+def _og_text(draw, x, w, y, text, font, fill):
+    """Ligne alignée au début de lecture : à gauche, ou à droite si arabe."""
+    if ARABIC_RE.search(text):
+        draw.text((x + w, y), text, font=font, fill=fill, anchor='ra')
+    else:
+        draw.text((x, y), text, font=font, fill=fill, anchor='la')
+
+
+def _og_sticker(score, label, word):
+    """Pastille de score (comme .score-sticker) : disque, contour encre, pointillés, ombre nette, inclinée."""
+    k = lambda v: round(v * OG_SS)
+    d, pad, sh = 184, 14, 7
+    layer = Image.new('RGBA', (k(d + 2 * pad), k(d + 2 * pad)), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(layer)
+    box = [k(pad), k(pad), k(pad + d), k(pad + d)]
+    dr.ellipse([b + k(sh) for b in box], fill=OG_INK)
+    dr.ellipse(box, fill=OG_FILL.get(label, OG_NONE), outline=OG_INK, width=k(5))
+    ring = [box[0] + k(11), box[1] + k(11), box[2] - k(11), box[3] - k(11)]
+    for a in range(0, 360, 10):
+        dr.arc(ring, a, a + 5, fill=(27, 27, 27, 105), width=k(2))
+    cx, cy = k(pad + d / 2), k(pad + d / 2)
+
+    # Mot sous le chiffre : plus grand corps où chaque mot tient dans le disque, 2 lignes max
+    words = word.upper()
+    ws = next(s for s in (15, 14, 13, 12) if all(
+        dr.textlength(w, font=_og_font('ReadexPro.ttf', s, 700)) <= k(d * 0.66) for w in words.split()))
+    wf = _og_font('ReadexPro.ttf', ws, 700)
+    lines = _og_wrap(dr, words, wf, k(d * 0.66), 2)
+    base = cy + k(12 - 9 * (len(lines) - 1))  # bloc remonté quand le mot tient sur 2 lignes
+
+    if score is None:
+        dr.text((cx, base), '?', font=_og_font('Unbounded.ttf', 64, 800), fill=OG_INK, anchor='ms')
+    else:
+        num, small = str(score), _og_font('ReadexPro.ttf', 14, 600)
+        wsm = dr.textlength('/100', font=small)
+        big = next(f for f in (_og_font('Unbounded.ttf', s, 800) for s in range(62, 30, -2))
+                   if dr.textlength(num, font=f) + wsm + k(3) <= k(d * 0.78))
+        wn = dr.textlength(num, font=big)
+        x0 = cx - (wn + wsm + k(3)) / 2
+        dr.text((x0, base), num, font=big, fill=OG_INK, anchor='ls')
+        dr.text((x0 + wn + k(3), base), '/100', font=small, fill=OG_INK, anchor='ls')
+    for i, line in enumerate(lines):
+        dr.text((cx, base + k(24 + i * 17)), line, font=wf, fill=OG_INK, anchor='ms')
+    return layer.rotate(8, resample=Image.BICUBIC)  # = rotate(-8deg) en CSS
+
+
+def render_og_card(data):
+    """Carte 1200×630 JPEG (< 300 Ko) d'une fiche produit. data : voir /og-card."""
+    k = lambda v: round(v * OG_SS)
+    kind = 'cosmetic' if data.get('kind') == 'cosmetic' else 'food'
+    raw = data.get('score')
+    score = max(0, min(100, int(raw))) if isinstance(raw, (int, float)) and not isinstance(raw, bool) else None
+    label = data.get('label') if score is not None and data.get('label') in OG_FILL else None
+    name = str(data.get('name') or '').strip()[:200] or 'Fiche produit'
+    brand = str(data.get('brand') or '').strip()[:80]
+    quantity = str(data.get('quantity') or '').strip()[:30]
+    barcode = str(data.get('barcode') or '').strip()[:20]
+    if not OG_RAQM:
+        if ARABIC_RE.search(name):
+            name = ' '.join(x for x in (brand, barcode) if x and not ARABIC_RE.search(x)) or 'Fiche produit'
+        if ARABIC_RE.search(brand):
+            brand = ''
+
+    img = Image.new('RGB', (k(OG_W), k(OG_H)), OG_CREAM)
+    dr = ImageDraw.Draw(img)
+
+    photo = _og_photo(data.get('image_url'))
+    if photo is not None:
+        x, y, w, h, r = 56, 52, 460, 510, 34
+        dr.rounded_rectangle([k(x + 10), k(y + 10), k(x + w + 10), k(y + h + 10)], k(r), fill=OG_INK)
+        tile = ImageOps.fit(photo, (k(w), k(h)), Image.LANCZOS)  # remplit le cadre (cover)
+        mask = Image.new('L', tile.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle([0, 0, tile.width - 1, tile.height - 1], k(r), fill=255)
+        img.paste(tile, (k(x), k(y)), mask)
+        dr.rounded_rectangle([k(x), k(y), k(x + w), k(y + h)], k(r), outline=OG_INK, width=k(5))
+        tx, tw, size = 580, 564, 50
+    else:
+        tx, tw, size = 76, 1048, 68
+
+    # Marque · contenance, puis nom (3 lignes max)
+    top = 70
+    meta = ' · '.join(x for x in (brand.upper(), quantity) if x)
+    if meta:
+        mf = _og_font('ReadexPro.ttf', 30, 600)
+        _og_text(dr, k(tx), k(tw), k(top), _og_wrap(dr, meta, mf, k(tw), 1)[0], mf, OG_MUTED)
+        top += 52
+    arabic = bool(ARABIC_RE.search(name))
+    nf = _og_font('ReadexPro.ttf', size, 700) if arabic else _og_font('Unbounded.ttf', size, 800)
+    lh = size * (1.3 if arabic else 1.14)
+    for i, line in enumerate(_og_wrap(dr, name, nf, k(tw), 3)):
+        _og_text(dr, k(tx), k(tw), k(top + i * lh), line, nf, OG_INK)
+
+    # Pastille de score + puces Nutri-Score / NOVA
+    if score is not None:
+        word = OG_WORD.get(label, 'Score')
+    else:
+        word = 'Données insuffisantes' if kind == 'cosmetic' and data.get('insufficient') else 'À compléter'
+    sticker = _og_sticker(score, label, word)
+    sy = 372
+    img.paste(sticker, (k(tx - 14), k(sy)), sticker)
+
+    chips = []
+    if kind == 'food':
+        ns = str(data.get('nutriscore') or '').strip().upper()
+        if ns in ('A', 'B', 'C', 'D', 'E'):
+            chips.append(f'Nutri-Score {ns}')
+        nova = data.get('nova')
+        if isinstance(nova, int) and not isinstance(nova, bool) and 1 <= nova <= 4:
+            chips.append(f'NOVA {nova}')
+    cf = _og_font('ReadexPro.ttf', 24, 600)
+    cx, cy = tx + 214, sy + 82
+    for chip in chips:
+        cw = dr.textlength(chip, font=cf) / OG_SS + 40
+        dr.rounded_rectangle([k(cx + 4), k(cy + 4), k(cx + cw + 4), k(cy + 48 + 4)], k(24), fill=OG_INK)
+        dr.rounded_rectangle([k(cx), k(cy), k(cx + cw), k(cy + 48)], k(24), fill='white', outline=OG_INK, width=k(3))
+        dr.text((k(cx + cw / 2), k(cy + 25)), chip, font=cf, fill=OG_INK, anchor='mm')
+        cx += cw + 14
+
+    logo = _og_logo()
+    img.paste(logo, (k(OG_W - 56) - logo.width, k(OG_H - 48) - logo.height), logo)
+
+    img = ImageChops.add(img.resize((OG_W, OG_H), Image.LANCZOS), _og_grain(), 1.0, -128)
+    for quality in (84, 76, 68, 60):
+        buf = io.BytesIO()
+        img.save(buf, 'JPEG', quality=quality, optimize=True, progressive=True)
+        if buf.tell() < OG_MAX_BYTES:
+            break
+    return buf.getvalue()
+
+
+@app.route('/og-card', methods=['POST'])
+def og_card():
+    """Carte Open Graph produit (image/jpeg 1200×630), appelée par GET /bayen-api/og/:barcode.
+
+    JSON : {name, brand, quantity, barcode, kind: food|cosmetic, score: int|null,
+            label: excellent|bon|mediocre|mauvais|null, insufficient, nutriscore, nova, image_url}
+    """
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        return Response(render_og_card(data), mimetype='image/jpeg')
+    except Exception as e:  # noqa: BLE001
+        app.logger.error(f'og-card error: {e}')
         return jsonify({'error': str(e)}), 500
 
 
