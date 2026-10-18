@@ -2,6 +2,7 @@
 - XXL « Vrai ou faux » : pastille d'appel rognée en bas (post + story) ;
 - Bulle « L'astuce de Naânaa » : logo normal en clair à la place du sticker riso (post + story) ;
 - Scène : en story, la scène descend contre le texte (story seule).
+S'y ajoute la semaine de présentation (lot-0.json, du 19 au 25/10, avant « Bayen fait peau neuve »), rendue en entier.
 Rend ces visuels dans out/retouches/<id>-<format>.png et garde les réponses de rendu (ids Suwar) dans
 out/retouches/rendus.json.   python3 retouches.py [id…] [--reprise]   (sans id : tous ; --reprise saute les déjà rendus)
    python3 retouches.py --page → out/retouches/calendrier.html (calendrier de ces visuels, avec légendes)"""
@@ -18,13 +19,15 @@ rendus = json.loads(CACHE.read_text()) if CACHE.exists() else {}
 
 
 def formats(p):
-    """Formats à refaire pour un post (aucun s'il n'est pas touché par les corrections)."""
+    """Formats à rendre pour un post (aucun s'il n'est pas touché par les corrections)."""
+    if p.get('nouveau'): return ('post', 'story')
     L = p['visuel']['layout']
     if L == 'xxl': return ('post', 'story') if p.get('cta') else ()
     return {'bulle': ('post', 'story'), 'scene': ('story',)}.get(L, ())
 
 
-posts = [p for n in (1, 2, 3) for p in json.loads((D / f'lot-{n}.json').read_text())['posts'] if formats(p)]
+posts = ([{**p, 'nouveau': True} for p in json.loads((D / 'lot-0.json').read_text())['posts']]
+         + [p for n in (1, 2, 3) for p in json.loads((D / f'lot-{n}.json').read_text())['posts'] if formats(p)])
 choix = [a for a in sys.argv[1:] if not a.startswith('--')]
 if __name__ == '__main__' and '--page' not in sys.argv:
     for p in posts:
@@ -49,10 +52,11 @@ if __name__ == '__main__' and '--page' in sys.argv:
     from legendes import legendes
     JOURS = 'lun. mar. mer. jeu. ven. sam. dim.'.split()
     MOIS = 'janv. févr. mars avr. mai juin juil. août sept. oct. nov. déc.'.split()
-    POURQUOI = {'xxl': 'Pastille « Réponse en caption » entière', 'bulle': 'Logo normal en clair, à l\'endroit', 'scene': 'Scène descendue contre le texte'}
+    POURQUOI = {'xxl': 'Pastille « Réponse en caption » entière', 'bulle': 'Logo normal en clair, à l\'endroit', 'scene': 'Scène descendue contre le texte', 'nouveau': 'Nouveau · semaine de présentation'}
     e = lambda t: html.escape(t, quote=True)
 
     def vignette(nom):
+        if not (OUT / f'{nom}.png').exists(): return None  # visuel pas encore rendu (illustration en attente)
         im = Image.open(OUT / f'{nom}.png').convert('RGB'); im.thumbnail((540, 960), Image.LANCZOS)
         b = io.BytesIO(); im.save(b, 'JPEG', quality=80)
         return 'data:image/jpeg;base64,' + base64.b64encode(b.getvalue()).decode()
@@ -64,9 +68,10 @@ if __name__ == '__main__' and '--page' in sys.argv:
     lignes = []
     for p in posts:
         t = datetime.strptime(f"{p['date']} {p['heure']}", '%Y-%m-%d %H:%M'); ts = t + timedelta(hours=2)
-        fm, lg, L = formats(p), legendes(p), p['visuel']['layout']
-        vis = ''.join(f'<figure class="v {f}"><img src="{vignette(p["id"] + "-" + f)}" alt="{e(p["titre"])}" loading="lazy">'
-                      f'<figcaption>{"Post" if f == "post" else "Story"} · {(t if f == "post" else ts):%H:%M}</figcaption></figure>' for f in fm)
+        fm, lg, L = formats(p), legendes(p), ('nouveau' if p.get('nouveau') else p['visuel']['layout'])
+        vis = ''.join((f'<figure class="v {f}"><img src="{v}" alt="{e(p["titre"])}" loading="lazy">' if (v := vignette(p['id'] + '-' + f))
+                       else f'<figure class="v {f}"><div class="attente {f}">Illustration en préparation</div>')
+                      + f'<figcaption>{"Post" if f == "post" else "Story"} · {(t if f == "post" else ts):%H:%M}</figcaption></figure>' for f in fm)
         legs = (legende('Instagram', lg['instagram']) + legende('Facebook', lg['facebook']) if 'post' in fm else '') + legende('Story', p['titre'])
         lignes.append(f'''<article class="jour" dir="ltr">
   <div class="date"><span class="j">{JOURS[t.weekday()]}</span><b>{t.day}</b><span class="m">{MOIS[t.month - 1]} {t.year}</span></div>
@@ -76,7 +81,9 @@ if __name__ == '__main__' and '--page' in sys.argv:
     <div class="grille"><div class="visuels">{vis}</div><div class="legs">{legs}</div></div>
   </div>
 </article>''')
-    n_post = sum('post' in formats(p) for p in posts); n_story = sum('story' in formats(p) for p in posts)
-    page = (D / 'retouches-gabarit.html').read_text().replace('{{N_POST}}', str(n_post)).replace('{{N_STORY}}', str(n_story)).replace('{{JOURS}}', '\n'.join(lignes))
+    n = lambda f, neuf: sum(f in formats(p) and bool(p.get('nouveau')) == neuf for p in posts)
+    page = (D / 'retouches-gabarit.html').read_text()
+    for k, v in {'N_NEUF': n('post', True), 'N_POST': n('post', False), 'N_STORY': n('story', False), 'JOURS': '\n'.join(lignes)}.items():
+        page = page.replace('{{' + k + '}}', str(v))
     (OUT / 'calendrier.html').write_text(page)
     print('page', OUT / 'calendrier.html', len(page) // 1024, 'Ko')

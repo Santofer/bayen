@@ -1,10 +1,10 @@
 """Légendes des posts Bayen par réseau (Instagram, Facebook, LinkedIn, stories), partagées par la page de revue
 (lot.py) et l'export ContentStudio (export.py). 5 hashtags au plus sur Instagram."""
-TAGS = {'annonce': '#NouveauLook #ConsommerMieux', 'action': '#AppMaroc #ConsommerMieux', 'jeu': '#VraiOuFaux #ConsommerMieux',
+TAGS = {'presentation': '#AppMaroc #ConsommerMieux', 'annonce': '#NouveauLook #ConsommerMieux', 'action': '#AppMaroc #ConsommerMieux', 'jeu': '#VraiOuFaux #ConsommerMieux',
         'communaute': '#Communaute #ConsommerMieux', 'astuce': '#Etiquette #ConsommerMieux', 'mission': '#ConsommerMieux #ProduitsMarocains',
         'cercle': '#ProduitsMarocains #ConsommerMieux', 'sante': '#JourneeMondialeDuDiabete #ConsommerMieux',
         'partenariat': '#Partenariat #MarquesMarocaines', 'app': '#AppMaroc #ConsommerMieux', 'saison': '#Hiver #ConsommerMieux', 'fete': ''}
-TAGS_AR = {'astuce': '#نصائح #استهلاك_واعي', 'action': '#تطبيق #استهلاك_واعي', 'jeu': '#صحيح_ولا_غالط #استهلاك_واعي',
+TAGS_AR = {'presentation': '#تطبيق #استهلاك_واعي', 'astuce': '#نصائح #استهلاك_واعي', 'action': '#تطبيق #استهلاك_واعي', 'jeu': '#صحيح_ولا_غالط #استهلاك_واعي',
            'communaute': '#مساهمة #المجتمع', 'mission': '#استهلاك_واعي #منتوجات_مغربية', 'journee': '#اليوم_العالمي_للغة_العربية #الدارجة',
            'partenariat': '#شراكة #منتوجات_مغربية'}
 FETES = {'fete-unite': '#FeteDeLUnite', 'marche-verte': '#MarcheVerte', 'independance': '#FeteDeLIndependance',

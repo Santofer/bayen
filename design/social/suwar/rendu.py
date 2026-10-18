@@ -39,7 +39,10 @@ def ligne(p, fmt):
     if L in ('photo', 'xxl', 'plein'): r['Texte'] = p.get('texte', '')
     if L == 'scene':
         r |= {'Image': U[f'scene-{v["scene"]}'], 'Fond': fond_scene(v['scene'])}
-        if fmt == 1920: r['FondHaut'] = fond_scene(v['scene'], haut=True)
+        if fmt == 1920:
+            haut = fond_scene(v['scene'], haut=True)
+            ecart = max(abs(int(haut[i:i + 2], 16) - int(r['Fond'][i:i + 2], 16)) for i in (1, 3, 5))
+            r |= {'FondHaut': haut, 'Fondu': haut if ecart > 20 else ''}  # fondu seulement si le décor touche le haut (marché)
     elif L == 'photo':
         r |= {'Image': U[f'photo-{v["photo"]}'], 'Bande': COUL[v['bande']], 'Pastille': U[f'sticker-score-{v["score"]}'] if v.get('score') else ''}
     elif L == 'plein':
@@ -54,7 +57,7 @@ def ligne(p, fmt):
     variante = ('Darija long' if long else 'Darija') if ar else ('Long' if long else '')
     if ar:  # texte arabe isolé en sens droite-à-gauche (RLE…PDF) : chiffres et ponctuation restent à leur place
         for k in ('Rubrique', 'Titre', 'Texte', 'Appel', 'TitreAr'):
-            if r.get(k): r[k] = '\u202b' + r[k] + '\u202c'
+            if r.get(k): r[k] = '\n'.join('\u202b' + l + '\u202c' for l in r[k].split('\n'))  # une isolation par ligne
     elif r.get('TitreAr'):
         r['TitreAr'] = '\u202b' + r['TitreAr'] + '\u202c'
     if not ar:  # typographie française : espace insécable avant ? ! ; : et dans les guillemets

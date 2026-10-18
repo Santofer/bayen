@@ -57,11 +57,12 @@ def scene(W, H):
     iy = y - 842  # story : même mise en page que le post, descendue contre le texte
     els = [rect('fond', 0, 0, W, H, '{{Fond}}'), image('image', 'Image', 0, iy, W, img_h)]
     variables = [VAR_RUB, VAR_TITRE, V('Image', 'Scène riso (4:5)', 'image'), V('Fond', 'Couleur du bas de la scène (story)', 'color', '#FFF8EC')]
-    if iy:  # bande du haut à la couleur du haut de la scène, fondue sur ses 140 premiers pixels (pas de coupure nette)
+    if iy:  # bande du haut à la couleur du haut de la scène ; fondu sur 140 px seulement si le décor touche le haut (sinon il voilerait le dessin)
         els += [rect('fond-haut', 0, 0, W, iy + 1, '{{FondHaut}}'),
-                rect('fondu', 0, iy, W, 140, '{{FondHaut}}', gradient={'type': 'linear', 'angle': 180, 'stops': [
-                    {'color': '{{FondHaut}}', 'position': 0, 'opacity': 1}, {'color': '{{FondHaut}}', 'position': 100, 'opacity': 0}]})]
-        variables.append(V('FondHaut', 'Couleur du haut de la scène (story)', 'color', '#FFF8EC'))
+                rect('fondu', 0, iy, W, 140, '{{Fondu}}', gradient={'type': 'linear', 'angle': 180, 'stops': [
+                    {'color': '{{Fondu}}', 'position': 0, 'opacity': 1}, {'color': '{{Fondu}}', 'position': 100, 'opacity': 0}]})]
+        variables += [V('FondHaut', 'Couleur du haut de la scène (story)', 'color', '#FFF8EC'),
+                      V('Fondu', 'Fondu du haut (scène pleine page seulement)', 'color', '', hide=['fondu'])]
     els += [kicker(65, y), titre(65, y + 72, 950, 200 if H == 1350 else 260, 80), signature(W, H, bas=60 if H == 1350 else 300)]
     return els, variables
 
