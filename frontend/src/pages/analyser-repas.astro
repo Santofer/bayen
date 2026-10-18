@@ -32,7 +32,7 @@ const locale = getLocale(localeCookie)
   <main class="screen max-md:pt-5">
     <!-- Ordinateur : l'outil à gauche, un repas analysé à droite pour équilibrer la page -->
     <div class="grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,.8fr)] md:items-start">
-      <div class="min-w-0"><MealPhotoAnalyzer client:load /></div>
+      <div class="grid min-w-0 content-start gap-[26px] md:gap-8"><MealPhotoAnalyzer client:load /></div>
       <AsidePhoto src="/visuels/repas-ecran.webp" alt={t('visual.meal', locale)} />
     </div>
   </main>
