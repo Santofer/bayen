@@ -809,7 +809,7 @@ const jsonLd = product
 // Fiche en base : carte d'aperçu « Marché Pop » (photo + score, générée par l'API) ;
 // produit lu seulement chez OFF : sa photo brute, comme avant
 const ogImage = scanResult.source === 'directus'
-  ? `${DIRECTUS_URL}/bayen-api/og/${barcode}.jpg`
+  ? `${SITE_URL}/apercu/${barcode}.jpg`  // relayée par bayen.ma : robots.txt d'api.bayen.ma = Disallow
   : imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
 
 // Section « Où l'acheter moins cher » : seulement à partir de 3 relevés (sinon pas de H2 vide)
