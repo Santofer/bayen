@@ -9,9 +9,11 @@ import { RISK_FILL } from '@/components/AdditiveTag.tsx'
 import type { Product, RiskLevel } from '@/lib/types'
 import type { TranslationKey } from '@/lib/translations'
 import { getLocale, t } from '@/lib/i18n'
+import { additiveDescription, additiveSources } from '@/lib/additive-text'
 
 const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
-const { id } = Astro.params
+const id = Astro.params.id ?? ''
+const SITE_URL = 'https://bayen.ma'
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
 let additive: Record<string, unknown> | null = null
@@ -21,20 +23,20 @@ let fetchError: string | null = null
 
 try {
   const [res, prodRes] = await Promise.all([
-    fetch(`${DIRECTUS_URL}/items/additives/${id}`, { signal: AbortSignal.timeout(5000) }),
+    fetch(`${DIRECTUS_URL}/items/additives/${encodeURIComponent(id)}`, { signal: AbortSignal.timeout(5000) }),
     // Produits contenant cet additif — endpoint SQL custom (le champ JSON
     // additives ne supporte pas _contains via l'API items)
-    fetch(`${DIRECTUS_URL}/bayen-api/search-products?has_additive=${id}&limit=24&sort=-scan_count`, {
+    fetch(`${DIRECTUS_URL}/bayen-api/search-products?has_additive=${encodeURIComponent(id)}&limit=24&sort=-scan_count`, {
       signal: AbortSignal.timeout(5000),
     }),
   ])
   if (res.ok) {
     const data = await res.json()
     additive = data.data ?? null
-  } else if (res.status === 403) {
-    // Essayer sans auth (public)
-    additive = null
+  } else if (res.status >= 500) {
+    fetchError = t('additivesPage.serverError', locale)
   }
+  // 403 / 404 : Directus répond 403 en public pour un identifiant inexistant → additif introuvable
   if (prodRes.ok) {
     const pd = await prodRes.json()
     products = pd.data ?? []
@@ -78,22 +80,78 @@ const ar = locale === 'ary'
 const displayName = additive ? String((ar && additive.name_ar) || additive.name_fr) : ''
 const fn = additive?.function ? String((ar && additive.function_ar) || additive.function) : ''
 const displayFunction = fn ? fn.charAt(0).toUpperCase() + fn.slice(1) : undefined
-const description = additive?.description_fr ? String((ar && additive.description_ar) || additive.description_fr) : null
-const sources = Array.isArray(additive?.sources) ? (additive.sources as string[]) : []
+const description = additiveDescription(String((ar && additive?.description_ar) || additive?.description_fr || ''))
+const sources = additive ? additiveSources(id, additive.sources) : []
 
-const pageTitle = additive
-  ? `${id} — ${additive.name_fr} | Bayen`
-  : `Additif ${id} — Bayen`
+// Additif inexistant : vrai 404 (503 si l'API ne répond pas, pour que Google repasse plus tard)
+if (!additive) Astro.response.status = fetchError ? 503 : 404
 
+// Title et description construits à partir des données : rien n'est promis qui ne soit pas sur la page
+const nameForSeo = additive ? displayName : ''
+const fullTitle = t('seo.additive.title', locale).replace('{id}', id).replace('{name}', nameForSeo)
+const pageTitle = !additive
+  ? t('seo.additive.notFound', locale).replace('{id}', id)
+  : productsCount > 0 && fullTitle.length <= 65
+    ? fullTitle
+    : t('seo.additive.titleShort', locale).replace('{id}', id).replace('{name}', nameForSeo)
+// Description : la version la plus complète qui tient en 155 caractères (on retire d'abord la phrase finale, puis la fonction)
+const risk = t(`seo.additive.risk.${riskLevel}`, locale)
+const inProducts = productsCount > 0 ? ` ${t('seo.additive.products', locale).replace('{n}', String(productsCount))}` : ''
+const tail = ` ${t('seo.additive.tail', locale)}`
+const lead = (withFn: boolean): string =>
+  t(withFn && fn ? 'seo.additive.lead' : 'seo.additive.leadNoFn', locale).replace('{id}', id).replace('{name}', nameForSeo).replace('{fn}', fn).replace('{risk}', risk)
+const descCandidates = [lead(true) + inProducts + tail, lead(true) + inProducts, lead(false) + inProducts]
 const pageDescription = additive
-  ? `${id} (${additive.name_fr}) — Niveau de risque, présence dans les produits marocains, alternatives. Selon EFSA et CIRC.`
-  : `Informations sur l'additif alimentaire ${id} au Maroc.`
+  ? descCandidates.find((d) => d.length <= 155) ?? descCandidates[descCandidates.length - 1]
+  : t('additive.notFoundDesc', locale)
+
+// JSON-LD : WebPage + DefinedTerm (membre du DefinedTermSet de /additifs) + BreadcrumbList, uniquement ce qui est affiché
+const pageUrl = `${SITE_URL}/additifs/${encodeURIComponent(id)}`
+const jsonLd = additive
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        '@id': `${pageUrl}#webpage`,
+        url: pageUrl,
+        name: pageTitle,
+        description: pageDescription,
+        inLanguage: ar ? 'ar-MA' : 'fr-MA',
+        isPartOf: { '@id': `${SITE_URL}/#website` },
+        breadcrumb: { '@id': `${pageUrl}#breadcrumb` },
+        about: { '@id': `${pageUrl}#term` },
+        ...(sources.length > 0 && {
+          citation: sources.map((s) => (s.url ? { '@type': 'CreativeWork', name: s.label, url: s.url } : s.label)),
+        }),
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'DefinedTerm',
+        '@id': `${pageUrl}#term`,
+        termCode: id,
+        name: displayName,
+        ...(description && { description }),
+        inDefinedTermSet: { '@type': 'DefinedTermSet', '@id': `${SITE_URL}/additifs#set`, name: t('additives.pageTitle', locale), url: `${SITE_URL}/additifs` },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        '@id': `${pageUrl}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Additifs', item: `${SITE_URL}/additifs` },
+          { '@type': 'ListItem', position: 3, name: `${id} · ${displayName}`, item: pageUrl },
+        ],
+      },
+    ]
+  : undefined
 ---
 
 <Layout
   title={pageTitle}
   description={pageDescription}
-  path={`/additifs/${id}`}
+  path={`/additifs/${encodeURIComponent(id)}`}
+  jsonLd={jsonLd}
   noindex={!additive}
   mobileTopbar={false}
 >
@@ -160,7 +218,9 @@ const pageDescription = additive
                   {sources.map((source) => (
                     <li class="flex items-start gap-2 text-[13px]">
                       <svg class="mt-0.5 size-3.5 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
-                      <span class="min-w-0 break-words">{source}</span>
+                      {source.url
+                        ? <a href={source.url} target="_blank" rel="noopener noreferrer" class="min-w-0 break-words font-semibold text-brand-ink underline underline-offset-2">{source.label}</a>
+                        : <span class="min-w-0 break-words">{source.label}</span>}
                     </li>
                   ))}
                 </ul>

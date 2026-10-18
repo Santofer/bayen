@@ -9,6 +9,7 @@ import { RISK_FILL, RISK_LABEL_KEYS } from '@/components/AdditiveTag.tsx'
 import PageHero from '@/components/PageHero.astro'
 import type { Additive, RiskLevel } from '@/lib/types'
 import { getLocale, t } from '@/lib/i18n'
+import { additiveDescription } from '@/lib/additive-text'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
@@ -41,12 +42,50 @@ const sortedAdditives = [...additives].sort((a, b) => {
 })
 const countBy = (r: RiskLevel) => additives.filter((a) => a.risk_level === r).length
 const ar = locale === 'ary'
+// Description de carte (sans l'allégation marocaine non sourcée, voir lib/additive-text)
+const cardDesc = (a: AdditiveAr): string | null => additiveDescription((ar && a.description_ar) || a.description_fr)
+
+// Nombre réel d'additifs dans la description (jamais « E100 à E1000+ »)
+const pageDescription = additives.length > 0
+  ? t('seo.additives.desc', locale).replace('{n}', String(additives.length))
+  : t('seo.additives.descNoCount', locale)
+
+// JSON-LD : DefinedTermSet (chaque fiche /additifs/[id] y renvoie) + BreadcrumbList
+const SITE_URL = 'https://bayen.ma'
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'DefinedTermSet',
+    '@id': `${SITE_URL}/additifs#set`,
+    url: `${SITE_URL}/additifs`,
+    name: t('additives.pageTitle', locale),
+    description: pageDescription,
+    inLanguage: ar ? 'ar-MA' : 'fr-MA',
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    hasDefinedTerm: sortedAdditives.map((a) => ({
+      '@type': 'DefinedTerm',
+      '@id': `${SITE_URL}/additifs/${a.id}#term`,
+      termCode: a.id,
+      name: (ar && a.name_ar) || a.name_fr,
+      url: `${SITE_URL}/additifs/${a.id}`,
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Additifs', item: `${SITE_URL}/additifs` },
+    ],
+  },
+]
 ---
 
 <Layout
-  title="Additifs alimentaires E-xxx — Liste complète et risques Maroc | Bayen"
-  description="Base de données complète des additifs alimentaires (E100 à E1000+) avec niveaux de risque pour le consommateur marocain. EFSA, CIRC, ONSSA."
+  title={t('seo.additives.title', locale)}
+  description={pageDescription}
   path="/additifs"
+  jsonLd={jsonLd}
   mobileTopbar={false}
 >
   <PageHero tone="tomate" mascot="loupe" kicker={t('nav.additives', locale)} title={t('additives.pageTitle', locale)} subtitle={t('additives.pageDesc', locale)}>
@@ -100,9 +139,7 @@ const ar = locale === 'ary'
                 <div class="min-w-0">
                   <p><b>{a.id}</b> · {(ar && a.name_ar) || a.name_fr}</p>
                   <p class="muted mt-0.5 text-[12.5px] first-letter:uppercase">{(ar && a.function_ar) || a.function}</p>
-                  {(a.description_fr || a.description_ar) && (
-                    <p class="muted mt-1 line-clamp-2 text-[12.5px]">{(ar && a.description_ar) || a.description_fr}</p>
-                  )}
+                  {cardDesc(a) && <p class="muted mt-1 line-clamp-2 text-[12.5px]">{cardDesc(a)}</p>}
                 </div>
                 <span class="chip fill" style={`background: ${RISK_FILL[a.risk_level]}`}>{t(RISK_LABEL_KEYS[a.risk_level], locale)}</span>
               </a>

@@ -4,8 +4,9 @@
  * Inclus dans le Layout pour toutes les pages.
  *
  * Auto-injecte :
- *   - JSON-LD Organization + WebSite + SearchAction sur la homepage
- *   - hreflang FR + AR + x-default sur toutes les pages publiques
+ *   - JSON-LD Organization + WebSite + SearchAction sur TOUTES les pages, dans un seul @graph avec les nœuds
+ *     de la page : les références @id (#organization, #website, a-propos#person) se résolvent partout
+ *   - hreflang fr-MA + x-default (la darija n'a pas encore d'URL propre : pas de hreflang ar-MA)
  *   - image OG par rubrique (public/og/*.jpg, générées par design/social/og/og.py), sinon og/default.jpg
  */
 
@@ -45,33 +46,37 @@ const OG_PAGES: Record<string, string> = {
 }
 const ogImageUrl = ogImage ?? `${siteUrl}/og/${OG_PAGES[path.split('/')[1] ?? ''] ?? 'default'}.jpg`
 
-// ─── JSON-LD Organization + WebSite injectés automatiquement sur '/' ────
-const isHomepage = path === '/' || path === ''
-
+// ─── JSON-LD Organization + WebSite, émis sur toutes les pages ────
 const organizationLd = {
-  '@context': 'https://schema.org',
   '@type': 'Organization',
   '@id': `${siteUrl}/#organization`,
   name: 'Bayen',
   alternateName: 'باين',
-  url: siteUrl,
+  url: `${siteUrl}/`,
+  // Logo carré en PNG (dimensions réelles), plutôt que le wordmark SVG
   logo: {
     '@type': 'ImageObject',
-    url: `${siteUrl}/logo-bayen.svg`,
-    width: 600,
-    height: 285,
+    '@id': `${siteUrl}/#logo`,
+    url: `${siteUrl}/icons/icon-512.png`,
+    width: 512,
+    height: 512,
   },
+  image: { '@id': `${siteUrl}/#logo` },
   description: 'Application web gratuite qui note les produits alimentaires et cosmétiques vendus au Maroc : score sur 100, additifs, ingrédients et alternatives, en français et en darija.',
   foundingDate: '2026-04',
+  publishingPrinciples: `${siteUrl}/methodologie`,
   founder: {
     '@type': 'Person',
+    '@id': `${siteUrl}/a-propos#person`,
     name: 'Amine Benboubker',
-    url: 'https://www.n0.ma',
+    url: 'https://aminebenboubker.com',
   },
+  parentOrganization: { '@type': 'Organization', name: 'N0', url: 'https://n0.ma' },
+  // Profils propres à Bayen (page Facebook : URL à ajouter quand elle sera confirmée)
   sameAs: [
+    'https://www.instagram.com/bayenma',
+    'https://www.linkedin.com/company/bayen-ma',
     'https://github.com/Santofer/bayen',
-    'https://www.n0.ma',
-    'https://netspace.ma',
   ],
   contactPoint: {
     '@type': 'ContactPoint',
@@ -83,14 +88,14 @@ const organizationLd = {
 }
 
 const websiteLd = {
-  '@context': 'https://schema.org',
   '@type': 'WebSite',
   '@id': `${siteUrl}/#website`,
-  url: siteUrl,
-  name: 'Bayen — Scannez. Comprenez. Choisissez mieux.',
+  url: `${siteUrl}/`,
+  name: 'Bayen',
+  alternateName: 'باين',
   description: 'Notation participative des produits alimentaires et cosmétiques au Maroc.',
   publisher: { '@id': `${siteUrl}/#organization` },
-  inLanguage: ['fr-MA', 'ar-MA'],
+  inLanguage: 'fr-MA',
   potentialAction: {
     '@type': 'SearchAction',
     target: {
@@ -101,25 +106,20 @@ const websiteLd = {
   },
 }
 
-// Concaténer les schemas : defaults + ceux passés en props
-const allSchemas: Record<string, unknown>[] = []
-if (isHomepage) {
-  allSchemas.push(organizationLd, websiteLd)
-}
-if (jsonLd) {
-  if (Array.isArray(jsonLd)) allSchemas.push(...jsonLd)
-  else allSchemas.push(jsonLd)
-}
+// Un seul @graph : nœuds globaux + nœuds de la page (leur @context est retiré, porté par le graphe ;
+// une page qui passe déjà un { '@graph': [...] } voit ses nœuds dépliés)
+const pageNodes = (jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [])
+  .flatMap((node) => (Array.isArray(node['@graph']) ? (node['@graph'] as Record<string, unknown>[]) : [node]))
+  .map((node) => Object.fromEntries(Object.entries(node).filter(([k]) => k !== '@context')))
+const graphLd = { '@context': 'https://schema.org', '@graph': [organizationLd, websiteLd, ...pageNodes] }
 ---
 
 <!-- Canonical -->
 <link rel="canonical" href={canonicalUrl} />
 
-<!-- Hreflang : FR + AR (le site est bilingue via cookie bayen_locale,
-     les URLs sont identiques mais Google doit savoir que le contenu
-     existe en 2 langues). x-default pointe vers la version FR. -->
+<!-- Hreflang : la darija est servie par cookie (bayen_locale) sur la même URL, sans URL propre ;
+     pas de hreflang ar-MA tant qu'elle n'en a pas (Google demande une URL par langue). -->
 <link rel="alternate" hreflang="fr-MA" href={canonicalUrl} />
-<link rel="alternate" hreflang="ar-MA" href={canonicalUrl} />
 <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
 
 <!-- OpenGraph — WhatsApp, Facebook, Twitter -->
@@ -144,6 +144,4 @@ if (jsonLd) {
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 
 <!-- JSON-LD Schema.org -->
-{allSchemas.map((schema) => (
-  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-))}
+<script type="application/ld+json" set:html={JSON.stringify(graphLd)} />

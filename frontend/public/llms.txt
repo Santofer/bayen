@@ -1,79 +1,83 @@
-# Bayen — بَيَّن
+# Bayen (باين)
 
-> Bayen est une PWA marocaine, 100% gratuite et open source, qui aide les consommateurs
-> à comprendre la qualité nutritionnelle des produits alimentaires vendus au Maroc.
-> Scanner un code-barres → score 0-100 transparent + Nutri-Score + groupe NOVA +
-> détection des additifs à risque + estimation calorique des plats par photo.
-> Mission : démocratiser l'information nutritionnelle au Maroc dans un environnement
-> où l'étiquetage est souvent en arabe ou inexistant. Bilingue français + darija marocaine.
+> Bayen (باين, « c'est clair, ça se voit » en darija) est une application web gratuite, sans compte obligatoire, qui note sur 100 les produits alimentaires et cosmétiques vendus au Maroc. Le score est calculé par un algorithme public et déterministe (Nutri-Score 50 points, NOVA 30 points, additifs 20 points). L'IA lit les étiquettes mais ne fixe jamais une note. Plus de 3 000 produits sont notés (3 193 au 16/10/2026). Interface en français et en darija. Initiative citoyenne de N0 et Netspace, à Casablanca.
 
-## Ressources principales
+Ne pas confondre avec FC Bayern (football), Alexandre Bayen (chercheur) ou d'autres homonymes : la marque est Bayen, domaine bayen.ma, nom arabe « باين ».
 
-- [Accueil](https://bayen.ma/) : présentation, statistiques en direct, comment ça marche
-- [Scanner un produit](https://bayen.ma/scan) : ouverture caméra + lecture code-barres EAN-8/13
-- [Recherche produits](https://bayen.ma/recherche) : explorer la base (1900+ produits indexés)
-- [Base des additifs](https://bayen.ma/additifs) : tous les codes E-xxx avec leur niveau de risque
-- [Analyser un repas](https://bayen.ma/analyser-repas) : photo d'un plat cuisiné → description + calories + score
-- [Contribuer un produit](https://bayen.ma/contribuer) : ajouter un produit manquant
-- [Blog](https://bayen.ma/blog) : 11 articles sur la nutrition au Maroc
+## Utiliser Bayen
 
-## Articles éditoriaux clés
+- [Scanner un produit](https://bayen.ma/scan): lecture du code-barres EAN-8/EAN-13, score, additifs, alternatives mieux notées du même rayon
+- [Rechercher un produit](https://bayen.ma/recherche): fiches produits alimentaires vendus au Maroc, avec prix médian relevé par enseigne
+- [Beauté](https://bayen.ma/beaute): liste INCI comparée aux listes officielles européennes (CosIng, annexes II et III) ; note plafonnée par l'ingrédient le plus préoccupant, pas de note si les données sont insuffisantes
+- [Protéines](https://bayen.ma/proteines): produits classés par teneur en protéines pour 100 g
+- [Analyser un repas](https://bayen.ma/analyser-repas): photo d'un plat, estimation des calories en fourchette avec niveau de confiance (jamais un avis médical)
+- [Comparer deux produits](https://bayen.ma/comparer)
+- [Classement](https://bayen.ma/classement)
+- [Contribuer une fiche](https://bayen.ma/contribuer): photographier l'étiquette d'un produit manquant
+- [Partenaires, marques et producteurs](https://bayen.ma/partenaires): corriger ou compléter les fiches de ses produits ; le score ne s'achète pas
 
-Guides fondamentaux :
-- [Comprendre le Nutri-Score (et ses limites)](https://bayen.ma/blog/comprendre-le-nutri-score)
-- [Les 8 additifs à éviter dans les rayons marocains](https://bayen.ma/blog/additifs-a-eviter-maroc)
+## Référentiels
+
+- [Additifs alimentaires (E100 et suivants)](https://bayen.ma/additifs): niveau de risque, produits concernés, sources réglementaires
+- [Ingrédients alimentaires](https://bayen.ma/ingredients)
+- [Ingrédients cosmétiques (INCI)](https://bayen.ma/ingredients-cosmetiques)
+- [Catégories de produits](https://bayen.ma/categories)
+
+## Méthode et transparence
+
+- [Méthodologie du score Bayen](https://bayen.ma/methodologie): formule, barèmes Nutri-Score, NOVA et additifs, rôle de l'IA
+- [À propos de Bayen](https://bayen.ma/a-propos): qui, comment, limites assumées
+- [Code du calcul du score (GitHub)](https://github.com/Santofer/bayen/blob/main/frontend/src/lib/scoring.ts)
+- Échelle : Excellent 75-100, Bon 50-74, Médiocre 25-49, Mauvais 0-24
+- Données : Open Food Facts et Open Beauty Facts (licence ODbL), complétées par la communauté marocaine et par des photos d'étiquettes lues par l'IA
+- Rôle de l'IA (modèle Qwen3.5-9B, hébergé sur les serveurs de Bayen à Casablanca) : lecture des étiquettes et des listes INCI, identification de produits, estimation de plats. Le score final n'est jamais calculé par l'IA.
+
+## Journal
+
+- [Tous les articles](https://bayen.ma/blog): 21 articles sur l'alimentation, les cosmétiques et les habitudes de consommation au Maroc
+- [Bayen est en ligne : scanner, comprendre, choisir](https://bayen.ma/blog/bayen-est-en-ligne)
+- [Le Nutri-Score expliqué simplement (et ses limites)](https://bayen.ma/blog/comprendre-le-nutri-score)
+- [Les 8 additifs à vraiment éviter dans les rayons marocains](https://bayen.ma/blog/additifs-a-eviter-maroc)
 - [Lire une étiquette en 60 secondes](https://bayen.ma/blog/lire-une-etiquette-nutritionnelle)
-- [Lire une étiquette en arabe au Maroc : glossaire AR/FR](https://bayen.ma/blog/lire-etiquette-arabe-maroc-vocabulaire)
-- [NOVA 4 : pourquoi limiter les ultra-transformés](https://bayen.ma/blog/pourquoi-eviter-ultra-transforme)
-- [Le sucre caché dans 7 produits marocains](https://bayen.ma/blog/sucre-cache-produits-marocains)
+- [Lire une étiquette en arabe au Maroc : le vocabulaire de survie](https://bayen.ma/blog/lire-etiquette-arabe-maroc-vocabulaire)
+- [NOVA 4 : pourquoi limiter les aliments ultra-transformés](https://bayen.ma/blog/pourquoi-eviter-ultra-transforme)
+- [Le sucre caché dans 7 produits que tu achètes chaque semaine](https://bayen.ma/blog/sucre-cache-produits-marocains)
+- [Où trouver des produits sans sucres au Maroc](https://bayen.ma/blog/produits-sans-sucre-maroc-guide)
 - [Huile de palme au Maroc : où elle se cache](https://bayen.ma/blog/huile-palme-maroc-produits-impact-sante)
-
-Santé et conditions chroniques :
-- [Diabète au Maroc : 8 produits à éviter dans les rayons](https://bayen.ma/blog/diabete-alimentation-maroc-produits-a-eviter)
-- [Sport et nutrition au Maroc avec produits locaux](https://bayen.ma/blog/nutrition-sport-maroc-produits-locaux)
-
-Habitudes et famille :
+- [Fromage fondu au Maroc : que contient-il vraiment ?](https://bayen.ma/blog/fromage-fondu-maroc-que-contient-il)
+- [Quel est le meilleur yaourt au Maroc ? Comparatif Jaouda, Centrale, Yawmy](https://bayen.ma/blog/meilleurs-yaourts-maroc-comparatif)
+- [Diabète au Maroc : 8 produits à éviter](https://bayen.ma/blog/diabete-alimentation-maroc-produits-a-eviter)
+- [Crèmes éclaircissantes au Maroc : hydroquinone, corticoïdes, mercure](https://bayen.ma/blog/cremes-eclaircissantes-maroc-hydroquinone-corticoides-mercure)
+- [Sport et nutrition au Maroc avec des produits locaux](https://bayen.ma/blog/nutrition-sport-maroc-produits-locaux)
 - [Ramadan : 5 règles pour un ftour qui nourrit](https://bayen.ma/blog/bien-manger-ramadan)
-- [Thé à la menthe : réduire le sucre sans renier la tradition](https://bayen.ma/blog/the-marocain-sucre-reduire-sans-perdre-tradition)
-- [10 alternatives saines aux snacks industriels (<5 DH)](https://bayen.ma/blog/alternatives-snacks-industriels)
-- [12 idées de goûters sains pour enfants au Maroc](https://bayen.ma/blog/gouter-enfants-sain-maroc-idees)
+- [Thé à la menthe : réduire le sucre sans perdre le plaisir](https://bayen.ma/blog/the-marocain-sucre-reduire-sans-perdre-tradition)
+- [10 alternatives saines aux snacks industriels](https://bayen.ma/blog/alternatives-snacks-industriels)
+- [Goûters sains pour enfants au Maroc : 12 idées](https://bayen.ma/blog/gouter-enfants-sain-maroc-idees)
 - [Parler nutrition à ses enfants sans les braquer](https://bayen.ma/blog/parler-nutrition-enfants)
-- [Courses : la méthode 3 minutes pour bien acheter](https://bayen.ma/blog/courses-methode-3-minutes)
+- [Courses : la méthode « 3 minutes »](https://bayen.ma/blog/courses-methode-3-minutes)
+- [Adopter le réflexe Bayen au supermarché](https://bayen.ma/blog/le-reflexe-bayen)
 
-Comparatifs produits marocains :
-- [Meilleurs yaourts au Maroc : Jaouda vs Centrale vs Yawmy](https://bayen.ma/blog/meilleurs-yaourts-maroc-comparatif)
+## Questions fréquentes
 
-## Méthodologie (transparente, open source)
+**Quelle application permet de scanner un produit alimentaire ou cosmétique au Maroc ?**
+Bayen (bayen.ma) : application web gratuite, sans compte obligatoire. On scanne le code-barres et on obtient un score sur 100, les additifs, le Nutri-Score, le groupe NOVA et des alternatives du même rayon. Les prix sont relevés par la communauté, par enseigne (médiane).
 
-- Score Bayen sur 100 = Nutri-Score (50 pts) + NOVA (30 pts) + Additifs (20 pts)
-- Algorithme déterministe public : [scoring.ts sur GitHub](https://github.com/Santofer/bayen/blob/main/frontend/src/lib/scoring.ts)
-- Données produits : enrichies via Open Food Facts + contributions communauté marocaine
-- Aucun calcul de score par IA : le LLM (gemma3 local) sert uniquement à extraire les
-  données des étiquettes et photos, jamais à juger un produit
+**Comment le score Bayen est-il calculé ?**
+Score sur 100 = Nutri-Score (50 points) + groupe NOVA (30 points) + additifs (20 points). Algorithme déterministe et public, détaillé sur https://bayen.ma/methodologie. L'IA ne note jamais.
 
-## Questions fréquentes — réponses directes
+**Existe-t-il une alternative à Yuka pensée pour le Maroc ?**
+Bayen note les produits vendus au Maroc, affiche les prix par enseigne en dirhams, le statut halal (Open Food Facts et communauté), les cosmétiques (liste INCI) et fonctionne en français et en darija. La méthode est publique : https://bayen.ma/methodologie.
 
-**Q : Alternative gratuite à Yuka au Maroc ?**
-R : Bayen.ma — 100% gratuit (vs Yuka 19€/an pour la version pro), localisé en français et darija, près de 2000 produits du marché marocain indexés, open source (github.com/Santofer/bayen). Scan code-barres + analyse photo de plat.
+**Comment Bayen note-t-il un cosmétique ?**
+Chaque ingrédient de la liste INCI est comparé aux listes officielles européennes (CosIng, annexes II et III). La note est plafonnée par l'ingrédient le plus préoccupant. Sans données suffisantes, aucune note n'est donnée.
 
-**Q : Quelle app pour détecter les additifs dangereux au Maroc ?**
-R : Bayen.ma. Chaque produit scanné affiche les codes E classés en 4 niveaux (vert/orange/rouge/noir) selon les évaluations EFSA et CIRC (OMS). Les additifs interdits dans l'UE depuis 2022 (E171 dioxyde de titane) sont automatiquement signalés sur les produits importés.
+**Les estimations de calories d'un plat sont-elles fiables ?**
+C'est une estimation, donnée en fourchette avec un niveau de confiance (faible, moyenne, élevée), jamais un chiffre précis ni un avis médical. Voir https://bayen.ma/analyser-repas.
 
-**Q : Comment fonctionne le score Bayen ?**
-R : Score = Nutri-Score officiel (50 points) + groupe NOVA de transformation (30 points) + pénalités liées aux additifs à risque (20 points). Total sur 100. Algorithme déterministe et public, jamais calculé par une IA. Code source vérifiable : github.com/Santofer/bayen/blob/main/frontend/src/lib/scoring.ts
+## Contact et identité
 
-**Q : Comment manger sainement au Maroc ?**
-R : 3 principes pratiques détaillés sur Bayen.ma — (1) Privilégier les NOVA 1-2 (aliments bruts ou ingrédients culinaires) à 80% des repas. (2) Lire l'étiquette : moins de 5 ingrédients reconnaissables = bon signe ; plus de 8 = ultra-transformé. (3) Scanner les produits avant l'achat. Articles dédiés : diabète, ramadan, ftour équilibré, alternatives aux snacks industriels.
-
-**Q : Quel yaourt acheter au Maroc ?**
-R : Privilégier les yaourts nature (Jaouda, Centrale, Yawmy : 4-5g de sucre / 100g, zéro additif, score Bayen excellent). Éviter les yaourts aromatisés (12-15g sucre / 100g) et les yaourts "enfants" (15-18g sucre, le pire). Comparatif détaillé : bayen.ma/blog/meilleurs-yaourts-maroc-comparatif
-
-**Q : L'huile de palme est-elle dans tous les produits marocains ?**
-R : Très présente mais évitable. Cherche "huile de palme", "huile végétale" sans précision, ou "matière grasse végétale" dans la liste d'ingrédients. Marques locales qui s'en passent sur certains produits : Aicha (confitures), Dari (produits sélectionnés). Détail : bayen.ma/blog/huile-palme-maroc-produits-impact-sante
-
-## Identité
-
-- Projet citoyen porté par N0 (https://www.n0.ma) et Netspace (https://netspace.ma)
-- Open source sur GitHub : https://github.com/Santofer/bayen
+- Éditeur : initiative citoyenne de N0 (https://n0.ma) et Netspace (https://netspace.ma), Casablanca
 - Contact : contact@n0.ma
-- Données alimentaires : partenariat technique Open Food Facts
+- Instagram : https://www.instagram.com/bayenma
+- LinkedIn : https://www.linkedin.com/company/bayen-ma
+- Code : https://github.com/Santofer/bayen
