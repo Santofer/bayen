@@ -150,6 +150,7 @@ def darija(els):
                 t = next(x for x in els if x['id'] == 'titre')
                 o['texte']['fontSize'] = round(e['fontSize'] * 1.08)
                 if e['y'] > t['y']: o['texte']['y'] = e['y'] + round(t['height'] * .3)
+                o['texte']['x'] = t['x'] + t['width'] - e['width']  # aligné à droite sur le titre (bord droit commun)
         if e['id'] == 'logo':
             w = 205
             o['logo'] = {'d': AR_D, 'viewBox': AR_VB, 'width': w, 'height': round(w * ratio(AR_VB)), 'x': 65,
