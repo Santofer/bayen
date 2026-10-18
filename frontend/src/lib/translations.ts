@@ -6,6 +6,7 @@
 import { refonte1 } from '@/lib/translations-refonte-1'
 import { refonte2 } from '@/lib/translations-refonte-2'
 import { refonte3 } from '@/lib/translations-refonte-3'
+import { seo } from '@/lib/translations-seo'
 
 const base = {
   // ── Navigation ──────────────────────────────────────────────
@@ -927,7 +928,7 @@ const base = {
 } as const
 
 // Textes ajoutés par la refonte Marché Pop, un fichier par lot d'écrans
-export const translations = { ...base, ...refonte1, ...refonte2, ...refonte3 } as const
+export const translations = { ...base, ...refonte1, ...refonte2, ...refonte3, ...seo } as const
 
 /** Clé de traduction valide */
 export type TranslationKey = keyof typeof translations
