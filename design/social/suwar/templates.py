@@ -31,7 +31,7 @@ def texte(x, y, w, h, size=42, fill=ENCRE):
     return {'id': 'texte', 'name': 'Texte', 'type': 'text', 'content': '{{Texte}}', 'x': x, 'y': y, 'width': w, 'height': h,
             'fontFamily': 'Readex Pro', 'fontWeight': 600, 'fontSize': size, 'lineHeight': 1.3, 'fill': fill, 'textAlign': 'left'}
 def cta(x, y):
-    return {'id': 'cta', 'name': 'Appel', 'type': 'text', 'content': '{{Appel}}', 'x': x, 'y': y, 'width': 900, 'height': 56,
+    return {'id': 'cta', 'name': 'Appel', 'type': 'text', 'content': '{{Appel}}', 'x': x, 'y': y, 'width': 900, 'height': 72,
             'fontFamily': 'Readex Pro', 'fontWeight': 600, 'fontSize': 34, 'lineHeight': 1.2, 'fill': ENCRE, 'textAlign': 'left',
             'textBg': {'mode': 'box', 'color': CREME, 'borderColor': ENCRE, 'borderWidth': 5, 'padX': 28, 'padY': 8, 'radius': 99}}
 def signature(W, H, fill=ENCRE, bas=60):
@@ -48,15 +48,22 @@ V = lambda name, label, typ='text', default='', help_=None, hide=None, maxlen=No
 VAR_RUB = V('Rubrique', 'Rubrique (pastille du haut)', help_="« L'astuce de Naânaa », « Vrai ou faux ? »…", maxlen=40)
 VAR_TITRE = V('Titre', 'Titre', help_='Une phrase courte, point final', maxlen=60)
 VAR_TEXTE = V('Texte', 'Texte sous le titre (facultatif)', hide=[], maxlen=90)
-VAR_APPEL = V('Appel', 'Appel en bas (facultatif)', help_='« Réponse dans la légende »', hide=[], maxlen=34)
+VAR_APPEL = V('Appel', 'Appel en bas (facultatif)', help_='« Réponse en caption »', hide=[], maxlen=34)
 
 # ---------- Gabarits : (post, story) ----------
 def scene(W, H):
     img_h = 1350
-    els = [rect('fond', 0, 0, W, H, '{{Fond}}'), image('image', 'Image', 0, 0, W, img_h)]
     y = 842 if H == 1350 else 1240
+    iy = y - 842  # story : même mise en page que le post, descendue contre le texte
+    els = [rect('fond', 0, 0, W, H, '{{Fond}}'), image('image', 'Image', 0, iy, W, img_h)]
+    variables = [VAR_RUB, VAR_TITRE, V('Image', 'Scène riso (4:5)', 'image'), V('Fond', 'Couleur du bas de la scène (story)', 'color', '#FFF8EC')]
+    if iy:  # bande du haut à la couleur du haut de la scène, fondue sur ses 140 premiers pixels (pas de coupure nette)
+        els += [rect('fond-haut', 0, 0, W, iy + 1, '{{FondHaut}}'),
+                rect('fondu', 0, iy, W, 140, '{{FondHaut}}', gradient={'type': 'linear', 'angle': 180, 'stops': [
+                    {'color': '{{FondHaut}}', 'position': 0, 'opacity': 1}, {'color': '{{FondHaut}}', 'position': 100, 'opacity': 0}]})]
+        variables.append(V('FondHaut', 'Couleur du haut de la scène (story)', 'color', '#FFF8EC'))
     els += [kicker(65, y), titre(65, y + 72, 950, 200 if H == 1350 else 260, 80), signature(W, H, bas=60 if H == 1350 else 300)]
-    return els, [VAR_RUB, VAR_TITRE, V('Image', 'Scène riso (4:5)', 'image'), V('Fond', 'Couleur du fond de la scène (story)', 'color', '#FFF8EC')]
+    return els, variables
 
 def photo(W, H):
     ph = 891 if H == 1350 else 1100
@@ -96,9 +103,8 @@ def bulle(W, H):
            forme('bulle-ombre', 11, ENCRE, None), forme('bulle', 0, CREME, ENCRE),
            titre(120, by + 45, 820, bh - 90, 97 if s else 104),
            image('naanaa', 'Naanaa', -32, 583 if s else 1060, 540, 810, 'contain', 'Naânaa'),
-           image('sticker1', 'Sticker1', 540, 1049 if s else 1480, 518, 236, 'contain', 'Sticker'), kicker(70, 62 if s else 260)]
-    return els, [VAR_RUB, VAR_TITRE, V('Fond', 'Fond texturé (image)', 'image'), V('Naanaa', 'Naânaa (pose riso)', 'image'),
-                 V('Sticker1', 'Sticker (facultatif)', 'image', hide=[])]
+           kicker(70, 62 if s else 260), signature(W, H, CREME, bas=60 if s else 300)]
+    return els, [VAR_RUB, VAR_TITRE, V('Fond', 'Fond texturé (image)', 'image'), V('Naanaa', 'Naânaa (pose riso)', 'image')]
 
 def plein(W, H):
     s = H == 1350
@@ -170,14 +176,13 @@ def exemples(nom, h):
                 {'Rubrique': AR('باين فالخدمة · الوجبة'), 'Titre': AR('صوّر الطبسيل ديالك، وعرف شنو فيه.'), 'Texte': '',
                  'Image': U['photo-F5-repas-ar'], 'Bande': '#B98CFF', 'Pastille': ''})
     if nom == 'XXL':
-        return ({'Rubrique': 'Vrai ou faux\u00a0?', 'Titre': '« Light » veut dire sans sucre.', 'Texte': '', 'Appel': 'Réponse dans la légende',
+        return ({'Rubrique': 'Vrai ou faux\u00a0?', 'Titre': '« Light » veut dire sans sucre.', 'Texte': '', 'Appel': 'Réponse en caption',
                  'Fond': f('rayons'), 'Encre': ENCRE, 'Naanaa': U['naanaa-loupe'], 'Sticker1': U['sticker-vrai'], 'Sticker2': U['sticker-faux']},
                 {'Rubrique': AR('صحيح ولا غالط؟'), 'Titre': AR('لايت معناها ديما شوية ديال السكر.'), 'Appel': AR('الجواب تحت التصويرة'),
                  'Sticker1': U['sticker-sahih'], 'Sticker2': U['sticker-ghalet']})
     if nom == 'Bulle':
-        return ({'Rubrique': "L'astuce de Naânaa", 'Titre': "Lis l'étiquette avant le prix.", 'Fond': f('trame'), 'Naanaa': U['naanaa-astuce'],
-                 'Sticker1': U['sticker-wordmark']},
-                {'Rubrique': AR('نصيحة نعناعة'), 'Titre': AR('شوف السكريات، ماشي غير الكالوري.'), 'Sticker1': ''})
+        return ({'Rubrique': "L'astuce de Naânaa", 'Titre': "Lis l'étiquette avant le prix.", 'Fond': f('trame'), 'Naanaa': U['naanaa-astuce']},
+                {'Rubrique': AR('نصيحة نعناعة'), 'Titre': AR('شوف السكريات، ماشي غير الكالوري.')})
     return ({'Rubrique': '6 novembre', 'Titre': 'Commémoration de la Marche verte', 'Texte': '', 'Image': U['plein-P2-marche-verte'],
              'TitreAr': AR('ذكرى المسيرة الخضراء'), 'Signature': ''},
             {'Rubrique': AR('نية العام الجديد'), 'Titre': AR('منتوج واحد فالشهر.'), 'Texte': AR('بدّل كل شهر منتوج واحد بواحد عندو نقطة أحسن.'),
@@ -197,6 +202,11 @@ for nom, fn in GABARITS.items():
             ids[cle] = {'id': call('create_static_template', {**args, 'projectId': PROJET})['id']}
         tid = ids[cle]['id']
         variantes = {'Darija': darija(els)}
+        if nom == 'Bulle':  # Naânaa occupe le bas gauche : le logo « باين » reste à droite
+            variantes['Darija']['logo']['x'] = W - 65 - variantes['Darija']['logo']['width']
+            # la bulle ne grandit pas avec l'interligne arabe : titre plus petit, dans la boîte d'origine
+            t = next(e for e in els if e['id'] == 'titre')
+            variantes['Darija']['titre'].update({'fontSize': round(t['fontSize'] * .8), 'height': t['height']})
         if nom in ('XXL', 'Photo', 'Plein écran'):
             lg = long(els, 1 if nom == 'Plein écran' else None)
             dl = fusion(darija(els), lg)

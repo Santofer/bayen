@@ -1,0 +1,85 @@
+<title>Bayen · visuels refaits</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Readex+Pro:wght@400;600;700&display=swap">
+<style>
+/* Mise en page : une ligne par jour de publication, date en marge, visuels puis légendes à copier.
+   Couleurs et polices = identité « Marché Pop » de bayen.ma (crème, encre, aplats vifs, Unbounded + Readex Pro). */
+:root {
+  --fond: #FFF8EC; --carte: #FFFFFF; --encre: #1B1B1B; --doux: #5E5648; --trait: #1B1B1B; --ombre: #1B1B1B;
+  --menthe: #19C08B; --citron: #FFD43B; --figue: #B98CFF; --tomate: #FF5A3C; --puce: #FFF3DF;
+  --titre: 'Unbounded', 'Arial Black', system-ui, sans-serif; --texte: 'Readex Pro', system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fond: #1D1430; --carte: #2A1F42; --encre: #FFF3DF; --doux: #CFC3E6; --trait: #FFF3DF; --ombre: #0D0818; --puce: #3A2D57; color-scheme: dark } }
+:root[data-theme="dark"] { --fond: #1D1430; --carte: #2A1F42; --encre: #FFF3DF; --doux: #CFC3E6; --trait: #FFF3DF; --ombre: #0D0818; --puce: #3A2D57; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--fond); color: var(--encre); font: 15px/1.5 var(--texte);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px }
+.page { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px }
+header { display: grid; gap: 10px }
+h1 { font: 800 clamp(28px, 4.6vw, 48px)/1.02 var(--titre); letter-spacing: -0.02em; margin: 0; text-wrap: balance }
+.chapo { margin: 0; max-width: 68ch; color: var(--doux); font-size: 16px }
+.resume { display: flex; flex-wrap: wrap; gap: 8px }
+.chip { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border: 2px solid var(--trait); border-radius: 99px;
+  background: var(--puce); color: var(--encre); font-size: 12.5px; font-weight: 600; white-space: nowrap }
+.chip.xxl { background: var(--citron); color: #1B1B1B; border-color: #1B1B1B }
+.chip.bulle { background: var(--menthe); color: #1B1B1B; border-color: #1B1B1B }
+.chip.scene { background: var(--figue); color: #1B1B1B; border-color: #1B1B1B }
+.chip.ar { font-family: var(--texte) }
+.note { margin: 0; padding: 12px 16px; border: 2px dashed var(--trait); border-radius: 16px; max-width: 80ch; font-size: 14px }
+.jour { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 20px; padding: 20px; background: var(--carte);
+  border: 2.5px solid var(--trait); border-radius: 24px; box-shadow: 5px 5px 0 var(--ombre) }
+.date { display: grid; justify-items: center; align-content: start; gap: 2px; padding: 10px 6px; border: 2px solid var(--trait); border-radius: 18px; background: var(--puce); height: max-content }
+.date b { font: 800 34px/1 var(--titre); font-variant-numeric: tabular-nums }
+.date .j, .date .m { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--doux) }
+.corps { display: grid; gap: 16px; min-width: 0 }
+.tete { display: grid; gap: 8px }
+.tete h2 { margin: 0; font: 800 20px/1.15 var(--titre); letter-spacing: -0.01em; text-wrap: balance }
+.tete h2:dir(rtl) { font-family: var(--texte); font-weight: 700; letter-spacing: 0 }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.grille { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: start }
+.visuels { display: flex; gap: 12px; align-items: flex-start }
+.v { margin: 0; display: grid; gap: 6px }
+.v img { display: block; height: 300px; width: auto; max-width: 100%; border-radius: 12px; border: 2px solid var(--trait) }
+.v figcaption { font-size: 12px; font-weight: 600; color: var(--doux); font-variant-numeric: tabular-nums }
+.legs { display: grid; gap: 10px; min-width: 0 }
+.leg { border: 2px solid var(--trait); border-radius: 16px; overflow: hidden; background: var(--fond) }
+.leg-h { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px 6px 12px; border-bottom: 2px solid var(--trait); font-size: 12.5px; font-weight: 700 }
+.leg p { margin: 0; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13.5px; max-height: 190px; overflow-y: auto }
+.copier { font: 600 12px var(--texte); color: var(--encre); background: var(--carte); border: 2px solid var(--trait); border-radius: 99px; padding: 3px 10px; cursor: pointer }
+.copier:hover { background: var(--citron); color: #1B1B1B; border-color: #1B1B1B }
+.copier:focus-visible { outline: 3px solid var(--menthe); outline-offset: 2px }
+@media (max-width: 860px) { .grille { grid-template-columns: minmax(0, 1fr) } }
+@media (max-width: 560px) {
+  .jour { grid-template-columns: minmax(0, 1fr); padding: 16px }
+  .date { grid-auto-flow: column; justify-content: start; align-items: baseline; gap: 8px; padding: 6px 12px }
+  .date b { font-size: 22px }
+  .v img { height: 220px }
+}
+</style>
+
+<div class="page">
+  <header>
+    <h1>Visuels refaits, à programmer</h1>
+    <p class="chapo">Les visuels corrigés après la revue des templates Suwar, aux mêmes dates et heures que le calendrier des lots 1 à 3. Chaque story part deux heures après le post du jour.</p>
+    <div class="resume">
+      <span class="chip">{{N_POST}} posts Instagram + Facebook</span>
+      <span class="chip">{{N_STORY}} stories Instagram + Facebook</span>
+      <span class="chip xxl">Vrai ou faux</span><span class="chip bulle">L'astuce de Naânaa (bulle)</span><span class="chip scene">Scènes en story</span>
+    </div>
+    <p class="note">Ces visuels remplacent ceux du même jour déjà importés dans ContentStudio : retire les anciens pour éviter un doublon.</p>
+  </header>
+{{JOURS}}
+</div>
+
+<script>
+// Copier une légende ; si le presse-papiers est refusé, on sélectionne le texte pour un copier à la main
+document.addEventListener('click', (ev) => {
+  const b = ev.target.closest('.copier'); if (!b) return
+  const p = b.closest('.leg').querySelector('p')
+  const fini = (ok) => { b.textContent = ok ? 'Copié' : 'Sélectionné'; setTimeout(() => { b.textContent = 'Copier' }, 1600) }
+  const choisir = () => { const r = document.createRange(); r.selectNodeContents(p); const s = getSelection(); s.removeAllRanges(); s.addRange(r); fini(false) }
+  try { navigator.clipboard.writeText(p.textContent).then(() => fini(true), choisir) } catch { choisir() }
+})
+</script>
