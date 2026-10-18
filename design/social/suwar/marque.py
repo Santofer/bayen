@@ -38,7 +38,7 @@ PALETTE = [  # globals.css (Marché Pop)
     dict(name='Crème', hex=CREME, variable='couleur_fond', share=40, usage='Fond clair des visuels et du site'),
     dict(name='Encre', hex=ENCRE, variable='couleur_texte', share=12, usage='Texte, logo, contours et ombres nettes'),
     dict(name='Menthe', hex='#19C08B', variable='couleur_principale', share=18, usage='Principale : Naânaa, alimentation, note Excellent'),
-    dict(name='Menthe texte', hex='#0B7A55', variable='menthe_texte', usage='Menthe en texte sur fond clair (le menthe vif ne passe pas AA)'),
+    dict(name='Menthe texte', hex='#0B7A55', variable='menthe_texte', usage='Menthe en texte sur fond clair (contraste AA)'),
     dict(name='Citron', hex='#FFD43B', variable='couleur_accent', share=8, usage='Accent, aplats joyeux, pastilles'),
     dict(name='Tomate', hex='#FF5A3C', variable='tomate', share=4, usage='Alerte, « Faux », note Mauvais ; jamais pour un univers'),
     dict(name='Myrtille', hex='#6B7BFF', variable='myrtille', share=4, usage='Univers protéines'),
@@ -115,7 +115,7 @@ COHÉRENCE : la légende colle au visuel. Un écran montré est toujours une vra
 
 kit = dict(name='Bayen', projectId=PROJET, sector='food', captionVoice=VOIX, palette=PALETTE, logos=KIT_LOGOS, textStyles=STYLES,
            formats=[dict(name='Post', width=1080, height=1350), dict(name='Story', width=1080, height=1920)], tokens=TOKENS,
-           fontPrimary='Unbounded', fontSecondary='Readex Pro',  # graisses (800, 600) dans les styles : Suwar renvoie 500 sur fontWeight* numérique
+           fontPrimary='Unbounded', fontWeightPrimary=800, fontSecondary='Readex Pro', fontWeightSecondary=600,
            colorPrimary='#19C08B', colorSecondary='#3B1F5C', colorAccent='#FFD43B', colorText=ENCRE, colorBg=CREME, logo=U['logo-wordmark'],
            strict=dict(colors=False, fonts=True))
 m = json.loads(MARQUE.read_text()) if MARQUE.exists() else {}
