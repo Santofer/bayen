@@ -6,25 +6,46 @@ import Layout from '@/layouts/Layout.astro'
 import PageHero from '@/components/PageHero.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 import { getLocale, t } from '@/lib/i18n'
+import { brandKey, canonicalBrand, firstBrand } from '@/lib/indexable'
 import type { Product } from '@/lib/types'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
 const { name } = Astro.params
-const brandName = decodeURIComponent(name ?? '')
+const requested = decodeURIComponent(name ?? '').trim()
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
+// Marque EXACTE (première marque du champ, sans tenir compte de la casse) : plus de
+// `_icontains`, qui faisait de n'importe quelle chaîne une « marque » indexable
 let products: Record<string, unknown>[] = []
-try {
-  const res = await fetch(
-    `${DIRECTUS_URL}/items/products?filter[brand][_icontains]=${encodeURIComponent(brandName)}&filter[status][_eq]=published&sort=-scan_count&limit=50&fields=*`
-  )
-  if (res.ok) {
-    const data = await res.json()
-    products = data.data ?? []
+let directusDown = false
+if (requested) {
+  try {
+    const res = await fetch(
+      `${DIRECTUS_URL}/items/products?filter[brand][_istarts_with]=${encodeURIComponent(requested)}&filter[status][_eq]=published&sort=-scan_count,barcode&limit=-1&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,product_type,cosmetic_risk`,
+      { signal: AbortSignal.timeout(5000) }
+    )
+    if (res.ok) {
+      const key = brandKey(requested)
+      products = ((await res.json()).data ?? []).filter((p: Record<string, unknown>) => brandKey(firstBrand(p.brand)) === key)
+    } else {
+      directusDown = true
+    }
+  } catch {
+    directusDown = true
   }
-} catch {}
+}
 
+// Marque inconnue : vraie 404 ; Directus injoignable : 503 (le robot repassera)
+if (directusDown) {
+  Astro.response.status = 503
+  Astro.response.headers.set('Retry-After', '300')
+} else if (products.length === 0) {
+  return Astro.rewrite('/404')
+}
+
+// Graphie canonique (« Jaouda » plutôt que « jaouda ») : même calcul que le sitemap
+const brandName = canonicalBrand(products.map((p) => firstBrand(p.brand))) || requested
 const pageTitle = `${brandName} — Produits et scores Bayen`
 const pageDescription = `Tous les produits de la marque ${brandName} disponibles au Maroc, leur score nutritionnel et leurs additifs.`
 ---
@@ -32,31 +53,19 @@ const pageDescription = `Tous les produits de la marque ${brandName} disponibles
 <Layout
   title={pageTitle}
   description={pageDescription}
-  path={`/marque/${encodeURIComponent(name ?? '')}`}
+  path={`/marque/${encodeURIComponent(brandName)}`}
+  noindex={directusDown}
   mobileTopbar={false}
 >
-  <PageHero tone="primary" back="/recherche" kicker={t('contribute.brand', locale)} title={brandName} subtitle={`${products.length} ${t(products.length !== 1 ? 'history.itemsPlural' : 'history.itemSingular', locale)}`} />
+  <PageHero tone="primary" back="/recherche" kicker={t('contribute.brand', locale)} title={directusDown ? t('seo.serviceDown', locale) : brandName} subtitle={directusDown ? t('common.networkError', locale) : `${products.length} ${t(products.length !== 1 ? 'history.itemsPlural' : 'history.itemSingular', locale)}`} />
 
   <main class="screen">
     <section class="section gap-3">
-      {products.length > 0 ? (
-        <Fragment>
-          {/* Liste comme la recherche : cartes en ligne (mobile), grille (ordinateur) */}
-          <div class="grid gap-3 md:hidden">
-            {products.map((product) => <ProductCard product={product as unknown as Product} locale={locale} />)}
-          </div>
-          <div class="hidden gap-4 md:grid md:grid-cols-3 lg:grid-cols-4">
-            {products.map((product) => <ProductCard product={product as unknown as Product} variant="grid" locale={locale} />)}
-          </div>
-        </Fragment>
-      ) : (
-        <Fragment>
-          <div class="naanaa md:max-w-xl">
-            <img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="106" loading="lazy" />
-            <p class="bubble">{t('brand.empty', locale)}</p>
-          </div>
-          <a href="/scan" class="btn primary justify-self-start">{t('nav.scan', locale)}</a>
-        </Fragment>
+      {products.length > 0 && (
+        /* Un seul DOM : cartes en ligne, en colonnes sur ordinateur */
+        <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => <ProductCard product={product as unknown as Product} locale={locale} />)}
+        </div>
       )}
 
       <div class="naanaa mt-1.5 grid-cols-[56px_minmax(0,1fr)] md:max-w-xl">

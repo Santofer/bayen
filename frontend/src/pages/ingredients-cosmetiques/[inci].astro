@@ -19,10 +19,13 @@ interface Ingredient {
 }
 let ingredient: Ingredient | null = null
 let products: Product[] = []
+// Directus injoignable : 503 ; INCI absent du référentiel : 404
+let directusDown = false
 
 try {
   const res = await fetch(`${DIRECTUS_URL}/items/cosmetic_ingredients?filter[inci_name][_eq]=${encodeURIComponent(inci)}&limit=1`, { signal: AbortSignal.timeout(5000) })
-  if (res.ok) ingredient = ((await res.json()).data ?? [])[0] ?? null
+  if (!res.ok) throw new Error(`cosmetic_ingredients ${res.status}`)
+  ingredient = ((await res.json()).data ?? [])[0] ?? null
   if (ingredient) {
     const pr = await fetch(
       `${DIRECTUS_URL}/items/products_cosmetic_ingredients?filter[ingredient_id][_eq]=${ingredient.id}&filter[products_id][status][_eq]=published&fields=rank,products_id.id,products_id.barcode,products_id.name_fr,products_id.brand,products_id.quantity,products_id.image_front,products_id.scan_score,products_id.score_label,products_id.product_type,products_id.cosmetic_risk,products_id.scan_count&limit=60&sort=-products_id.scan_count`,
@@ -37,7 +40,16 @@ try {
       }
     }
   }
-} catch { /* fiche introuvable */ }
+} catch {
+  directusDown = true
+}
+
+if (directusDown) {
+  Astro.response.status = 503
+  Astro.response.headers.set('Retry-After', '300')
+} else if (!ingredient) {
+  Astro.response.status = 404
+}
 
 // Aplats Marché Pop (même échelle que InciList), texte encre posé dessus
 const LEVEL_FILL: Record<string, string> = {
@@ -71,7 +83,7 @@ const description = ingredient
     back="/ingredients-cosmetiques"
     kicker={t('nav.inci', locale)}
     title={ingredient?.inci_name ?? inci}
-    subtitle={ingredient ? (ingredient.name_fr ?? undefined) : t('search.noResults', locale)}
+    subtitle={ingredient ? (ingredient.name_fr ?? undefined) : directusDown ? t('seo.serviceDown', locale) : t('search.noResults', locale)}
     class="[&_h1]:[overflow-wrap:anywhere]"
   >
     {ingredient && (

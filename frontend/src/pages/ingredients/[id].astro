@@ -23,6 +23,11 @@ interface Ingredient {
 
 let ingredient: Ingredient | null = null
 let products: Product[] = []
+// Directus injoignable : 503 ; identifiant inconnu (Directus répond 403/404) : 404
+let directusDown = false
+
+// Identifiant non numérique : vraie 404 sans appel à Directus
+if (!/^\d{1,9}$/.test(String(id ?? ''))) return Astro.rewrite('/404')
 
 try {
   // Récupérer l'ingrédient
@@ -33,6 +38,8 @@ try {
   if (ingRes.ok) {
     const ingData = await ingRes.json()
     ingredient = ingData.data
+  } else if (ingRes.status >= 500) {
+    directusDown = true
   }
 
   // Récupérer les produits via la table de jonction
@@ -51,7 +58,16 @@ try {
         }))
     }
   }
-} catch {}
+} catch {
+  directusDown = true
+}
+
+if (directusDown) {
+  Astro.response.status = 503
+  Astro.response.headers.set('Retry-After', '300')
+} else if (!ingredient) {
+  Astro.response.status = 404
+}
 
 const name = ingredient
   ? (locale === 'ary' && ingredient.name_ar ? ingredient.name_ar : ingredient.name_fr)
@@ -94,7 +110,7 @@ const allergenNote = ingredient?.allergen_type ? ALLERGEN_NOTE[ingredient.allerg
     mascot="loupe"
     back="/ingredients"
     kicker={t('nav.ingredients', locale)}
-    title={ingredient ? ingredient.name_fr : t('ingPage.notFound', locale)}
+    title={ingredient ? ingredient.name_fr : directusDown ? t('seo.serviceDown', locale) : t('ingPage.notFound', locale)}
   >
     <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.5a2 2 0 0 1-.2.9L4.7 20.5a1 1 0 0 0 .9 1.5h12.8a1 1 0 0 0 .9-1.5l-5.1-10.1a2 2 0 0 1-.2-.9V2M8.5 2h7"/></svg>
     {ingredient && (
