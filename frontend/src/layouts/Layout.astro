@@ -87,6 +87,8 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <title>{title}</title>
     <SeoHead title={title} description={description} path={path} ogImage={ogImage} ogType={ogType} jsonLd={jsonLd} noindex={noindex} />
+    <!-- Balises propres à la page (ex. rel prev/next de la pagination des rayons) -->
+    <slot name="head" />
     <!-- Appliquer locale + thème sauvegardés avant le premier paint -->
     <script is:inline>
       (function() {
