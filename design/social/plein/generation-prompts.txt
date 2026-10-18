@@ -196,3 +196,68 @@ Composition precision: top 40% means the entire rectangle x=0–1024, y=0–511 
 
 Targeted shelf-clearance correction prompt (final image):
 Use case: precise-object-edit. Edit the attached generated illustration, preserving its exact characters, their poses, faces, the orange and green packet swap, red basket, full bodies and cream shoes, lower grocery aisle, warm colours and risograph grain. ONLY repair the upper-wall clearance: the shelf corners/products at the far left and right currently begin around 39% down and intrude into the upper 40%. Remove and lower these highest shelf corners and products so that absolutely every shelf edge and product starts below 46% down the total canvas, including both outer edges. From the top through 44% of total image height, across the ENTIRE full width, show ONLY the existing pale cream blank wall with subtle paper grain. No lines, products, shelves, plants, heads, lamps, signs or shadows in that region. Blend the edited wall seamlessly with the existing blank wall. Preserve everything below 46% of image height wherever possible, and preserve all of both main characters exactly. No text, letters, digits, logos, readable marks or watermark. Finished portrait 4:5 raster illustration, 1024x1280. This is the same single illustration with only the shelf clearance corrected.
+
+
+=== s15-proteines.png | built-in image_gen | 1080x1350 ===
+References viewed:
+/Users/amine/Code/bayen/design/naanaa-v2/c-riso.png
+/Users/amine/Code/bayen/design/naanaa-v2/riso/naanaa-salut.png
+/Users/amine/Code/bayen/design/social/s3-salle-de-bain.png
+/Users/amine/Code/bayen/design/social/s9-cest-clair.png
+/Users/amine/Code/bayen/design/social/s12-promesse.png
+
+Initial generation prompt:
+Create ONE Bayen social illustration, portrait 4:5, finished PNG 1080x1350. Same family as the attached examples: a small riso-print vignette of Naânaa with a FEW props, on a FLAT SOLID blueberry blue (#6B7BFF family) background with fine paper/ink grain, NO environment edge to edge, NO horizon, only a soft small ground shadow. The whole drawing sits in the UPPER 55% of the frame, centered, compact (it will also be cropped into a landscape card, so keep the drawing roughly as wide as it is tall); the LOWER 40% is completely empty flat background. NO text, letters, digits, logos, brands or readable marks anywhere. Exact Naânaa from reference 1: three large serrated bright turquoise-mint leaves as head, tall central leaf with the little friendly face, small leafy torso, slender stem legs, thin arms, cream mitten hands, rounded cream shoes, broken dark-brown hand-drawn outline, slightly misregistered riso inks, flat spot colours, no gradients, not 3D.
+
+Scene: Naânaa proudly lifts a small dumbbell with one hand, next to a little stack of protein foods: a bowl of chickpeas, two eggs, a plain yogurt pot and a small jar of almonds. Energetic, cheerful. All containers unbranded and without any text or symbols.
+
+Use case: illustration-story. Reference images: 1 c-riso.png is the exact mascot identity; 2 naanaa-salut.png reinforces the same identity; 3 s3-salle-de-bain.png, 4 s9-cest-clair.png, and 5 s12-promesse.png are the exact finished family, linework, ink grain and upper vignette placement. Create a new scene from these references. Preserve the exact mascot anatomy and leaf silhouette. Keep every prop and shadow above y=743 of the 1350px canvas, with blank uninterrupted background below; aim for artwork bounds x=150..930, y=85..725. No frame or inset.
+
+Final composition revision prompt:
+Edit image 1 (the protein vignette). References 2 through 5 are the exact mascot and family references. Preserve every existing illustrated object, mascot anatomy, ink colors and riso grain. Make ONE composition correction: uniformly SHRINK the entire foreground vignette including all props, dumbbell, mascot, feet and ground shadows by 18%, then position it centered horizontally in the UPPER HALF. The top of the leaves should be at 7% canvas height and the bottom of every object and shadow at 51% canvas height. Leave the lower 45% completely empty solid blueberry-blue background with the same fine grain. This is essential: no drawn pixels below 55% height. Preserve all of the original background color and overall 4:5 portrait canvas. No text, letters, digits or new elements. Output a finished PNG intended for 1080x1350.
+
+Export: resized to exactly 1080x1350 PNG using sips.
+
+
+=== s16-additifs.png | built-in image_gen | 1080x1350 ===
+References viewed:
+/Users/amine/Code/bayen/design/naanaa-v2/c-riso.png
+/Users/amine/Code/bayen/design/naanaa-v2/riso/naanaa-salut.png
+/Users/amine/Code/bayen/design/social/s3-salle-de-bain.png
+/Users/amine/Code/bayen/design/social/s9-cest-clair.png
+/Users/amine/Code/bayen/design/social/s12-promesse.png
+
+Initial generation prompt:
+Create ONE Bayen social illustration, portrait 4:5, finished PNG 1080x1350. Same family as the attached examples: a small riso-print vignette of Naânaa with a FEW props, on a FLAT SOLID coral peach (#FFA24D / #FF5A3C family, riso-softened, lighter than tomato) background with fine paper/ink grain, NO environment edge to edge, NO horizon, only a soft small ground shadow. The whole drawing sits in the UPPER 55% of the frame, centered, compact (it will also be cropped into a landscape card, so keep the drawing roughly as wide as it is tall); the LOWER 40% is completely empty flat background. NO text, letters, digits, logos, brands or readable marks anywhere. Exact Naânaa from reference 1: three large serrated bright turquoise-mint leaves as head, tall central leaf with the little friendly face, small leafy torso, slender stem legs, thin arms, cream mitten hands, rounded cream shoes, broken dark-brown hand-drawn outline, slightly misregistered riso inks, flat spot colours, no gradients, not 3D.
+
+Scene: Naânaa examines the back of a plain cream product box through a big round magnifying glass; on the box only abstract grey lines (no letters) and three tiny coloured dots. Curious, attentive. The abstract lines are simple grey strokes, never writing or pseudo-writing.
+
+Use case: illustration-story. Reference images: 1 c-riso.png is the exact mascot identity; 2 naanaa-salut.png reinforces the same identity; 3 s3-salle-de-bain.png, 4 s9-cest-clair.png, and 5 s12-promesse.png are the exact finished family, linework, ink grain and upper vignette placement. Create a new scene from these references. Preserve the exact mascot anatomy and leaf silhouette. Keep every prop and shadow above y=743 of the 1350px canvas, with blank uninterrupted background below; aim for artwork bounds x=150..930, y=85..725. No frame or inset.
+The entire illustration including the ground shadow must finish by 54% canvas height. This is a small upper vignette with generous empty background below, matching the references.
+
+Final composition revision prompt:
+Edit image 1 (the coral-peach product inspection vignette). References 2 through 5 are the exact mascot and family references. Preserve the mascot anatomy, riso linework and ink grain, the plain cream product box with just three abstract grey strokes and three colored dots, and the flat coral-peach background. Correct the composition: uniformly SHRINK the entire vignette including mascot, feet, box, magnifier and ground shadow by 18%, then center it horizontally in the UPPER HALF of the 4:5 portrait canvas. Top of leaves at 6% canvas height, all feet and shadows must finish by 51% canvas height. Lower 45% completely empty flat background. Correct the magnifying glass placement so Naânaa is actually examining the back of the box THROUGH the lens: the big round lens overlaps the box's grey abstract strokes, magnifying a grey stroke within the lens rather than reflecting a leaf. Retain a curious attentive expression. No letters, digits, text, logos, brands, symbols or pseudo-writing anywhere. Finished PNG intended for 1080x1350.
+
+Export: resized to exactly 1080x1350 PNG using sips.
+
+
+=== s17-journal.png | built-in image_gen | 1080x1350 ===
+References viewed:
+/Users/amine/Code/bayen/design/naanaa-v2/c-riso.png
+/Users/amine/Code/bayen/design/naanaa-v2/riso/naanaa-salut.png
+/Users/amine/Code/bayen/design/social/s3-salle-de-bain.png
+/Users/amine/Code/bayen/design/social/s9-cest-clair.png
+/Users/amine/Code/bayen/design/social/s12-promesse.png
+
+Initial generation prompt:
+Create ONE Bayen social illustration, portrait 4:5, finished PNG 1080x1350. Same family as the attached examples: a small riso-print vignette of Naânaa with a FEW props, on a FLAT SOLID lavender fig (#B98CFF family) background with fine paper/ink grain, NO environment edge to edge, NO horizon, only a soft small ground shadow. The whole drawing sits in the UPPER 55% of the frame, centered, compact (it will also be cropped into a landscape card, so keep the drawing roughly as wide as it is tall); the LOWER 40% is completely empty flat background. NO text, letters, digits, logos, brands or readable marks anywhere. Exact Naânaa from reference 1: three large serrated bright turquoise-mint leaves as head, tall central leaf with the little friendly face, small leafy torso, slender stem legs, thin arms, cream mitten hands, rounded cream shoes, broken dark-brown hand-drawn outline, slightly misregistered riso inks, flat spot colours, no gradients, not 3D.
+
+Scene: Naânaa sits on a small stool at a little round table reading a big open plain notebook/journal with blank pages (no writing), a glass of mint tea with steam next to it. Calm, reading moment.
+
+Use case: illustration-story. Reference images: 1 c-riso.png is the exact mascot identity; 2 naanaa-salut.png reinforces the same identity; 3 s3-salle-de-bain.png, 4 s9-cest-clair.png, and 5 s12-promesse.png are the exact finished family, linework, ink grain and upper vignette placement. Create a new scene from these references. Preserve the exact mascot anatomy and leaf silhouette. Keep every prop and shadow above y=743 of the 1350px canvas, with blank uninterrupted background below; aim for artwork bounds x=150..930, y=85..725. No frame or inset.
+The entire illustration including the ground shadow must finish by 52% canvas height. Place the compact vignette centered in the upper half of the canvas, with a small top margin. The lower 45% must remain completely empty lavender background. The notebook has completely blank cream pages.
+
+Final composition revision prompt:
+Edit image 1 (the lavender journal-reading vignette). References 2 through 5 are the exact mascot and family references. Preserve all existing artwork: exact Naânaa leaf mascot, small stool, little round table, large open plain notebook with completely blank cream pages, glass of mint tea and steam. Preserve the flat lavender-fig background, riso inks, paper grain, and broken brown linework. Make ONE composition correction: uniformly SHRINK the entire foreground vignette including all furniture, mascot, tea steam and ground shadows by 18%, then center it horizontally in the UPPER HALF. The top of the leaves should be at 6% canvas height and the bottom of every object and shadow at 51% canvas height. Leave the lower 45% completely empty lavender background. Essential: no drawn pixels below 55% height. No new elements, no text, no letters or digits, no writing on pages. Keep the 4:5 portrait canvas; finished PNG intended for 1080x1350.
+
+Export: resized to exactly 1080x1350 PNG using sips.
