@@ -5,10 +5,12 @@ from PIL import Image
 import numpy as np
 
 D = Path(__file__).resolve().parents[1]
-SCENES = ['s1-marche-scan', 's2-frigo-sucre', 's3-salle-de-bain', 's4-ftour', 's5-comparer', 's6-cercle-vertueux', 's7-partenariat', 's8-repas-photo']
+SCENES = ['s1-marche-scan', 's2-frigo-sucre', 's3-salle-de-bain', 's4-ftour', 's5-comparer', 's6-cercle-vertueux', 's7-partenariat', 's8-repas-photo',
+          's9-cest-clair', 's10-deux-univers', 's11-score', 's12-promesse', 's13-langues', 's14-surprise']  # semaine de présentation
 BAS, HAUT = .60, .56   # bas de l'illustration à 60 % de la hauteur, illustration haute de 56 %
 
 for k in SCENES:
+    if not (D / f'{k}.png').exists(): print(k, 'absente'); continue
     src = Image.open(D / f'{k}.png').convert('RGB'); W, H = src.size; im = np.asarray(src)
     bg = np.median(im[int(H * .93):].reshape(-1, 3), 0)
     diff = np.abs(im.astype(int) - bg).sum(2) > 60

@@ -23,10 +23,11 @@ SLOT = {'vrai': 'Sticker1', 'sahih': 'Sticker1', 'e171': 'Sticker1', 'e300': 'St
 LONG = {'XXL': 34, 'Photo': 40, 'Plein écran': 34}
 
 
-def fond_scene(k):
-    """Couleur du bas de la scène riso (prolonge l'image dans la story)."""
+def fond_scene(k, haut=False):
+    """Couleur du bas (ou du haut) de la scène riso : prolonge l'image dans la story."""
     im = np.asarray(Image.open(D.parents[0] / 'scenes' / f'{k}.png').convert('RGB'))
-    return '#%02X%02X%02X' % tuple(int(v) for v in np.median(im[int(im.shape[0] * .93):].reshape(-1, 3), 0))
+    bande = im[:int(im.shape[0] * .02)] if haut else im[int(im.shape[0] * .93):]
+    return '#%02X%02X%02X' % tuple(int(v) for v in np.median(bande.reshape(-1, 3), 0))
 
 
 def ligne(p, fmt):
@@ -38,6 +39,10 @@ def ligne(p, fmt):
     if L in ('photo', 'xxl', 'plein'): r['Texte'] = p.get('texte', '')
     if L == 'scene':
         r |= {'Image': U[f'scene-{v["scene"]}'], 'Fond': fond_scene(v['scene'])}
+        if fmt == 1920:
+            haut = fond_scene(v['scene'], haut=True)
+            ecart = max(abs(int(haut[i:i + 2], 16) - int(r['Fond'][i:i + 2], 16)) for i in (1, 3, 5))
+            r |= {'FondHaut': haut, 'Fondu': haut if ecart > 20 else ''}  # fondu seulement si le décor touche le haut (marché)
     elif L == 'photo':
         r |= {'Image': U[f'photo-{v["photo"]}'], 'Bande': COUL[v['bande']], 'Pastille': U[f'sticker-score-{v["score"]}'] if v.get('score') else ''}
     elif L == 'plein':
@@ -48,13 +53,11 @@ def ligne(p, fmt):
         if L == 'xxl':
             r |= {'Appel': p.get('cta', ''), 'Encre': '#FFF3DF' if v['fond'] == 'zellige' else '#1B1B1B', 'Sticker1': '', 'Sticker2': ''}
             for s in stk: r[SLOT[s]] = U[f'sticker-{s}']
-        else:
-            r['Sticker1'] = U[f'sticker-{stk[0]}'] if stk else ''
     long = g in LONG and len(p['titre']) > LONG[g] * (1.25 if ar else 1)
     variante = ('Darija long' if long else 'Darija') if ar else ('Long' if long else '')
     if ar:  # texte arabe isolé en sens droite-à-gauche (RLE…PDF) : chiffres et ponctuation restent à leur place
         for k in ('Rubrique', 'Titre', 'Texte', 'Appel', 'TitreAr'):
-            if r.get(k): r[k] = '\u202b' + r[k] + '\u202c'
+            if r.get(k): r[k] = '\n'.join('\u202b' + l + '\u202c' for l in r[k].split('\n'))  # une isolation par ligne
     elif r.get('TitreAr'):
         r['TitreAr'] = '\u202b' + r['TitreAr'] + '\u202c'
     if not ar:  # typographie française : espace insécable avant ? ! ; : et dans les guillemets
@@ -63,27 +66,28 @@ def ligne(p, fmt):
     return (g, variante), r
 
 
-lots = [a for a in sys.argv[1:] if not a.startswith('--')] or ['1']
-posts = [p for n in lots for p in json.loads((CAL / f'lot-{n}.json').read_text())['posts']]
-nom_lots = '-'.join(lots)
-for fmt, suffixe in ((1350, 'Post'), (1920, 'Story')):
-    groupes = {}
-    for p in posts:
-        (g, variante), r = ligne(p, fmt)
-        groupes.setdefault(g, []).append((p['id'], variante, r))
-    for g, rangs in groupes.items():
-        tid = T[f'{g} · {suffixe}']['id']
-        # Jeu de données Suwar (réutilisable depuis l'interface) : une ligne par post ; la variante se choisit au rendu
-        cle = f'Bayen · lot {nom_lots} · {g} · {suffixe}'
-        if cle not in ds_ids:
-            ds_ids[cle] = call('create_dataset', {'name': cle, 'templateId': tid, 'projectId': PROJET})['id']
-            CACHE.write_text(json.dumps(ds_ids, indent=1, ensure_ascii=False))
-        call('add_dataset_rows', {'id': ds_ids[cle], 'rows': [r for _, _, r in rangs], 'mode': 'replace'})
-        # Rendu post par post : la réponse d'un rendu par lot n'arrive pas toujours (rendus faits côté Suwar, réponse perdue)
-        for pid, variante, r in rangs:
-            dest = OUT / f'{pid}-{suffixe.lower()}.png'
-            if '--reprise' in sys.argv and dest.exists(): continue
-            args = {'id': tid, 'format': 'png', 'variables': r}
-            if variante: args['variant'] = variante
-            telecharge(call('render_template', args)['outputUrl'], dest)
-        print('ok', cle, len(rangs), 'rendus', flush=True)
+if __name__ == '__main__':  # importable (retouches.py réutilise ligne())
+    lots = [a for a in sys.argv[1:] if not a.startswith('--')] or ['1']
+    posts = [p for n in lots for p in json.loads((CAL / f'lot-{n}.json').read_text())['posts']]
+    nom_lots = '-'.join(lots)
+    for fmt, suffixe in ((1350, 'Post'), (1920, 'Story')):
+        groupes = {}
+        for p in posts:
+            (g, variante), r = ligne(p, fmt)
+            groupes.setdefault(g, []).append((p['id'], variante, r))
+        for g, rangs in groupes.items():
+            tid = T[f'{g} · {suffixe}']['id']
+            # Jeu de données Suwar (réutilisable depuis l'interface) : une ligne par post ; la variante se choisit au rendu
+            cle = f'Bayen · lot {nom_lots} · {g} · {suffixe}'
+            if cle not in ds_ids:
+                ds_ids[cle] = call('create_dataset', {'name': cle, 'templateId': tid, 'projectId': PROJET})['id']
+                CACHE.write_text(json.dumps(ds_ids, indent=1, ensure_ascii=False))
+            call('add_dataset_rows', {'id': ds_ids[cle], 'rows': [r for _, _, r in rangs], 'mode': 'replace'})
+            # Rendu post par post : la réponse d'un rendu par lot n'arrive pas toujours (rendus faits côté Suwar, réponse perdue)
+            for pid, variante, r in rangs:
+                dest = OUT / f'{pid}-{suffixe.lower()}.png'
+                if '--reprise' in sys.argv and dest.exists(): continue
+                args = {'id': tid, 'format': 'png', 'variables': r}
+                if variante: args['variant'] = variante
+                telecharge(call('render_template', args)['outputUrl'], dest)
+            print('ok', cle, len(rangs), 'rendus', flush=True)

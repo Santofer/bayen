@@ -56,7 +56,7 @@
       },
       "kicker": "Vrai ou faux ?",
       "titre": "Un jus « 100 % pur jus » ne contient pas de sucre.",
-      "cta": "Réponse dans la légende",
+      "cta": "Réponse en caption",
       "reponse": "FAUX",
       "legende": "Vrai ou faux : un jus « 100 % pur jus » ne contient pas de sucre ?\n\nRéponse : FAUX. On n'y ajoute pas de sucre, mais le jus garde les sucres naturels du fruit. Un verre de jus peut en contenir autant qu'un soda.\n\nLe fruit entier, lui, apporte aussi ses fibres. Et pour comparer deux jus, regarde la ligne « dont sucres »."
     },
@@ -262,7 +262,7 @@
       },
       "kicker": "Vrai ou faux ?",
       "titre": "Le sucre roux est bien meilleur que le sucre blanc.",
-      "cta": "Réponse dans la légende",
+      "cta": "Réponse en caption",
       "reponse": "FAUX",
       "legende": "Vrai ou faux : le sucre roux est bien meilleur pour la santé que le sucre blanc ?\n\nRéponse : FAUX. Les deux sont presque entièrement du saccharose. Le sucre roux garde un peu de mélasse, qui lui donne sa couleur et son goût, mais en quantités trop faibles pour changer quoi que ce soit.\n\nRoux ou blanc, c'est la quantité qui compte."
     },

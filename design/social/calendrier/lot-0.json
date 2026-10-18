@@ -1,0 +1,203 @@
+{
+  "lot": 0,
+  "du": "2026-10-19",
+  "au": "2026-10-25",
+  "regles": [
+    "Semaine de présentation, avant « Bayen fait peau neuve » (26/10) : deux posts par jour, illustration plein écran à 12 h 30 et scène sur aplat de couleur à 19 h (grille Instagram alternée).",
+    "Chiffre vérifié le 16/10/2026 : 3 193 produits notés (« plus de 3 000 »).",
+    "Pondération du score lue dans scoring.ts : Nutri-Score 50, NOVA 30, additifs 20."
+  ],
+  "posts": [
+    {
+      "id": "2026-10-19-bonjour",
+      "date": "2026-10-19",
+      "heure": "12:30",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "plein",
+        "image": "P14-bonjour"
+      },
+      "kicker": "Enchantés",
+      "titre": "Salut, nous c'est Bayen.",
+      "texte": "L'app gratuite qui note les produits du quotidien au Maroc.",
+      "legende": "Salut ! Nous, c'est Bayen (باين), « c'est clair » en darija 🌿\n\nBayen est une application web gratuite qui note les produits alimentaires et cosmétiques vendus au Maroc. Tu scannes le code-barres d'un produit, et tu vois tout de suite ce qu'il contient vraiment.\n\nPas besoin de compte. Plus de 3 000 produits sont déjà notés, et chacun peut compléter une fiche en photographiant son étiquette.\n\nCette semaine, on se présente. Abonne-toi pour la suite 👇"
+    },
+    {
+      "id": "2026-10-19-cest-clair",
+      "date": "2026-10-19",
+      "heure": "19:00",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s9-cest-clair"
+      },
+      "kicker": "Notre nom",
+      "titre": "Bayen, ça veut dire « c'est clair ».",
+      "legende": "Bayen (باين), c'est un mot de darija qui veut dire « c'est clair », « ça se voit ».\n\nC'est exactement ce qu'on veut pour tes courses : que ce qu'il y a dans un produit se voie au premier coup d'œil, sans avoir à déchiffrer une étiquette en petits caractères.\n\nEt toi, tu lis les étiquettes avant d'acheter ? 👇"
+    },
+    {
+      "id": "2026-10-20-naanaa",
+      "date": "2026-10-20",
+      "heure": "12:30",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "plein",
+        "image": "P15-naanaa"
+      },
+      "kicker": "Notre mascotte",
+      "titre": "Voici\nNaânaa.",
+      "texte": "Un brin de menthe qui lit les étiquettes avec toi.",
+      "legende": "Voici Naânaa, notre brin de menthe 🌿\n\nEn darija, naânaa, c'est la menthe : celle du thé, celle qu'on trouve sur tous les marchés du pays. On ne voyait pas meilleure compagne pour parler de ce qu'on met dans son panier.\n\nDans l'app, c'est elle qui t'accueille, te glisse des astuces pour décoder les étiquettes et t'accompagne à chaque scan.\n\nTu la reconnaîtras maintenant 😉"
+    },
+    {
+      "id": "2026-10-20-deux-univers",
+      "date": "2026-10-20",
+      "heure": "19:00",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s10-deux-univers"
+      },
+      "kicker": "Deux univers",
+      "titre": "Alimentation et beauté.",
+      "legende": "Bayen ne s'arrête pas au rayon alimentation.\n\nPour les cosmétiques (crèmes, shampoings, savons…), chaque ingrédient de la liste INCI est comparé aux listes officielles européennes. La note dépend de l'ingrédient le plus préoccupant.\n\nLes deux univers restent séparés : un yaourt ne se compare jamais à une crème."
+    },
+    {
+      "id": "2026-10-21-comment-ca-marche",
+      "date": "2026-10-21",
+      "heure": "12:30",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "plein",
+        "image": "P16-scan"
+      },
+      "kicker": "Comment ça marche",
+      "titre": "Un scan, et c'est clair.",
+      "texte": "Score sur 100, additifs, transformation et meilleures alternatives.",
+      "legende": "Comment ça marche ? Un scan suffit.\n\n1. Ouvre bayen.ma sur ton téléphone et scanne le code-barres d'un produit.\n2. En quelques secondes, tu vois son score Bayen sur 100, calculé par un algorithme public : Nutri-Score (50 points), niveau de transformation NOVA (30 points) et additifs (20 points).\n3. Si le score est faible, Bayen te propose de meilleures alternatives du même rayon.\n\nÇa marche aussi pour les cosmétiques : chaque ingrédient de la liste INCI est comparé aux listes officielles européennes.\n\nEssaie sur le premier produit que tu as sous la main 👇"
+    },
+    {
+      "id": "2026-10-21-score",
+      "date": "2026-10-21",
+      "heure": "19:00",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s11-score"
+      },
+      "kicker": "Le score Bayen",
+      "titre": "Un score sur 100, facile à lire.",
+      "legende": "Chaque produit reçoit un score Bayen sur 100, avec un mot pour le lire d'un coup d'œil :\n\nExcellent : 75 et plus\nBon : de 50 à 74\nMédiocre : de 25 à 49\nMauvais : moins de 25\n\nLe détail du calcul est affiché sur la fiche de chaque produit."
+    },
+    {
+      "id": "2026-10-22-base",
+      "date": "2026-10-22",
+      "heure": "12:30",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "plein",
+        "image": "P18-base"
+      },
+      "kicker": "La base Bayen",
+      "titre": "Plus de 3 000 produits notés.",
+      "texte": "Et chacun peut ajouter ceux qui manquent.",
+      "legende": "Plus de 3 000 produits vendus au Maroc sont déjà notés sur Bayen : alimentation, boissons et cosmétiques.\n\nUn produit manque ? Scanne-le quand même : Bayen te propose de créer sa fiche en photographiant l'étiquette, et elle profite ensuite à tout le monde."
+    },
+    {
+      "id": "2026-10-22-promesse",
+      "date": "2026-10-22",
+      "heure": "19:00",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s12-promesse"
+      },
+      "kicker": "Notre promesse",
+      "titre": "Un score qui ne s'achète pas.",
+      "legende": "Le score Bayen est calculé par un algorithme public, le même pour tous les produits : Nutri-Score, niveau de transformation et additifs. La méthode est expliquée sur bayen.ma/methodologie.\n\nL'intelligence artificielle aide à lire les étiquettes, mais elle ne fixe jamais une note.\n\nEt les marques ? Elles peuvent corriger ou compléter leurs fiches, mais le score ne s'achète pas. Il ne bouge que si le produit change vraiment."
+    },
+    {
+      "id": "2026-10-23-alternatives",
+      "date": "2026-10-23",
+      "heure": "12:30",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "plein",
+        "image": "P19-alternatives"
+      },
+      "kicker": "Dans l'app",
+      "titre": "Le même rayon,\nen mieux.",
+      "texte": "Bayen te propose des alternatives mieux notées.",
+      "legende": "Un produit mal noté ? Bayen te propose des alternatives du même rayon, mieux notées, pour changer sans te compliquer la vie.\n\nMême usage, même rayon, et souvent moins de sucre, de sel ou d'additifs : un petit changement peut faire la différence."
+    },
+    {
+      "id": "2026-10-23-repas",
+      "date": "2026-10-23",
+      "heure": "19:00",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s8-repas-photo"
+      },
+      "kicker": "Dans l'app",
+      "titre": "Ton plat en photo.",
+      "legende": "Pas de code-barres sur ton assiette ? Prends ton plat en photo.\n\nBayen estime les calories et les macros (protéines, glucides, lipides) à partir de la portion visible, sous forme de fourchette, avec un niveau de confiance.\n\nC'est une estimation pour te repérer, pas une mesure exacte ni un avis médical."
+    },
+    {
+      "id": "2026-10-24-communaute",
+      "date": "2026-10-24",
+      "heure": "12:30",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "plein",
+        "image": "P20-communaute"
+      },
+      "kicker": "Participatif",
+      "titre": "Une base qui grandit avec toi.",
+      "texte": "Photographie une étiquette, et la fiche se complète.",
+      "legende": "Bayen est participatif. Quand une fiche est incomplète, chacun peut la compléter en photographiant l'étiquette : ingrédients, tableau nutritionnel, liste INCI.\n\nTu peux aussi relever les prix en magasin pour aider les autres à comparer.\n\nChaque photo rend la base un peu plus claire pour tout le monde 🌿"
+    },
+    {
+      "id": "2026-10-24-langues",
+      "date": "2026-10-24",
+      "heure": "19:00",
+      "rubrique": "presentation",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s13-langues"
+      },
+      "kicker": "Pour tout le monde",
+      "titre": "En français et en darija.",
+      "legende": "Bayen parle ta langue : toute l'application est disponible en français et en darija, du scan jusqu'aux astuces de Naânaa.\n\nPour passer de l'une à l'autre, un bouton suffit, en bas de chaque page.\n\nDemain, on se présente en darija 😉"
+    },
+    {
+      "id": "2026-10-25-salam",
+      "date": "2026-10-25",
+      "heure": "12:30",
+      "rubrique": "presentation",
+      "lang": "ar",
+      "visuel": {
+        "layout": "plein",
+        "image": "P17-famille"
+      },
+      "kicker": "مرحبا بيكم",
+      "titre": "سلام،\nحنا باين.",
+      "texte": "التطبيق اللي كيقول ليك شنو كاين فالمنتوجات ديالك، فابور.",
+      "legende": "سلام! حنا باين، يعني «واضح، كيبان» بالدارجة 🌿\n\nباين تطبيق فابور كيعطيك النقطة ديال المنتوجات ديال الماكلة والتجميل اللي كتباع فالمغرب. سكاني الكود-بار ديال أي منتوج، وتشوف دغيا النقطة ديالو على 100، المضافات اللي فيه، وواش مصنّع بزاف.\n\nبلا حساب، والنقطة كتحسب بخوارزمية واضحة للجميع. وكاين كثر من 3000 منتوج منقّط.\n\nتبعنا، وشاركها مع العائلة 👇"
+    },
+    {
+      "id": "2026-10-25-surprise",
+      "date": "2026-10-25",
+      "heure": "19:00",
+      "rubrique": "presentation",
+      "lang": "ar",
+      "visuel": {
+        "layout": "scene",
+        "scene": "s14-surprise"
+      },
+      "kicker": "تابعونا",
+      "titre": "غدا، كاين الجديد.",
+      "legende": "غدا كاين الجديد عند باين 👀\n\nما غاديش نقولو ليكم دابا شنو هو… غير تبعونا وغادي تشوفو."
+    }
+  ]
+}

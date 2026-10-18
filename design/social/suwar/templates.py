@@ -31,7 +31,7 @@ def texte(x, y, w, h, size=42, fill=ENCRE):
     return {'id': 'texte', 'name': 'Texte', 'type': 'text', 'content': '{{Texte}}', 'x': x, 'y': y, 'width': w, 'height': h,
             'fontFamily': 'Readex Pro', 'fontWeight': 600, 'fontSize': size, 'lineHeight': 1.3, 'fill': fill, 'textAlign': 'left'}
 def cta(x, y):
-    return {'id': 'cta', 'name': 'Appel', 'type': 'text', 'content': '{{Appel}}', 'x': x, 'y': y, 'width': 900, 'height': 56,
+    return {'id': 'cta', 'name': 'Appel', 'type': 'text', 'content': '{{Appel}}', 'x': x, 'y': y, 'width': 900, 'height': 72,
             'fontFamily': 'Readex Pro', 'fontWeight': 600, 'fontSize': 34, 'lineHeight': 1.2, 'fill': ENCRE, 'textAlign': 'left',
             'textBg': {'mode': 'box', 'color': CREME, 'borderColor': ENCRE, 'borderWidth': 5, 'padX': 28, 'padY': 8, 'radius': 99}}
 def signature(W, H, fill=ENCRE, bas=60):
@@ -43,20 +43,35 @@ def image(id_, var, x, y, w, h, fit='cover', name=None):
 def rect(id_, x, y, w, h, fill, **kw):
     return {'id': id_, 'type': 'rect', 'x': x, 'y': y, 'width': w, 'height': h, 'fill': fill, **kw}
 
+def suit(els, id_, ancre, lignes=2):
+    """« Sous la référence » de Suwar (10.62.1) : l'élément suit la dernière ligne de son ancre, au rendu comme dans l'éditeur.
+    L'écart est celui du gabarit pour une ancre de `lignes` lignes : un titre d'une ligne ne laisse plus de vide dessous."""
+    a, e = (next(x for x in els if x['id'] == i) for i in (ancre, id_))
+    e.update(alignAnchor=ancre, autoAlignY='below', alignOffsetYPx=round(e['y'] - a['y'] - lignes * a['fontSize'] * a['lineHeight']))
+    return els
+
 V = lambda name, label, typ='text', default='', help_=None, hide=None, maxlen=None: {k: v for k, v in {
     'name': name, 'label': label, 'type': typ, 'defaultValue': default, 'help': help_, 'hideLayers': hide, 'maxLength': maxlen}.items() if v is not None}
 VAR_RUB = V('Rubrique', 'Rubrique (pastille du haut)', help_="« L'astuce de Naânaa », « Vrai ou faux ? »…", maxlen=40)
 VAR_TITRE = V('Titre', 'Titre', help_='Une phrase courte, point final', maxlen=60)
 VAR_TEXTE = V('Texte', 'Texte sous le titre (facultatif)', hide=[], maxlen=90)
-VAR_APPEL = V('Appel', 'Appel en bas (facultatif)', help_='« Réponse dans la légende »', hide=[], maxlen=34)
+VAR_APPEL = V('Appel', 'Appel en bas (facultatif)', help_='« Réponse en caption »', hide=[], maxlen=34)
 
 # ---------- Gabarits : (post, story) ----------
 def scene(W, H):
     img_h = 1350
-    els = [rect('fond', 0, 0, W, H, '{{Fond}}'), image('image', 'Image', 0, 0, W, img_h)]
     y = 842 if H == 1350 else 1240
+    iy = y - 842  # story : même mise en page que le post, descendue contre le texte
+    els = [rect('fond', 0, 0, W, H, '{{Fond}}'), image('image', 'Image', 0, iy, W, img_h)]
+    variables = [VAR_RUB, VAR_TITRE, V('Image', 'Scène riso (4:5)', 'image'), V('Fond', 'Couleur du bas de la scène (story)', 'color', '#FFF8EC')]
+    if iy:  # bande du haut à la couleur du haut de la scène ; fondu sur 140 px seulement si le décor touche le haut (sinon il voilerait le dessin)
+        els += [rect('fond-haut', 0, 0, W, iy + 1, '{{FondHaut}}'),
+                rect('fondu', 0, iy, W, 140, '{{Fondu}}', gradient={'type': 'linear', 'angle': 180, 'stops': [
+                    {'color': '{{Fondu}}', 'position': 0, 'opacity': 1}, {'color': '{{Fondu}}', 'position': 100, 'opacity': 0}]})]
+        variables += [V('FondHaut', 'Couleur du haut de la scène (story)', 'color', '#FFF8EC'),
+                      V('Fondu', 'Fondu du haut (scène pleine page seulement)', 'color', '', hide=['fondu'])]
     els += [kicker(65, y), titre(65, y + 72, 950, 200 if H == 1350 else 260, 80), signature(W, H, bas=60 if H == 1350 else 300)]
-    return els, [VAR_RUB, VAR_TITRE, V('Image', 'Scène riso (4:5)', 'image'), V('Fond', 'Couleur du fond de la scène (story)', 'color', '#FFF8EC')]
+    return els, variables
 
 def photo(W, H):
     ph = 891 if H == 1350 else 1100
@@ -65,6 +80,7 @@ def photo(W, H):
            image('pastille', 'Pastille', W - 324, 32 if H == 1350 else 250, 292, 307, 'contain', 'Pastille de score'),
            kicker(65, y), titre(65, y + 80, 940, 155 if H == 1350 else 175, 71 if H == 1350 else 80),
            texte(65, y + 80 + (165 if H == 1350 else 185), 690, 110, 34), signature(W, H, bas=60 if H == 1350 else 300)]
+    suit(els, 'texte', 'titre')
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, V('Image', 'Photo à écran réel', 'image'), V('Bande', 'Couleur de la bande', 'color', '#19C08B'),
                  V('Pastille', 'Pastille de score riso (facultatif)', 'image', hide=[])]
 
@@ -75,6 +91,7 @@ def xxl(W, H):
            image('sticker2', 'Sticker2', 162, 932 if s else 1340, 432, 310, 'contain', 'Sticker 2'),
            kicker(70, 70 if s else 260), titre(70, 160 if s else 350, 930, 180 if s else 200, 82 if s else 90, '{{Encre}}'),
            texte(70, 360 if s else 570, 670, 160, 42, '{{Encre}}'), cta(70, 1236 if s else 1600)]
+    suit(els, 'texte', 'titre')
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, VAR_APPEL, V('Fond', 'Fond texturé (image)', 'image'), V('Encre', 'Couleur du texte', 'color', ENCRE),
                  V('Naanaa', 'Naânaa (pose riso)', 'image'), V('Sticker1', 'Sticker 1 (facultatif)', 'image', hide=[]), V('Sticker2', 'Sticker 2 (facultatif)', 'image', hide=[])]
 
@@ -96,9 +113,8 @@ def bulle(W, H):
            forme('bulle-ombre', 11, ENCRE, None), forme('bulle', 0, CREME, ENCRE),
            titre(120, by + 45, 820, bh - 90, 97 if s else 104),
            image('naanaa', 'Naanaa', -32, 583 if s else 1060, 540, 810, 'contain', 'Naânaa'),
-           image('sticker1', 'Sticker1', 540, 1049 if s else 1480, 518, 236, 'contain', 'Sticker'), kicker(70, 62 if s else 260)]
-    return els, [VAR_RUB, VAR_TITRE, V('Fond', 'Fond texturé (image)', 'image'), V('Naanaa', 'Naânaa (pose riso)', 'image'),
-                 V('Sticker1', 'Sticker (facultatif)', 'image', hide=[])]
+           kicker(70, 62 if s else 260), signature(W, H, CREME, bas=60 if s else 300)]
+    return els, [VAR_RUB, VAR_TITRE, V('Fond', 'Fond texturé (image)', 'image'), V('Naanaa', 'Naânaa (pose riso)', 'image')]
 
 def plein(W, H):
     s = H == 1350
@@ -115,6 +131,7 @@ def plein(W, H):
            {'id': 'signe', 'name': 'Signature', 'type': 'text', 'content': '{{Signature}}', 'x': 70, 'y': y0 + 400, 'width': 900, 'height': 54,
             'fontFamily': 'Readex Pro', 'fontWeight': 600, 'fontSize': 39, 'fill': LAIT, **ombre},
            signature(W, H, LAIT, bas=60 if s else 300)]
+    suit(els, 'texte', 'titre'); suit(els, 'titre-ar', 'titre'); suit(els, 'signe', 'titre-ar', 1)  # fêtes : titre, titre arabe, signature
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, V('Image', 'Illustration plein écran (4:5)', 'image'),
                  V('TitreAr', 'Titre en arabe (fêtes, facultatif)', hide=[], maxlen=40), V('Signature', 'Signature (fêtes, facultatif)', hide=[], maxlen=40)]
 
@@ -133,6 +150,7 @@ def darija(els):
                 t = next(x for x in els if x['id'] == 'titre')
                 o['texte']['fontSize'] = round(e['fontSize'] * 1.08)
                 if e['y'] > t['y']: o['texte']['y'] = e['y'] + round(t['height'] * .3)
+                o['texte']['x'] = t['x'] + t['width'] - e['width']  # aligné à droite sur le titre (bord droit commun)
         if e['id'] == 'logo':
             w = 205
             o['logo'] = {'d': AR_D, 'viewBox': AR_VB, 'width': w, 'height': round(w * ratio(AR_VB)), 'x': 65,
@@ -170,14 +188,13 @@ def exemples(nom, h):
                 {'Rubrique': AR('باين فالخدمة · الوجبة'), 'Titre': AR('صوّر الطبسيل ديالك، وعرف شنو فيه.'), 'Texte': '',
                  'Image': U['photo-F5-repas-ar'], 'Bande': '#B98CFF', 'Pastille': ''})
     if nom == 'XXL':
-        return ({'Rubrique': 'Vrai ou faux\u00a0?', 'Titre': '« Light » veut dire sans sucre.', 'Texte': '', 'Appel': 'Réponse dans la légende',
+        return ({'Rubrique': 'Vrai ou faux\u00a0?', 'Titre': '« Light » veut dire sans sucre.', 'Texte': '', 'Appel': 'Réponse en caption',
                  'Fond': f('rayons'), 'Encre': ENCRE, 'Naanaa': U['naanaa-loupe'], 'Sticker1': U['sticker-vrai'], 'Sticker2': U['sticker-faux']},
                 {'Rubrique': AR('صحيح ولا غالط؟'), 'Titre': AR('لايت معناها ديما شوية ديال السكر.'), 'Appel': AR('الجواب تحت التصويرة'),
                  'Sticker1': U['sticker-sahih'], 'Sticker2': U['sticker-ghalet']})
     if nom == 'Bulle':
-        return ({'Rubrique': "L'astuce de Naânaa", 'Titre': "Lis l'étiquette avant le prix.", 'Fond': f('trame'), 'Naanaa': U['naanaa-astuce'],
-                 'Sticker1': U['sticker-wordmark']},
-                {'Rubrique': AR('نصيحة نعناعة'), 'Titre': AR('شوف السكريات، ماشي غير الكالوري.'), 'Sticker1': ''})
+        return ({'Rubrique': "L'astuce de Naânaa", 'Titre': "Lis l'étiquette avant le prix.", 'Fond': f('trame'), 'Naanaa': U['naanaa-astuce']},
+                {'Rubrique': AR('نصيحة نعناعة'), 'Titre': AR('شوف السكريات، ماشي غير الكالوري.')})
     return ({'Rubrique': '6 novembre', 'Titre': 'Commémoration de la Marche verte', 'Texte': '', 'Image': U['plein-P2-marche-verte'],
              'TitreAr': AR('ذكرى المسيرة الخضراء'), 'Signature': ''},
             {'Rubrique': AR('نية العام الجديد'), 'Titre': AR('منتوج واحد فالشهر.'), 'Texte': AR('بدّل كل شهر منتوج واحد بواحد عندو نقطة أحسن.'),
@@ -197,6 +214,11 @@ for nom, fn in GABARITS.items():
             ids[cle] = {'id': call('create_static_template', {**args, 'projectId': PROJET})['id']}
         tid = ids[cle]['id']
         variantes = {'Darija': darija(els)}
+        if nom == 'Bulle':  # Naânaa occupe le bas gauche : le logo « باين » reste à droite
+            variantes['Darija']['logo']['x'] = W - 65 - variantes['Darija']['logo']['width']
+            # la bulle ne grandit pas avec l'interligne arabe : titre plus petit, dans la boîte d'origine
+            t = next(e for e in els if e['id'] == 'titre')
+            variantes['Darija']['titre'].update({'fontSize': round(t['fontSize'] * .8), 'height': t['height']})
         if nom in ('XXL', 'Photo', 'Plein écran'):
             lg = long(els, 1 if nom == 'Plein écran' else None)
             dl = fusion(darija(els), lg)

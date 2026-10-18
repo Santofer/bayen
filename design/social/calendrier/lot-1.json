@@ -58,7 +58,7 @@
       },
       "kicker": "Vrai ou faux ?",
       "titre": "« Sans sucres ajoutés » veut dire sans sucre.",
-      "cta": "Réponse dans la légende",
+      "cta": "Réponse en caption",
       "reponse": "FAUX",
       "legende": "Vrai ou faux : « sans sucres ajoutés » veut dire sans sucre ?\n\nRéponse : FAUX. La mention dit seulement qu'on n'a pas ajouté de sucre pendant la fabrication. Les sucres naturellement présents restent : ceux du lait dans un yaourt, ceux des fruits dans un jus.\n\nPour savoir combien il y en a, regarde la ligne « dont sucres » du tableau nutritionnel, ou scanne le produit."
     },
@@ -158,10 +158,7 @@
       "visuel": {
         "layout": "bulle",
         "fond": "trame",
-        "naanaa": "astuce",
-        "stickers": [
-          "wordmark"
-        ]
+        "naanaa": "astuce"
       },
       "kicker": "L'astuce de Naânaa",
       "titre": "Lis l'étiquette avant le prix.",
@@ -271,7 +268,7 @@
       },
       "kicker": "Vrai ou faux ?",
       "titre": "Le E171 est interdit dans l'alimentation en Europe.",
-      "cta": "Réponse dans la légende",
+      "cta": "Réponse en caption",
       "reponse": "VRAI",
       "legende": "Vrai ou faux : le colorant E171 (dioxyde de titane) est interdit dans l'alimentation en Europe ?\n\nRéponse : VRAI. Depuis 2022, il n'est plus autorisé comme additif alimentaire dans l'Union européenne : l'EFSA ne pouvait plus écarter un risque pour l'ADN (génotoxicité).\n\nSur Bayen, chaque additif a sa fiche, avec ses sources."
     },
