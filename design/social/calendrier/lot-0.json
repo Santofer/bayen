@@ -126,7 +126,7 @@
         "image": "P19-alternatives"
       },
       "kicker": "Dans l'app",
-      "titre": "Trouve mieux, dans le même rayon.",
+      "titre": "Le même rayon,\nen mieux.",
       "texte": "Bayen te propose des alternatives mieux notées.",
       "legende": "Un produit mal noté ? Bayen te propose des alternatives du même rayon, mieux notées, pour changer sans te compliquer la vie.\n\nMême usage, même rayon, et souvent moins de sucre, de sel ou d'additifs : un petit changement peut faire la différence."
     },
@@ -196,8 +196,8 @@
         "scene": "s14-surprise"
       },
       "kicker": "تابعونا",
-      "titre": "غدا، كاين جديد.",
-      "legende": "غدا كاين جديد عند باين 👀\n\nما غاديش نقولو ليكم دابا شنو هو… غير تبعونا وغادي تشوفو."
+      "titre": "غدا، كاين الجديد.",
+      "legende": "غدا كاين الجديد عند باين 👀\n\nما غاديش نقولو ليكم دابا شنو هو… غير تبعونا وغادي تشوفو."
     }
   ]
 }
