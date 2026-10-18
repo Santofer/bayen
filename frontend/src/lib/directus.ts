@@ -153,6 +153,30 @@ export async function getAdditiveRisks(
 }
 
 // ────────────────────────────────────────────────────────────────
+// Prix communautaires (C22)
+// ────────────────────────────────────────────────────────────────
+
+/** Agrégat de GET /bayen-api/prices/:barcode (médiane par enseigne) */
+export interface PriceAggregate {
+  count: number
+  min: number | null
+  max: number | null
+  city: string | null
+  updated: string | null
+  by_store: Array<{ store: string; median: number; count: number; last: string | null }>
+}
+
+/** Prix d'un produit, lus côté serveur ; null si l'API ne répond pas (section non critique) */
+export async function getPriceAggregate(barcode: string): Promise<PriceAggregate | null> {
+  try {
+    const res = await fetch(`${DIRECTUS_URL}/bayen-api/prices/${encodeURIComponent(barcode)}`, { signal: AbortSignal.timeout(2500) })
+    return res.ok ? await res.json() as PriceAggregate : null
+  } catch {
+    return null
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
 // Endpoint custom /scan (Chemin A)
 // ────────────────────────────────────────────────────────────────
 

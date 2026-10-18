@@ -11,6 +11,7 @@ import { Plus, Check } from 'lucide-react'
 import { useLocale } from '@/lib/i18n'
 import { authHeader } from '@/lib/auth'
 import { useAntibot } from '@/lib/antibot'
+import type { PriceAggregate } from '@/lib/directus'
 
 const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
@@ -18,24 +19,14 @@ const API = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 const CORNER_STORE = 'Épicerie du coin'
 const STORES = ['Marjane', 'Carrefour', 'BIM', 'Aswak Assalam', 'Atacadao', CORNER_STORE]
 
-interface StorePrice {
-  store: string
-  median: number
-  count: number
-  last: string | null
-}
-
-interface Aggregate {
-  count: number
-  min: number | null
-  max: number | null
-  city: string | null
-  updated: string | null
-  by_store: StorePrice[]
-}
+type Aggregate = PriceAggregate
 
 interface Props {
   barcode: string
+  /** Agrégat lu côté serveur : prix visibles dans le HTML initial, sans attendre l'hydratation */
+  initial?: Aggregate | null
+  /** Nombre de relevés à partir duquel la section (titre + médianes) s'affiche */
+  minReports?: number
 }
 
 /** Identifiant de session anonyme, partagé avec le reste du site. */
@@ -56,11 +47,11 @@ function formatPrice(n: number): string {
   return n.toFixed(2).replace('.', ',').replace(/,00$/, '')
 }
 
-export default function PriceSection({ barcode }: Props) {
+export default function PriceSection({ barcode, initial = null, minReports = 3 }: Props) {
   const antibot = useAntibot('price-gotcha')
   const { t } = useLocale()
   const storeLabel = (s: string): string => (s === CORNER_STORE ? t('price.storeCorner') : s)
-  const [data, setData] = useState<Aggregate | null>(null)
+  const [data, setData] = useState<Aggregate | null>(initial)
   const [open, setOpen] = useState(false)
   const [price, setPrice] = useState('')
   const [store, setStore] = useState('')
@@ -130,19 +121,25 @@ export default function PriceSection({ barcode }: Props) {
   // `data === null` = pas encore chargé : on ne peut pas affirmer qu'il n'y a
   // aucun prix (le rendu serveur l'annoncerait à tort avant l'hydratation).
   const loading = data === null
-  const hasPrices = data !== null && data.count > 0
+  // Sous le seuil : pas de titre ni de liste (un H2 « moins cher » vide n'aide personne)
+  const hasPrices = data !== null && data.count >= minReports && data.by_store.length > 0
   // Cartes d'enseigne de la maquette, de la médiane la plus basse à la plus haute
   const stores = hasPrices ? [...data.by_store].sort((a, b) => a.median - b.median) : []
   const cheapest = stores[0]?.median ?? 0
 
+  // Pas encore chargé : rien (ni squelette ni titre)
+  if (loading) return null
+
   return (
     <section className="section">
-      <div className="sec-head">
-        <h2 className="disp d-m">{t('price.cheaperTitle')}</h2>
-        <span className="eyebrow">{t('price.median')}</span>
-      </div>
+      {hasPrices && (
+        <div className="sec-head">
+          <h2 className="disp d-m">{t('price.cheaperTitle')}</h2>
+          <span className="eyebrow">{t('price.median')}</span>
+        </div>
+      )}
 
-      {hasPrices ? (
+      {hasPrices && (
         <>
           <div className="grid grid-cols-3 gap-2.5">
             {stores.map((s) => (
@@ -175,14 +172,6 @@ export default function PriceSection({ barcode }: Props) {
             {data.city ? ` ${data.city}.` : ''}
           </p>
         </>
-      ) : loading ? (
-        <div className="grid grid-cols-3 gap-2.5" aria-hidden="true">
-          <div className="skeleton h-[74px] rounded-[20px]" />
-          <div className="skeleton h-[74px] rounded-[20px]" />
-          <div className="skeleton h-[74px] rounded-[20px]" />
-        </div>
-      ) : (
-        <p className="card p-4 text-sm text-muted-foreground">{t('price.none')}</p>
       )}
 
       {state === 'sent' && (
@@ -191,7 +180,7 @@ export default function PriceSection({ barcode }: Props) {
         </p>
       )}
 
-      {loading ? null : !open ? (
+      {!open ? (
         <button
           type="button"
           onClick={() => { setOpen(true); setState('idle') }}
