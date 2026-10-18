@@ -837,7 +837,7 @@ const base = {
   'beauty.cat.eclaircissant':{ fr: 'Éclaircissant',                            ary: 'التبييض' },
   'beauty.cat.ongles':       { fr: 'Ongles',                                   ary: 'الظفار' },
   'beauty.riskFree':         { fr: 'Sans ingrédient à risque',                 ary: 'بلا مكونات خطيرة' },
-  'beauty.noEndocrine':      { fr: 'Sans perturbateur endocrinien',            ary: 'بلا مخلات هرمونية' },
+  'beauty.noEndocrine':      { fr: 'Sans perturbateur endocrinien listé',      ary: 'بلا مخلّ هرموني مسجّل' },
   'beauty.risk.banned':      { fr: 'Interdit',                                 ary: 'ممنوع' },
   'beauty.risk.high':        { fr: 'Risque élevé',                             ary: 'خطر كبير' },
   'beauty.risk.moderate':    { fr: 'Risque modéré',                            ary: 'خطر متوسط' },

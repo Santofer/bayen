@@ -141,7 +141,7 @@ const graphLd = { '@context': 'https://schema.org', '@graph': [organizationLd, w
 <meta name="twitter:image" content={ogImageUrl} />
 
 <!-- Robots -->
-{noindex && <meta name="robots" content="noindex, nofollow" />}
+{noindex && <meta name="robots" content="noindex, follow" />}
 
 <!-- JSON-LD Schema.org -->
 <script type="application/ld+json" set:html={JSON.stringify(graphLd)} />
