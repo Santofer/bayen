@@ -57,13 +57,13 @@ export const refonte2 = {
   'points.ptOne':            { fr: 'pt',                                 ary: 'نقطة' },
 
   // ── Demandes de partenariat (admin) ─────────────────────────
-  'partnerAdmin.kicker':     { fr: 'Équipe Bayen',                       ary: 'فريق بيّن' },
+  'partnerAdmin.kicker':     { fr: 'Équipe Bayen',                       ary: 'فريق باين' },
   'partnerAdmin.title':      { fr: 'Demandes de partenariat',            ary: 'طلبات الشراكة' },
   'partnerAdmin.subtitle':   { fr: 'Historique des demandes envoyées depuis la page Partenaires. Les nouvelles demandes arrivent désormais dans nBot (boîte Formulaires).', ary: 'التاريخ ديال الطلبات لي تصيفطو من صفحة الشركاء. الطلبات الجديدة ولّات كتوصل ل nBot (علبة الاستمارات).' },
   'partnerAdmin.status.new':       { fr: 'Nouvelle',                     ary: 'جديدة' },
   'partnerAdmin.status.processed': { fr: 'Traitée',                      ary: 'تعالجات' },
   'partnerAdmin.status.dismissed': { fr: 'Écartée',                      ary: 'تحيّدات' },
-  'partnerAdmin.forbidden':  { fr: "Cette page est réservée à l'équipe Bayen.", ary: 'هاد الصفحة غير لفريق بيّن.' },
+  'partnerAdmin.forbidden':  { fr: "Cette page est réservée à l'équipe Bayen.", ary: 'هاد الصفحة غير لفريق باين.' },
   'partnerAdmin.loadError':  { fr: 'Chargement impossible. Recharge la page.', ary: 'ما قدرناش نحمّلو. عاود حمّل الصفحة.' },
   'partnerAdmin.empty':      { fr: "Aucune demande de partenariat pour le moment. Elles apparaîtront ici dès qu'une marque remplira le formulaire de la page Partenaires.", ary: 'مازال ما كاين حتى طلب شراكة. غادي يبانو هنا ملي شي ماركة تعمّر الاستمارة ديال صفحة الشركاء.' },
   'partnerAdmin.reply':      { fr: 'Répondre à {email}',                 ary: 'جاوب {email}' },
@@ -94,7 +94,7 @@ export const refonte2 = {
   'profile.chipFragrance':   { fr: 'Allergènes parfumants',              ary: 'مسببات الحساسية ديال العطور' },
 
   // ── Liste de courses ────────────────────────────────────────
-  'cart.shareTitle':         { fr: 'Ma liste Bayen',                     ary: 'اللائحة ديالي ف بيّن' },
+  'cart.shareTitle':         { fr: 'Ma liste Bayen',                     ary: 'اللائحة ديالي ف باين' },
 
   // ── Journal repas (MealJournal) ─────────────────────────────
   'journal.verdict.sain':        { fr: 'Sain',                           ary: 'صحي' },
@@ -124,10 +124,10 @@ export const refonte2 = {
   'blog.filterAria':         { fr: 'Filtres catégories',                 ary: 'فيلتر الأصناف' },
   'blog.byAuthor':           { fr: 'Par',                                ary: 'كتبو' },
   'blog.updatedOn':          { fr: 'Mis à jour le',                      ary: 'تحدّث ف' },
-  'blog.authorRole':         { fr: 'Fondateur de Bayen · Casablanca',    ary: 'مؤسس بيّن · الدار البيضاء' },
-  'blog.authorBio':          { fr: 'Articles écrits avec rigueur, en citant systématiquement les sources scientifiques (OMS, EFSA, CIRC, ANSES). Algorithme de scoring public et open source.', ary: 'مقالات مكتوبة بالجدية، ديما مع المصادر العلمية (OMS، EFSA، CIRC، ANSES). خوارزمية التنقيط علنية ومفتوحة المصدر.' },
+  'blog.authorRole':         { fr: 'Fondateur de Bayen · Casablanca',    ary: 'مؤسس باين · الدار البيضاء' },
+  'blog.authorBio':          { fr: 'Articles de vulgarisation sur l’alimentation et les cosmétiques au Maroc. Le calcul du score est public.', ary: 'مقالات كتشرح الماكلة والتجميل فالمغرب. الحساب ديال النقطة علني.' },
   'blog.ourMethod':          { fr: 'Notre méthodologie',                 ary: 'المنهجية ديالنا' },
-  'blog.aboutBayen':         { fr: 'À propos de Bayen',                  ary: 'على بيّن' },
+  'blog.aboutBayen':         { fr: 'À propos de Bayen',                  ary: 'على باين' },
 
   // ── Univers beauté (/beaute, /ingredients-cosmetiques) ──────
   'beauty.hub.kicker':       { fr: 'Univers beauté',                     ary: 'عالم الجمال' },
@@ -146,7 +146,7 @@ export const refonte2 = {
   // ── Univers protéines (/proteines) ──────────────────────────
   'protein.hub.kicker':      { fr: 'Univers protéines',                  ary: 'عالم البروتين' },
   'protein.hub.title':       { fr: 'Plus de protéines, moins de sucre.', ary: 'بروتين كثر، سكر قل.' },
-  'protein.hub.subtitle':    { fr: 'Choisis un minimum de protéines pour 100 g : on classe ensuite par score Bayen, pour ne pas se faire avoir.', ary: 'ختار الحد الأدنى ديال البروتين ف100 g: من بعد كنرتّبو بنقطة بيّن، باش ما تتقولبش.' },
+  'protein.hub.subtitle':    { fr: 'Choisis un minimum de protéines pour 100 g : on classe ensuite par score Bayen, pour ne pas se faire avoir.', ary: 'ختار الحد الأدنى ديال البروتين ف100 g: من بعد كنرتّبو بنقطة باين، باش ما تتقولبش.' },
   'protein.minLabel':        { fr: 'Minimum de protéines',               ary: 'الحد الأدنى ديال البروتين' },
   'protein.pricePer10':      { fr: '{n} DH / 10 g prot.',                ary: '{n} DH / 10 g بروتين' },
   'protein.sugarsPer100':    { fr: '{n} g de sucres / 100 g',            ary: '{n} g سكر / 100 g' },

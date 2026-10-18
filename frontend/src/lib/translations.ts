@@ -6,6 +6,7 @@
 import { refonte1 } from '@/lib/translations-refonte-1'
 import { refonte2 } from '@/lib/translations-refonte-2'
 import { refonte3 } from '@/lib/translations-refonte-3'
+import { seo } from '@/lib/translations-seo'
 
 const base = {
   // ── Navigation ──────────────────────────────────────────────
@@ -32,7 +33,7 @@ const base = {
   'nav.close':      { fr: 'Fermer',        ary: 'سد' },
   'nav.display':    { fr: 'Affichage',     ary: 'العرض' },
   'nav.inci':       { fr: 'Ingrédients cosmétiques', ary: 'مكونات التجميل' },
-  'footer.tagline': { fr: '« Bayen » : c\'est clair, ça se voit. Un projet participatif, le score est calculé par un algorithme public.', ary: '« بيّن » : واضح وباين. مشروع تشاركي، والنقطة كتحسب بخوارزمية علنية.' },
+  'footer.tagline': { fr: '« Bayen » : c\'est clair, ça se voit. Un projet participatif, le score est calculé par un algorithme public.', ary: '« باين » : واضح وكيبان. مشروع تشاركي، والنقطة كتحسب بخوارزمية علنية.' },
   'nav.mealShort':  { fr: 'Repas',         ary: 'الماكلة' },
   'nav.scan':       { fr: 'Scanner',       ary: 'سكان' },
   'nav.search':     { fr: 'Recherche',     ary: 'بحث' },
@@ -94,7 +95,7 @@ const base = {
   'additives.safe':    { fr: 'Sûr',                      ary: 'آمن' },
   'additives.limited': { fr: 'Limité',                   ary: 'محدود' },
   'additives.avoid':   { fr: 'À éviter',                 ary: 'حسن تجنبو' },
-  'additives.banned':  { fr: 'Interdit MA',              ary: 'ممنوع فالمغرب' },
+  'additives.banned':  { fr: 'Interdit UE',              ary: 'ممنوع فأوروبا' },
   'additives.none':    { fr: 'Aucun additif détecté',    ary: 'ما كاين حتا إضافة' },
 
   // ── Scanner ─────────────────────────────────────────────────
@@ -142,7 +143,6 @@ const base = {
 
   // ── Hero carousel (fonctionnalités) — textes maquette v2 ────
   'home.slideScanBadge':    { fr: 'Scan instantané',             ary: 'سكان فوري' },
-  'home.slideScanDesc':     { fr: 'Un code-barres → le score santé 0-100, les additifs et le Nutri-Score de 2 000+ produits marocains.', ary: 'كود → نقطة الصحة 0-100، الإضافات والنوتري سكور ديال أكثر من 2000 منتوج مغربي.' },
   'home.slideCoachBadge':   { fr: 'Coach IA',                    ary: 'كوتش ذكاء' },
   'home.slideCoachTitle':   { fr: 'Ton assiette,',               ary: 'الطبسيل ديالك،' },
   'home.slideCoachEm':      { fr: 'analysée.',                   ary: 'محلّل.' },
@@ -165,7 +165,6 @@ const base = {
   'home.slidePartnerCta':   { fr: 'Devenir partenaire',          ary: 'ولّي شريك' },
   'home.statProducts':      { fr: 'Produits notés',              ary: 'منتجات منقطة' },
   'home.statCategories':    { fr: 'Rayons organisés par IA',     ary: 'فئات منظمة بالذكاء' },
-  'home.statFree':          { fr: 'Gratuit, open source',        ary: 'بلا فلوس، مفتوح المصدر' },
   'home.latestProducts':    { fr: 'Derniers produits notés',     ary: 'آخر المنتجات المنقطة' },
   // ── Refonte Marché Pop : Naânaa, 404, bulles de fiche ─────────
   'home.tipTitle':          { fr: "L'astuce de Naânaa",          ary: 'نصيحة نعناعة' },
@@ -514,22 +513,20 @@ const base = {
   'additive.risk.safe':        { fr: 'Sûr',                                           ary: 'آمن' },
   'additive.risk.limited':     { fr: 'Limité',                                        ary: 'محدود' },
   'additive.risk.avoid':       { fr: 'À éviter',                                      ary: 'حسن تجنبو' },
-  'additive.risk.banned':      { fr: 'Interdit au Maroc',                              ary: 'ممنوع فالمغرب' },
+  'additive.risk.banned':      { fr: "Interdit dans l'UE",                             ary: 'ممنوع فالاتحاد الأوروبي' },
   'additive.riskDesc.safe':    { fr: "Considéré comme sûr aux doses alimentaires normales (EFSA / Codex).", ary: 'آمن بالكميات العادية حسب EFSA والكوديكس.' },
   'additive.riskDesc.limited': { fr: "DJA limitée. Consommation occasionnelle sans risque, mais l'excès est déconseillé.", ary: 'جرعة يومية محدودة. من حين لآخر ما فيه باس، لكن الإفراط ما مستحسنش.' },
   'additive.riskDesc.avoid':   { fr: "Controversé et associé à des risques. Limiter la consommation, surtout pour les enfants.", ary: 'فيه جدل وممكن يضر. نقص منو، خصوصا عند الدراري.' },
-  'additive.riskDesc.banned':  { fr: "Interdit au Maroc et/ou dans l'UE en raison de risques sanitaires avérés.", ary: 'ممنوع فالمغرب و/أو الاتحاد الأوروبي بسبب مخاطر صحية.' },
+  'additive.riskDesc.banned':  { fr: "N'est plus autorisé comme additif alimentaire dans l'Union européenne.", ary: 'ما بقاش مسموح بيه كإضافة غذائية فالاتحاد الأوروبي.' },
   'additive.impactNone':       { fr: "Aucune déduction — n'impacte pas le score.",     ary: 'حتا خصم — ما كيأثرش على النتيجة.' },
   'additive.impactLimited':    { fr: 'Déduction de 2 points sur la composante Additifs (20 pts max).', ary: 'خصم 2 نقط من الإضافات (20 نقطة كحد أقصى).' },
   'additive.impactAvoid':      { fr: 'Déduction de 5 points sur la composante Additifs (20 pts max).', ary: 'خصم 5 نقط من الإضافات (20 نقطة كحد أقصى).' },
   'additive.impactBanned':     { fr: 'Déduction de 10 points sur la composante Additifs (20 pts max).', ary: 'خصم 10 نقط من الإضافات (20 نقطة كحد أقصى).' },
 
-  // ── Badge héro ────────────────────────────────────────────
-  'home.badge':           { fr: '100% GRATUIT \u2022 OPEN SOURCE \u2022',             ary: '100% مجاني \u2022 مفتوح المصدر \u2022' },
-
   // ── Blog ──────────────────────────────────────────────────
-  'blog.title':              { fr: 'Le blog Bayen',                                                       ary: 'مدونة باين' },
-  'blog.description':        { fr: 'Bien-être, habitudes de consommation et réflexe Bayen.',              ary: 'العافية، عادات الشراء ورفلكس باين.' },
+  'blog.title':              { fr: "Journal Bayen : lire l'étiquette, additifs, courses au Maroc",         ary: 'جورنال باين: قراية البطاقة، الإضافات والتقضية فالمغرب' },
+  'blog.description':        { fr: 'Guides pour lire une étiquette, repérer le sucre caché et les additifs, et mieux choisir ses courses au Maroc. En français et en darija.', ary: 'دلائل باش تقرا البطاقة، تعرف السكر المخبّي والإضافات، وتختار التقضية ديالك حسن فالمغرب. بالفرنسية وبالدارجة.' },
+  'blog.intro':              { fr: 'Des guides courts pour lire une étiquette, repérer le sucre caché et les additifs, comprendre les ingrédients des cosmétiques et faire ses courses au Maroc sans se tromper. Tous les articles existent en français et en darija.', ary: 'دلائل قصار باش تقرا البطاقة، تعرف السكر المخبّي والإضافات، تفهم المكونات ديال التجميل وتقضي فالمغرب بلا ما تتغلط. كل المقالات كاينين بالفرنسية وبالدارجة.' },
   'blog.kicker':             { fr: 'Le mag Bayen',                                                        ary: 'مجلة باين' },
   'blog.heroTitle1':         { fr: 'Comprendre ce qu’on',                                                 ary: 'نفهمو شنو' },
   'blog.heroTitle2':         { fr: 'mange vraiment',                                                      ary: 'كناكلو بصح' },
@@ -721,7 +718,7 @@ const base = {
 
   // Contribution guidée (C19)
   'contrib.unknownTitle': { fr: 'Produit inconnu au bataillon',            ary: 'هاد المنتوج مامعروفش عندنا' },
-  'contrib.unknownDesc':  { fr: 'n\'est pas encore dans Bayen. Sois la première personne à l\'ajouter !', ary: 'مازال ماكاينش ف بيّن. كون أول واحد يزيدو!' },
+  'contrib.unknownDesc':  { fr: 'n\'est pas encore dans Bayen. Sois la première personne à l\'ajouter !', ary: 'مازال ماكاينش ف باين. كون أول واحد يزيدو!' },
   'contrib.addThis':      { fr: 'Ajouter ce produit',                      ary: 'زيد هاد المنتوج' },
   'contrib.rescan':       { fr: 'Rescanner le code-barres',                ary: 'عاود سكاني الباركود' },
   'contrib.quickPromise': { fr: '2 minutes suffisent — l\'IA préremplit presque tout', ary: 'جوج دقايق كافيين — الذكاء الاصطناعي كيعمر گاع شي' },
@@ -800,7 +797,7 @@ const base = {
   'mealfb.thanks':        { fr: 'Merci, c\'est noté !',                    ary: 'شكرا، تسجل!' },
   'mealfb.anonNote':      { fr: 'Anonyme par défaut — connecte-toi pour gagner les points.', ary: 'مجهول بشكل افتراضي — دخل لحسابك باش تربح النقط.' },
   'mealfb.reference':     { fr: 'Calé sur la fiche',                       ary: 'معاير على ورقة' },
-  'mealfb.referenceEnd':  { fr: 'du référentiel marocain Bayen',           ary: 'من المرجع المغربي ديال بيّن' },
+  'mealfb.referenceEnd':  { fr: 'du référentiel marocain Bayen',           ary: 'من المرجع المغربي ديال باين' },
 
   // ── Univers beauté (C23) ────────────────────────────────────
   'nav.beauty':              { fr: 'Beauté',                                   ary: 'الجمال' },
@@ -857,7 +854,6 @@ const base = {
   'beauty.profileEndocrine': { fr: 'Ton profil évite les perturbateurs endocriniens : ce produit en contient.', ary: 'البروفيل ديالك كيتجنب المخلات الهرمونية: هاد المنتوج فيه.' },
   'beauty.profileAllergen':  { fr: 'Ton profil évite les allergènes parfumants : ce produit en contient.', ary: 'البروفيل ديالك كيتجنب مسببات الحساسية ديال العطور: هاد المنتوج فيه.' },
   'beauty.hubTitle':         { fr: 'Cosmétiques et hygiène',                   ary: 'مستحضرات التجميل والنظافة' },
-  'beauty.hubDesc':          { fr: "Crèmes, shampooings, savons, dentifrices, maquillage : Bayen lit la liste INCI et repère les perturbateurs endocriniens, allergènes et substances interdites — y compris les éclaircissants illégaux au Maroc.", ary: 'كريمات، شامبوان، صابون، معجون السنان، ماكياج: Bayen كيقرا لائحة المكونات وكيكشف المخلات الهرمونية، مسببات الحساسية والمواد الممنوعة — حتى منتوجات التبييض الممنوعة فالمغرب.' },
   'beauty.searchPlaceholder':{ fr: 'Crème, shampooing, marque…',               ary: 'كريم، شامبوان، ماركة…' },
   'beauty.obfResults':       { fr: 'résultats Open Beauty Facts',              ary: 'نتائج Open Beauty Facts' },
   'beauty.ingredientsTitle': { fr: 'Ingrédients cosmétiques',                  ary: 'مكونات مستحضرات التجميل' },
@@ -926,8 +922,8 @@ const base = {
   'beauty.completeCta':  { fr: 'Compléter la fiche · +20 pts', ary: 'كمّل البطاقة · +20 نقطة' },
 } as const
 
-// Textes ajoutés par la refonte Marché Pop, un fichier par lot d'écrans
-export const translations = { ...base, ...refonte1, ...refonte2, ...refonte3 } as const
+// Textes ajoutés par la refonte Marché Pop, un fichier par lot d'écrans ; titres et descriptions des pages (SEO)
+export const translations = { ...base, ...refonte1, ...refonte2, ...refonte3, ...seo } as const
 
 /** Clé de traduction valide */
 export type TranslationKey = keyof typeof translations
