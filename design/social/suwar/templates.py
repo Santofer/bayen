@@ -43,6 +43,13 @@ def image(id_, var, x, y, w, h, fit='cover', name=None):
 def rect(id_, x, y, w, h, fill, **kw):
     return {'id': id_, 'type': 'rect', 'x': x, 'y': y, 'width': w, 'height': h, 'fill': fill, **kw}
 
+def suit(els, id_, ancre, lignes=2):
+    """« Sous la référence » de Suwar (10.62.1) : l'élément suit la dernière ligne de son ancre, au rendu comme dans l'éditeur.
+    L'écart est celui du gabarit pour une ancre de `lignes` lignes : un titre d'une ligne ne laisse plus de vide dessous."""
+    a, e = (next(x for x in els if x['id'] == i) for i in (ancre, id_))
+    e.update(alignAnchor=ancre, autoAlignY='below', alignOffsetYPx=round(e['y'] - a['y'] - lignes * a['fontSize'] * a['lineHeight']))
+    return els
+
 V = lambda name, label, typ='text', default='', help_=None, hide=None, maxlen=None: {k: v for k, v in {
     'name': name, 'label': label, 'type': typ, 'defaultValue': default, 'help': help_, 'hideLayers': hide, 'maxLength': maxlen}.items() if v is not None}
 VAR_RUB = V('Rubrique', 'Rubrique (pastille du haut)', help_="« L'astuce de Naânaa », « Vrai ou faux ? »…", maxlen=40)
@@ -73,6 +80,7 @@ def photo(W, H):
            image('pastille', 'Pastille', W - 324, 32 if H == 1350 else 250, 292, 307, 'contain', 'Pastille de score'),
            kicker(65, y), titre(65, y + 80, 940, 155 if H == 1350 else 175, 71 if H == 1350 else 80),
            texte(65, y + 80 + (165 if H == 1350 else 185), 690, 110, 34), signature(W, H, bas=60 if H == 1350 else 300)]
+    suit(els, 'texte', 'titre')
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, V('Image', 'Photo à écran réel', 'image'), V('Bande', 'Couleur de la bande', 'color', '#19C08B'),
                  V('Pastille', 'Pastille de score riso (facultatif)', 'image', hide=[])]
 
@@ -83,6 +91,7 @@ def xxl(W, H):
            image('sticker2', 'Sticker2', 162, 932 if s else 1340, 432, 310, 'contain', 'Sticker 2'),
            kicker(70, 70 if s else 260), titre(70, 160 if s else 350, 930, 180 if s else 200, 82 if s else 90, '{{Encre}}'),
            texte(70, 360 if s else 570, 670, 160, 42, '{{Encre}}'), cta(70, 1236 if s else 1600)]
+    suit(els, 'texte', 'titre')
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, VAR_APPEL, V('Fond', 'Fond texturé (image)', 'image'), V('Encre', 'Couleur du texte', 'color', ENCRE),
                  V('Naanaa', 'Naânaa (pose riso)', 'image'), V('Sticker1', 'Sticker 1 (facultatif)', 'image', hide=[]), V('Sticker2', 'Sticker 2 (facultatif)', 'image', hide=[])]
 
@@ -122,6 +131,7 @@ def plein(W, H):
            {'id': 'signe', 'name': 'Signature', 'type': 'text', 'content': '{{Signature}}', 'x': 70, 'y': y0 + 400, 'width': 900, 'height': 54,
             'fontFamily': 'Readex Pro', 'fontWeight': 600, 'fontSize': 39, 'fill': LAIT, **ombre},
            signature(W, H, LAIT, bas=60 if s else 300)]
+    suit(els, 'texte', 'titre'); suit(els, 'titre-ar', 'titre'); suit(els, 'signe', 'titre-ar', 1)  # fêtes : titre, titre arabe, signature
     return els, [VAR_RUB, VAR_TITRE, VAR_TEXTE, V('Image', 'Illustration plein écran (4:5)', 'image'),
                  V('TitreAr', 'Titre en arabe (fêtes, facultatif)', hide=[], maxlen=40), V('Signature', 'Signature (fêtes, facultatif)', hide=[], maxlen=40)]
 
