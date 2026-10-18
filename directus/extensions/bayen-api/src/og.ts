@@ -15,7 +15,7 @@ import type { Router } from 'express'
 const OCR_URL = (process.env.OCR_INTERNAL_URL ?? 'http://bayen-tesseract:5000').replace(/\/$/, '')
 // URL lue par bayen-tesseract (même réseau Docker), pas par Directus : nom du container
 const ASSETS_URL = 'http://bayen-directus:8055/assets'
-const FALLBACK = 'https://bayen.ma/og-default.jpg'
+const FALLBACK = 'https://bayen.ma/og/default.jpg'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface KnexLike {
