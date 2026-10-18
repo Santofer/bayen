@@ -104,15 +104,15 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: 'Cosmétiques et hygiène au Maroc — score beauté Bayen',
-  description: t('beauty.hubDesc', locale),
+  name: t('seo.beauty.title', locale),
+  description: t('seo.beauty.desc', locale),
   url: 'https://bayen.ma/beaute',
 }
 ---
 
 <Layout
-  title="Cosmétiques et hygiène au Maroc — score beauté | Bayen"
-  description="Crèmes, shampooings, savons, dentifrices, maquillage vendus au Maroc : Bayen lit la liste INCI et repère perturbateurs endocriniens, allergènes et substances interdites."
+  title={t('seo.beauty.title', locale)}
+  description={t('seo.beauty.desc', locale)}
   path="/beaute"
   jsonLd={jsonLd}
   universe="beauty"

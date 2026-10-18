@@ -1,155 +1,110 @@
 /**
- * Sitemap dynamique — liste tous les produits publiés et catégories
+ * Sitemap dynamique — pages statiques, fiches produit indexables, rayons, marques, additifs, articles.
+ *
+ * - Fiches : seulement celles qui passent la porte d'indexation (lib/indexable.ts, même règle
+ *   que le noindex de la fiche) ; elles reviennent d'elles-mêmes une fois complétées.
+ * - lastmod réels (date_updated Directus) ; pas de changefreq / priority (ignorés par Google).
+ * - Directus injoignable → 503 : jamais un sitemap 200 vidé de ses fiches et mis en cache.
+ * - /classement et /comparer restent dehors (classement des contributeurs, outil) ;
+ *   /scan et /contribuer aussi (pages applicatives sans contenu indexable).
  */
 
 export const prerender = false
 
 import type { APIRoute } from 'astro'
+import { INDEXABLE_FIELDS, isIndexableProduct, firstBrand, brandKey, canonicalBrand, type IndexableInput } from '@/lib/indexable'
 
 const SITE_URL = 'https://bayen.ma'
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 
+// Dernière modification du CONTENU des pages statiques : à mettre à jour quand on les modifie
+const STATIC_PAGES: Array<[path: string, lastmod: string]> = [
+  ['/', '2026-10-18'],
+  ['/recherche', '2026-10-18'],
+  ['/beaute', '2026-10-16'],
+  ['/proteines', '2026-10-15'],
+  ['/ingredients-cosmetiques', '2026-10-15'],
+  ['/additifs', '2026-10-18'],
+  ['/blog', '2026-10-18'],
+  ['/analyser-repas', '2026-10-18'],
+  ['/a-propos', '2026-10-18'],
+  ['/methodologie', '2026-10-18'],
+  ['/partenaires', '2026-10-18'],
+]
+
+// Une marque entre au sitemap à partir de 5 fiches indexables
+const BRAND_MIN_PRODUCTS = 5
+
+interface ProductRow extends IndexableInput {
+  barcode: string
+  brand: string | null
+  category_id: number | null
+  date_updated: string | null
+  date_created: string | null
+}
+
+/** Lecture Directus qui ÉCHOUE (au lieu de renvoyer une liste vide) si l'API ne répond pas */
+async function load<T>(path: string, timeoutMs: number): Promise<T[]> {
+  const res = await fetch(`${DIRECTUS_URL}${path}`, { signal: AbortSignal.timeout(timeoutMs) })
+  if (!res.ok) throw new Error(`${path} → ${res.status}`)
+  return ((await res.json()).data ?? []) as T[]
+}
+
+const day = (d: string | null | undefined): string | null => (d ? new Date(d).toISOString().slice(0, 10) : null)
+const later = (a: string | null, b: string | null): string | null => (!a || (b && b > a) ? b : a)
+const entry = (loc: string, lastmod: string | null) =>
+  `  <url>\n    <loc>${SITE_URL}${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}\n  </url>`
+
 export const GET: APIRoute = async () => {
-  // Pages statiques avec lastmod (date du dernier déploiement majeur).
-  // /scan et /contribuer retirés : pages applicatives sans contenu indexable,
-  // /scan en priorité 0.9 risquait de polluer le crawl budget.
-  const STATIC_LASTMOD = '2026-05-11'
-  const staticPages = [
-    { url: '/', priority: '1.0', changefreq: 'daily', lastmod: STATIC_LASTMOD },
-    { url: '/recherche', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
-    { url: '/beaute', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
-    { url: '/proteines', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
-    { url: '/ingredients-cosmetiques', priority: '0.7', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
-    { url: '/additifs', priority: '0.7', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
-    { url: '/blog', priority: '0.8', changefreq: 'weekly', lastmod: STATIC_LASTMOD },
-    { url: '/analyser-repas', priority: '0.7', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
-    { url: '/a-propos', priority: '0.6', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
-    { url: '/methodologie', priority: '0.6', changefreq: 'monthly', lastmod: STATIC_LASTMOD },
-  ]
-
-  // Articles blog : timeout généreux (15s) — Directus peut être lent
-  // sur la première requête après cold-start. Fallback hardcodé si la
-  // requête échoue, pour ne JAMAIS perdre les articles du sitemap.
-  let articles: Array<{ slug: string; date_published: string | null }> = []
+  let products: ProductRow[]
+  let categories: Array<{ id: number; slug: string }>
+  let additives: Array<{ id: string }>
+  let articles: Array<{ slug: string; date_published: string | null }>
   try {
-    const res = await fetch(
-      `${DIRECTUS_URL}/items/articles?filter[status][_eq]=published&fields=slug,date_published&limit=-1`,
-      { signal: AbortSignal.timeout(15000) }
-    )
-    if (res.ok) {
-      const data = await res.json()
-      articles = data.data ?? []
-    }
-  } catch { /* fallback ci-dessous */ }
-
-  // Fallback statique : liste hardcodée des slugs connus à la date de build.
-  // Si Directus est down ou timeout, on garde au moins ces articles dans le sitemap.
-  if (articles.length === 0) {
-    const KNOWN_SLUGS = [
-      'bayen-est-en-ligne',
-      'comprendre-le-nutri-score',
-      'additifs-a-eviter-maroc',
-      'lire-une-etiquette-nutritionnelle',
-      'sucre-cache-produits-marocains',
-      'pourquoi-eviter-ultra-transforme',
-      'parler-nutrition-enfants',
-      'le-reflexe-bayen',
-      'alternatives-snacks-industriels',
-      'courses-methode-3-minutes',
-      'bien-manger-ramadan',
-      'diabete-alimentation-maroc-produits-a-eviter',
-      'huile-palme-maroc-produits-impact-sante',
-      'meilleurs-yaourts-maroc-comparatif',
-      'gouter-enfants-sain-maroc-idees',
-      'lire-etiquette-arabe-maroc-vocabulaire',
-      'the-marocain-sucre-reduire-sans-perdre-tradition',
-      'nutrition-sport-maroc-produits-locaux',
-    ]
-    articles = KNOWN_SLUGS.map((slug) => ({ slug, date_published: null }))
+    ;[products, categories, additives, articles] = await Promise.all([
+      load<ProductRow>(`/items/products?filter[status][_eq]=published&fields=barcode,brand,category_id,date_updated,date_created,${INDEXABLE_FIELDS}&limit=-1`, 15000),
+      load<{ id: number; slug: string }>('/items/categories?fields=id,slug&limit=-1', 5000),
+      load<{ id: string }>('/items/additives?fields=id&limit=-1', 5000),
+      load<{ slug: string; date_published: string | null }>('/items/articles?filter[status][_eq]=published&fields=slug,date_published&limit=-1', 15000),
+    ])
+  } catch {
+    return new Response('Sitemap momentanément indisponible, réessayer plus tard.', {
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '300', 'Cache-Control': 'no-store' },
+    })
   }
 
-  // Récupérer les produits publiés
-  let products: Array<{ barcode: string; date_updated: string | null }> = []
-  try {
-    const res = await fetch(
-      `${DIRECTUS_URL}/items/products?filter[status][_eq]=published&fields=barcode,date_updated&limit=-1`,
-      { signal: AbortSignal.timeout(10000) }
-    )
-    if (res.ok) {
-      const data = await res.json()
-      products = data.data ?? []
+  const productUrls: string[] = []
+  // Rayon et marque : date de la fiche la plus récemment modifiée
+  const categoryLastmod = new Map<number, string | null>()
+  const brands = new Map<string, { spellings: string[]; indexable: number; lastmod: string | null }>()
+  for (const p of products) {
+    const lastmod = day(p.date_updated ?? p.date_created)
+    const indexable = isIndexableProduct(p)
+    if (indexable) productUrls.push(entry(`/produit/${p.barcode}`, lastmod))
+    if (p.category_id != null && p.product_type !== 'cosmetic') {
+      categoryLastmod.set(p.category_id, later(categoryLastmod.get(p.category_id) ?? null, lastmod))
     }
-  } catch { /* sitemap sans produits si API down */ }
-
-  // Récupérer les catégories
-  let categories: Array<{ slug: string }> = []
-  try {
-    const res = await fetch(
-      `${DIRECTUS_URL}/items/categories?fields=slug&limit=-1`,
-      { signal: AbortSignal.timeout(5000) }
-    )
-    if (res.ok) {
-      const data = await res.json()
-      categories = data.data ?? []
+    const brand = firstBrand(p.brand)
+    if (brand) {
+      const b = brands.get(brandKey(brand)) ?? { spellings: [], indexable: 0, lastmod: null }
+      b.spellings.push(brand)
+      if (indexable) b.indexable++
+      b.lastmod = later(b.lastmod, lastmod)
+      brands.set(brandKey(brand), b)
     }
-  } catch { /* continue */ }
+  }
 
-  // Récupérer les additifs
-  let additives: Array<{ id: string }> = []
-  try {
-    const res = await fetch(
-      `${DIRECTUS_URL}/items/additives?fields=id&limit=-1`,
-      { signal: AbortSignal.timeout(5000) }
-    )
-    if (res.ok) {
-      const data = await res.json()
-      additives = data.data ?? []
-    }
-  } catch { /* continue */ }
-
-  // Construire le XML
   const urls = [
-    // Pages statiques (avec lastmod hardcodé)
-    ...staticPages.map(
-      (p) => `  <url>
-    <loc>${SITE_URL}${p.url}</loc>
-    <lastmod>${p.lastmod}</lastmod>
-    <changefreq>${p.changefreq}</changefreq>
-    <priority>${p.priority}</priority>
-  </url>`
-    ),
-    // Produits
-    ...products.map(
-      (p) => `  <url>
-    <loc>${SITE_URL}/produit/${p.barcode}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>${p.date_updated ? `\n    <lastmod>${new Date(p.date_updated).toISOString().split('T')[0]}</lastmod>` : ''}
-  </url>`
-    ),
-    // Catégories
-    ...categories.map(
-      (c) => `  <url>
-    <loc>${SITE_URL}/categories/${c.slug}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>`
-    ),
-    // Additifs
-    ...additives.map(
-      (a) => `  <url>
-    <loc>${SITE_URL}/additifs/${a.id}</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>`
-    ),
-    // Articles blog
-    ...articles.map(
-      (a) => `  <url>
-    <loc>${SITE_URL}/blog/${a.slug}</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>${a.date_published ? `\n    <lastmod>${new Date(a.date_published).toISOString().split('T')[0]}</lastmod>` : ''}
-  </url>`
-    ),
+    ...STATIC_PAGES.map(([path, lastmod]) => entry(path, lastmod)),
+    ...productUrls,
+    ...categories.map((c) => entry(`/categories/${c.slug}`, categoryLastmod.get(c.id) ?? null)),
+    // Même graphie canonique que la page /marque/<nom> (la plus fréquente)
+    ...[...brands.values()]
+      .filter((b) => b.indexable >= BRAND_MIN_PRODUCTS)
+      .map((b) => entry(`/marque/${encodeURIComponent(canonicalBrand(b.spellings))}`, b.lastmod)),
+    ...additives.map((a) => entry(`/additifs/${a.id}`, null)),
+    ...articles.map((a) => entry(`/blog/${a.slug}`, day(a.date_published))),
   ]
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -159,7 +114,7 @@ ${urls.join('\n')}
 
   return new Response(sitemap, {
     headers: {
-      'Content-Type': 'application/xml',
+      'Content-Type': 'application/xml; charset=utf-8',
       'Cache-Control': 'public, max-age=3600',
     },
   })

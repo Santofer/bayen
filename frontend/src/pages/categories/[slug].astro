@@ -1,45 +1,68 @@
 ---
-// Page catégorie (SSR) — liste des produits d'une catégorie
+// Page catégorie (SSR) — produits d'un rayon, paginés (?page=N, 48 par page)
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
 import PageHero from '@/components/PageHero.astro'
 import ProductCard from '@/components/ProductCard.tsx'
 import { getLocale, t } from '@/lib/i18n'
+import { firstBrand } from '@/lib/indexable'
 import type { Product } from '@/lib/types'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
 const { slug } = Astro.params
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const SITE_URL = 'https://bayen.ma'
+const PER_PAGE = 48
+
+// ?page=N : entier ≥ 1 ; toute autre valeur est une page qui n'existe pas
+const pageParam = Astro.url.searchParams.get('page')
+const page = pageParam == null ? 1 : /^[1-9]\d{0,3}$/.test(pageParam) ? Number(pageParam) : 0
+if (page === 0) return Astro.rewrite('/404')
 
 let category: Record<string, unknown> | null = null
 let products: Record<string, unknown>[] = []
+// Tout le rayon (2 champs) : total, score médian, part de NOVA 4 — calculés sur les données, pas sur la page
+let stats: Array<{ scan_score: number | null; nova_group: number | null }> = []
+let directusDown = false
 
+// Rayon alimentaire : les fiches beauté mal rangées n'y apparaissent pas (les univers ne se mélangent jamais)
+const productFilter = (id: unknown) => `filter[category_id][_eq]=${id}&filter[status][_eq]=published&filter[product_type][_eq]=food`
 try {
-  // Récupérer la catégorie par slug
   const catRes = await fetch(
-    `${DIRECTUS_URL}/items/categories?filter[slug][_eq]=${slug}&limit=1`
+    `${DIRECTUS_URL}/items/categories?filter[slug][_eq]=${encodeURIComponent(slug ?? '')}&limit=1`,
+    { signal: AbortSignal.timeout(5000) }
   )
-  if (catRes.ok) {
-    const catData = await catRes.json()
-    const categories = catData.data ?? []
-    if (categories.length > 0) {
-      category = categories[0]
-    }
-  }
+  if (!catRes.ok) throw new Error(`categories ${catRes.status}`)
+  category = ((await catRes.json()).data ?? [])[0] ?? null
 
-  // Récupérer les produits de cette catégorie
   if (category) {
-    const prodRes = await fetch(
-      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${category.id}&filter[status][_eq]=published&sort=-scan_count&fields=*`
-    )
-    if (prodRes.ok) {
-      const prodData = await prodRes.json()
-      products = prodData.data ?? []
-    }
+    // Tri réel annoncé dans la meta : les plus scannés d'abord, code-barres pour une pagination stable
+    const [statsRes, prodRes] = await Promise.all([
+      fetch(`${DIRECTUS_URL}/items/products?${productFilter(category.id)}&fields=scan_score,nova_group&limit=-1`, { signal: AbortSignal.timeout(5000) }),
+      fetch(
+        `${DIRECTUS_URL}/items/products?${productFilter(category.id)}&sort=-scan_count,barcode&limit=${PER_PAGE}&offset=${(page - 1) * PER_PAGE}&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,nova_group,additives,product_type`,
+        { signal: AbortSignal.timeout(5000) }
+      ),
+    ])
+    if (!statsRes.ok || !prodRes.ok) throw new Error('products')
+    stats = (await statsRes.json()).data ?? []
+    products = (await prodRes.json()).data ?? []
   }
-} catch {}
+} catch {
+  directusDown = true
+}
+
+const total = stats.length
+const lastPage = Math.max(1, Math.ceil(total / PER_PAGE))
+// Rayon inconnu ou page au-delà de la dernière : vraie 404 ; Directus injoignable : 503
+if (directusDown) {
+  Astro.response.status = 503
+  Astro.response.headers.set('Retry-After', '300')
+} else if (!category || page > lastPage) {
+  Astro.response.status = 404
+}
 
 // Prefetch des images OFF manquantes (idem page d'accueil)
 await Promise.all(
@@ -63,27 +86,96 @@ await Promise.all(
 )
 
 const categoryName = (category?.name_fr as string) ?? (category?.name as string) ?? slug ?? ''
-// Titre affiché dans la langue courante ; titre et description SEO restent en français
 const displayName = (locale === 'ary' && typeof category?.name_ar === 'string' && category.name_ar) || categoryName
-const productCount = `${products.length} ${t(products.length !== 1 ? 'history.itemsPlural' : 'history.itemSingular', locale)}`
-const pageTitle = category
-  ? `${categoryName} — Bayen`
-  : `Catégorie introuvable — Bayen`
-const pageDescription = category
-  ? `Tous les produits de la catégorie ${categoryName} disponibles au Maroc, classés par score nutritionnel.`
-  : `Catégorie introuvable sur Bayen.`
+const found = category != null && Astro.response.status === 200
+
+// Intro chiffrée, calculée sur tout le rayon
+const scores = stats.map((s) => s.scan_score).filter((v): v is number => typeof v === 'number').sort((a, b) => a - b)
+const median = scores.length === 0 ? null
+  : Math.round(scores.length % 2 ? scores[(scores.length - 1) / 2] : (scores[scores.length / 2 - 1] + scores[scores.length / 2]) / 2)
+const novaKnown = stats.filter((s) => s.nova_group != null)
+const nova4Pct = novaKnown.length === 0 ? null : Math.round((novaKnown.filter((s) => s.nova_group === 4).length / novaKnown.length) * 100)
+const intro = [
+  t('cat.intro.count', locale).replace('{n}', String(total)),
+  median != null ? t('cat.intro.median', locale).replace('{m}', String(median)).replace('{k}', String(scores.length)) : null,
+  nova4Pct != null ? t('cat.intro.nova4', locale).replace('{p}', String(nova4Pct)) : null,
+].filter((x): x is string => x != null)
+
+// Une URL par page ; la page 1 n'a pas de ?page
+const pageHref = (n: number) => `/categories/${slug}${n > 1 ? `?page=${n}` : ''}`
+const path = pageHref(page)
+const productCount = `${total} ${t(total !== 1 ? 'history.itemsPlural' : 'history.itemSingular', locale)}`
+const pageSuffix = page > 1 ? `${t('seo.sep', locale)}${t('seo.cat.page', locale).replace('{n}', String(page))}` : ''
+const pageTitle = found
+  ? `${t('seo.cat.title', locale).replace('{cat}', displayName).replace('{n}', String(total))}${pageSuffix} | Bayen`
+  : directusDown ? `${t('seo.serviceDown', locale)} | Bayen` : `${t('category.notFound', locale)} | Bayen`
+const descBase = t('seo.cat.desc', locale).replace('{cat}', displayName).replace('{n}', String(total))
+const descMedian = median != null ? `${descBase} ${t('seo.cat.median', locale).replace('{m}', String(median))}` : descBase
+const pageDescription = found
+  ? (descMedian.length <= 160 ? descMedian : descBase)
+  : t('category.notFoundDesc', locale)
+
+// JSON-LD : CollectionPage + ItemList (fiches de CETTE page) + BreadcrumbList
+const pageUrl = `${SITE_URL}${path}`
+const jsonLd = found
+  ? {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${pageUrl}#breadcrumb`,
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${SITE_URL}/` },
+            { '@type': 'ListItem', position: 2, name: 'Catégories', item: `${SITE_URL}/categories` },
+            { '@type': 'ListItem', position: 3, name: categoryName, item: `${SITE_URL}${pageHref(1)}` },
+          ],
+        },
+        {
+          '@type': 'CollectionPage',
+          '@id': `${pageUrl}#webpage`,
+          url: pageUrl,
+          name: pageTitle,
+          description: pageDescription,
+          inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
+          isPartOf: { '@id': `${SITE_URL}/#website` },
+          breadcrumb: { '@id': `${pageUrl}#breadcrumb` },
+          mainEntity: { '@id': `${pageUrl}#list` },
+        },
+        {
+          '@type': 'ItemList',
+          '@id': `${pageUrl}#list`,
+          name: categoryName,
+          numberOfItems: products.length,
+          itemListOrder: 'https://schema.org/ItemListUnordered',
+          itemListElement: products.map((p, i) => {
+            const brand = firstBrand(p.brand)
+            return {
+              '@type': 'ListItem',
+              position: (page - 1) * PER_PAGE + i + 1,
+              name: brand ? `${p.name_fr} (${brand})` : String(p.name_fr),
+              url: `${SITE_URL}/produit/${p.barcode}`,
+            }
+          }),
+        },
+      ],
+    }
+  : undefined
 ---
 
 <Layout
   title={pageTitle}
   description={pageDescription}
-  path={`/categories/${slug ?? ''}`}
-  noindex={!category}
+  path={path}
+  noindex={!found}
+  jsonLd={jsonLd}
   mobileTopbar={false}
 >
-  {/* Catégorie non trouvée */}
-  {!category && (
-    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} mascot="oups" title={t('category.notFound', locale)} subtitle={t('category.notFoundDesc', locale)}>
+  {page > 1 && found && <link slot="head" rel="prev" href={`${SITE_URL}${pageHref(page - 1)}`} />}
+  {page < lastPage && found && <link slot="head" rel="next" href={`${SITE_URL}${pageHref(page + 1)}`} />}
+
+  {/* Catégorie non trouvée (404) ou Directus injoignable (503) */}
+  {!found && (
+    <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} mascot="oups" title={directusDown ? t('seo.serviceDown', locale) : t('category.notFound', locale)} subtitle={directusDown ? t('common.networkError', locale) : t('category.notFoundDesc', locale)}>
       <div class="flex flex-wrap gap-3">
         <a href="/categories" class="btn dark-btn">{t('category.seeAll', locale)}</a>
         <a href="/scan" class="btn">{t('nav.scan', locale)}</a>
@@ -92,22 +184,19 @@ const pageDescription = category
   )}
 
   {/* Catégorie trouvée : bandeau puis liste comme la recherche */}
-  {category && (
+  {found && (
     <PageHero tone="primary" back="/categories" kicker={t('search.categories', locale)} title={displayName} subtitle={productCount} />
   )}
 
   <main class="screen">
-    {category && (
+    {found && (
       <section class="section gap-3">
+        {total > 0 && <p class="max-w-[70ch] text-[15px] leading-relaxed">{intro.join(' ')}</p>}
         {products.length > 0 ? (
-          <Fragment>
-            <div class="grid gap-3 md:hidden">
-              {products.map((product) => <ProductCard product={product as unknown as Product} locale={locale} />)}
-            </div>
-            <div class="hidden gap-4 md:grid md:grid-cols-3 lg:grid-cols-4">
-              {products.map((product) => <ProductCard product={product as unknown as Product} variant="grid" locale={locale} />)}
-            </div>
-          </Fragment>
+          /* Un seul DOM (pas de liste doublée mobile / ordinateur) : cartes en ligne, en colonnes sur ordinateur */
+          <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => <ProductCard product={product as unknown as Product} locale={locale} />)}
+          </div>
         ) : (
           <Fragment>
             <div class="naanaa md:max-w-xl">
@@ -116,6 +205,19 @@ const pageDescription = category
             </div>
             <a href="/scan" class="btn primary justify-self-start">{t('nav.scan', locale)}</a>
           </Fragment>
+        )}
+
+        {/* Pagination : vrais liens crawlables vers chaque page (aucune fiche du rayon orpheline) */}
+        {lastPage > 1 && (
+          <nav class="flex flex-wrap items-center gap-2 pt-2" aria-label={t('cat.pagination', locale)}>
+            {page > 1 && <a href={pageHref(page - 1)} rel="prev" class="btn sm">{t('cat.prev', locale)}</a>}
+            {Array.from({ length: lastPage }, (_, i) => i + 1).map((n) => (
+              n === page
+                ? <span class="chip fill bg-citron" aria-current="page" aria-label={t('cat.pageOf', locale).replace('{a}', String(n)).replace('{b}', String(lastPage))}>{n}</span>
+                : <a href={pageHref(n)} class="chip" aria-label={t('cat.pageOf', locale).replace('{a}', String(n)).replace('{b}', String(lastPage))}>{n}</a>
+            ))}
+            {page < lastPage && <a href={pageHref(page + 1)} rel="next" class="btn sm primary">{t('cat.next', locale)}</a>}
+          </nav>
         )}
       </section>
     )}

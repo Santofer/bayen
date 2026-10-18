@@ -41,23 +41,36 @@ const LABELS: Array<{ level: ScoreLevel; range: string; value: number }> = [
   { level: 'mauvais', range: '0 — 24', value: 0 },
 ]
 
-// JSON-LD : TechArticle (article technique) + BreadcrumbList + FAQPage pour les 4 questions
+// Date de la dernière modification du contenu : affichée en pied de page ET dans le JSON-LD
+const UPDATED = '2026-10-18'
+const updatedLabel = t('method.updated', locale).replace('{date}', new Date(UPDATED).toLocaleDateString(locale === 'ary' ? 'ar-MA' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }))
+
+// Études citées sous le paragraphe NOVA (vérifiées sur PubMed le 18/10/2026)
+const NOVA_STUDIES = [
+  { label: 'Schnabel et al., JAMA Intern Med, 2019 (NutriNet-Santé, mortalité)', url: 'https://pubmed.ncbi.nlm.nih.gov/30742202/' },
+  { label: 'Rico-Campà et al., BMJ, 2019 (cohorte SUN)', url: 'https://pubmed.ncbi.nlm.nih.gov/31142450/' },
+  { label: 'Srour et al., JAMA Intern Med, 2020 (NutriNet-Santé, diabète de type 2)', url: 'https://pubmed.ncbi.nlm.nih.gov/31841598/' },
+]
+
+// FAQ affichée dans la page ; le balisage FAQPage reprend exactement les mêmes textes
+const FAQ = ([1, 2, 3, 4] as const).map((n) => ({ q: t(`method.faq${n}q`, locale), a: t(`method.faq${n}a`, locale) }))
+
+// JSON-LD : TechArticle + BreadcrumbList + FAQPage (Organization et WebSite viennent de SeoHead)
 const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'TechArticle',
+    '@id': `${SITE_URL}/methodologie#article`,
     headline: 'Méthodologie du score Bayen : comment on calcule la note 0-100',
-    description: "Détail complet de l'algorithme de scoring Bayen : pondération Nutri-Score (50%), NOVA (30%), additifs (20%). Algorithme déterministe, ouvert et reproductible.",
+    description: "Détail de l'algorithme de scoring Bayen : Nutri-Score (50 points), NOVA (30 points), additifs (20 points). Algorithme déterministe, public et reproductible.",
     inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
-    author: {
-      '@type': 'Organization',
-      name: 'Bayen',
-      url: SITE_URL,
-    },
-    datePublished: '2026-05-11',
-    dateModified: '2026-05-11',
+    author: { '@id': `${SITE_URL}/#organization` },
     publisher: { '@id': `${SITE_URL}/#organization` },
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    datePublished: '2026-05-11',
+    dateModified: UPDATED,
     mainEntityOfPage: `${SITE_URL}/methodologie`,
+    citation: NOVA_STUDIES.map((s) => s.url),
     proficiencyLevel: 'Beginner',
     keywords: 'Nutri-Score, NOVA, additifs, score nutritionnel, méthodologie, transparence',
   },
@@ -65,54 +78,22 @@ const jsonLd = [
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${SITE_URL}/` },
       { '@type': 'ListItem', position: 2, name: 'Méthodologie', item: `${SITE_URL}/methodologie` },
     ],
   },
   {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Comment le score Bayen est-il calculé ?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Le score Bayen, noté de 0 à 100, est la somme pondérée de trois composantes : Nutri-Score officiel (50 points), groupe NOVA de transformation (30 points), et pénalités liées aux additifs à risque (20 points). C\'est un algorithme déterministe public, sans intelligence artificielle dans le calcul.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Pourquoi un produit peut avoir un Nutri-Score A mais un mauvais score Bayen ?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Le Nutri-Score ne regarde que la composition nutritionnelle (sucres, sel, graisses, fibres, protéines). Un produit peut être Nutri-Score A mais ultra-transformé (NOVA 4) avec beaucoup d\'additifs controversés — dans ce cas le score Bayen pénalise ces deux dimensions ignorées par le Nutri-Score seul.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'D\'où viennent les données nutritionnelles ?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: '75% des produits viennent d\'Open Food Facts (base mondiale collaborative) auto-importés au scan. 25% sont contribués par la communauté marocaine via photo + OCR. Les utilisateurs peuvent confirmer ou signaler les erreurs : 3 confirmations passent un produit en statut "Vérifié".',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'L\'IA décide-t-elle de la note d\'un produit ?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Non. L\'IA (modèle Qwen3.5-9B auto-hébergé sur les serveurs de Bayen au Maroc) lit les étiquettes et les listes d\'ingrédients, identifie un produit encore sans fiche et décrit une photo de plat. Le score final est toujours calculé par un algorithme déterministe, ouvert et reproductible — pas de boîte noire.',
-        },
-      },
-    ],
+    inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
+    mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   },
 ]
 ---
 
 <Layout
-  title="Méthodologie du score Bayen — Comment on calcule la note nutritionnelle"
-  description="Détail complet et transparent de l'algorithme : Nutri-Score (50 pts) + NOVA (30 pts) + Additifs (20 pts). Algorithme public, open source, reproductible."
+  title={t('seo.method.title', locale)}
+  description={t('seo.method.desc', locale)}
   path="/methodologie"
   jsonLd={jsonLd}
   mobileTopbar={false}
@@ -177,8 +158,12 @@ const jsonLd = [
             </div>
           ))}
         </div>
-        <p class="muted text-[13px] italic">
-          {t('method.novaRiskA', locale)}<strong class="text-foreground">{t('method.novaRiskB', locale)}</strong>{t('method.novaRiskC', locale)}
+        <p class="muted text-[13px] italic">{t('method.novaRisk', locale)}</p>
+        <p class="muted text-xs">
+          {t('method.novaSources', locale)}{' '}
+          {NOVA_STUDIES.map((s, i) => (
+            <>{i > 0 && ' · '}<a href={s.url} target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">{s.label}</a></>
+          ))}
         </p>
       </article>
 
@@ -236,9 +221,22 @@ const jsonLd = [
       </div>
     </section>
 
+    <!-- Questions fréquentes : contenu visible du balisage FAQPage -->
+    <section class="section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12">
+      <h2 class="disp d-m md:text-[26px]">{t('method.faqTitle', locale)}</h2>
+      <div class="grid max-w-[68ch] gap-3">
+        {FAQ.map((f) => (
+          <details class="card p-4 md:p-5">
+            <summary class="disp d-s cursor-pointer">{f.q}</summary>
+            <p class="mt-2 text-[14.5px] leading-relaxed">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
     <footer class="section muted justify-items-center gap-1 text-center text-xs">
       <p>{t('method.sourceCode', locale)}<a href="https://github.com/Santofer/bayen" target="_blank" rel="noopener noreferrer" class="font-semibold text-brand-ink underline underline-offset-2">github.com/Santofer/bayen</a></p>
-      <p>{t('method.updated', locale)}</p>
+      <p>{updatedLabel}</p>
     </footer>
   </main>
 </Layout>

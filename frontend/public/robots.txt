@@ -1,5 +1,5 @@
 # Bayen — robots.txt
-# https://bayen.ma — PWA participative de notation des produits alimentaires au Maroc
+# https://bayen.ma — PWA participative de notation des produits alimentaires et cosmétiques au Maroc
 
 User-agent: *
 Allow: /
@@ -21,6 +21,9 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: Claude-SearchBot
+Allow: /
+
 User-agent: Claude-Web
 Allow: /
 
@@ -34,6 +37,9 @@ User-agent: Perplexity-User
 Allow: /
 
 User-agent: Google-Extended
+Allow: /
+
+User-agent: GoogleOther
 Allow: /
 
 User-agent: CCBot

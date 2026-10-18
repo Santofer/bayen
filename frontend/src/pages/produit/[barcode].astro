@@ -24,11 +24,16 @@ import { computeScore, computeNutriScore, type RiskLevel, type NutritionData, ty
 import { scoreFill, scoreLevel } from '@/lib/score-colors'
 import { barcodeSvg, barcodeGroups } from '@/lib/barcode'
 import { getLocale, t } from '@/lib/i18n'
+import { isIndexableProduct, firstBrand } from '@/lib/indexable'
+import { getPriceAggregate, type PriceAggregate } from '@/lib/directus'
 
 const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
 const locale = getLocale(localeCookie)
 
 const { barcode } = Astro.params
+
+// Code-barres impossible (lettres, longueur) : vraie 404, sans interroger Directus, OFF ni OBF
+if (!/^\d{8,14}$/.test(String(barcode ?? ''))) return Astro.rewrite('/404')
 
 const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
 const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
@@ -47,6 +52,8 @@ let scanResult: {
 } = { found: false }
 
 let fetchError: string | null = null
+// Directus injoignable : réponse 503 (jamais un 200 vide ni une 404 qu'un robot retiendrait)
+let directusDown = false
 
 // Univers beauté (C23) : ingrédients INCI appariés (jointure) pour la fiche cosmétique
 let cosmeticIngredients: InciIngredient[] = []
@@ -190,9 +197,11 @@ try {
         score: scoreObj,
       }
     }
+  } else {
+    directusDown = true
   }
-} catch (e: unknown) {
-  //`directus-err:${e instanceof Error ? e.message : String(e)} `
+} catch {
+  directusDown = true
 }
 
 // 2. Fallback Open Food Facts si non trouvé dans Directus
@@ -289,7 +298,7 @@ try {
 
 // 2b. Open Beauty Facts — via /bayen-api/scan (import + score cosmétique déterministe).
 //     L'endpoint essaie OFF puis OBF ; ici OFF a déjà échoué, seul OBF peut répondre.
-if (!scanResult.found && !fetchError) {
+if (!scanResult.found && !fetchError && !directusDown) {
   try {
     const scanRes = await fetch(`${DIRECTUS_URL}/bayen-api/scan`, {
       method: 'POST',
@@ -297,6 +306,7 @@ if (!scanResult.found && !fetchError) {
       body: JSON.stringify({ barcode, session_id: `auto-${Date.now()}`, track: false }),
       signal: AbortSignal.timeout(12000),
     })
+    if (!scanRes.ok) directusDown = true
     if (scanRes.ok) {
       const scanData = await scanRes.json()
       if (scanData.found && scanData.product?.product_type === 'cosmetic') {
@@ -310,7 +320,7 @@ if (!scanResult.found && !fetchError) {
         }
       }
     }
-  } catch { /* non bloquant */ }
+  } catch { directusDown = true }
 }
 
 // 3. Auto-import dans Directus si trouvé sur OFF (fire-and-forget côté serveur)
@@ -349,6 +359,20 @@ if (scanResult.found && scanResult.source === 'open_food_facts') {
 const product = scanResult.product as Record<string, unknown> | undefined
 const score = scanResult.score as Record<string, unknown> | undefined
 const isCosmetic = product?.product_type === 'cosmetic'
+
+// Statut HTTP : 503 si une source n'a pas répondu (le robot repassera), 404 si le code est inconnu partout
+const outage = directusDown || fetchError != null
+if (outage) {
+  Astro.response.status = 503
+  Astro.response.headers.set('Retry-After', '300')
+} else if (!scanResult.found) {
+  Astro.response.status = 404
+}
+// Porte d'indexation (lib/indexable.ts, même règle que le sitemap) : la fiche reste visible
+const noindex = Astro.response.status !== 200 || !product || !isIndexableProduct(product)
+
+// Prix communautaires lus côté serveur (en parallèle des alternatives) : la section ne s'affiche qu'à partir de 3 relevés
+const pricesPromise = scanResult.source === 'directus' ? getPriceAggregate(String(barcode)) : Promise.resolve(null)
 const dataIssues: Array<{ field: string; message: string }> = Array.isArray(product?.data_issues)
   ? (product!.data_issues as Array<{ field: string; message: string }>)
   : (typeof product?.data_issues === 'string' ? (() => { try { return JSON.parse(product!.data_issues as string) } catch { return [] } })() : [])
@@ -397,8 +421,10 @@ if (!isCosmetic && scanResult.source === 'directus' && product?.category_id && s
     const categoryId = typeof product.category_id === 'object'
       ? (product.category_id as Record<string, unknown>).id
       : product.category_id
+    // TOUS les produits mieux notés du rayon (pas les 16 premiers) : le filtre lexical
+    // ci-dessous s'applique AVANT la limite à 3, sinon il écartait presque tout
     const altRes = await fetch(
-      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score&limit=16&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,sugars,salt,fat_saturated,nova_group,additives`,
+      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[product_type][_eq]=food&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score,barcode&limit=-1&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,sugars,salt,fat_saturated,nova_group,additives`,
       { signal: AbortSignal.timeout(3000) }
     )
     if (altRes.ok) {
@@ -584,101 +610,215 @@ function altReasons(alt: Record<string, unknown>): string[] {
   return reasons.slice(0, 3)
 }
 
-// SEO
-const capText = cosmeticRisk?.cap_reason
-  ? ({ banned: 'contient un ingrédient interdit', high: 'contient un ingrédient à risque élevé', moderate: 'contient un ingrédient à risque modéré', low: 'quelques ingrédients à surveiller' } as Record<string, string>)[cosmeticRisk.cap_reason.risk_level] ?? ''
-  : (cosmeticRisk?.total != null ? 'aucun ingrédient à risque connu' : 'liste INCI à compléter')
+// ── SEO : nom affiché, title, meta description, phrase-verdict, JSON-LD ──
+// Tout vient des données stockées et du score déterministe : aucun chiffre inventé.
 
-const pageTitle = product
-  ? isCosmetic
-    ? `${product.name_fr} (${product.brand}) — Score beauté ${score?.total ?? '?'}/100 | Bayen`
-    : `${product.name_fr} (${product.brand}) — Score ${score?.total ?? '?'}/100 | Bayen`
-  : `Produit ${barcode} — Bayen`
+// Apostrophe perdue à l'import (« Flocons d avoine ») : corrigée à l'affichage seulement
+const fixApostrophes = (s: string): string => s.replace(/(^|\s)([dl]) (?=[aeiouyhàâäéèêëîïôöûüœAEIOUYHÀÂÉÈÊÎÔÛ])/g, "$1$2'")
+const productName = fixApostrophes(String(product?.name_fr ?? barcode))
+// Marque saisie tout en minuscules (« javana ») : capitale initiale à l'affichage
+const brandLabel = brandName && brandName === brandName.toLocaleLowerCase('fr')
+  ? brandName.replace(/(^|[\s-])(\p{L})/gu, (_m, a: string, b: string) => a + b.toLocaleUpperCase('fr'))
+  : brandName
+// La marque n'est répétée que si le nom ne la contient pas déjà (jamais « Sprite (Sprite) »)
+const _fold = (s: string) => ` ${s.toLocaleLowerCase('fr').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim()} `
+const nameHead = brandLabel && !_fold(productName).includes(_fold(brandLabel)) ? `${productName} ${brandLabel}` : productName
 
-const pageDescription = product
-  ? isCosmetic
-    ? `${product.name_fr} de ${product.brand} : score beauté ${score?.total ?? '?'}/100, ${capText}. Analyse de la liste INCI (perturbateurs endocriniens, allergènes, substances interdites).`
-    : `${product.name_fr} de ${product.brand} : score ${score?.total ?? '?'}/100, Nutri-Score ${score?.nutriscore_grade ?? '?'}, NOVA ${score?.nova_group ?? '?'}.`
-  : `Produit ${barcode} non trouvé dans la base Bayen.`
+const sep = t('seo.sep', locale)
+const colon = locale === 'ary' ? ': ' : ' : '
+// Premier candidat qui tient dans la limite, sinon le plus court coupé proprement
+const firstFit = (cands: string[], max: number): string =>
+  cands.find((c) => c.length <= max) ?? `${cands[cands.length - 1].slice(0, max - 1).trimEnd()}…`
 
-// Schema.org JSON-LD pour les fiches produit : Product + BreadcrumbList
-const SITE_URL = 'https://bayen.ma'
-const productImageUrl = product?.image_front
-  ? (product.image_front as string).startsWith('http')
-    ? (product.image_front as string)
-    : `${CDN_URL}/${product.image_front}`
-  : `${SITE_URL}/og-default.png`
+const kcalVal = _n(product?.energy_kcal)
+const kcalTxt = kcalVal != null ? t('seo.kcal', locale).replace('{n}', String(Math.round(kcalVal))) : null
+const nsTxt = nsGrade ? t('seo.nutriscore', locale).replace('{g}', nsGrade) : null
+const novaVal = !isCosmetic ? _n(score?.nova_group) : null
+// Pour 100 g : énergie, sucres, sel (valeurs présentes seulement)
+const per100 = [
+  kcalTxt,
+  curSugars != null ? t('seo.desc.sugars', locale).replace('{n}', fmtG(curSugars)) : null,
+  curSalt != null ? t('seo.desc.salt', locale).replace('{n}', fmtG(curSalt)) : null,
+].filter((x): x is string => x != null)
+const scoreWord = stickerWord.toLocaleLowerCase('fr')
+const cosmeticScored = isCosmetic && cosmeticRisk != null && typeof cosmeticRisk.total === 'number' && !cosmeticRisk.insufficient
 
-const jsonLd = product
-  ? [
-      {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        name: product.name_fr,
-        brand: { '@type': 'Brand', name: product.brand },
-        image: productImageUrl,
-        description: pageDescription,
-        sku: barcode,
-        gtin13: barcode?.length === 13 ? barcode : undefined,
-        gtin8: barcode?.length === 8 ? barcode : undefined,
-        url: `${SITE_URL}/produit/${barcode}`,
-        nutrition: product.energy_kcal != null
-          ? {
-              '@type': 'NutritionInformation',
-              calories: `${product.energy_kcal} kcal`,
-              fatContent: product.fat_total != null ? `${product.fat_total} g` : undefined,
-              saturatedFatContent: product.fat_saturated != null ? `${product.fat_saturated} g` : undefined,
-              carbohydrateContent: product.carbs_total != null ? `${product.carbs_total} g` : undefined,
-              sugarContent: product.sugars != null ? `${product.sugars} g` : undefined,
-              fiberContent: product.fiber != null ? `${product.fiber} g` : undefined,
-              proteinContent: product.proteins != null ? `${product.proteins} g` : undefined,
-              sodiumContent: product.salt != null ? `${(product.salt as number) * 400} mg` : undefined,
-              servingSize: '100g',
-            }
-          : undefined,
-        category: isCosmetic ? 'Cosmétique' : undefined,
-        additionalProperty: [
-          { '@type': 'PropertyValue', name: isCosmetic ? 'Score beauté Bayen' : 'Score Bayen', value: score?.total ?? 'N/A' },
-          { '@type': 'PropertyValue', name: 'Label Bayen', value: score?.label ?? 'N/A' },
-          ...(isCosmetic ? [] : [
-            { '@type': 'PropertyValue' as const, name: 'Nutri-Score', value: score?.nutriscore_grade ?? 'N/A' },
-            { '@type': 'PropertyValue' as const, name: 'Groupe NOVA', value: score?.nova_group ?? 'N/A' },
-          ]),
-          ...(Array.isArray(product.additives) && (product.additives as string[]).length > 0
-            ? [{
-                '@type': 'PropertyValue' as const,
-                name: 'Additifs détectés',
-                value: (product.additives as string[]).join(', '),
-              }]
-            : []),
-        ],
-      },
-      {
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Accueil', item: SITE_URL },
-          { '@type': 'ListItem', position: 2, name: 'Recherche', item: `${SITE_URL}/recherche` },
-          {
-            '@type': 'ListItem',
-            position: 3,
-            name: product.name_fr ?? barcode,
-            item: `${SITE_URL}/produit/${barcode}`,
-          },
-        ],
-      },
+// Title ≤ 65 caractères : on retire d'abord une donnée, puis la marque, jamais de « ?/100 »
+const titleTails: string[] = isCosmetic
+  ? [t('seo.titleBeauty', locale), '']
+  : [
+      ...(kcalTxt && nsTxt ? [`${kcalTxt}${sep}${nsTxt}`] : []),
+      ...(kcalTxt ? [kcalTxt] : []),
+      ...(nsTxt ? [nsTxt] : []),
+      ...(!kcalTxt && !nsTxt && scoreTotal != null ? [t('seo.score', locale).replace('{n}', String(scoreTotal))] : []),
+      '',
     ]
+const pageTitle = product
+  ? firstFit([nameHead, productName].flatMap((h) => titleTails.map((tl) => (tl ? `${h}${colon}${tl} | Bayen` : `${h} | Bayen`))), 65)
+  : `${t(outage ? 'seo.serviceDown' : 'contrib.unknownTitle', locale)} | Bayen`
+
+// Meta description ≤ 155 caractères, avec les vraies valeurs
+const quantity = typeof product?.quantity === 'string' && product.quantity.trim() ? product.quantity.trim() : null
+const descHead = quantity ? `${nameHead} (${quantity})` : nameHead
+const descCands: string[] = []
+if (product && !isCosmetic) {
+  const p100 = per100.length > 0 ? t('seo.desc.per100', locale).replace('{list}', per100.join(sep)) : null
+  const p100Short = kcalTxt ? t('seo.desc.per100', locale).replace('{list}', kcalTxt) : null
+  const tail = t('seo.desc.foodTail', locale)
+  if (scoreTotal != null) {
+    const sc = t('seo.desc.score', locale).replace('{n}', String(scoreTotal)).replace('{w}', scoreWord)
+    const nova = novaVal != null ? `NOVA ${novaVal}` : null
+    const join = (parts: Array<string | null>) => `${descHead}${colon}${parts.filter(Boolean).join(sep)}.`
+    for (const parts of [[sc, nsTxt, nova, p100], [sc, nsTxt, p100], [sc, p100], [sc, p100Short], [sc]]) {
+      descCands.push(`${join(parts)} ${tail}`, join(parts))
+    }
+  } else {
+    const un = t('seo.desc.unscored', locale)
+    descCands.push(`${descHead}${colon}${un} ${tail}`, `${descHead}${colon}${un}`)
+  }
+} else if (product) {
+  if (cosmeticScored) {
+    const sc = t('seo.desc.beautyScore', locale).replace('{n}', String(scoreTotal)).replace('{w}', scoreWord)
+    const m = String(cosmeticRisk!.token_count ?? cosmeticRisk!.matched_count ?? 0)
+    const flag = t(curFlagged === 0 ? 'seo.desc.flagged0' : curFlagged === 1 ? 'seo.desc.flagged1' : 'seo.desc.flaggedN', locale)
+      .replace('{n}', String(curFlagged)).replace('{m}', m)
+    const base = `${descHead}${colon}${sc}${sep}${flag}.`
+    descCands.push(`${base} ${t('seo.desc.beautyTail', locale)}`, base, `${descHead}${colon}${sc}.`)
+  } else {
+    descCands.push(`${descHead}${colon}${t(cosmeticRisk?.insufficient ? 'seo.desc.inciInsufficient' : 'seo.desc.inciMissing', locale)}`)
+  }
+}
+const pageDescription = product
+  ? firstFit(descCands, 155)
+  : `${barcode} ${t('contrib.unknownDesc', locale)}`.slice(0, 155)
+
+// Phrase-verdict (haut de fiche) : composantes du score, ce qui pèse le plus, valeurs pour 100 g
+const verdict: string[] = []
+if (product && !isCosmetic && scoreTotal != null) {
+  const nsp = _n(score?.nutriscore_points) ?? 0
+  const np = _n(score?.nova_points) ?? 0
+  const ap = _n(score?.additives_points) ?? 0
+  verdict.push(t('verdict.food', locale)
+    .replace('{total}', String(scoreTotal))
+    .replace('{ns}', nsTxt ?? t('verdict.nsMissing', locale))
+    .replace('{nsp}', String(nsp))
+    .replace('{nova}', String(novaVal ?? '–'))
+    .replace('{np}', String(np))
+    .replace('{ap}', String(ap)))
+  const losses = ([['ns', 50 - nsp], ['nova', 30 - np], ['add', 20 - ap]] as const).slice().sort((a, b) => b[1] - a[1])
+  verdict.push(losses[0][1] > 0
+    ? t('verdict.biggest', locale).replace('{what}', t(`verdict.what.${losses[0][0]}`, locale)).replace('{n}', String(losses[0][1]))
+    : t('verdict.full', locale))
+  if (per100.length > 0) verdict.push(t('verdict.per100', locale).replace('{list}', per100.join(sep)))
+  if (score?.incomplete) verdict.push(t('verdict.incomplete', locale))
+} else if (cosmeticScored && cosmeticRisk) {
+  const cap = cosmeticRisk.cap_reason
+  const total = String(scoreTotal)
+  if (cap) {
+    const lvl = ['banned', 'high', 'moderate', 'low'].includes(cap.risk_level) ? cap.risk_level : 'unknown'
+    verdict.push(t('verdict.beauty.capped', locale).replace('{n}', total).replace('{inci}', cap.inci_name)
+      .replace('{level}', t(`beauty.risk.${lvl}` as Parameters<typeof t>[0], locale).toLocaleLowerCase('fr')))
+    const others = (cosmeticRisk.worst ?? [])
+      .filter((w) => w.inci_name !== cap.inci_name && ['banned', 'high', 'moderate', 'low'].includes(w.risk_level))
+      .slice(0, 3).map((w) => w.inci_name)
+    if (others.length > 0) verdict.push(t('verdict.beauty.watch', locale).replace('{list}', others.join(sep)))
+  } else {
+    verdict.push(t('verdict.beauty.clean', locale).replace('{n}', total).replace('{m}', String(cosmeticRisk.matched_count ?? 0)))
+  }
+  if (cosmeticRisk.token_count > 0) {
+    verdict.push(`${t('beauty.insufficientCount', locale).replace('{a}', String(cosmeticRisk.matched_count ?? 0)).replace('{b}', String(cosmeticRisk.token_count))}.`)
+  }
+}
+// Valeur + unité isolées (<bdi>) dans le rendu : « 378 kcal » garde son ordre en darija
+// (pas un chiffre collé à une lettre ou un tiret : « PEG-40 » reste entier)
+const VERDICT_NUM = /((?<![\p{L}\d,-])−?\d[\d,]*(?:\/\d+| kcal| g\b| pts)?)/u
+
+// JSON-LD : BreadcrumbList (vrai rayon) + WebPage + Product. Pas de Review, d'AggregateRating
+// ni d'Offer (Bayen ne vend rien, le score n'est pas un avis) ; aucune valeur de remplissage.
+const SITE_URL = 'https://bayen.ma'
+const pageUrl = `${SITE_URL}/produit/${barcode}`
+const imgFront = product?.image_front as string | undefined
+const productImageUrl = imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
+const prop = (name: string, value: unknown, unitText?: string) => {
+  const v = _n(value)
+  return v == null ? [] : [{ '@type': 'PropertyValue', name, value: v, ...(unitText ? { unitText } : {}) }]
+}
+const crumbParent = !isCosmetic && product?.category_slug
+  ? { name: String(product.category_name ?? product.category_slug), item: `${SITE_URL}/categories/${product.category_slug}` }
+  : isCosmetic ? { name: 'Beauté', item: `${SITE_URL}/beaute` } : null
+const crumbs = [{ name: 'Accueil', item: `${SITE_URL}/` }, ...(crumbParent ? [crumbParent] : []), { name: productName, item: pageUrl }]
+const digits = String(barcode)
+const jsonLd = product
+  ? {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${pageUrl}#breadcrumb`,
+          itemListElement: crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: c.item })),
+        },
+        {
+          '@type': 'WebPage',
+          '@id': `${pageUrl}#webpage`,
+          url: pageUrl,
+          name: pageTitle,
+          inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
+          isPartOf: { '@id': `${SITE_URL}/#website` },
+          breadcrumb: { '@id': `${pageUrl}#breadcrumb` },
+          mainEntity: { '@id': `${pageUrl}#product` },
+        },
+        {
+          '@type': 'Product',
+          '@id': `${pageUrl}#product`,
+          name: productName,
+          brand: brandLabel ? { '@type': 'Brand', name: brandLabel, url: `${SITE_URL}/marque/${encodeURIComponent(brandName)}` } : undefined,
+          image: productImageUrl,
+          description: pageDescription,
+          sku: digits,
+          ...([8, 12, 13, 14].includes(digits.length) ? { [`gtin${digits.length}`]: digits } : {}),
+          category: isCosmetic
+            ? (cosmeticCategoryKey ? t(cosmeticCategoryKey, 'fr') : 'Cosmétique')
+            : (product.category_name as string | undefined),
+          url: pageUrl,
+          mainEntityOfPage: { '@id': `${pageUrl}#webpage` },
+          additionalProperty: [
+            ...(scoreTotal != null
+              ? [{ '@type': 'PropertyValue', name: isCosmetic ? 'Score beauté Bayen' : 'Score Bayen', value: scoreTotal, unitText: '/100', minValue: 0, maxValue: 100 }]
+              : []),
+            ...(nsGrade ? [{ '@type': 'PropertyValue', name: 'Nutri-Score', value: nsGrade }] : []),
+            ...(novaVal != null && scoreTotal != null ? [{ '@type': 'PropertyValue', name: 'Groupe NOVA', value: novaVal }] : []),
+            ...(isCosmetic ? [] : [
+              ...prop('Énergie (pour 100 g)', product.energy_kcal, 'kcal'),
+              ...prop('Lipides (pour 100 g)', product.fat_total, 'g'),
+              ...prop('dont acides gras saturés (pour 100 g)', product.fat_saturated, 'g'),
+              ...prop('Glucides (pour 100 g)', product.carbs_total, 'g'),
+              ...prop('dont sucres (pour 100 g)', product.sugars, 'g'),
+              ...prop('Fibres (pour 100 g)', product.fiber, 'g'),
+              ...prop('Protéines (pour 100 g)', product.proteins, 'g'),
+              ...prop('Sel (pour 100 g)', product.salt, 'g'),
+            ]),
+            ...(Array.isArray(product.additives) && product.additives.length > 0
+              ? [{ '@type': 'PropertyValue', name: 'Additifs détectés', value: (product.additives as string[]).join(', ') }]
+              : []),
+          ],
+        },
+      ],
+    }
   : undefined
 
-const imgFront = product?.image_front as string | undefined
 // Fiche en base : carte d'aperçu « Marché Pop » (photo + score, générée par l'API) ;
 // produit lu seulement chez OFF : sa photo brute, comme avant
 const ogImage = scanResult.source === 'directus'
   ? `${DIRECTUS_URL}/bayen-api/og/${barcode}.jpg`
   : imgFront ? (imgFront.startsWith('http') ? imgFront : `${CDN_URL}/${imgFront}`) : undefined
+
+// Section « Où l'acheter moins cher » : seulement à partir de 3 relevés (sinon pas de H2 vide)
+const prices: PriceAggregate | null = await pricesPromise
+const PRICE_MIN_REPORTS = 3
+const showPrices = (prices?.count ?? 0) >= PRICE_MIN_REPORTS
 ---
 
-<Layout title={pageTitle} description={pageDescription} path={`/produit/${barcode}`} ogType="product" ogImage={ogImage} jsonLd={jsonLd} universe={isCosmetic ? 'beauty' : undefined} mobileTopbar={false}>
+<Layout title={pageTitle} description={pageDescription} path={`/produit/${barcode}`} ogType="product" ogImage={ogImage} jsonLd={jsonLd} noindex={noindex} universe={isCosmetic ? 'beauty' : undefined} mobileTopbar={false}>
   {/* Barre du haut mobile (maquette FichePop) : retour | partager + à mes courses */}
   <header class="topbar md:hidden">
     <a class="icon-btn" href="/recherche" data-back aria-label={t('nav.back', locale)}>
@@ -697,18 +837,18 @@ const ogImage = scanResult.source === 'directus'
 
   <main class="screen gap-[22px] md:gap-12">
 
-    {/* Erreur réseau */}
-    {fetchError && (
+    {/* Erreur réseau (503) : Directus, Open Food Facts ou Open Beauty Facts n'a pas répondu */}
+    {outage && !scanResult.found && (
       <section class="section justify-items-center py-6 text-center">
         <img src="/mascotte/naanaa-oups.webp" alt="" width="120" height="177" class="naanaa-bob" />
-        <h1 class="disp d-m">{fetchError}</h1>
+        <h1 class="disp d-m">{directusDown ? t('seo.serviceDown', locale) : fetchError}</h1>
         <p class="muted text-sm">{t('common.networkError', locale)}</p>
         <a href="/scan" class="btn primary">{t('nav.scan', locale)}</a>
       </section>
     )}
 
-    {/* Produit non trouvé */}
-    {!fetchError && !scanResult.found && (
+    {/* Produit non trouvé (404 + noindex) : on garde l'invitation à l'ajouter */}
+    {!outage && !scanResult.found && (
       <section class="section mx-auto w-full max-w-sm justify-items-center py-6 text-center">
         {/* Naânaa « oups » : on dit ce qui manque, pas « erreur » */}
         <img src="/mascotte/naanaa-oups.webp" alt="" width="120" height="177" class="naanaa-bob" />
@@ -745,14 +885,14 @@ const ogImage = scanResult.source === 'directus'
     )}
 
     {/* Produit trouvé */}
-    {!fetchError && scanResult.found && product && score && (
+    {scanResult.found && product && score && (
       <>
         {/* Barre collante : nom + score restent visibles pendant la lecture des détails */}
         <div id="product-sticky" class="product-sticky" aria-hidden="true">
           {product.image_front && (
             <img src={(product.image_front as string).startsWith('http') ? (product.image_front as string) : `${CDN_URL}/${product.image_front}?width=96&height=96&fit=cover&quality=75&format=webp`} alt="" width="36" height="36" />
           )}
-          <span class="min-w-0 flex-1 truncate text-sm font-bold">{product.name_fr}</span>
+          <span class="min-w-0 flex-1 truncate text-sm font-bold">{productName}</span>
           {scoreTotal != null && (
             <span class="sticky-score" style={`background: ${stickerFill}`}>{scoreTotal}</span>
           )}
@@ -769,7 +909,7 @@ const ogImage = scanResult.source === 'directus'
                   <circle cx="9" cy="9" r="2" />
                   <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
                 </svg>
-                {imgFrontSrc && <img src={imgFrontSrc} alt={String(product.name_fr)} fetchpriority="high" />}
+                {imgFrontSrc && <img src={imgFrontSrc} alt={productName} fetchpriority="high" />}
               </div>
               {/* Pastille halal sur la photo (jamais retirée automatiquement : même condition que la puce) */}
               {product.is_halal && (
@@ -793,9 +933,9 @@ const ogImage = scanResult.source === 'directus'
           <div class="flex min-w-0 flex-col gap-[22px] md:gap-8">
             <section class="section gap-4">
               <div class="grid gap-1.5 pe-[110px] md:pe-0">
-                <h1 class="disp d-l md:text-[44px]">{product.name_fr}</h1>
+                <h1 class="disp d-l md:text-[44px]">{productName}</h1>
                 <p class="muted">
-                  {brandName && <><a href={`/marque/${encodeURIComponent(brandName)}`} class="hover:text-brand-ink hover:underline">{brandName}</a> · </>}
+                  {brandName && <><a href={`/marque/${encodeURIComponent(brandName)}`} class="hover:text-brand-ink hover:underline">{brandLabel}</a> · </>}
                   {product.quantity && <>{product.quantity} · </>}
                   <span class="num">{barcode}</span>
                 </p>
@@ -845,6 +985,13 @@ const ogImage = scanResult.source === 'directus'
                 {scanResult.source === 'open_food_facts' && <span class="chip">Open Food Facts</span>}
                 {isCosmetic && product.data_source === 'obf' && <span class="chip">Open Beauty Facts</span>}
               </div>
+
+              {/* Verdict déterministe : composantes du score et valeurs pour 100 g (aucune IA) */}
+              {verdict.length > 0 && (
+                <p class="text-[15px] leading-relaxed">
+                  {verdict.join(' ').split(VERDICT_NUM).map((part, i) => (i % 2 ? <bdi>{part}</bdi> : part))}
+                </p>
+              )}
 
               {/* Bulle de Naânaa : un constat factuel tiré des chiffres */}
               {naanaaTip && (
@@ -938,7 +1085,7 @@ const ogImage = scanResult.source === 'directus'
 
         {/* Additifs | Où l'acheter moins cher (pas de conteneur vide : il ajouterait un écart) */}
         {(additiveRows.length > 0 || scanResult.source === 'directus') && (
-        <div class:list={['grid gap-[22px] md:items-start md:gap-8', additiveRows.length > 0 && scanResult.source === 'directus' && 'md:grid-cols-2']}>
+        <div class:list={['grid gap-[22px] md:items-start md:gap-8', additiveRows.length > 0 && showPrices && 'md:grid-cols-2']}>
           {additiveRows.length > 0 && (
             <section id="additifs" class="section scroll-mt-24">
               <div class="card grid gap-3 p-4 md:p-6">
@@ -959,9 +1106,10 @@ const ogImage = scanResult.source === 'directus'
           )}
 
           {/* Prix communautaires (C22) : médiane par enseigne — uniquement pour un
-              produit de notre base (un produit encore servi depuis OFF n'a pas d'id) */}
+              produit de notre base (un produit encore servi depuis OFF n'a pas d'id).
+              Moins de 3 relevés : ni titre ni liste, seulement le bouton pour en partager un */}
           {scanResult.source === 'directus' && (
-            <PriceSection client:visible barcode={String(barcode)} />
+            <PriceSection client:visible barcode={String(barcode)} initial={prices} minReports={PRICE_MIN_REPORTS} />
           )}
         </div>
         )}
