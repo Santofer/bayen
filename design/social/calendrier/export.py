@@ -4,6 +4,8 @@ Les visuels sont ceux rendus par Suwar (out/rendus), téléversés dans Directus
 leur correspondance nom → id est dans out/ids-directus.json.
    python3 export.py 1 2 3   → out/csv/bayen-<réseau>.csv
    python3 export.py 0 --linkedin   → out/csv/bayen-linkedin-lot-0.csv (LinkedIn seul, les autres réseaux passant par Suwar)
+   python3 export.py 0 --stories-facebook   → out/csv/bayen-stories-facebook-lot-0.csv (Suwar ne publie les stories
+   que sur Instagram : celles de Facebook passent par ContentStudio, compte Facebook seul)
 ContentStudio compte encore Casablanca en UTC+1 alors que le Maroc est en UTC+0 : une heure écrite dans le CSV part
 une heure plus tôt. Les heures exportées sont donc décalées de CS_DECALAGE (vérifié le 18/10/2026)."""
 import csv, json, sys
@@ -31,24 +33,28 @@ def quand(p, decalage=0, heure=None):
 
 lots = [a for a in sys.argv[1:] if not a.startswith('--')] or ['1']
 posts = sorted((p for n in lots for p in json.loads((D / f'lot-{n}.json').read_text())['posts']), key=lambda p: (p['date'], p['heure']))
-lignes = {'instagram': [], 'facebook': [], 'linkedin': [], 'stories-instagram-facebook': []}
-seul = '--linkedin' in sys.argv
+lignes = {'instagram': [], 'facebook': [], 'linkedin': [], 'stories-instagram-facebook': [], 'stories-facebook': []}
+seul = next((m for m in ('linkedin', 'stories-facebook') if f'--{m}' in sys.argv), None)
+# Story : deux heures après le post, légende courte (le titre)
+story = lambda p, titre: [quand(p, 2), p['titre'], url(p['id'], 'story'), '', '', 'No', '', 'Story', titre + ' story']
 for p in posts:
-    if seul:
+    titre = f"Bayen {p['date']} {p['id'][11:]}"
+    if seul == 'linkedin':
         li = linkedin(p)
-        if li: lignes['linkedin'].append([quand(p, heure=None if p['rubrique'] in ('fete', 'presentation') else '12:30'), li, url(p['id'], 'post'), '', '', 'No', '', 'Feed', f"Bayen {p['date']} {p['id'][11:]}"])
+        if li: lignes['linkedin'].append([quand(p, heure=None if p['rubrique'] in ('fete', 'presentation') else '12:30'), li, url(p['id'], 'post'), '', '', 'No', '', 'Feed', titre])
         continue
-    lg, titre = legendes(p), f"Bayen {p['date']} {p['id'][11:]}"
+    if seul == 'stories-facebook':
+        lignes['stories-facebook'].append(story(p, titre)); continue
+    lg = legendes(p)
     lignes['instagram'].append([quand(p), lg['instagram'], url(p['id'], 'post'), '', '', 'No', '', 'Feed', titre])
     lignes['facebook'].append([quand(p), lg['facebook'], url(p['id'], 'post'), '', '', 'No', '', 'Feed', titre])
     li = linkedin(p)
     if li:  # LinkedIn : fêtes à l'heure du post, le reste à 12 h 30 (pause déjeuner, public professionnel)
         lignes['linkedin'].append([quand(p, heure=None if p['rubrique'] in ('fete', 'presentation') else '12:30'), li, url(p['id'], 'post'), '', '', 'No', '', 'Feed', titre])
-    # Story : deux heures après le post, légende courte (le titre)
-    lignes['stories-instagram-facebook'].append([quand(p, 2), p['titre'], url(p['id'], 'story'), '', '', 'No', '', 'Story', titre + ' story'])
+    lignes['stories-instagram-facebook'].append(story(p, titre))
 
 for res, rows in lignes.items():
-    if seul and res != 'linkedin': continue
+    if res != (seul or res) or (not seul and res == 'stories-facebook'): continue
     nom = f'bayen-{res}-lot-{"-".join(lots)}.csv' if seul else f'bayen-{res}.csv'
     with open(OUT / nom, 'w', newline='', encoding='utf-8') as f:
         w = csv.writer(f, quoting=csv.QUOTE_ALL)
