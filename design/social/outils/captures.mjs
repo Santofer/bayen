@@ -59,7 +59,7 @@ const SHOTS = [
   // Lot 2 : fiche du couscous Dari (100/100) sur la tablette, écrans en darija pour les posts en arabe
   ['photo-F7-couscous', 'iPad paysage', '/produit/6111094000013', 0],
   ['photo-F5-ar', 'iPhone 14', '/analyser-repas', 250, 848, repas, 'ary'],
-  ['photo-pub-repas', 'iPhone 14', '/analyser-repas', 250, 1151, repas], // pub newsletter Où Sortir (écran Codex plus étroit)
+  ['photo-pub-repas', 'iPhone 14', '/analyser-repas', 250, 960, repas], // pub newsletter Où Sortir (photo Codex corrigée de son écrasement horizontal)
   ['photo-F2-ar', 'iPhone 14', '/beaute', 0, 895, null, 'ary'],
   // Lot 3 : flocons d'avoine Javana (100/100, fiche complète) sur la tablette, fiche et protéines en darija
   ['photo-F7-avoine', 'iPad paysage', '/produit/6111180015501', 0],
