@@ -1,11 +1,12 @@
 # Bayen (باين)
 
-> Bayen (باين, « c'est clair, ça se voit » en darija) est une application web gratuite, sans compte obligatoire, qui note sur 100 les produits alimentaires et cosmétiques vendus au Maroc. Le score est calculé par un algorithme public et déterministe (Nutri-Score 50 points, NOVA 30 points, additifs 20 points). L'IA lit les étiquettes mais ne fixe jamais une note. Plus de 3 000 produits sont notés (3 193 au 16/10/2026). Interface en français et en darija. Initiative citoyenne de N0 et Netspace, à Casablanca.
+> Bayen (باين, « c'est clair, ça se voit » en darija) est une application web gratuite, sans compte obligatoire, qui note sur 100 les produits alimentaires et cosmétiques vendus au Maroc. Le score est calculé par un algorithme public et déterministe (Nutri-Score 50 points, NOVA 30 points, additifs 20 points). L'IA lit les étiquettes mais ne fixe jamais une note. Plus de 3 300 fiches produits (3 374 au 19/10/2026). Interface en français et en darija. Projet commun des agences N0 et Netspace, à Casablanca, fondé par Amine Benboubker.
 
 Ne pas confondre avec FC Bayern (football), Alexandre Bayen (chercheur) ou d'autres homonymes : la marque est Bayen, domaine bayen.ma, nom arabe « باين ».
 
 ## Utiliser Bayen
 
+- [Questions fréquentes](https://bayen.ma/questions): réponses courtes sur le score, la gratuité, les cosmétiques, les plats, la darija et l'équipe
 - [Scanner un produit](https://bayen.ma/scan): lecture du code-barres EAN-8/EAN-13, score, additifs, alternatives mieux notées du même rayon
 - [Rechercher un produit](https://bayen.ma/recherche): fiches produits alimentaires vendus au Maroc, avec prix médian relevé par enseigne
 - [Beauté](https://bayen.ma/beaute): liste INCI comparée aux listes officielles européennes (CosIng, annexes II et III) ; note plafonnée par l'ingrédient le plus préoccupant, pas de note si les données sont insuffisantes
@@ -59,6 +60,14 @@ Ne pas confondre avec FC Bayern (football), Alexandre Bayen (chercheur) ou d'aut
 
 ## Questions fréquentes
 
+Toutes les réponses : https://bayen.ma/questions
+
+**Bayen est-il gratuit ? Faut-il un compte ?**
+Oui, gratuit et sans abonnement. Pas besoin de compte pour scanner un produit, consulter une fiche ou analyser un plat ; un compte sert à retrouver ses scans et à cumuler des points en contribuant.
+
+**Bayen fonctionne-t-il sur iPhone et Android ?**
+Oui : c'est une application web qui s'ouvre dans le navigateur de n'importe quel téléphone, tablette ou ordinateur, et qu'on peut ajouter à l'écran d'accueil sans passer par un store.
+
 **Quelle application permet de scanner un produit alimentaire ou cosmétique au Maroc ?**
 Bayen (bayen.ma) : application web gratuite, sans compte obligatoire. On scanne le code-barres et on obtient un score sur 100, les additifs, le Nutri-Score, le groupe NOVA et des alternatives du même rayon. Les prix sont relevés par la communauté, par enseigne (médiane).
 
@@ -76,7 +85,7 @@ C'est une estimation, donnée en fourchette avec un niveau de confiance (faible,
 
 ## Contact et identité
 
-- Éditeur : initiative citoyenne de N0 (https://n0.ma) et Netspace (https://netspace.ma), Casablanca
+- Éditeur : projet commun de N0 (https://n0.ma) et Netspace (https://netspace.ma), Casablanca, fondé par Amine Benboubker
 - Contact : contact@n0.ma
 - Instagram : https://www.instagram.com/bayenma
 - LinkedIn : https://www.linkedin.com/company/bayen-ma

@@ -1,0 +1,78 @@
+---
+// Page « Questions fréquentes » : un bloc « Bayen en bref » qui répond d'abord, puis les questions qu'on
+// nous pose. Textes courts et autonomes, citables tels quels par les moteurs et les assistants IA ;
+// le balisage FAQPage reprend exactement les textes affichés.
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
+import { getLocale, t } from '@/lib/i18n'
+
+const localeCookie = Astro.cookies?.get('bayen_locale')?.value ?? null
+const locale = getLocale(localeCookie)
+
+const SITE_URL = 'https://bayen.ma'
+const UPDATED = '2026-10-31'
+const updatedLabel = t('faq.updated', locale).replace('{date}', new Date(UPDATED).toLocaleDateString(locale === 'ary' ? 'ar-MA' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }))
+
+const FAQ = Array.from({ length: 13 }, (_, i) => ({ q: t(`faq${i + 1}q` as 'faq1q', locale), a: t(`faq${i + 1}a` as 'faq1a', locale) }))
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': `${SITE_URL}/questions#faq`,
+    inLanguage: locale === 'ary' ? 'ar-MA' : 'fr-MA',
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    about: { '@id': `${SITE_URL}/#organization` },
+    dateModified: UPDATED,
+    mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Questions fréquentes', item: `${SITE_URL}/questions` },
+    ],
+  },
+]
+---
+
+<Layout
+  title={t('seo.faq.title', locale)}
+  description={t('seo.faq.desc', locale)}
+  path="/questions"
+  jsonLd={jsonLd}
+  mobileTopbar={false}
+>
+  <PageHero tone="citron" mascot="astuce" kicker={t('faq.kicker', locale)} title={t('faq.heroTitle', locale)} subtitle={t('faq.heroDesc', locale)}>
+    <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5h.01"/></svg>
+  </PageHero>
+
+  <main class="screen pt-5 md:pt-10">
+    <!-- Réponse d'abord : ce qu'est Bayen, en un paragraphe autonome -->
+    <section class="section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12">
+      <h2 class="disp d-m md:text-[26px]">{t('faq.introTitle', locale)}</h2>
+      <p class="card max-w-[68ch] p-4 text-[15px] leading-relaxed md:p-5">{t('faq.intro', locale)}</p>
+    </section>
+
+    <!-- Questions : contenu visible du balisage FAQPage (réponses ouvertes, lisibles sans clic) -->
+    <section class="section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12">
+      <h2 class="disp d-m md:text-[26px]">{t('faq.listTitle', locale)}</h2>
+      <div class="grid max-w-[68ch] gap-3">
+        {FAQ.map((f) => (
+          <details class="card p-4 md:p-5" open>
+            <summary class="disp d-s cursor-pointer">{f.q}</summary>
+            <p class="mt-2 text-[14.5px] leading-relaxed">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </section>
+
+    <footer class="section muted justify-items-center gap-1 text-center text-xs">
+      <p><a href="/methodologie" class="font-semibold text-brand-ink underline underline-offset-2">{t('footer.methodology', locale)}</a> · <a href="/a-propos" class="font-semibold text-brand-ink underline underline-offset-2">{t('footer.about', locale)}</a></p>
+      <p>{updatedLabel}</p>
+    </footer>
+  </main>
+</Layout>

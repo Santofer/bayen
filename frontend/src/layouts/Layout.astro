@@ -52,6 +52,7 @@ const NAV = [
 
 // Pied de page : toutes les pages qui ne sont pas dans l'en-tête restent accessibles ici
 const FOOTER_LINKS = [
+  { href: '/questions', label: t('faq.short', locale) },
   { href: '/methodologie', label: t('footer.methodology', locale) },
   { href: '/contribuer', label: t('nav.contribute', locale) },
   { href: '/classement', label: t('nav.ranking', locale) },
@@ -176,6 +177,10 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
             &
             <a href="https://netspace.ma" target="_blank" rel="noopener noreferrer" class="font-medium">Netspace</a>
             · <a href="mailto:contact@n0.ma">{t('layout.contact', locale)}</a>
+            {/* Profils officiels (mêmes adresses que sameAs dans SeoHead) : relient l'entité Bayen à ses comptes */}
+            · <a href="https://www.instagram.com/bayenma" target="_blank" rel="noopener noreferrer me" class="font-medium">Instagram</a>
+            · <a href="https://www.facebook.com/bayen.ma" target="_blank" rel="noopener noreferrer me" class="font-medium">Facebook</a>
+            · <a href="https://www.linkedin.com/company/bayen-ma" target="_blank" rel="noopener noreferrer me" class="font-medium">LinkedIn</a>
           </p>
           <p>
             {t('footer.dataFrom', locale)}
