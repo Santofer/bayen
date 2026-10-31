@@ -22,5 +22,7 @@ export const onRequest = defineMiddleware(async (_context, next) => {
   // Copie : les en-têtes d'une réponse peuvent être immuables (réponse issue d'un fetch)
   const html = new Response(response.body, response)
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) html.headers.set(name, value)
+  // Sans charset dans l'en-tête, certains robots (dont des crawlers d'IA) lisent l'UTF-8 en latin-1 et abîment l'arabe
+  if (!/charset=/i.test(html.headers.get('content-type') ?? '')) html.headers.set('content-type', 'text/html; charset=utf-8')
   return html
 })

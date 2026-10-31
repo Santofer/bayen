@@ -19,7 +19,7 @@ const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.m
 
 // Dernière modification du CONTENU des pages statiques : à mettre à jour quand on les modifie
 const STATIC_PAGES: Array<[path: string, lastmod: string]> = [
-  ['/', '2026-10-18'],
+  ['/', '2026-10-31'],
   ['/recherche', '2026-10-18'],
   ['/beaute', '2026-10-16'],
   ['/proteines', '2026-10-15'],
@@ -29,6 +29,7 @@ const STATIC_PAGES: Array<[path: string, lastmod: string]> = [
   ['/analyser-repas', '2026-10-18'],
   ['/a-propos', '2026-10-18'],
   ['/methodologie', '2026-10-18'],
+  ['/questions', '2026-10-31'],
   ['/partenaires', '2026-10-18'],
 ]
 
