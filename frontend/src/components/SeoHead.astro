@@ -71,7 +71,11 @@ const organizationLd = {
     name: 'Amine Benboubker',
     url: 'https://aminebenboubker.com',
   },
-  parentOrganization: { '@type': 'Organization', name: 'N0', url: 'https://n0.ma' },
+  // Projet commun des deux agences
+  parentOrganization: [
+    { '@type': 'Organization', name: 'N0', url: 'https://n0.ma' },
+    { '@type': 'Organization', name: 'Netspace', url: 'https://netspace.ma' },
+  ],
   // Profils propres à Bayen
   sameAs: [
     'https://www.instagram.com/bayenma',
