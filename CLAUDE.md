@@ -37,6 +37,10 @@ Développeur : Amine Benboubker / N0.ma / Casablanca.
 - `/meal-analyze` (photo de plat) : sortie = ESTIMATION calories en **fourchette** (min/max) + macros + `confiance` (faible|moyenne|elevee). Jamais de chiffre précis inventé, jamais de conseil médical. Si pas un plat → `{"plat":null,...}`.
 - `/pipeline` (étiquette produit) : **vision-first** — Qwen lit directement la photo (FR+AR, ingrédients bilingues structurés) → JSON nutritionnel par 100g ; fallback Tesseract→parse si la vision échoue. Champ `engine` dans la réponse.
 - Tesseract tourne sur **CPU** (réseau Docker interne, non exposé via Tunnel).
+- **Bascule Claude** (provisoire, en attendant une config locale plus grosse) : `AI_PROVIDER=anthropic`,
+  `AI_MODEL=claude-…`, `ANTHROPIC_API_KEY` dans `.env`, puis `docker compose up -d bayen-tesseract`.
+  Toutes les routes passent par `_ai_chat` (app.py) : rien d'autre à changer, retour par `AI_PROVIDER=openai`.
+  Chaque appel IA est journalisé (`data/ai/ai-usage.jsonl` : route, jetons) pour suivre le coût.
 
 ---
 

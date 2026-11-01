@@ -40,7 +40,8 @@ MAX_HALAL = int(os.environ.get("MAX_HALAL", "40"))
 ONLY_BARCODE = os.environ.get("ONLY_BARCODE", "").strip()
 
 # Nom invalide : « produit sans nom », code-barres nu, vide, trop court
-BAD_NAME_RE = re.compile(r"^\s*$|^produit sans nom|^[0-9]{8,14}$|^inconnu", re.IGNORECASE)
+# … ou écrit dans un alphabet que le public ne lit pas (cyrillique, grec, CJK : fiches OFF étrangères)
+BAD_NAME_RE = re.compile(r"^\s*$|^produit sans nom|^[0-9]{8,14}$|^inconnu|^.{1,2}$|[\u0370-\u03FF\u0400-\u04FF\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]", re.IGNORECASE)
 BAD_BRAND_RE = re.compile(r"^\s*$|^inconnu|^marque inconnue|^unknown", re.IGNORECASE)
 
 
