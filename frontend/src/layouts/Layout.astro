@@ -331,5 +331,33 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
         }
       })();
     </script>
+    <!-- Assistant nBot (Naânaa) : chargé après la page. Sur mobile, le bouton
+         remonte au-dessus de la barre d'onglets (règle posée dans son shadow DOM). -->
+    <script is:inline>
+      (function () {
+        function load() {
+          var s = document.createElement('script');
+          s.src = 'https://chat.nbot.ma/api/w/bayen/embed';
+          s.async = true;
+          document.body.appendChild(s);
+          var tries = 0;
+          var t = setInterval(function () {
+            var el = document.querySelector('nbot-widget-cmuo4khtm00073an14m812yxp');
+            if (el && el.shadowRoot) {
+              clearInterval(t);
+              var st = document.createElement('style');
+              st.textContent = '.cws-bubble{box-shadow:0 0 0 2px #FFF8EC,4px 4px 0 2px #1B1B1B !important}' +
+                '@media (max-width:767px){' +
+                '.cws-bubble{bottom:calc(96px + env(safe-area-inset-bottom,0px)) !important}' +
+                '.cws-tooltip{bottom:calc(172px + env(safe-area-inset-bottom,0px)) !important}}' +
+                '@media print{.cws-bubble,.cws-tooltip{display:none !important}}';
+              el.shadowRoot.appendChild(st);
+            } else if (++tries > 40) clearInterval(t);
+          }, 250);
+        }
+        if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 3000 });
+        else setTimeout(load, 1500);
+      })();
+    </script>
   </body>
 </html>
