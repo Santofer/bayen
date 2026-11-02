@@ -7,6 +7,8 @@
  * - Directus injoignable → 503 : jamais un sitemap 200 vidé de ses fiches et mis en cache.
  * - /classement et /comparer restent dehors (classement des contributeurs, outil) ;
  *   /scan et /contribuer aussi (pages applicatives sans contenu indexable).
+ * - ?part=pages | ?part=1..n : tranches pour la base de connaissances nBot, qui lit au plus
+ *   800 pages par sitemap (pages hors fiches, puis fiches par paquets de PART_SIZE).
  */
 
 export const prerender = false
@@ -33,6 +35,9 @@ const STATIC_PAGES: Array<[path: string, lastmod: string]> = [
   ['/partenaires', '2026-10-18'],
 ]
 
+// Taille d'une tranche ?part=N (sous la limite de 800 pages par source nBot)
+const PART_SIZE = 700
+
 // Une marque entre au sitemap à partir de 5 fiches indexables
 const BRAND_MIN_PRODUCTS = 5
 
@@ -56,7 +61,7 @@ const later = (a: string | null, b: string | null): string | null => (!a || (b &
 const entry = (loc: string, lastmod: string | null) =>
   `  <url>\n    <loc>${SITE_URL}${loc}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}\n  </url>`
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ url }) => {
   let products: ProductRow[]
   let categories: Array<{ id: number; slug: string }>
   let additives: Array<{ id: string }>
@@ -96,9 +101,10 @@ export const GET: APIRoute = async () => {
     }
   }
 
-  const urls = [
-    ...STATIC_PAGES.map(([path, lastmod]) => entry(path, lastmod)),
-    ...productUrls,
+  const part = url.searchParams.get('part')
+  const n = Number(part)
+  const statics = STATIC_PAGES.map(([path, lastmod]) => entry(path, lastmod))
+  const others = [
     ...categories.map((c) => entry(`/categories/${c.slug}`, categoryLastmod.get(c.id) ?? null)),
     // Même graphie canonique que la page /marque/<nom> (la plus fréquente)
     ...[...brands.values()]
@@ -107,6 +113,10 @@ export const GET: APIRoute = async () => {
     ...additives.map((a) => entry(`/additifs/${a.id}`, null)),
     ...articles.map((a) => entry(`/blog/${a.slug}`, day(a.date_published))),
   ]
+  const urls =
+    part === 'pages' ? [...statics, ...others]
+    : n >= 1 ? productUrls.slice((n - 1) * PART_SIZE, n * PART_SIZE)
+    : [...statics, ...productUrls, ...others]
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
