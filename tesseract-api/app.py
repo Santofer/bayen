@@ -6,8 +6,10 @@ Bayen OCR + IA Pipeline API
 - /meal-analyze  — Analyse photo de plat via vision IA → estimation calories/macros
 - /og-card       — Carte Open Graph produit (JPEG 1200×630, aperçu de lien)
 
-IA : serveur vLLM partagé (OpenAI-compatible), modèle multimodal Qwen3.5-9B.
-Configuré par env AI_BASE_URL / AI_MODEL / AI_API_KEY.
+IA : serveur vLLM partagé (OpenAI-compatible), modèle multimodal Qwen3.5-9B,
+ou API Claude (AI_PROVIDER=anthropic). Bascule par variables d'env, sans
+toucher aux routes : AI_PROVIDER / AI_MODEL (+ AI_BASE_URL / AI_API_KEY pour
+vLLM, ANTHROPIC_API_KEY pour Claude).
 """
 
 from flask import Flask, Response, request, jsonify, g, has_request_context
@@ -22,6 +24,7 @@ import re
 import difflib
 import time
 import requests
+import threading
 
 app = Flask(__name__)
 
@@ -30,6 +33,24 @@ app = Flask(__name__)
 AI_BASE_URL = os.environ.get('AI_BASE_URL', 'http://192.168.1.123:8000/v1').rstrip('/')
 AI_MODEL = os.environ.get('AI_MODEL', 'qwen3.5-9b')
 AI_API_KEY = os.environ.get('AI_API_KEY', 'sk-local')
+# openai = vLLM local (défaut) ; anthropic = API Claude (ANTHROPIC_API_KEY)
+AI_PROVIDER = os.environ.get('AI_PROVIDER', 'openai').strip().lower()
+AI_EFFORT = os.environ.get('AI_EFFORT', 'low')  # Claude : extraction JSON, pas de raisonnement long
+# Journal d'usage (une ligne JSON par appel : route, jetons) pour chiffrer le coût
+AI_USAGE_LOG = os.environ.get('AI_USAGE_LOG', '/app/data/ai-usage.jsonl')
+
+# Plafond mensuel Claude (USD) : au-delà, les appels repartent vers le vLLM local
+# Modèle vLLM de repli quand Claude est actif mais son plafond atteint
+VLLM_MODEL = AI_MODEL if AI_PROVIDER == 'openai' else os.environ.get('VLLM_MODEL', 'qwen3.5-9b')
+AI_BUDGET_USD = float(os.environ.get('AI_BUDGET_USD', '50'))
+# Prix USD par million de jetons (entrée, sortie) ; modèle inconnu = tarif Opus, par prudence
+CLAUDE_PRICES = {'claude-haiku-5-5': (0.10, 0.50), 'claude-sonnet-5-5': (2.0, 10.0), 'claude-opus-5-5': (4.0, 20.0)}
+_spend_lock = threading.Lock()
+
+_claude = None
+if AI_PROVIDER == 'anthropic':
+    import anthropic
+    _claude = anthropic.Anthropic(max_retries=0)  # relances gérées par _ai_chat_retry
 
 # Côté grand côté max pour les images envoyées au modèle vision.
 # Le serveur cappe à ~768×768 → envoyer plus gros = gaspillage/latence.
@@ -46,14 +67,134 @@ def _mark_ai_unavailable():
         g.ai_unavailable = True
 
 
+def _log_usage(tokens_in, tokens_out, images, cache_read=0):
+    """Une ligne par appel IA : de quoi chiffrer un passage sur Claude depuis le trafic réel."""
+    try:
+        os.makedirs(os.path.dirname(AI_USAGE_LOG), exist_ok=True)
+        with open(AI_USAGE_LOG, 'a') as f:
+            f.write(json.dumps({
+                't': int(time.time()), 'route': request.path if has_request_context() else None,
+                'provider': AI_PROVIDER, 'model': AI_MODEL, 'in': tokens_in, 'out': tokens_out,
+                'cache_read': cache_read, 'images': images,
+            }) + '\n')
+    except OSError:
+        pass
+
+
+def _parse_json(content):
+    """Déballe un éventuel fence markdown puis parse l'objet JSON."""
+    content = content.strip()
+    if '```json' in content:
+        content = content.split('```json')[1].split('```')[0].strip()
+    elif '```' in content:
+        content = content.split('```')[1].split('```')[0].strip()
+    if not content.startswith('{'):
+        # Claude n'a pas de mode json_object : on prend le premier objet de la réponse
+        start, end = content.find('{'), content.rfind('}')
+        if start != -1 and end > start:
+            content = content[start:end + 1]
+    return json.loads(content)
+
+
+def _to_claude(messages):
+    """Messages OpenAI (system + image_url data-URL) → (system, messages) Claude."""
+    system = '\n\n'.join(m['content'] for m in messages if m['role'] == 'system')
+    system += '\n\nRéponds uniquement par un objet JSON valide, sans texte autour.'
+    out = []
+    for m in messages:
+        if m['role'] == 'system':
+            continue
+        content = m['content']
+        if isinstance(content, list):
+            blocks = []
+            for part in content:
+                if part.get('type') == 'image_url':
+                    head, data = part['image_url']['url'].split(',', 1)
+                    media = head.split(';')[0].removeprefix('data:') or 'image/jpeg'
+                    blocks.append({'type': 'image', 'source': {'type': 'base64', 'media_type': media, 'data': data}})
+                else:
+                    blocks.append({'type': 'text', 'text': part['text']})
+            content = blocks
+        out.append({'role': m['role'], 'content': content})
+    return system, out
+
+
+def _spend_file():
+    return os.path.join(os.path.dirname(AI_USAGE_LOG), f"claude-spend-{time.strftime('%Y-%m')}.json")
+
+
+def _month_spend():
+    """Dépense Claude du mois en cours (USD), persistée à côté du journal d'usage."""
+    try:
+        with open(_spend_file()) as f:
+            return json.load(f)['usd']
+    except (OSError, ValueError, KeyError):
+        return 0.0
+
+
+def _add_spend(tokens_in, tokens_out, cache_read):
+    p_in, p_out = CLAUDE_PRICES.get(AI_MODEL, CLAUDE_PRICES['claude-opus-5-5'])
+    # lecture du cache facturée 10 % du prix d'entrée
+    usd = (tokens_in * p_in + cache_read * p_in * 0.1 + tokens_out * p_out) / 1e6
+    with _spend_lock:
+        total = _month_spend() + usd
+        try:
+            os.makedirs(os.path.dirname(AI_USAGE_LOG), exist_ok=True)
+            with open(_spend_file(), 'w') as f:
+                json.dump({'usd': round(total, 6), 'model': AI_MODEL}, f)
+        except OSError:
+            pass
+
+
+def _claude_chat(messages, max_tokens, timeout):
+    system, msgs = _to_claude(messages)
+    images = sum(1 for m in msgs if isinstance(m['content'], list) for b in m['content'] if b['type'] == 'image')
+    try:
+        resp = _claude.messages.create(
+            model=AI_MODEL,
+            # la réflexion compte dans max_tokens : marge au-delà de la sortie JSON attendue
+            max_tokens=max_tokens + 4000,
+            system=[{'type': 'text', 'text': system, 'cache_control': {'type': 'ephemeral'}}],
+            messages=msgs,
+            output_config={'effort': AI_EFFORT},
+            timeout=timeout,
+        )
+    except anthropic.APIStatusError as e:
+        app.logger.warning(f'Claude HTTP {e.status_code}: {str(e)[:300]}')
+        if e.status_code not in (400, 413, 422):
+            _mark_ai_unavailable()
+        return None
+    except anthropic.APIConnectionError as e:
+        app.logger.warning(f'Claude error: {e}')
+        _mark_ai_unavailable()
+        return None
+    u = resp.usage
+    tokens_in = u.input_tokens + (u.cache_creation_input_tokens or 0)
+    _log_usage(tokens_in, u.output_tokens, images, u.cache_read_input_tokens or 0)
+    _add_spend(tokens_in, u.output_tokens, u.cache_read_input_tokens or 0)
+    if resp.stop_reason == 'refusal':
+        return None
+    text = ''.join(b.text for b in resp.content if b.type == 'text')
+    try:
+        return _parse_json(text)
+    except json.JSONDecodeError as e:
+        app.logger.warning(f'Claude JSON: {e}')
+        return None
+
+
 def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2, repetition_penalty=None):
     """Appel chat/completions vLLM (OpenAI-compatible).
 
     Force la sortie JSON stricte (response_format) et désactive le mode
     "thinking" (réponse directe). Retourne le dict JSON parsé, ou None.
+    Avec AI_PROVIDER=anthropic, l'appel part vers Claude (température et
+    repetition_penalty propres à vLLM ignorées).
     """
+    if _claude and _month_spend() < AI_BUDGET_USD:
+        return _claude_chat(messages, max_tokens, timeout)
+    # (plafond atteint → vLLM local jusqu'au mois suivant)
     payload = {
-        'model': AI_MODEL,
+        'model': VLLM_MODEL,
         'messages': messages,
         'response_format': {'type': 'json_object'},
         'chat_template_kwargs': {'enable_thinking': False},
@@ -80,14 +221,10 @@ def _ai_chat(messages, max_tokens=800, timeout=60, temperature=0.2, repetition_p
                 _mark_ai_unavailable()
             return None
         data = resp.json()
-        content = data['choices'][0]['message']['content'].strip()
-        # response_format=json_object garantit du JSON, mais on déballe un
-        # éventuel fence markdown par sécurité.
-        if '```json' in content:
-            content = content.split('```json')[1].split('```')[0].strip()
-        elif '```' in content:
-            content = content.split('```')[1].split('```')[0].strip()
-        return json.loads(content)
+        usage = data.get('usage') or {}
+        _log_usage(usage.get('prompt_tokens'), usage.get('completion_tokens'),
+                   sum(1 for m in messages if isinstance(m['content'], list) for p in m['content'] if p.get('type') == 'image_url'))
+        return _parse_json(data['choices'][0]['message']['content'])
     except requests.exceptions.RequestException as e:
         app.logger.warning(f'AI error: {e}')
         _mark_ai_unavailable()
@@ -874,8 +1011,11 @@ def health():
     return jsonify({
         'status': 'ok',
         'tesseract_version': str(pytesseract.get_tesseract_version()),
+        'ai_provider': AI_PROVIDER,
         'ai_base_url': AI_BASE_URL,
         'ai_model': AI_MODEL,
+        'claude_month_usd': round(_month_spend(), 2) if _claude else None,
+        'claude_budget_usd': AI_BUDGET_USD if _claude else None,
     })
 
 
@@ -937,7 +1077,7 @@ def pipeline():
         vis.save(buf, format='JPEG', quality=88)
         image_b64 = base64.b64encode(buf.getvalue()).decode()
 
-        engine = 'qwen_vision'
+        engine = 'vision'
         parsed = call_ai_vision(
             NUTRITION_VISION_SYSTEM, NUTRITION_VISION_PROMPT, image_b64,
             timeout=120, max_tokens=2200,
@@ -985,7 +1125,7 @@ def pipeline():
             })
 
         # Étiquette illisible selon la vision → même statut que le seuil Tesseract
-        if engine == 'qwen_vision' and parsed.get('lisibilite') == 'faible':
+        if engine == 'vision' and parsed.get('lisibilite') == 'faible':
             return jsonify({
                 'job_status': 'low_confidence',
                 'engine': engine,

@@ -171,8 +171,9 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
     return typeof val === 'number' ? val : undefined
   }
 
-  const nameFr = (product.product_name_fr as string) || (product.product_name as string) || 'Produit sans nom'
-  const brand = (product.brands as string) ?? 'Marque inconnue'
+  const nameFr = (product.product_name_fr as string) || (product.generic_name_fr as string) || (product.product_name as string) || 'Produit sans nom'
+  // OFF empile marque et sous-marques (« Riso Scotti SpA, Scotti ») : la première suffit
+  const brand = (typeof product.brands === 'string' && product.brands.split(',')[0]?.trim()) || 'Marque inconnue'
   // Garde-fous : OFF contient des kJ tapés en kcal, du sodium en mg dans « sel »…
   const guard = sanitizeNutrition({
     energy_kcal: num('energy-kcal_100g'), fat_total: num('fat_100g'), fat_saturated: num('saturated-fat_100g'),
@@ -219,6 +220,7 @@ function mapOffProduct(offData: Record<string, unknown>, barcode: string): Recor
     confidence_score: 0.7, // Données OFF non vérifiées localement
     scan_count: 1,
     category_id: categoryId,
+    _image_url: (product.image_front_url as string) || (product.image_url as string) || null,
   }
 }
 
@@ -343,6 +345,22 @@ export async function scoreProduct(
 // ────────────────────────────────────────────────────────────────
 // Enregistrement du handler sur le router Express
 // ────────────────────────────────────────────────────────────────
+
+// Photo OFF/OBF → fichier Directus (R2). Un échec ne bloque jamais la fiche :
+// le cron backfill-images repassera.
+async function importImage(context: { services: unknown }, schema: unknown, url: string, title: string): Promise<string | undefined> {
+  try {
+    const { FilesService } = context.services as {
+      FilesService: new (opts: { schema: unknown; accountability: { admin: boolean } }) => {
+        importOne(url: string, data: Record<string, unknown>): Promise<string>
+      }
+    }
+    return await new FilesService({ schema, accountability: { admin: true } }).importOne(url, { title })
+  } catch (err) {
+    console.warn('[bayen-api] import image échoué:', (err as Error).message)
+    return undefined
+  }
+}
 
 export function registerScanEndpoint(router: Router, context: {
   services: Record<string, unknown>
@@ -505,6 +523,10 @@ export function registerScanEndpoint(router: Router, context: {
         const productPayload: Record<string, unknown> = { ...offProduct }
         delete productPayload._additives_raw
         delete productPayload._allergens_raw
+        const offImageUrl = productPayload._image_url as string | null
+        delete productPayload._image_url
+        // Photo OFF → fichier Directus (R2) tout de suite : la grille n'affiche que image_front
+        if (offImageUrl) productPayload.image_front = await importImage(context, schema, offImageUrl, `${productPayload.name_fr} — ${barcode}`)
 
         // UUID + timestamps que Directus aurait générés via ItemsService
         const newId = randomUUID()
@@ -593,20 +615,8 @@ export function registerScanEndpoint(router: Router, context: {
         obfProduct.id = newId
         obfProduct.date_created = new Date()
 
-        // Photo OBF → fichier Directus (R2) ; un échec ne bloque pas la fiche
-        if (imageUrl) {
-          try {
-            const { FilesService } = context.services as {
-              FilesService: new (opts: { schema: unknown; accountability: { admin: boolean } }) => {
-                importOne(url: string, data: Record<string, unknown>): Promise<string>
-              }
-            }
-            const files = new FilesService({ schema, accountability: { admin: true } })
-            obfProduct.image_front = await files.importOne(imageUrl, { title: `${obfProduct.name_fr} — ${barcode}` })
-          } catch (imgErr) {
-            console.warn('[bayen-api] import image OBF échoué:', (imgErr as Error).message)
-          }
-        }
+        // Photo OBF → fichier Directus (R2)
+        if (imageUrl) obfProduct.image_front = await importImage(context, schema, imageUrl, `${obfProduct.name_fr} — ${barcode}`)
 
         await knex('products').insert(obfProduct)
         const imported = (await knex('products').where('id', newId).first()) as ProductRecord | undefined

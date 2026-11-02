@@ -21,8 +21,9 @@ Questions fréquentes : [bayen.ma/questions](https://bayen.ma/questions).
 
 ## Données
 
-Fiches issues d'[Open Food Facts](https://world.openfoodfacts.org/) et d'Open Beauty Facts (licence ODbL), complétées
-par la communauté et par des photos d'étiquettes.
+De plus en plus de fiches sont créées par les utilisateurs, qui photographient l'étiquette d'un produit manquant.
+Certaines sont complétées par rapprochement avec [Open Food Facts](https://world.openfoodfacts.org/) et Open Beauty
+Facts (licence ODbL).
 
 ## Technique
 

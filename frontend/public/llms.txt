@@ -30,7 +30,7 @@ Ne pas confondre avec FC Bayern (football), Alexandre Bayen (chercheur) ou d'aut
 - [À propos de Bayen](https://bayen.ma/a-propos): qui, comment, limites assumées
 - [Code du calcul du score (GitHub)](https://github.com/Santofer/bayen/blob/main/frontend/src/lib/scoring.ts)
 - Échelle : Excellent 75-100, Bon 50-74, Médiocre 25-49, Mauvais 0-24
-- Données : Open Food Facts et Open Beauty Facts (licence ODbL), complétées par la communauté marocaine et par des photos d'étiquettes lues par l'IA
+- Données : fiches de plus en plus créées par les utilisateurs (photo de l'étiquette lue par l'IA), certaines complétées par rapprochement avec Open Food Facts et Open Beauty Facts (licence ODbL)
 - Rôle de l'IA (modèle Qwen3.5-9B, hébergé sur les serveurs de Bayen à Casablanca) : lecture des étiquettes et des listes INCI, identification de produits, estimation de plats. Le score final n'est jamais calculé par l'IA.
 
 ## Journal

@@ -88,9 +88,18 @@ services:
     environment:
       # IA : serveur vLLM partagé (OpenAI-compatible), Qwen3.5-9B multimodal.
       # IP LAN directe (le container bridge atteint l'hôte LAN), pas host.docker.internal.
+      # Bascule vers l'API Claude dans .env : AI_PROVIDER=anthropic, AI_MODEL=claude-…,
+      # ANTHROPIC_API_KEY=… puis `docker compose up -d bayen-tesseract` (retour : AI_PROVIDER=openai).
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
       AI_BASE_URL: http://192.168.1.123:8000/v1
-      AI_MODEL: qwen3.5-9b
+      AI_MODEL: ${AI_MODEL:-qwen3.5-9b}
       AI_API_KEY: sk-local
+      AI_EFFORT: ${AI_EFFORT:-low}
+      AI_BUDGET_USD: ${AI_BUDGET_USD:-50}  # plafond mensuel Claude, puis retour au vLLM
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      # journal d'usage IA (ai-usage.jsonl : jetons par appel, pour chiffrer le coût)
+      - ./data/ai:/app/data
     networks:
       - bayen-internal
 

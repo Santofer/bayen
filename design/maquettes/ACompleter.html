@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>À compléter — maquette</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Readex+Pro:wght@400;500;600;700&family=Archivo:wdth,wght@62..100,600..900&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="bayen.css">
+<style>
+  /* planche : deux écrans côte à côte (vraies données du 01/11/2026) */
+  body { margin: 0; background: #E9E1D3; font-family: 'Readex Pro', sans-serif }
+  .board { display: flex; gap: 48px; padding: 40px; align-items: flex-start; flex-wrap: wrap }
+  .label { font: 700 12px 'Archivo', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #5E5A52; margin: 0 0 10px 4px }
+  .phone { width: 390px; border: 2px solid #1B1B1B; border-radius: 34px; overflow: hidden; box-shadow: 6px 6px 0 #1B1B1B }
+  .phone > .bp { display: flex; flex-direction: column; gap: 26px; padding-bottom: 40px }
+  .band { background: var(--band, var(--citron)); border-bottom: 2px solid var(--encre); padding: 18px 20px 26px; display: grid; gap: 12px; color: var(--encre) }
+  .band .top { display: flex; justify-content: space-between; align-items: center }
+  .band .logo { font: 800 22px var(--f-disp); text-decoration: none }
+  .section { padding: 0 20px; display: grid; gap: 14px }
+  .sec-head { display: flex; justify-content: space-between; align-items: baseline }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px }
+  .stat { padding: 12px 14px; display: grid; gap: 2px }
+  .stat b { font: 800 24px var(--f-disp) }
+  .stat span { font-size: 12.5px; color: var(--muted); line-height: 1.3 }
+  .stat.on { background: var(--encre); color: var(--creme) }
+  .stat.on span { color: #E8DCC6 }
+  /* photo produit : remplit la vignette (règle CLAUDE.md) */
+  .pcard .tile img, .mini .tile img { width: 100%; height: 100%; object-fit: cover }
+  .pcard { grid-template-columns: 76px 1fr }
+  .miss { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px }
+  .miss .chip svg { width: 13px; height: 13px }
+  .miss .chip { height: 22px; font-size: 11px; padding: 0 8px; border-style: dashed }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px }
+  .row .muted { font-size: 11.5px }
+  .pts { font: 700 11px var(--f-mono); background: var(--citron); border: 1.5px solid var(--encre); border-radius: 999px; padding: 2px 8px }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px }
+  .step { padding: 12px 10px; text-align: center; display: grid; gap: 6px; justify-items: center; font-size: 12px; line-height: 1.3 }
+  .step i { font: 800 15px var(--f-disp); font-style: normal; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--encre); display: grid; place-items: center; background: var(--menthe) }
+  .naanaa { display: flex; gap: 10px; align-items: flex-end }
+  .naanaa img { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--encre); background: #BFF0DC; object-fit: cover }
+  .bubble { background: var(--surface); border: 2px solid var(--encre); border-radius: 18px 18px 18px 4px; padding: 10px 12px; font-size: 13.5px; box-shadow: 3px 3px 0 var(--encre) }
+  /* accroche accueil */
+  .teaser { padding: 16px; display: grid; gap: 12px; background: var(--figue, #E7D8FF) }
+  .minis { display: flex; gap: 8px }
+  .mini { flex: 1; display: grid; gap: 6px }
+  .mini .tile { height: 78px; border-radius: 12px; position: relative }
+  .mini .q { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: var(--citron); border: 2px solid var(--encre); display: grid; place-items: center; font: 800 13px var(--f-disp) }
+  .mini span { font-size: 11px; font-weight: 600; line-height: 1.2 }
+  .note { max-width: 420px; font-size: 13px; color: #3E3A33; line-height: 1.5 }
+  .note h2 { font: 800 16px 'Unbounded', sans-serif; margin: 0 0 8px }
+  .note li { margin-bottom: 6px }
+</style>
+</head>
+<body>
+<div class="board">
+
+<!-- ═══ Écran 1 : page /a-completer ═══ -->
+<div>
+  <p class="label">Page « À compléter » · mobile</p>
+  <div class="phone"><div class="bp">
+    <div class="band" style="--band: var(--citron)">
+      <div class="top"><a class="logo">bayen</a><span class="icon-btn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></span></div>
+      <span class="eyebrow" style="color: var(--encre)">Coup de main</span>
+      <h1 class="disp d-xl">Ces produits attendent leurs infos</h1>
+      <p style="font-size: 15px">Une photo de l'étiquette suffit : Bayen lit les valeurs, l'algorithme calcule la note. Chaque fiche complétée te rapporte des points.</p>
+    </div>
+
+    <section class="section">
+      <div class="stats">
+        <div class="card stat on"><b class="num">42</b><span>produits encore sans note</span></div>
+        <div class="card stat"><b class="num">440</b><span>notes estimées par l'IA, à vérifier</span></div>
+        <div class="card stat"><b class="num">39</b><span>cosmétiques sans liste d'ingrédients</span></div>
+        <div class="card stat"><b class="num">56</b><span>produits sans photo</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="chips" role="tablist">
+        <span class="chip fill" style="background: var(--encre); color: var(--creme)">Sans note · 42</span>
+        <span class="chip">À vérifier · 440</span>
+        <span class="chip">Beauté · 39</span>
+        <span class="chip">Sans photo · 56</span>
+      </div>
+
+      <article class="card pcard">
+        <div class="tile t-lemon"><img src="https://api.bayen.ma/assets/837c0dc8-7069-44ec-9008-ab2877ff6c06?width=200&height=200&fit=cover" alt=""></div>
+        <div>
+          <p class="pn">Mozza</p><p class="pm">Fayz · cherché 4 fois</p>
+          <div class="miss"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>tableau nutritionnel</span><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>ingrédients</span></div>
+          <div class="row"><span class="pts">+20 pts</span><a class="btn sm primary">Compléter</a></div>
+        </div>
+      </article>
+      <article class="card pcard">
+        <div class="tile t-pink"><img src="https://api.bayen.ma/assets/46f19158-e581-4f7f-a11d-aae31df31aca?width=200&height=200&fit=cover" alt=""></div>
+        <div>
+          <p class="pn">Mood Whole Hazelnut Chocolate</p><p class="pm">Mood · cherché 3 fois</p>
+          <div class="miss"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>tableau nutritionnel</span><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>ingrédients</span></div>
+          <div class="row"><span class="pts">+20 pts</span><a class="btn sm primary">Compléter</a></div>
+        </div>
+      </article>
+      <article class="card pcard">
+        <div class="tile t-blue"><img src="https://api.bayen.ma/assets/c9508f42-95ba-4a6f-8147-fc5e36e69b16?width=200&height=200&fit=cover" alt=""></div>
+        <div>
+          <p class="pn" dir="auto">كاشير القصبة صغير 200g</p><p class="pm">Al Kasbah · cherché 17 fois</p>
+          <div class="miss"><span class="chip" style="border-style: solid; background: #FFEC9E">Note estimée par l'IA</span><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>tableau nutritionnel</span></div>
+          <div class="row"><span class="pts">+15 pts</span><a class="btn sm">Vérifier</a></div>
+        </div>
+      </article>
+      <article class="card pcard">
+        <div class="tile t-pink"><img src="https://api.bayen.ma/assets/46e40aec-7e4b-4004-a70f-189e1df6f6ec?width=200&height=200&fit=cover" alt=""></div>
+        <div>
+          <p class="pn">Ultra Compact lingettes humides</p><p class="pm">Compact · cherché 15 fois</p>
+          <div class="miss"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>liste INCI (dos du paquet)</span></div>
+          <div class="row"><span class="pts">+20 pts</span><a class="btn sm primary">Compléter</a></div>
+        </div>
+      </article>
+      <a class="btn" style="width: 100%">Voir les 42 produits</a>
+    </section>
+
+    <section class="section">
+      <h2 class="disp d-m">Comment ça marche</h2>
+      <div class="steps">
+        <div class="card step"><i>1</i>Choisis un produit que tu as sous la main</div>
+        <div class="card step"><i>2</i>Photographie l'étiquette, bien à plat</div>
+        <div class="card step"><i>3</i>La note s'affiche pour tout le monde</div>
+      </div>
+      <div class="naanaa">
+        <img src="../../frontend/public/mascotte/naanaa-loupe.webp" alt="">
+        <p class="bubble">L'IA recopie ce qui est écrit, elle ne donne jamais la note : c'est l'algorithme public qui la calcule.</p>
+      </div>
+    </section>
+  </div></div>
+</div>
+
+<!-- ═══ Écran 2 : accroche sur l'accueil ═══ -->
+<div>
+  <p class="label">Accroche accueil · après « Les mieux notés »</p>
+  <div class="phone"><div class="bp" style="padding: 26px 0">
+    <section class="section">
+      <div class="sec-head"><h2 class="disp d-m">On a besoin de toi</h2><a class="muted" style="font-size: 13px; font-weight: 600">Tout voir</a></div>
+      <div class="card teaser">
+        <p style="font-weight: 600">42 produits cherchés sur Bayen n'ont pas encore de note. Tu en as un dans ta cuisine ?</p>
+        <div class="minis">
+          <div class="mini"><div class="tile t-lemon"><img src="https://api.bayen.ma/assets/837c0dc8-7069-44ec-9008-ab2877ff6c06?width=160&height=160&fit=cover" alt=""><span class="q">?</span></div><span>Mozza</span></div>
+          <div class="mini"><div class="tile t-pink"><img src="https://api.bayen.ma/assets/46f19158-e581-4f7f-a11d-aae31df31aca?width=160&height=160&fit=cover" alt=""><span class="q">?</span></div><span>Mood Hazelnut</span></div>
+          <div class="mini"><div class="tile t-mint"><img src="https://api.bayen.ma/assets/e58088e9-62c7-4b67-9f50-97289d5e6e9e?width=160&height=160&fit=cover" alt=""><span class="q">?</span></div><span>Clorets</span></div>
+        </div>
+        <a class="btn dark-btn">Compléter une fiche · +20 pts</a>
+      </div>
+    </section>
+  </div></div>
+
+  <div class="note" style="margin-top: 28px">
+    <h2>Ce que fait la section</h2>
+    <ul>
+      <li>Liste les produits <b>publiés</b> à qui il manque de quoi être notés, triés par nombre de recherches : on complète d'abord ce que les gens cherchent.</li>
+      <li>Quatre files : sans note, note estimée par l'IA à confirmer par une photo, cosmétiques sans liste INCI, produits sans photo.</li>
+      <li>« Compléter » ouvre le parcours existant <code>/contribuer?barcode=…</code> ; les points suivent le barème actuel (photo +20, correction +15).</li>
+      <li>Aucune note n'est saisie par la communauté : elle envoie des photos, l'algorithme calcule.</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

@@ -56,7 +56,10 @@ const OFF_KEYS: Record<NutritionField, string> = {
   energy_kcal: 'energy-kcal_100g', fat_total: 'fat_100g', fat_saturated: 'saturated-fat_100g', carbs_total: 'carbohydrates_100g',
   sugars: 'sugars_100g', fiber: 'fiber_100g', proteins: 'proteins_100g', salt: 'salt_100g',
 }
-const BAD_NAME = /^\s*$|^produit sans nom|^[0-9]{8,14}$|^inconnu|^unknown/i
+// Nom inexploitable : vide, « sans nom », code-barres, 1-2 caractères, ou écrit dans un alphabet
+// que le public marocain ne lit pas (cyrillique, grec, CJK — fiches OFF d'autres pays)
+const BAD_NAME = /^\s*$|^produit sans nom|^[0-9]{8,14}$|^inconnu|^unknown|^.{1,2}$|[\u0370-\u03FF\u0400-\u04FF\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]/i
+const BAD_BRAND = /^\s*$|^marque inconnue|^inconnu|^unknown/i
 
 type Method = 'score' | 'off' | 'photo' | 'identify' | 'estimate'
 type Row = Record<string, unknown>
@@ -137,11 +140,23 @@ export async function enrichProduct(database: unknown, barcode: string): Promise
     Object.assign(patch, fields); Object.assign(p, fields); methods.push(m)
   }
 
-  const off = await fetchJson(`${OFF_API_URL}/product/${barcode}.json?fields=product_name,product_name_fr,brands,nutriments,nova_group,ingredients_text_fr,ingredients_text,image_nutrition_url,categories`,
+  const off = await fetchJson(`${OFF_API_URL}/product/${barcode}.json?fields=product_name,product_name_fr,generic_name_fr,brands,quantity,nutriments,nova_group,ingredients_text_fr,ingredients_text,image_nutrition_url,categories`,
     { headers: { 'User-Agent': OFF_USER_AGENT } }, 8000)
   const offProduct = (off?.status === 1 ? off.product : null) as Row | null
 
-  // ── 2. Open Food Facts relu
+  // ── 2. Open Food Facts relu : identité (nom, marque, contenance) puis nutrition
+  if (offProduct) {
+    const fix: Record<string, unknown> = {}
+    if (BAD_NAME.test(String(p.name_fr ?? ''))) {
+      const nom = [offProduct.product_name_fr, offProduct.generic_name_fr, offProduct.product_name]
+        .map((v) => (typeof v === 'string' ? v.trim() : '')).find((v) => v && !BAD_NAME.test(v))
+      if (nom) fix.name_fr = nom.slice(0, 200)
+    }
+    const marque = typeof offProduct.brands === 'string' ? offProduct.brands.split(',')[0]?.trim() : ''
+    if (BAD_BRAND.test(String(p.brand ?? '')) && marque && !BAD_BRAND.test(marque)) fix.brand = marque.slice(0, 100)
+    if (!p.quantity && typeof offProduct.quantity === 'string' && offProduct.quantity.trim()) fix.quantity = offProduct.quantity.trim().slice(0, 40)
+    if (Object.keys(fix).length > 0) apply(fix, 'off')
+  }
   if (offProduct && missing(p).length > 0) {
     const n = (offProduct.nutriments ?? {}) as Row
     const src: NutritionInput = {}
@@ -179,7 +194,7 @@ export async function enrichProduct(database: unknown, barcode: string): Promise
       kind = typeof r.kind === 'string' ? r.kind : null
       const fix: Record<string, unknown> = {}
       if (BAD_NAME.test(String(p.name_fr ?? '')) && typeof r.name_fr === 'string' && r.name_fr.length >= 2) fix.name_fr = r.name_fr.slice(0, 200)
-      if (/^\s*$|^marque inconnue|^inconnu/i.test(String(p.brand ?? '')) && typeof r.brand === 'string' && r.brand.length >= 2) fix.brand = r.brand.slice(0, 100)
+      if (BAD_BRAND.test(String(p.brand ?? '')) && typeof r.brand === 'string' && r.brand.length >= 2) fix.brand = r.brand.slice(0, 100)
       // Type générique lu sur l'emballage : lève l'ambiguïté d'un nom commercial
       // (« VIP Classique » → « café soluble »), indispensable à l'estimation
       const generic = typeof r.generic === 'string' ? r.generic : (typeof r.name_fr === 'string' ? r.name_fr : '')
