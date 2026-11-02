@@ -55,6 +55,29 @@ def req(url, method="GET", data=None, token=None, timeout=90):
         return json.loads(resp.read().decode() or "{}")
 
 
+# Open Food Facts refuse (429) les rafales et les clients sans User-Agent :
+# requêtes identifiées, espacées, et une seconde chance après une pause.
+OFF_UA = "Bayen/1.0 (bayen.ma; contact@n0.ma)"
+OFF_DELAY = float(os.environ.get("OFF_DELAY", "3"))
+_off_last = [0.0]
+
+
+def off_get(url, timeout=60):
+    for attempt in range(2):
+        wait = _off_last[0] + OFF_DELAY - time.time()
+        if wait > 0:
+            time.sleep(wait)
+        _off_last[0] = time.time()
+        try:
+            r = urllib.request.Request(url, headers={"User-Agent": OFF_UA})
+            with urllib.request.urlopen(r, timeout=timeout) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as e:
+            if e.code != 429 or attempt:
+                raise
+            time.sleep(30)
+
+
 def post_multipart(url, field, filename, blob, timeout=180):
     """POST multipart/form-data (stdlib uniquement)."""
     boundary = "----bayen" + uuid.uuid4().hex
@@ -210,9 +233,14 @@ def main():
                 img_url = (DIRECTUS + "/assets/" + str(p["image_ingredients"])
                            + "?width=768&quality=85&access_token=" + urllib.parse.quote(token))
             else:
-                off = req("https://world.openfoodfacts.org/api/v2/product/"
-                          + str(p["barcode"]) + ".json?fields=image_ingredients_url,image_nutrition_url",
-                          timeout=30)
+                try:
+                    off = json.loads(off_get("https://world.openfoodfacts.org/api/v2/product/"
+                                             + str(p["barcode"]) + ".json?fields=image_ingredients_url,image_nutrition_url",
+                                             timeout=30) or b"{}")
+                except urllib.error.HTTPError as e:
+                    if e.code != 404:
+                        raise
+                    off = {}  # absent d'OFF (souvent un cosmétique) : marqué examiné ci-dessous
                 offp = off.get("product") or {}
                 img_url = offp.get("image_ingredients_url") or offp.get("image_nutrition_url")
                 # OFF renvoie la miniature 400 px, illisible pour la vision —
@@ -225,8 +253,11 @@ def main():
                             {"ingredients_ocr_at": now}, token=token, timeout=30)
                     skipped += 1
                     continue
-            with urllib.request.urlopen(img_url, timeout=60) as resp:
-                blob = resp.read()
+            if "openfoodfacts" in img_url:
+                blob = off_get(img_url)
+            else:
+                with urllib.request.urlopen(img_url, timeout=60) as resp:
+                    blob = resp.read()
 
             # 2. Lecture vision
             r = post_multipart(TESSERACT + "/pipeline", "image_nutrition",

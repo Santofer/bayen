@@ -594,6 +594,11 @@ CATEGORIZE_SYSTEM = (
     "- Si le produit n'est PAS un aliment ou une boisson (médicament, cosmétique, "
     "produit ménager, objet…) OU si la catégorie est indéterminable → "
     "category_id = null.\n"
+    "- Ne devine JAMAIS : classe seulement si tu SAIS ce qu'est le produit, par son nom "
+    "(« Yaourt fraise ») ou parce que c'est un produit connu (« Caprice des Dieux » = fromage). "
+    "Un mot vague ou ambigu dont tu ignores la nature (« Cigogne », « tone », « fruit ») → null.\n"
+    "- Si AUCUNE catégorie ne correspond vraiment (pâtes, confiserie, complément protéiné, "
+    "édulcorant…) → null, ne prends pas la plus proche. Fromages et glaces = produits laitiers.\n"
     "- EXACTEMENT un résultat par produit, avec son index d'origine.\n"
     "- Aucun texte hors du JSON."
 )
