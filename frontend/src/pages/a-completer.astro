@@ -1,0 +1,119 @@
+---
+// Produits publiés à qui il manque de quoi être notés (maquette design/maquettes/ACompleter.html).
+// La communauté envoie des photos, l'algorithme calcule : aucune note n'est saisie ici.
+export const prerender = false
+import Layout from '@/layouts/Layout.astro'
+import PageHero from '@/components/PageHero.astro'
+import { productTint } from '@/components/ProductCard'
+import { getLocale, t } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/translations'
+
+const locale = getLocale(Astro.cookies?.get('bayen_locale')?.value ?? null)
+const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? 'https://api.bayen.ma'
+const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
+
+const TABS = ['nonote', 'estimated', 'inci', 'photo'] as const
+type Tab = (typeof TABS)[number]
+interface Item {
+  barcode: string
+  name: string | null
+  brand: string | null
+  image: string | null
+  scans: number
+  type: 'food' | 'cosmetic'
+  estimated: boolean
+  missing: string[]
+}
+
+const asked = Astro.url.searchParams.get('tab') ?? ''
+const tab: Tab = (TABS as readonly string[]).includes(asked) ? (asked as Tab) : 'nonote'
+
+let counts: Record<Tab, number> = { nonote: 0, estimated: 0, inci: 0, photo: 0 }
+let items: Item[] = []
+try {
+  const res = await fetch(`${DIRECTUS_URL}/bayen-api/to-complete?tab=${tab}&limit=30`, { signal: AbortSignal.timeout(5000) })
+  if (res.ok) {
+    const data = await res.json()
+    counts = data.counts ?? counts
+    items = data.items ?? []
+  }
+} catch {
+  // pas de données — la page affiche l'état vide
+}
+
+const IMAGE_ICON = '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>'
+const thumb = (id: string) => (id.startsWith('http') ? id : `${CDN_URL}/${id}?width=200&height=200&fit=cover&quality=80&format=webp`)
+---
+
+<Layout title={t('seo.toComplete.title', locale)} description={t('seo.toComplete.desc', locale)} path="/a-completer" mobileTopbar={false}>
+  <PageHero tone="citron" mascot="loupe" kicker={t('toComplete.kicker', locale)} title={t('toComplete.title', locale)} subtitle={t('toComplete.subtitle', locale)}>
+    <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={IMAGE_ICON} />
+  </PageHero>
+
+  <main class="screen">
+    <section class="section">
+      <div class="todo-stats">
+        {TABS.map((k) => (
+          <a href={`/a-completer?tab=${k}`} class:list={['card stat', { on: k === tab }]}>
+            <b class="num">{counts[k]}</b><span>{t(`toComplete.stat.${k}` as TranslationKey, locale)}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <nav class="chips" aria-label={t('toComplete.tabsAria', locale)}>
+        {TABS.map((k) => (
+          <a href={`/a-completer?tab=${k}`} class="chip" aria-current={k === tab ? 'page' : undefined}>
+            {t(`toComplete.tab.${k}` as TranslationKey, locale)} · {counts[k]}
+          </a>
+        ))}
+      </nav>
+
+      {items.length === 0 ? (
+        <p class="muted">{t('toComplete.empty', locale)}</p>
+      ) : (
+        <div class="grid gap-3 md:grid-cols-2">
+          {items.map((p) => (
+            <article class="card pcard todo">
+              <div class:list={['tile', p.type === 'cosmetic' ? 'tint-framboise' : productTint(p.barcode)]}>
+                <svg class="ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={IMAGE_ICON} />
+                {p.image && <img src={thumb(p.image)} alt="" loading="lazy" />}
+              </div>
+              <div class="min-w-0">
+                <p class="pn" dir="auto">{p.name ?? t('toComplete.unnamed', locale)}</p>
+                <p class="pm">{p.brand && <><bdi>{p.brand}</bdi> · </>}{t('toComplete.searched', locale).replace('{n}', String(p.scans))}</p>
+                <div class="miss">
+                  {p.estimated && <span class="chip est">{t('toComplete.estimatedTag', locale)}</span>}
+                  {p.missing.map((m) => (
+                    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={IMAGE_ICON} />{t(`toComplete.miss.${m}` as TranslationKey, locale)}</span>
+                  ))}
+                </div>
+                <div class="mt-2 flex items-center justify-between gap-2">
+                  {/* Barème (bayen-api/src/points.ts) : photos manquantes +20, correction +15 */}
+                  <span class="pts" dir="ltr">+{p.estimated ? 15 : 20} pts</span>
+                  <a href={`/contribuer/${p.barcode}`} class:list={['btn sm', { primary: !p.estimated }]}>
+                    {t(p.estimated ? 'toComplete.verify' : 'toComplete.complete', locale)}
+                  </a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+
+    <section class="section">
+      <h2 class="disp d-m">{t('toComplete.howTitle', locale)}</h2>
+      <div class="steps">
+        <div class="card step"><i>1</i>{t('toComplete.step1', locale)}</div>
+        <div class="card step"><i>2</i>{t('toComplete.step2', locale)}</div>
+        <div class="card step"><i>3</i>{t('toComplete.step3', locale)}</div>
+      </div>
+      <div class="naanaa">
+        <div class="m"><img src="/mascotte/naanaa-loupe.webp" alt="" width="72" height="72" loading="lazy" /></div>
+        <p class="bubble">{t('toComplete.naanaa', locale)}</p>
+      </div>
+    </section>
+  </main>
+</Layout>
