@@ -17,6 +17,7 @@
  *   POST /bayen-api/upload-photo       → Upload d'une photo produit sans compte
  *   POST /bayen-api/partner-request    → Demande de partenariat (stockage + email)
  *   GET  /bayen-api/leaderboard        → Top contributeurs réels (public, cache 5 min)
+ *   GET  /bayen-api/to-complete        → Produits publiés à compléter, par file (public, cache 5 min)
  *   POST /bayen-api/confirm-product    → « Infos exactes » : 3 confirmations = fiche vérifiée
  *   GET  /bayen-api/partner-requests   → Demandes de partenariat (admin du site)
  *   POST /bayen-api/partner-request-status → Marquer une demande traitée / écartée
@@ -49,6 +50,7 @@ import { registerPartnerAdminEndpoints } from './partner-admin.js'
 import { registerCosmeticEndpoints } from './cosmetic.js'
 import { registerAuditNutritionEndpoint } from './audit-nutrition.js'
 import { registerOgEndpoint } from './og.js'
+import { registerToCompleteEndpoint } from './to-complete.js'
 
 export default (router: Router, context: Record<string, unknown>) => {
   registerScanEndpoint(router, context as unknown as Parameters<typeof registerScanEndpoint>[1])
@@ -74,4 +76,5 @@ export default (router: Router, context: Record<string, unknown>) => {
   registerCosmeticEndpoints(router, context as unknown as Parameters<typeof registerCosmeticEndpoints>[1])
   registerAuditNutritionEndpoint(router, context as unknown as Parameters<typeof registerAuditNutritionEndpoint>[1])
   registerOgEndpoint(router, context as unknown as Parameters<typeof registerOgEndpoint>[1])
+  registerToCompleteEndpoint(router, context as unknown as Parameters<typeof registerToCompleteEndpoint>[1])
 }

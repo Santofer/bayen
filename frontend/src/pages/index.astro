@@ -4,7 +4,7 @@
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
-import ProductCard, { ScoreSticker } from '@/components/ProductCard.tsx'
+import ProductCard, { ScoreSticker, productTint } from '@/components/ProductCard.tsx'
 import { getLocale, readingTime, t } from '@/lib/i18n'
 import type { Article, ArticleCategory, Product } from '@/lib/types'
 import { localCover } from '@/lib/blog-covers'
@@ -18,10 +18,12 @@ const CDN_URL = import.meta.env.PUBLIC_CDN_URL ?? 'https://api.bayen.ma/assets'
 
 let topProducts: Product[] = []
 let articles: Article[] = []
+// Accroche « On a besoin de toi » : produits cherchés encore sans note (endpoint to-complete)
+let toComplete: { count: number; items: Array<{ barcode: string; name: string | null; image: string | null }> } = { count: 0, items: [] }
 
 try {
   // Appels en parallèle pour réduire le TTFB
-  const [productsRes, articlesRes] = await Promise.all([
+  const [productsRes, articlesRes, todoRes] = await Promise.all([
     fetch(
       // Les mieux notés : univers alimentaire uniquement (les univers ne se mélangent
       // jamais), avec photo (rapatriée dans Directus par le backfill) et score calculé
@@ -32,9 +34,14 @@ try {
       `${DIRECTUS_URL}/items/articles?filter[status][_eq]=published&sort=-date_published&limit=3&fields=id,slug,title_fr,title_ar,cover_image,category,reading_time_min`,
       { signal: AbortSignal.timeout(4000) }
     ),
+    fetch(`${DIRECTUS_URL}/bayen-api/to-complete?tab=nonote&limit=3`, { signal: AbortSignal.timeout(4000) }).catch(() => null),
   ])
   if (productsRes.ok) topProducts = (await productsRes.json()).data ?? []
   if (articlesRes.ok) articles = (await articlesRes.json()).data ?? []
+  if (todoRes?.ok) {
+    const todo = await todoRes.json()
+    toComplete = { count: todo.counts?.nonote ?? 0, items: todo.items ?? [] }
+  }
 } catch {
   // Pas de données — la page s'affiche quand même (sections masquées)
 }
@@ -204,6 +211,28 @@ const appLd = {
         </div>
         <div class="hidden gap-[18px] md:grid md:grid-cols-2 lg:grid-cols-4">
           {topProducts.map((product) => <ProductCard product={product} variant="grid" locale={locale} />)}
+        </div>
+      </section>
+    )}
+
+    <!-- On a besoin de toi : fiches cherchées encore sans note (maquette ACompleter) -->
+    {toComplete.count > 0 && (
+      <section class="section">
+        <div class="sec-head"><h2 class="disp d-m md:text-[26px]">{t('toComplete.homeTitle', locale)}</h2><a href="/a-completer">{t('history.seeAll', locale)}</a></div>
+        <div class="card teaser md:max-w-2xl">
+          <p class="font-semibold">{t('toComplete.homeText', locale).replace('{n}', String(toComplete.count))}</p>
+          <div class="minis">
+            {toComplete.items.map((p) => (
+              <a class="mini" href={`/contribuer/${p.barcode}`}>
+                <div class:list={['tile', productTint(p.barcode)]}>
+                  {p.image && <img src={p.image.startsWith('http') ? p.image : `${CDN_URL}/${p.image}?width=160&height=160&fit=cover&quality=80&format=webp`} alt="" loading="lazy" />}
+                  <span class="q" aria-hidden="true">?</span>
+                </div>
+                <span dir="auto">{p.name ?? t('toComplete.unnamed', locale)}</span>
+              </a>
+            ))}
+          </div>
+          <a href="/a-completer" class="btn dark-btn">{t('toComplete.homeCta', locale)}</a>
         </div>
       </section>
     )}
