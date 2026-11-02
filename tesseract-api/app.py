@@ -1077,7 +1077,7 @@ def pipeline():
         vis.save(buf, format='JPEG', quality=88)
         image_b64 = base64.b64encode(buf.getvalue()).decode()
 
-        engine = 'qwen_vision'
+        engine = 'vision'
         parsed = call_ai_vision(
             NUTRITION_VISION_SYSTEM, NUTRITION_VISION_PROMPT, image_b64,
             timeout=120, max_tokens=2200,
@@ -1125,7 +1125,7 @@ def pipeline():
             })
 
         # Étiquette illisible selon la vision → même statut que le seuil Tesseract
-        if engine == 'qwen_vision' and parsed.get('lisibilite') == 'faible':
+        if engine == 'vision' and parsed.get('lisibilite') == 'faible':
             return jsonify({
                 'job_status': 'low_confidence',
                 'engine': engine,
