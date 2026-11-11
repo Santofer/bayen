@@ -33,6 +33,8 @@ interface IngredientsListProps {
   traces?: string[]
   ingredientsText?: string
   locale: Locale
+  /** Codes des additifs qui ont une fiche /additifs/ : seuls ceux-là sont liés */
+  knownAdditives?: string[]
 }
 
 /** Icône Lucide pour un type de trace/allergène */
@@ -68,7 +70,7 @@ function categoryIcon(category: string): React.ReactNode {
   }
 }
 
-export default function IngredientsList({ ingredients, traces, ingredientsText, locale }: IngredientsListProps) {
+export default function IngredientsList({ ingredients, traces, ingredientsText, locale, knownAdditives = [] }: IngredientsListProps) {
   const tt = (key: string) => translate(key as Parameters<typeof translate>[0], locale)
   const hasStructured = ingredients && ingredients.length > 0
 
@@ -104,7 +106,8 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
       {hasStructured ? (
         <div className="space-y-0.5">
           {sorted.map((ing, i) => {
-            const isAdditive = /^E\d{3}/i.test(ing.name_fr)
+            const code = ing.name_fr.match(/E\d{3,4}[a-z]?/i)?.[0].toUpperCase()
+            const isAdditive = /^E\d{3}/i.test(ing.name_fr) && code !== undefined && knownAdditives.includes(code)
             const rawName = locale === 'ary' && ing.name_ar ? ing.name_ar : ing.name_fr
             // Première lettre en majuscule
             const name = rawName.charAt(0).toUpperCase() + rawName.slice(1)
@@ -123,7 +126,7 @@ export default function IngredientsList({ ingredients, traces, ingredientsText, 
                 {/* Nom */}
                 <span className={cn('flex-1 min-w-0', ing.is_allergen && 'font-semibold text-score-mauvais-ink')}>
                   {isAdditive ? (
-                    <a href={`/additifs/${ing.name_fr.match(/E\d{3,4}[a-z]?/i)?.[0]}`} className="underline decoration-dotted hover:decoration-solid hover:text-brand-ink">
+                    <a href={`/additifs/${code}`} className="underline decoration-dotted hover:decoration-solid hover:text-brand-ink">
                       {name}
                     </a>
                   ) : (
