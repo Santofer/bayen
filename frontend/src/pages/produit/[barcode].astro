@@ -558,6 +558,8 @@ const additiveRows = isCosmetic ? [] : [...((score?.additives_detail as Additive
     const info = additiveInfo.get(a.code)
     return {
       ...a,
+      // Additif absent de la base : pas de fiche /additifs/, donc pas de lien (sinon 404)
+      known: Boolean(info),
       name: (locale === 'ary' && info?.name_ar) || info?.name_fr || null,
       fn: (locale === 'ary' && info?.function_ar) || info?.function || null,
     }
@@ -1094,7 +1096,7 @@ const showPrices = (prices?.count ?? 0) >= PRICE_MIN_REPORTS
                   {additiveRows.map((a) => (
                     <>
                       <div class="min-w-0">
-                        <a href={`/additifs/${a.code}`} class="font-bold hover:underline">{a.code}</a>{a.name && <> · {a.name}</>}
+                        {a.known ? <a href={`/additifs/${a.code}`} class="font-bold hover:underline">{a.code}</a> : <span class="font-bold">{a.code}</span>}{a.name && <> · {a.name}</>}
                         {a.fn && <p class="muted text-[12.5px] first-letter:uppercase">{a.fn}</p>}
                       </div>
                       <span class="chip fill" style={`background: ${RISK_FILL[a.risk_level]}`}>{t(RISK_LABEL_KEYS[a.risk_level], locale)}</span>
@@ -1229,6 +1231,7 @@ const showPrices = (prices?.count ?? 0) >= PRICE_MIN_REPORTS
                 traces={Array.isArray(product.traces) ? product.traces as string[] : []}
                 ingredientsText={product.ingredients_text as string ?? ''}
                 locale={locale}
+                knownAdditives={[...additiveInfo.keys()]}
                 client:load
               />
             )}
