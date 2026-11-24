@@ -37,3 +37,10 @@ Projet commun des agences [N0](https://n0.ma) et [Netspace](https://netspace.ma)
 
 Instagram [@bayenma](https://www.instagram.com/bayenma) · [Facebook](https://www.facebook.com/bayen.ma) ·
 [LinkedIn](https://www.linkedin.com/company/bayen-ma)
+
+## Licence
+
+Le code de Bayen est open source, sous licence [GNU AGPL v3](LICENSE) : chacun peut le lire, le modifier et le
+réutiliser, à condition de publier sous la même licence le code de toute version modifiée, y compris quand elle
+tourne comme un site web. Les données produits ne sont pas couvertes par cette licence : celles issues d'Open Food
+Facts et d'Open Beauty Facts restent sous licence ODbL.
