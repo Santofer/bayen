@@ -5,7 +5,7 @@ le produit, NOVA 1 contredit. Règles 100 % déterministes — aucune IA, rien n
 deviné : une valeur fausse est remplacée par celle d'Open Food Facts quand OFF en a
 une, sinon effacée (fiche incomplète plutôt que fausse).
 
-  1. marque « null » / « none » / « undefined » / vide       → NULL
+  1. marque « null » / « none » / « undefined »               → vide (le champ est obligatoire dans Directus)
   2. ingrédients poubelle (« Produit non identifié », « Prix », « jjhh »,
      tableau nutritionnel, chiffres…) ou incohérents (lait sur un produit non
      laitier, « Eau » seule sur un produit qui n'est pas une eau)
@@ -14,8 +14,8 @@ une, sinon effacée (fiche incomplète plutôt que fausse).
                                                                 (link-ingredients les recrée à 06:30)
   3. boisson chocolatée en poudre rangée dans « Boissons sucrées » (5)
                                                               → « Céréales & petit-déjeuner » (2)
-  4. NOVA 1 avec additifs, sur un ultra-transformé évident, ou dont les
-     ingrédients viennent d'être effacés                      → NOVA d'OFF, sinon NULL
+  4. NOVA 1 avec additifs, sucre ajouté, sur un ultra-transformé évident, ou dont
+     les ingrédients viennent d'être effacés                      → NOVA d'OFF, sinon NULL
 
 Le score stocké est ensuite recalculé par POST /bayen-api/food-score {"all":true,"apply":true}.
 
@@ -52,7 +52,7 @@ JUNK = [
 ]
 # Tableau nutritionnel recopié à la place des ingrédients : chaque élément est un nutriment
 NUTRIENTS = {
-    "proteines", "proteine", "glucides", "lipides", "sucres", "sel", "fibres", "fibres alimentaires", "calcium",
+    "proteines", "proteine", "glucides", "lipides", "sucres", "sucre", "graisses", "matiere grasse", "sel", "fibres", "fibres alimentaires", "calcium",
     "phosphore", "energie", "acides gras satures", "acides gras", "acides gras monoinsatures",
     "acides gras polyinsatures", "matieres grasses", "dont sucres", "sodium", "fer", "magnesium", "potassium",
 }
@@ -132,8 +132,8 @@ def bad_ingredients(p):
 def plan(p):
     """Corrections à apporter à une fiche (dict vide si elle est juste)."""
     patch = {}
-    if p.get("brand") is not None and p["brand"].strip().lower() in NULL_BRANDS:
-        patch["brand"] = None
+    if p.get("brand") and p["brand"].strip().lower() in NULL_BRANDS:
+        patch["brand"] = ""
     reason = bad_ingredients(p)
     off = None
     if reason:
@@ -145,7 +145,9 @@ def plan(p):
         patch["category_id"] = 2
     # L'eau est NOVA 1 même avec ses minéraux listés en « additifs »
     water = p.get("category_id") == 6 and WATER.search(name)
-    if p.get("nova_group") == 1 and not water and (p.get("additives") or ULTRA.search(name) or reason):
+    # NOVA 1 = aliment brut ou peu transformé : jamais de sucre ni de sirop ajouté
+    sugar = re.search(r"\bsucre\b|sirop|glucose|dextrose|saccharose", norm(p.get("ingredients_text")))
+    if p.get("nova_group") == 1 and not water and (p.get("additives") or ULTRA.search(name) or reason or sugar):
         off = off if off is not None else off_product(p["barcode"])
         nova = (off or {}).get("nova_group")
         patch["nova_group"] = nova if nova in (2, 3, 4) else None
