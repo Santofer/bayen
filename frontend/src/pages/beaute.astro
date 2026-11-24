@@ -156,7 +156,7 @@ const jsonLd = {
         <div class="card grid gap-3.5 p-3.5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-x-8 md:p-6">
           <div class="grid grid-cols-[92px_minmax(0,1fr)_auto] items-center gap-3">
             <a href={`/produit/${featured.barcode}`} class="tile tint-framboise size-[92px]" aria-label={featured.name_fr}>
-              {featured.image_front && <img src={thumb(featured.image_front)} alt="" loading="lazy" />}
+              {featured.image_front && <img src={thumb(featured.image_front)} alt="" decoding="async" />}
             </a>
             <div class="min-w-0">
               {featured.cosmetic_category && catLabels[featured.cosmetic_category] && <p class="eyebrow">{catLabels[featured.cosmetic_category]}</p>}

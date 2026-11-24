@@ -70,7 +70,7 @@ export default function ProductAlternatives({ alternatives, isBestInCategory, cl
                   <img
                     src={alt.image_front.startsWith('http') ? alt.image_front : `${CDN_URL}/${alt.image_front}?width=320&height=320&fit=cover&quality=80&format=webp`}
                     alt={alt.name_fr}
-                    loading="lazy"
+                    decoding="async"
                   />
                 )}
               </div>

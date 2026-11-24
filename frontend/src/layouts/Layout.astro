@@ -7,7 +7,6 @@ import LocaleToggle from '@/components/LocaleToggle'
 import ThemeToggle from '@/components/ThemeToggle'
 import Logo from '@/components/Logo.astro'
 import CartNavButton from '@/components/CartNavButton'
-import InstallPrompt from '@/components/InstallPrompt'
 import SiteMenu from '@/components/SiteMenu.astro'
 import { getLocale, t } from '@/lib/i18n'
 
@@ -220,7 +219,6 @@ const SCAN_ICON = '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v
 
     <!-- PWA : install prompt + service worker (jamais en dev — il servirait
          du stale pendant les compilations lentes et masquerait les changements) -->
-    <InstallPrompt client:idle />
     <script is:inline>
       if ('serviceWorker' in navigator) {
         if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {

@@ -84,6 +84,11 @@ export function registerSearchEndpoint(router: Router, context: EndpointContext)
         }
       }
 
+      // Classement « les mieux notés » (alimentation) : jamais une fiche incomplète en tête
+      if (type === 'food' && req.query.sort === '-scan_score') {
+        where.push(`brand IS NOT NULL AND brand NOT IN ('', 'null') AND nova_group IS NOT NULL AND COALESCE(ingredients_text, '') <> ''`)
+      }
+
       if (q) {
         where.push('(name_fr ILIKE ? OR brand ILIKE ? OR barcode = ?)')
         bind.push(`%${q}%`, `%${q}%`, q)

@@ -424,7 +424,7 @@ if (!isCosmetic && scanResult.source === 'directus' && product?.category_id && s
     // TOUS les produits mieux notés du rayon (pas les 16 premiers) : le filtre lexical
     // ci-dessous s'applique AVANT la limite à 3, sinon il écartait presque tout
     const altRes = await fetch(
-      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[product_type][_eq]=food&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score,barcode&limit=-1&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,sugars,salt,fat_saturated,nova_group,additives`,
+      `${DIRECTUS_URL}/items/products?filter[category_id][_eq]=${categoryId}&filter[product_type][_eq]=food&filter[scan_score][_gt]=${score.total}&filter[barcode][_neq]=${barcode}&filter[status][_eq]=published&sort=-scan_score,barcode&limit=-1&fields=barcode,name_fr,brand,quantity,image_front,scan_score,score_label,nutriscore_grade,sugars,salt,fat_saturated,nova_group,additives,energy_kcal`,
       { signal: AbortSignal.timeout(3000) }
     )
     if (altRes.ok) {
@@ -436,7 +436,9 @@ if (!isCosmetic && scanResult.source === 'directus' && product?.category_id && s
       // comme alternative à une confiture. On exige donc un mot significatif
       // commun entre les noms — et s'il n'y en a aucun, on ne propose RIEN
       // plutôt que du hors-sujet.
-      const STOP = new Set(['avec', 'sans', 'pour', 'les', 'des', 'aux', 'extra', 'nature', 'the'])
+      // Mots génériques de marketing exclus : « taste » rapprochait Coca-Cola de Nesquik
+      const STOP = new Set(['avec', 'sans', 'pour', 'les', 'des', 'aux', 'extra', 'nature', 'the',
+        'taste', 'gout', 'saveur', 'original', 'originale', 'classic', 'classique', 'flavor', 'flavour'])
       const tokens = (n: unknown): Set<string> =>
         new Set(
           String(n ?? '')
@@ -446,7 +448,18 @@ if (!isCosmetic && scanResult.source === 'directus' && product?.category_id && s
             .filter((w) => w.length >= 4 && !STOP.has(w))
         )
       const own = tokens(product.name_fr)
+      // Même forme de produit : un liquide (ml, cl, L) n'a pour alternative qu'un liquide,
+      // un produit pesé (g, kg) qu'un produit pesé — Cola Cao en poudre n'est pas un soda
+      const form = (q: unknown): 'liquide' | 'solide' | null => {
+        const m = String(q ?? '').toLowerCase().match(/\d\s*(ml|cl|l|g|kg)\b/)
+        return m ? (['ml', 'cl', 'l'].includes(m[1]) ? 'liquide' : 'solide') : null
+      }
+      const ownForm = form(product.quantity)
       const similar = candidates.filter((c) => {
+        const cf = form(c.quantity)
+        if (ownForm && cf && cf !== ownForm) return false
+        // Rayons boissons : au-delà de 120 kcal/100 g, c'est une poudre ou un sirop, pas une boisson prête à boire
+        if ((categoryId === 5 || categoryId === 6) && Number(product.energy_kcal) <= 120 && Number(c.energy_kcal) > 120) return false
         const ct = tokens(c.name_fr)
         for (const w of own) if (ct.has(w)) return true
         return false
