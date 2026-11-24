@@ -132,7 +132,7 @@ export default function Cart() {
             return (
               <li key={item.barcode} className="card pcard grid-cols-[76px_minmax(0,1fr)_auto_auto]">
                 <div className={cn('tile', productTint(item.barcode))}>
-                  {src && <img src={src} alt={item.name_fr} loading="lazy" />}
+                  {src && <img src={src} alt={item.name_fr} decoding="async" />}
                 </div>
                 <a href={`/produit/${item.barcode}`} className="min-w-0 hover:underline">
                   <p className="pn">{item.name_fr}</p>

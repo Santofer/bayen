@@ -167,7 +167,7 @@ const jsonLd = {
           {rows.map((p, i) => (
             <a href={`/produit/${p.barcode}`} class="card grid grid-cols-[76px_minmax(0,1fr)_auto_auto] items-center gap-3 py-2.5 ps-2.5 pe-3">
               <div class:list={['tile size-[76px]', productTint(p.barcode)]}>
-                {p.image_front && <img src={thumb(p.image_front)} alt={p.name_fr} loading="lazy" />}
+                {p.image_front && <img src={thumb(p.image_front)} alt={p.name_fr} decoding="async" />}
               </div>
               <div class="min-w-0">
                 <p class="line-clamp-2 font-bold leading-tight">{p.name_fr}</p>

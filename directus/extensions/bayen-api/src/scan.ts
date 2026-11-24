@@ -339,6 +339,8 @@ export async function scoreProduct(
     novaGroup: product.nova_group as 1 | 2 | 3 | 4 | null ?? null,
     ingredientsText: product.ingredients_text,
     additives: additiveRisks,
+    // Barème boissons du Nutri-Score (catégories 5 et 6), comme sur la fiche
+    categoryId: product.category_id ?? null,
   })
 }
 

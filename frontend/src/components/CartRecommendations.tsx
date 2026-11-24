@@ -73,7 +73,7 @@ export default function CartRecommendations({ items }: { items: CartItem[] }) {
               <a href={`/produit/${r.barcode}`} className="grid gap-2.5">
                 <div className="relative">
                   <div className={cn('tile aspect-square', productTint(r.barcode))}>
-                    {src && <img src={src} alt={r.name_fr} loading="lazy" />}
+                    {src && <img src={src} alt={r.name_fr} decoding="async" />}
                   </div>
                   {r.scan_score != null && (
                     <span className="absolute -bottom-2 end-0">

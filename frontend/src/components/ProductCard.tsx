@@ -186,7 +186,7 @@ export default function ProductCard({ product, className, variant = 'row', badge
       <a href={`/produit/${product.barcode}`} className={cn('card relative grid content-start gap-3 p-3.5', className)}>
         <div className={cn('tile aspect-square', tint)}>
           {PHOTO_PH}
-          {imgSrc && <img src={imgSrc} alt={product.name_fr} loading="lazy" />}
+          {imgSrc && <img src={imgSrc} alt={product.name_fr} decoding="async" />}
         </div>
         <div className="relative min-w-0 pe-16">
           {product.scan_score != null && (
@@ -210,7 +210,7 @@ export default function ProductCard({ product, className, variant = 'row', badge
     <a href={`/produit/${product.barcode}`} className={cn('card pcard', className)}>
       <div className={cn('tile', tint)}>
         {PHOTO_PH}
-        {imgSrc && <img src={imgSrc} alt={product.name_fr} loading="lazy" />}
+        {imgSrc && <img src={imgSrc} alt={product.name_fr} decoding="async" />}
       </div>
       <div className="min-w-0">
         <p className="pn">{product.name_fr}</p>

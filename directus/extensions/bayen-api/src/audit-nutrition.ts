@@ -140,4 +140,36 @@ export function registerAuditNutritionEndpoint(router: Router, context: { databa
       res.status(500).json({ error: 'server_error', message: (err as Error).message })
     }
   })
+
+  // Recalcul admin du score alimentaire stocké (listes, recherche, classements) avec
+  // l'algorithme de la fiche : la note d'une liste est toujours celle de la fiche.
+  // Body : { barcode?: string, all?: boolean, apply?: boolean (défaut false = rapport seul) }
+  router.post('/food-score', async (req, res) => {
+    try {
+      if (!isAdmin(req)) { res.status(403).json({ error: 'admin_only' }); return }
+      const { barcode, all, apply } = (req.body ?? {}) as { barcode?: string; all?: boolean; apply?: boolean }
+      const knex = context.database as KnexRaw
+      const rows = barcode
+        ? (await knex.raw(`SELECT * FROM products WHERE barcode = ? AND product_type = 'food'`, [barcode])).rows
+        : all
+          ? (await knex.raw(`SELECT * FROM products WHERE product_type = 'food' AND status = 'published'`)).rows
+          : []
+      const changed: Array<{ barcode: unknown; name: unknown; before: unknown; after: number | null; grade: string | null }> = []
+      for (const r of rows) {
+        const p = r as Parameters<typeof scoreProduct>[0]
+        if (typeof p.additives === 'string') p.additives = JSON.parse(p.additives) as string[]
+        const score = await scoreProduct(p, context.database as Record<string, (...args: unknown[]) => unknown>)
+        const grade = score.nutriscore_grade ?? null
+        if (score.total === r.scan_score && score.label === r.score_label && grade === r.nutriscore_grade) continue
+        changed.push({ barcode: r.barcode, name: r.name_fr, before: r.scan_score, after: score.total, grade })
+        if (apply) {
+          await knex.raw(`UPDATE products SET scan_score = ?, score_label = ?, nutriscore_grade = ? WHERE id = ?`,
+            [score.total, score.label, grade, r.id])
+        }
+      }
+      res.json({ apply: apply === true, checked: rows.length, changed: changed.length, examples: changed.slice(0, 50) })
+    } catch (err) {
+      res.status(500).json({ error: 'server_error', message: (err as Error).message })
+    }
+  })
 }

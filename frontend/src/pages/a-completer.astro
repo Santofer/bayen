@@ -78,7 +78,7 @@ const thumb = (id: string) => (id.startsWith('http') ? id : `${CDN_URL}/${id}?wi
             <article class="card pcard todo">
               <div class:list={['tile', p.type === 'cosmetic' ? 'tint-framboise' : productTint(p.barcode)]}>
                 <svg class="ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={IMAGE_ICON} />
-                {p.image && <img src={thumb(p.image)} alt="" loading="lazy" />}
+                {p.image && <img src={thumb(p.image)} alt="" decoding="async" />}
               </div>
               <div class="min-w-0">
                 <p class="pn" dir="auto">{p.name ?? t('toComplete.unnamed', locale)}</p>
