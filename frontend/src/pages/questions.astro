@@ -1,7 +1,7 @@
 ---
-// Page « Questions fréquentes » : un bloc « Bayen en bref » qui répond d'abord, puis les questions qu'on
-// nous pose. Textes courts et autonomes, citables tels quels par les moteurs et les assistants IA ;
-// le balisage FAQPage reprend exactement les textes affichés.
+// Page « Questions fréquentes » : trois repères chiffrés, un bloc « Bayen en bref » qui répond d'abord, puis les
+// questions rangées par thème en accordéons. Textes courts et autonomes, citables tels quels par les moteurs et les
+// assistants IA : les réponses fermées restent dans le HTML, et le balisage FAQPage reprend exactement les textes.
 export const prerender = false
 
 import Layout from '@/layouts/Layout.astro'
@@ -15,7 +15,20 @@ const SITE_URL = 'https://bayen.ma'
 const UPDATED = '2026-10-31'
 const updatedLabel = t('faq.updated', locale).replace('{date}', new Date(UPDATED).toLocaleDateString(locale === 'ary' ? 'ar-MA' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }))
 
-const FAQ = Array.from({ length: 13 }, (_, i) => ({ q: t(`faq${i + 1}q` as 'faq1q', locale), a: t(`faq${i + 1}a` as 'faq1a', locale) }))
+// Thèmes : numéros des clés faq<n>q / faq<n>a ; couleur de la pastille (aplat vif, chiffre à l'encre)
+const GROUPS = [
+  { id: 'commencer', title: t('faq.g1', locale), bg: 'bg-menthe', keys: [1, 2, 9, 10] },
+  { id: 'score', title: t('faq.g2', locale), bg: 'bg-citron', keys: [3, 5, 11] },
+  { id: 'produits', title: t('faq.g3', locale), bg: 'bg-figue', keys: [6, 7, 4, 8] },
+  { id: 'bayen', title: t('faq.g4', locale), bg: 'bg-myrtille', keys: [12, 13] },
+]
+// Typographie française : espace insécable avant ? ! : ; (le « ? » ne passe jamais seul à la ligne)
+const fine = (txt: string) => (locale === 'fr' ? txt.replace(/ ([?!:;])/g, '\u00a0$1') : txt)
+let n = 0 // numérotation continue dans l'ordre d'affichage
+const groups = GROUPS.map((g) => ({
+  ...g,
+  items: g.keys.map((k) => ({ n: ++n, q: fine(t(`faq${k}q` as 'faq1q', locale)), a: fine(t(`faq${k}a` as 'faq1a', locale)) })),
+}))
 
 const jsonLd = [
   {
@@ -26,7 +39,7 @@ const jsonLd = [
     isPartOf: { '@id': `${SITE_URL}/#website` },
     about: { '@id': `${SITE_URL}/#organization` },
     dateModified: UPDATED,
-    mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    mainEntity: groups.flatMap((g) => g.items).map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
   },
   {
     '@context': 'https://schema.org',
@@ -46,27 +59,67 @@ const jsonLd = [
   jsonLd={jsonLd}
   mobileTopbar={false}
 >
-  <PageHero tone="citron" mascot="astuce" kicker={t('faq.kicker', locale)} title={t('faq.heroTitle', locale)} subtitle={t('faq.heroDesc', locale)}>
+  <PageHero tone="citron" kicker={t('faq.kicker', locale)} title={t('faq.heroTitle', locale)} subtitle={t('faq.heroDesc', locale)}>
     <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5h.01"/></svg>
   </PageHero>
 
   <main class="screen pt-5 md:pt-10">
-    <!-- Réponse d'abord : ce qu'est Bayen, en un paragraphe autonome -->
-    <section class="section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12">
-      <h2 class="disp d-m md:text-[26px]">{t('faq.introTitle', locale)}</h2>
-      <p class="card max-w-[68ch] p-4 text-[15px] leading-relaxed md:p-5">{t('faq.intro', locale)}</p>
+    <!-- Réponse d'abord : trois repères chiffrés (base Bayen) et ce qu'est Bayen, en un paragraphe autonome.
+         Téléphone : repères au-dessus du texte ; ordinateur : texte à gauche, repères empilés à droite. -->
+    <section class="section md:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)] md:items-stretch md:gap-x-[18px]">
+      <div class="grid grid-cols-3 gap-2.5 md:order-2 md:grid-cols-1 md:gap-[14px]">
+        <div class="stat-v2"><div class="n num"><bdi dir="ltr">100</bdi></div><div class="l">{t('faq.stat1', locale)}</div></div>
+        <div class="stat-v2"><div class="n num"><bdi dir="ltr">3 300+</bdi></div><div class="l">{t('faq.stat2', locale)}</div></div>
+        <div class="stat-v2"><div class="n num"><bdi>{t('faq.stat3n', locale)}</bdi></div><div class="l">{t('faq.stat3', locale)}</div></div>
+      </div>
+      <div class="card grid content-start gap-2 p-5 md:p-7">
+        <p class="eyebrow">{t('faq.introTitle', locale)}</p>
+        <p class="text-[15px] leading-relaxed md:text-[16.5px]">{fine(t('faq.intro', locale))}</p>
+      </div>
     </section>
 
-    <!-- Questions : contenu visible du balisage FAQPage (réponses ouvertes, lisibles sans clic) -->
-    <section class="section md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] md:items-start md:gap-x-12">
-      <h2 class="disp d-m md:text-[26px]">{t('faq.listTitle', locale)}</h2>
-      <div class="grid max-w-[68ch] gap-3">
-        {FAQ.map((f) => (
-          <details class="card p-4 md:p-5" open>
-            <summary class="disp d-s cursor-pointer">{f.q}</summary>
-            <p class="mt-2 text-[14.5px] leading-relaxed">{f.a}</p>
-          </details>
+    <!-- Sommaire des thèmes -->
+    <nav class="section" aria-label={t('faq.listTitle', locale)}>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="eyebrow me-1">{t('faq.jump', locale)}</span>
+        {groups.map((g) => (
+          <a href={`#${g.id}`} class="chip h-8 gap-2 px-3 text-[13px]">
+            <span class={`size-2.5 rounded-full border border-encre ${g.bg}`} aria-hidden="true" />
+            {g.title}
+          </a>
         ))}
+      </div>
+    </nav>
+
+    <!-- Questions par thème : accordéons (le premier est ouvert pour montrer le principe) -->
+    {groups.map((g, gi) => (
+      <section id={g.id} class="section scroll-mt-24 md:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)] md:items-start md:gap-x-12">
+        <h2 class="disp d-m flex items-center gap-3 md:sticky md:top-24 md:text-[26px]">
+          <span class={`size-4 shrink-0 rounded-full border-2 border-encre ${g.bg}`} aria-hidden="true" />
+          {g.title}
+        </h2>
+        <div class="grid gap-3">
+          {g.items.map((f, i) => (
+            <details class="group card overflow-hidden" open={gi === 0 && i === 0}>
+              <summary class="flex cursor-pointer list-none items-center gap-3 p-3.5 md:gap-4 md:p-4 [&::-webkit-details-marker]:hidden">
+                <span class={`num grid size-9 shrink-0 place-items-center rounded-full border-2 border-encre font-display text-[13px] font-extrabold text-encre ${g.bg}`}>{f.n}</span>
+                <span class="min-w-0 flex-1 text-[15px] font-bold leading-snug md:text-[16.5px]">{f.q}</span>
+                <span class="grid size-8 shrink-0 place-items-center rounded-full border-2 border-line bg-card shadow-[2px_2px_0_var(--color-hard)] transition-transform duration-200 group-open:rotate-45" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                </span>
+              </summary>
+              <p class="border-t-2 border-line px-4 pb-4 pt-3 text-[14.5px] leading-relaxed md:ps-[68px] md:pe-6 md:text-[15px]">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <!-- Une autre question : Naânaa renvoie vers le contact, la méthode et l'équipe -->
+    <section class="section">
+      <div class="naanaa max-w-[560px]">
+        <img src="/mascotte/naanaa-astuce.webp" alt="" width="72" height="72" loading="lazy" />
+        <p class="bubble">{t('faq.more', locale)}<a href="mailto:contact@n0.ma" class="font-bold underline underline-offset-2">contact@n0.ma</a></p>
       </div>
     </section>
 
