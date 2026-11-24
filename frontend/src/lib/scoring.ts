@@ -29,6 +29,8 @@ export interface NutritionData {
   fruits_vegetables_nuts_points?: number | null
   /** Indique si le produit est une boisson (barèmes NutriScore différents) */
   is_beverage?: boolean
+  /** Boisson avec colorant ou édulcorant : jamais assimilée à de l'eau */
+  has_additives?: boolean
 }
 
 export interface AdditiveResult {
@@ -187,6 +189,8 @@ export function computeNutriScore(
 
 /** Détecte si les valeurs nutritionnelles correspondent à de l'eau (tout ~0) */
 function isWater(nutrition: NutritionData): boolean {
+  // Nutri-Score : seule l'eau est A — un soda « zéro » (0 kcal, édulcorants) n'en est pas
+  if (nutrition.has_additives) return false
   const e = nutrition.energy_kcal ?? 0
   const s = nutrition.sugars ?? 0
   const f = nutrition.fat_saturated ?? 0
@@ -347,6 +351,8 @@ export function computeScore(params: {
   const beverageCategoryIds = [5, 6]
   if (params.categoryId != null && beverageCategoryIds.includes(params.categoryId)) {
     nutrition.is_beverage = true
+    // Colorants (E1xx) et édulcorants (E95x-E96x) : les minéraux mal lus d'une eau n'y comptent pas
+    nutrition.has_additives = (params.additives ?? []).some((a) => /^E(1\d\d|9[56]\d)/i.test(a.code))
   }
 
   const nutriResult = computeNutriScore(nutrition)

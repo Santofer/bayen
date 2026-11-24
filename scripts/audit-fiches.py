@@ -44,6 +44,11 @@ NULL_BRANDS = {"null", "none", "undefined", "nan", ""}
 JUNK = [
     r"^produit\b", r"^prix\b", r"^halal\b", r"^حلال$", r"^[\d\s,.]+$",
     r"^(informaci[oó]n nutricional|information nutritionnelle|valeurs? nutritionnelles?)\b",
+    r"valeurs? nut", r"\benergia\s*,", r"\bgrassi\b", r"القيمة الغذائ",
+    r"(\d+[,.]?\d*\s*(g|mg|kj|kcal)\b.*){3}",                      # au moins 3 valeurs chiffrées : un tableau
+    r"\bfat\b.*\b(sodium|fib(er|re)|protein|carbohydrate)\b",          # tableau en anglais
+    r"\d{3}[\s.]\d{2,}[\s.]\d{2,}",                               # numéro de téléphone
+    r"^(sin|sem|sans)(/\w+)? gluten\b",
 ]
 # Tableau nutritionnel recopié à la place des ingrédients : chaque élément est un nutriment
 NUTRIENTS = {
@@ -83,15 +88,25 @@ def api(method, path, body=None):
         return json.loads(raw) if raw else None
 
 
+class OffUnavailable(Exception):
+    """OFF n'a pas répondu : on ne touche pas à la fiche (rien n'est effacé faute de réponse)."""
+
+
 def off_product(barcode):
-    try:
-        req = urllib.request.Request(f"{OFF}/{barcode}.json?fields=ingredients_text_fr,nova_group", headers={"User-Agent": UA})
-        with urllib.request.urlopen(req, timeout=10) as r:
-            d = json.load(r)
-        time.sleep(0.7)  # OFF : rester poli
-        return d.get("product") if d.get("status") == 1 else None
-    except (urllib.error.URLError, TimeoutError, ValueError):
-        return None
+    for attempt in range(4):
+        try:
+            req = urllib.request.Request(f"{OFF}/{barcode}.json?fields=ingredients_text_fr,nova_group", headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                d = json.load(r)
+            time.sleep(1.5)  # OFF : rester poli
+            return d.get("product") if d.get("status") == 1 else None
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None
+        except (urllib.error.URLError, TimeoutError, ValueError):
+            pass
+        time.sleep(5 * (attempt + 1))
+    raise OffUnavailable(barcode)
 
 
 def bad_ingredients(p):
@@ -100,7 +115,7 @@ def bad_ingredients(p):
     if not it:
         return None
     n = norm(it)
-    if any(re.search(rx, it.lower()) for rx in JUNK) or not re.search(r"[aeiouy]", n) and not re.search(r"[؀-ۿ]", it):
+    if any(re.search(rx, it.lower(), re.S) for rx in JUNK) or not re.search(r"[aeiouy]", n) and not re.search(r"[؀-ۿ]", it):
         return "pas des ingrédients"
     items = [i.strip(" .") for i in re.split(r"[,;]", n) if i.strip(" .")]
     if len(items) >= 2 and all(i in NUTRIENTS for i in items):
@@ -114,35 +129,45 @@ def bad_ingredients(p):
     return None
 
 
+def plan(p):
+    """Corrections à apporter à une fiche (dict vide si elle est juste)."""
+    patch = {}
+    if p.get("brand") is not None and p["brand"].strip().lower() in NULL_BRANDS:
+        patch["brand"] = None
+    reason = bad_ingredients(p)
+    off = None
+    if reason:
+        off = off_product(p["barcode"])
+        fr = (off or {}).get("ingredients_text_fr") or None
+        patch["ingredients_text"] = fr.strip() if fr and not bad_ingredients({**p, "ingredients_text": fr}) else None
+    name = norm(p.get("name_fr")) + " " + norm(p.get("brand"))
+    if p.get("category_id") == 5 and COCOA_POWDER.search(name) and not re.search(r"\d\s*(ml|cl|l)\b", norm(p.get("quantity"))):
+        patch["category_id"] = 2
+    # L'eau est NOVA 1 même avec ses minéraux listés en « additifs »
+    water = p.get("category_id") == 6 and WATER.search(name)
+    if p.get("nova_group") == 1 and not water and (p.get("additives") or ULTRA.search(name) or reason):
+        off = off if off is not None else off_product(p["barcode"])
+        nova = (off or {}).get("nova_group")
+        patch["nova_group"] = nova if nova in (2, 3, 4) else None
+    return patch, reason
+
+
 def main():
     if not TOKEN:
         sys.exit("DTOKEN manquant")
     fields = "id,barcode,name_fr,brand,quantity,category_id,ingredients_text,additives,nova_group,scan_count"
     rows = api("GET", f"/items/products?filter[status][_eq]=published&filter[product_type][_eq]=food&limit=-1&fields={fields}")["data"]
-    report = {"brand": 0, "ingredients": 0, "nova": 0, "category": 0}
+    report = {"brand": 0, "ingredients": 0, "nova": 0, "category": 0, "off_unavailable": 0}
     for p in sorted(rows, key=lambda r: -(r.get("scan_count") or 0)):
-        patch = {}
-        if p.get("brand") is not None and p["brand"].strip().lower() in NULL_BRANDS:
-            patch["brand"] = None
-        reason = bad_ingredients(p)
-        off = None
-        if reason:
-            off = off_product(p["barcode"])
-            fr = (off or {}).get("ingredients_text_fr") or None
-            patch["ingredients_text"] = fr.strip() if fr and not bad_ingredients({**p, "ingredients_text": fr}) else None
-        name = norm(p.get("name_fr")) + " " + norm(p.get("brand"))
-        if p.get("category_id") == 5 and COCOA_POWDER.search(name) and not re.search(r"\d\s*(ml|cl|l)\b", norm(p.get("quantity"))):
-            patch["category_id"] = 2
-        if p.get("nova_group") == 1 and (p.get("additives") or ULTRA.search(name) or reason):
-            off = off if off is not None else off_product(p["barcode"])
-            nova = (off or {}).get("nova_group")
-            patch["nova_group"] = nova if nova in (1, 2, 3, 4) and nova != 1 else None
+        try:
+            patch, reason = plan(p)
+        except OffUnavailable:
+            report["off_unavailable"] += 1  # fiche laissée telle quelle, repassera au prochain passage
+            continue
         if not patch:
             continue
-        report["brand"] += "brand" in patch
-        report["ingredients"] += "ingredients_text" in patch
-        report["nova"] += "nova_group" in patch
-        report["category"] += "category_id" in patch
+        for key, field in (("brand", "brand"), ("ingredients", "ingredients_text"), ("nova", "nova_group"), ("category", "category_id")):
+            report[key] += field in patch
         print(json.dumps({"barcode": p["barcode"], "name": p["name_fr"], "why": reason,
                           "before": {k: p.get(k) for k in patch}, "after": patch}, ensure_ascii=False))
         if APPLY:
@@ -150,7 +175,7 @@ def main():
             if "ingredients_text" in patch:
                 links = api("GET", f"/items/products_ingredients?filter[products_id][_eq]={p['id']}&fields=id&limit=-1")["data"]
                 if links:
-                    api("DELETE", "/items/products_ingredients", [l["id"] for l in links])
+                    api("DELETE", "/items/products_ingredients", [link["id"] for link in links])
     print(json.dumps({"apply": APPLY, "checked": len(rows), **report}), file=sys.stderr)
 
 
